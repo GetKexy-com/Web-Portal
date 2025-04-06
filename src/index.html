@@ -1,13 +1,77 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>KexyBrandPortal</title>
-  <base href="/">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <meta charset="utf-8" />
+  <title>KEXY Webportal</title>
+  <meta
+    content="No more missed selling opportunities. No social distance concerns. No more last-minute orders.&zwj;&zwj;Real-time data that will transform your operations. The KEXY dashboard delivers customers’ inventory data and sales velocity, empowering reps to provide superior customer service while never missing a sales opportunity."
+    name="description"
+  />
+  <base href="/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" type="image/x-icon" href="favicon.ico" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&display=swap"
+    rel="stylesheet"
+  />
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"
+  />
+
+  <script>
+    // const user = localStorage.getItem('userToken');
+    // const supportDiv = document.querySelector('.bb-feedback-button');
+    // console.log("From index.html");
+    // console.log({ supportDiv });
+    // if(!user) {
+    //   supportDiv.style.display = 'block';
+    // } else {
+    //   supportDiv.style.display = 'none !important';
+    // }
+  </script>
+
+
+  <!-- Google Tag Manager -->
+  <script>
+    (function (w, d, s, l, i) {
+      w[l] = w[l] || [];
+      w[l].push({ "gtm.start": new Date().getTime(), event: "gtm.js" });
+      var f = d.getElementsByTagName(s)[0],
+        j = d.createElement(s),
+        dl = l != "dataLayer" ? "&l=" + l : "";
+      j.async = true;
+      j.src = "https://www.googletagmanager.com/gtm.js?id=" + i + dl;
+      f.parentNode.insertBefore(j, f);
+    })(window, document, "script", "dataLayer", "GTM-5RRG7FW");
+  </script>
+  <!-- End Google Tag Manager -->
+
+  <script>
+    window.dataLayer = window.dataLayer || [];
+
+    function gtag() {
+      dataLayer.push(arguments);
+    }
+
+    gtag("js", new Date());
+  </script>
 </head>
 <body>
-  <app-root></app-root>
+<!-- Google Tag Manager (noscript) -->
+<noscript>
+  <iframe
+    src="https://www.googletagmanager.com/ns.html?id=GTM-5RRG7FW"
+    height="0"
+    width="0"
+    style="display: none; visibility: hidden"
+  ></iframe>
+</noscript>
+<!-- End Google Tag Manager (noscript) -->
+
+<app-root></app-root>
+
+<script type="text/javascript" src="/assets/mixpanel.js"></script>
 </body>
 </html>

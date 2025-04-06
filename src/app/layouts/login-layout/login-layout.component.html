@@ -1,0 +1,27 @@
+<div id="page-container">
+  <!-- Sidebar -->
+
+  <div class="desktop-view">
+    <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
+      <div class="client-logo">
+        <img style="width: 150px;" src="/assets/images/kexy-white-logo.png" alt="" />
+      </div>
+    </ul>
+  </div>
+
+  <div class="mobile-tablet-view">
+    <ul class="navbar-nav-mobile bg-gradient-primary sidebar-dark accordion" id="accordionSidebar">
+      <div class="client-logo">
+        <img style="width: 125px;" src="/assets/images/kexy-white-logo.png" alt="" />
+      </div>
+    </ul>
+  </div>
+
+  <div id="content-wrapper" class="flex-column d-flex" [style.justify-content]="isContentCentered ? 'center' : 'start'" [style.background-color]="bgColor">
+    <!-- header ends -->
+    <div id="main-content" [class]="layoutPaddingNone ? 'scrollable-full-page' : 'main-warp kx-custom-box-login-signup'">
+      <ng-content></ng-content>
+    </div>
+  </div>
+</div>
+<!--- #page-container ends -->

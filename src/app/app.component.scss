@@ -1,0 +1,103 @@
+.blue-button {
+  border: none;
+  outline: none;
+  width: 100%;
+  background: #12a5f4;
+  border-radius: 10px;
+  border-color: transparent;
+  color: white;
+  padding: 15px 0;
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 20px;
+}
+.mint-button {
+  border: none;
+  outline: none;
+  width: 100%;
+  background: #e7f6fe;
+  border-radius: 10px;
+  border-color: transparent;
+  color: #000000;
+  padding: 15px 0;
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 20px;
+}
+.orange-button {
+  border: none;
+  outline: none;
+  width: 100%;
+  background: #f46112;
+  border-radius: 10px;
+  border-color: transparent;
+  color: white;
+  padding: 15px 0;
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 20px;
+}
+.blue-border-white-bg-button {
+  border: 1px solid #0047cc;
+  outline: none;
+  width: 100%;
+  background: white;
+  border-radius: 10px;
+  color: #0047cc;
+  padding: 15px 0;
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 20px;
+}
+.text-right {
+  text-align: right !important;
+}
+.checkbox-control {
+  position: relative;
+}
+.close-position-right {
+  float: right;
+  border: none;
+  outline: 0;
+  box-shadow: none;
+  background: transparent;
+}
+.list-of-deals-page {
+  .table-area {
+    background: white;
+    .product-img-in-table {
+      height: 50px;
+    }
+    .table {
+      margin-bottom: 0;
+      thead {
+        tr {
+          background: #095cd2;
+          color: white;
+        }
+      }
+      th {
+        font-weight: normal;
+        font-size: 17px;
+        border-bottom: none;
+        border-top: none;
+      }
+      tr {
+        border-bottom: 1px solid #d4d4d4;
+        :last-child {
+          border-bottom: none;
+        }
+      }
+      td {
+        vertical-align: baseline;
+      }
+    }
+  }
+}
+.modal-content {
+  border-radius: 12px;
+}
+@media (min-width: 1200px) and (max-width: 1399px) {
+  .blue-button {
+  }
+}

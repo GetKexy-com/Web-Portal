@@ -1,0 +1,69 @@
+const BRAND = "brand/";
+const AFFILIATE = "affiliate/";
+const SUBSCRPTIONS = "subscriptions/";
+export const PROSPECTING = "prospecting/";
+export const PROMOTION = "promotion/";
+export const DRIP_CAMPAIGN = "drip-campaign/";
+export const SETTINGS = "settings/";
+export const CONTACTS = "contacts/";
+export const COMPANY_DETAILS = "company-details/";
+export const routeConstants = {
+  BASE_URL: "/",
+  HOME: "home",
+  LOGIN: "login",
+  REGISTER: "register",
+  FORGET_PASSWORD: "forget-password",
+  RESET_PASSWORD: "reset-password",
+  EMAIL_CONFIRMATION: "email-confirmation",
+  EMAIL_VERIFICATION: "email-verification",
+  JOIN: "join",
+  SSO: "sso",
+  MESSAGE_REPLY: "message-reply",
+  AFFILIATE: {
+    PROGRESS: AFFILIATE + "progress",
+    SIGNUP: AFFILIATE + "signup",
+    THANK_YOU: AFFILIATE + "thank-you",
+  },
+  BRAND: {
+    PROSPECT_URL: BRAND + PROSPECTING,
+    CREATE: BRAND + "create",
+    PROMOTIONS: BRAND + PROMOTION + "create",
+    LIST_PROMOTION: BRAND + PROMOTION + "list",
+    PROMOTION_COMPANY_DESC: BRAND + COMPANY_DETAILS + "company-description",
+    PROMOTION_PRODUCT_DESC: BRAND + COMPANY_DETAILS + "product-description",
+    CAMPAIGN_ANALYTICS: BRAND + PROMOTION + "analytics",
+    ORGANIZATION: BRAND + "organization",
+    ORGANIZATION_LIST: BRAND + "brand-list",
+    INVITATION: BRAND + "invitation",
+    INVITATION_LIST: BRAND + "invitation-list",
+    LIST_INVOICE: BRAND + "list-of-invoices",
+    EDIT_COMPANY: BRAND + "edit-brand",
+    EDIT_PROFILE: BRAND + "edit-profile",
+    SUBSCRIPTION: BRAND + "subscriptions",
+    SUBSCRIPTION_SELECTION: BRAND + "subscription-selection",
+    MARKETING_TOOLS: BRAND + "marketing-tools",
+    ADD_BUSINESS: BRAND + "add-brand",
+    WELCOME: BRAND + "welcome",
+    INVITE_PEOPLE: BRAND + "invite-people",
+    DISTRIBUTORS: BRAND + "distributors",
+    PROSPECTING_CONV_ALL: BRAND + PROSPECTING + "conversations",
+    PROSPECTING_SENT_CONV: BRAND + PROSPECTING + "sent-conversations",
+    PROSPECTING_CONV_EMAIL: BRAND + PROSPECTING + "conversations/new-email",
+    PROSPECTING_STATISTICS: BRAND + PROSPECTING + "statistics",
+    PROSPECTING_SALES_LEAD: BRAND + PROSPECTING + "sales-lead",
+    PROSPECTING_SELECT_CONTACT: BRAND + PROSPECTING + "select-contact",
+    CREATE_DRIP_CAMPAIGN: BRAND + DRIP_CAMPAIGN + "create",
+    LIST_DRIP_CAMPAIGN: BRAND + DRIP_CAMPAIGN + "list",
+    LAUNCH_DRIP_CAMPAIGN: BRAND + DRIP_CAMPAIGN + "launch",
+    PRICE: BRAND + SUBSCRPTIONS + "price",
+    CREDITS: BRAND + "credits",
+    SUPPRESSION_LIST: BRAND + "suppression-list",
+    MANAGE_CONTACTS: BRAND + CONTACTS + "manage",
+    FIND_LEADS: BRAND + CONTACTS + "find-leads",
+    MANAGE_LIST: BRAND + CONTACTS + "manage-list",
+    LIST_CONTACTS: BRAND + CONTACTS + "list-contacts",
+    SLACK_INTEGRATION: BRAND + "slack-integration",
+    SMTP_SETTINGS: BRAND + "email-account-settings",
+  },
+  PUBLIC_PROMOTION_ATTRIBUTES: "promotion-attributes",
+};

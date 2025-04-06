@@ -1,0 +1,219 @@
+.login-form .form-error {
+  margin-top: 25px !important;
+}
+
+.login-left {
+  float: left;
+  padding: 48px 65px 65px 63px;
+  h4 {
+    font-weight: 900;
+    font-size: 24px;
+    line-height: 29px;
+    color: #0047cc;
+    letter-spacing: 0.5px;
+    margin-bottom: 30px;
+    padding: 0;
+  }
+  input[type="radio"],
+  input[type="checkbox"] {
+    outline: none;
+    border: 0;
+  }
+  button {
+    background: #007bff;
+    border: 0;
+    border-radius: 7px;
+    color: #fff;
+    text-transform: capitalize;
+    font-size: 20px;
+    // padding: 10px 64px;
+    padding: 10px 0px;
+    width: 48%;
+    float: right;
+    cursor: pointer;
+    outline: none;
+  }
+  .kx-go-back {
+    float: left;
+  }
+  .kx-go-back,
+  .kx-go-back:hover,
+  .kx-go-back:focus {
+    //padding: 10px 64px;
+    background: #f46112;
+    //border: none;
+    //text-decoration: none;
+    //outline: none;
+  }
+  .kx-create-btn {
+    background: #007bff;
+    color: #fff;
+    padding: 13px;
+    width: 100%;
+    margin-top: 8px;
+    cursor: pointer;
+    font-size: 18px;
+    text-decoration: none;
+  }
+}
+.remember-me-checkbox {
+  zoom: 1.5;
+}
+.remember-me-and-forget-password-wrap {
+  display: flex;
+  justify-content: space-between;
+}
+
+@media (min-width: 1200px) and (max-width: 1599px) {
+  .login-container {
+    width: 100% !important;
+    height: auto;
+  }
+  .login-left {
+    padding: 10px 10px 20px 10px !important;
+    h4 {
+      font-size: 23px !important;
+      line-height: 27px !important;
+    }
+    button {
+      width: 48%;
+      padding: 10px;
+      font-size: 15px !important;
+    }
+    .kx-create-btn {
+      padding: 10px;
+      font-size: 16px !important;
+      width: 100%;
+    }
+  }
+  input {
+    font-size: 14px !important;
+  }
+  .remember-me-checkbox {
+    zoom: 1.4 !important;
+  }
+  .remember-me-text {
+    font-size: 15px !important;
+  }
+  .forgot-password-link-text {
+    font-size: 15px !important;
+  }
+  .do-you-have-an-account-text {
+    font-size: 15px !important;
+  }
+}
+@media (min-width: 980px) and (max-width: 1199px) {
+  .login-container {
+    width: 97% !important;
+    height: auto;
+  }
+  .login-left {
+    padding: 10px 10px 17px 10px !important;
+    h4 {
+      font-size: 20px !important;
+      line-height: 24px !important;
+    }
+    button {
+      width: 48%;
+      padding: 10px;
+      font-size: 14px !important;
+    }
+    .kx-create-btn {
+      padding: 10px;
+      font-size: 13px !important;
+      width: 100%;
+    }
+  }
+  input {
+    font-size: 12px !important;
+  }
+  .remember-me-checkbox {
+    zoom: 1.2 !important;
+  }
+  .remember-me-text {
+    font-size: 13px !important;
+  }
+  .forgot-password-link-text {
+    font-size: 13px !important;
+  }
+  .do-you-have-an-account-text {
+    font-size: 13px !important;
+  }
+}
+@media (min-width: 560px) and (max-width: 979px) {
+  .login-container {
+    // width: 100%;
+    width: 90%;
+    height: auto;
+  }
+  .login-left {
+    width: 100%;
+    padding: 20px;
+    padding: 8px 15px 8px 15px;
+    h4 {
+      font-size: 22px;
+      line-height: 27px;
+    }
+    button {
+      width: 48%;
+      padding: 10px;
+    }
+    .kx-create-btn {
+      padding: 14px;
+      font-size: 16px;
+      width: 100%;
+    }
+  }
+}
+@media (min-width: 320px) and (max-width: 560px) {
+  .login-container .login-wrapper {
+    padding: 20px 10px;
+  }
+  .login-left {
+    button {
+      width: 45%;
+      padding: 8px 0px;
+      font-size: 12px;
+    }
+    h4 {
+      font-size: 22px;
+      line-height: 27px;
+    }
+    .form-group {
+      .l-form {
+        float: none;
+        margin-bottom: 15px;
+      }
+      .r-form {
+        float: none;
+      }
+    }
+  }
+  .padding-left-mobile {
+    padding-left: 3px !important;
+  }
+
+  input,
+  select {
+    font-size: 12px !important;
+  }
+  label,
+  p,
+  a {
+    font-size: 14px !important;
+  }
+  .kx-create-btn {
+    padding: 8px 0 !important;
+    font-size: 12px !important;
+    width: 100% !important;
+  }
+  .padding-left-mobile {
+    padding-left: 10px !important;
+  }
+  .remember-me-checkbox {
+    zoom: 1.2;
+  }
+  .remember-me-and-forget-password-wrap {
+    display: block;
+  }
+}

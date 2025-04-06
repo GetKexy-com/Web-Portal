@@ -1,0 +1,32 @@
+export class Organization {
+  city: string;
+  country: string;
+  // tslint:disable-next-line:variable-name
+  default_access_level: {};
+  distributor_id: number;
+  fake_distributor: {};
+  id: number;
+  job_title: string;
+  role: string;
+  logo_image_url: string;
+  name: string;
+  company_website: string;
+  active_feature: string;
+  phone: string;
+  privilege_code_list: string;
+  restaurant_id: number;
+  side: string;
+  state: string;
+  status: string;
+  street_address: string;
+  subscription: {};
+  supplier_id: number;
+  type: string;
+  zip_code_list: any;
+  zip_code: string;
+  calendly_links: string;
+  company_description: string;
+  websites: string;
+  slack_notification_sent?: boolean;
+  industry?: string;
+}
