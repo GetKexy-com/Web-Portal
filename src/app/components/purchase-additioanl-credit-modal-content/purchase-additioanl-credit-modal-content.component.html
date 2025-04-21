@@ -1,0 +1,136 @@
+<!--<div *ngIf="!initialLoading" class="purchase-credit-modal">-->
+<!--  <div class="header-area">-->
+<!--    <p>Purchase Additional Credits</p>-->
+<!--    <img src="/assets/images/close-icon.png" alt="close-icon" style="cursor:pointer;" (click)="activeModal.close('Close click')" />-->
+<!--  </div>-->
+<!--  <div class="middle-area">-->
+<!--    <p class="additional-credits-rollover-text">Additional credits rollover and do not expire unless you cancel your-->
+<!--      account.</p>-->
+<!--    <div class="credit-price-info d-flex justify-content-between">-->
+<!--      <div class="credit-number" *ngIf="creditsInfo">-->
+<!--        <p>{{ creditsInfo.allowed_credit_limit }} (Current plan) + {{creditsToPurchase}} credits</p>-->
+<!--      </div>-->
+<!--      <div class="credits-price">-->
+<!--        <p class="m-0 ms-1">{{creditsPrice | currency}}</p>-->
+<!--      </div>-->
+<!--    </div>-->
+<!--    <div class="kexy-range-slider">-->
+<!--      <ngx-slider-->
+<!--        [(value)]="creditsToPurchase"-->
+<!--        [options]="creditsPriceOptions"-->
+<!--        (valueChange)="creditValueChange($event)"-->
+<!--      ></ngx-slider>-->
+<!--    </div>-->
+<!--    <div class="purchase-credits-btn-wrap">-->
+<!--      <div class="btn-container">-->
+<!--        <app-kexy-button-->
+<!--          [disabled]="creditsToPurchase < 1 || isLoading"-->
+<!--          (click)="purchaseAdditionalCreditsTapped()"-->
+<!--          [iconLeft]="isLoading ? 'fa-refresh fa-spin' : 'fa-cart-arrow-down'"-->
+<!--          label="Purchase credits"></app-kexy-button>-->
+<!--      </div>-->
+<!--      <div class="coupon-container">-->
+<!--        <input type="text" [(ngModel)]="couponCode" class="form-control me-2" placeholder="Enter coupon code">-->
+<!--      </div>-->
+<!--    </div>-->
+<!--  </div>-->
+<!--  <div class="bottom-area">-->
+<!--    <div class="image-wrapper">-->
+<!--      <img src="/assets/images/message-info.png" alt="">-->
+<!--    </div>-->
+<!--    <h4>Have more advanced needs</h4>-->
+<!--    <div class="btn-wrapper">-->
+<!--      <app-kexy-button-->
+<!--        label="Let's talk"-->
+<!--        (click)="talkButtonTap()"-->
+<!--        bgColor="transparent"-->
+<!--        align="center"-->
+<!--        iconSize="small"-->
+<!--        textColor="#0047CC"-->
+<!--        borderColor="#0047CC"-->
+<!--      ></app-kexy-button>-->
+<!--    </div>-->
+<!--  </div>-->
+<!--</div>-->
+
+<!--<div *ngIf="initialLoading" class="p-5 text-center">-->
+<!--  <i class="fa fa-spinner fa-spin" aria-hidden="true"></i>-->
+<!--</div>-->
+
+@if (!initialLoading()) {
+  <div class="purchase-credit-modal">
+    <div class="header-area">
+      <p>Purchase Additional Credits</p>
+      <img src="/assets/images/close-icon.png" alt="close-icon" style="cursor:pointer;"
+           (click)="activeModal.close('Close click')" />
+    </div>
+    <div class="middle-area">
+      <p class="additional-credits-rollover-text">
+        Additional credits rollover and do not expire unless you cancel your account.
+      </p>
+
+      <div class="credit-price-info d-flex justify-content-between">
+        <div class="credit-number">
+          @if (creditsInfo()) {
+            <p>{{ creditsInfo().allowed_credit_limit }} (Current plan) + {{creditsToPurchase()}} credits</p>
+          }
+        </div>
+        <div class="credits-price">
+          <p class="m-0 ms-1">{{creditsPrice() | currency}}</p>
+        </div>
+      </div>
+
+      <div class="kexy-range-slider">
+        <ngx-slider
+          [value]="creditsToPurchase()"
+          [options]="creditsPriceOptions"
+          (valueChange)="creditValueChange($event)"
+        ></ngx-slider>
+      </div>
+
+      <div class="purchase-credits-btn-wrap">
+        <div class="btn-container">
+          <app-kexy-button
+            [disabled]="creditsToPurchase() < 1 || isLoading()"
+            (click)="purchaseAdditionalCreditsTapped()"
+            [iconLeft]="isLoading() ? 'fa-refresh fa-spin' : 'fa-cart-arrow-down'"
+            label="Purchase credits">
+          </app-kexy-button>
+        </div>
+        <div class="coupon-container">
+          <input
+            type="text"
+            [ngModel]="couponCode()"
+            (ngModelChange)="couponCode.set($event)"
+            class="form-control me-2"
+            placeholder="Enter coupon code"
+          >
+        </div>
+      </div>
+    </div>
+
+    <div class="bottom-area">
+      <div class="image-wrapper">
+        <img src="/assets/images/message-info.png" alt="">
+      </div>
+      <h4>Have more advanced needs</h4>
+      <div class="btn-wrapper">
+        <app-kexy-button
+          label="Let's talk"
+          (click)="talkButtonTap()"
+          bgColor="transparent"
+          align="center"
+          iconSize="small"
+          textColor="#0047CC"
+          borderColor="#0047CC">
+        </app-kexy-button>
+      </div>
+    </div>
+  </div>
+}
+
+@if (initialLoading()) {
+  <div class="p-5 text-center">
+    <i class="fa fa-spinner fa-spin" aria-hidden="true"></i>
+  </div>
+}

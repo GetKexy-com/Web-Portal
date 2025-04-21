@@ -1,0 +1,173 @@
+<!--<div class="content">-->
+<!--  <div class="left-side">-->
+<!--    <div class="close-icon-wrap-for-mobile">-->
+<!--      <button (click)="close()"><img src="/assets/images/close-icon-image.png" /></button>-->
+<!--    </div>-->
+<!--    <p class="left-side-title-text mb-0 mt-2">{{ titlePart1 }}</p>-->
+<!--    <p class="left-side-title-text mb-4">{{ titlePart2 }}</p>-->
+<!--    <div class="feature-boxes-wrap" *ngFor="let feature of features">-->
+<!--      <card-with-icon-and-content [data]="feature"></card-with-icon-and-content>-->
+<!--      <img *ngIf="feature.next" src="/assets/images/blue-dott-line-new.png" style="margin-left: 33px" />&ndash;&gt;-->
+<!--    </div>-->
+<!--    <audio #audio [src]="aurdioUrl"></audio>-->
+<!--    <div class="btn-wrap">-->
+<!--      <app-kexy-button-->
+<!--        style="width: 60%"-->
+<!--        fontSize="14px"-->
+<!--        [iconLeft]="audioPlayBtnIconLeft"-->
+<!--        [label]="audioPlayBtnText"-->
+<!--        (click)="playAudio(audio)"-->
+<!--      ></app-kexy-button>-->
+
+<!--    </div>-->
+<!--    <div class="dont-show-again-checkbox">-->
+<!--      <div class="form-check">-->
+<!--        <input class="form-check-input" type="checkbox" id="dontShowAgain" (change)="toggleDontShowCheckbox($event)" />-->
+<!--        <label class="form-check-label mb-0" for="dontShowAgain">Don’t show again</label>-->
+<!--      </div>-->
+<!--    </div>-->
+<!--  </div>-->
+<!--  <div class="right-side">-->
+<!--    <div class="close-btn-wrap">-->
+<!--      <button (click)="close()"><img src="/assets/images/close-icon-image.png" /></button>-->
+<!--    </div>-->
+<!--    <div class="content-wrap">-->
+<!--      <div>-->
+<!--        <img src="/assets/images/sarah.png" />-->
+<!--      </div>-->
+<!--      <div class="pro-tips-card">-->
+<!--        <div class="top-area">-->
+<!--          <div class="icon-wrap">-->
+<!--            <span><img src="/assets/icon/crown-icon.svg" /></span>-->
+<!--          </div>-->
+<!--          <p>PRO tip</p>-->
+<!--        </div>-->
+<!--        <div class="text-content">-->
+<!--          <p *ngIf="proTipBusinessOperation">-->
+<!--            If you are unsure about what your fixed and variable costs are,-->
+<!--            <a-->
+<!--              href="https://calendly.com/kexy/meet-with-the-kexy-team"-->
+<!--              target="_blank"-->
+<!--              style="color: white; font-weight: bold; text-decoration: underline !important"-->
+<!--            >book a call</a-->
+<!--            >-->
+<!--            with us and we’ll help you out!-->
+<!--          </p>-->
+<!--          <p *ngIf="proTipInventoryOrders">-->
+<!--            Taking inventory weekly is key to getting the most out of KEXY. The average restaurant that takes inventory-->
+<!--            weekly saves 3% in revenue annually and identifies waste and theft better.-->
+<!--          </p>-->
+<!--          <p *ngIf="proTipMenuPerformance">-->
+<!--            Designate your featured cocktails underneath the type of branded spirit that uses it. For example, if a-->
+<!--            featured cocktail primarily uses Tito's vodka, include the drink as if someone ordered a Tito's soda.-->
+<!--          </p>-->
+<!--          <p *ngIf="proTipReports">-->
+<!--            Take advantage of all the KPI’s we track because aside from analyzing the performance of your inventory, we-->
+<!--            can also monitor other things such as your labor and sales operations.-->
+<!--          </p>-->
+<!--          <p *ngIf="proTipDripCampaign">-->
+<!--            The fewer words used in email campaigns, the higher the open rate. Use the shortener toggle button to keep your message between 50 and 75 words.-->
+<!--          </p>-->
+<!--          <p *ngIf="proTipPromotion">-->
+<!--            Your promotion has a higher chance of being viewed by potential customers when you include a photo, video, and sales sheet.-->
+<!--          </p>-->
+<!--        </div>-->
+<!--      </div>-->
+<!--    </div>-->
+<!--  </div>-->
+<!--</div>-->
+
+<div class="content">
+  <div class="left-side">
+    <div class="close-icon-wrap-for-mobile">
+      <button (click)="close()"><img src="/assets/images/close-icon-image.png" /></button>
+    </div>
+    <p class="left-side-title-text mb-0 mt-2">{{ titlePart1 }}</p>
+    <p class="left-side-title-text mb-4">{{ titlePart2 }}</p>
+    <div class="feature-boxes-wrap" *ngFor="let feature of features">
+      <card-with-icon-and-content [data]="feature"></card-with-icon-and-content>
+      <img *ngIf="feature.next" src="/assets/images/blue-dott-line-new.png" style="margin-left: 33px" />
+    </div>
+    <audio #audio [src]="aurdioUrl"></audio>
+    <div class="btn-wrap">
+      <app-kexy-button
+        style="width: 60%"
+        fontSize="14px"
+        [iconLeft]="audioPlayBtnIconLeftSig()"
+        [label]="audioPlayBtnTextSig()"
+        (click)="playAudio(audio)"
+      ></app-kexy-button>
+    </div>
+    <div class="dont-show-again-checkbox">
+      <div class="form-check">
+        <input
+          class="form-check-input"
+          type="checkbox"
+          id="dontShowAgain"
+          [checked]="dontShowAgainCheck()"
+          (change)="toggleDontShowCheckbox($event)"
+        />
+        <label class="form-check-label mb-0" for="dontShowAgain">Don't show again</label>
+      </div>
+    </div>
+  </div>
+  <div class="right-side">
+    <div class="close-btn-wrap">
+      <button (click)="close()"><img src="/assets/images/close-icon-image.png" /></button>
+    </div>
+    <div class="content-wrap">
+      <div>
+        <img src="/assets/images/sarah.png" />
+      </div>
+      <div class="pro-tips-card">
+        <div class="top-area">
+          <div class="icon-wrap">
+            <span><img src="/assets/icon/crown-icon.svg" /></span>
+          </div>
+          <p>PRO tip</p>
+        </div>
+        <div class="text-content">
+          @if (proTipBusinessOperation()) {
+            <p>
+              If you are unsure about what your fixed and variable costs are,
+              <a
+                href="https://calendly.com/kexy/meet-with-the-kexy-team"
+                target="_blank"
+                style="color: white; font-weight: bold; text-decoration: underline !important"
+              >book a call</a>
+              with us and we'll help you out!
+            </p>
+          }
+          @if (proTipInventoryOrders()) {
+            <p>
+              Taking inventory weekly is key to getting the most out of KEXY. The average restaurant that takes inventory
+              weekly saves 3% in revenue annually and identifies waste and theft better.
+            </p>
+          }
+          @if (proTipMenuPerformance()) {
+            <p>
+              Designate your featured cocktails underneath the type of branded spirit that uses it. For example, if a
+              featured cocktail primarily uses Tito's vodka, include the drink as if someone ordered a Tito's soda.
+            </p>
+          }
+          @if (proTipReports()) {
+            <p>
+              Take advantage of all the KPI's we track because aside from analyzing the performance of your inventory, we
+              can also monitor other things such as your labor and sales operations.
+            </p>
+          }
+          @if (proTipDripCampaign()) {
+            <p>
+              The fewer words used in email campaigns, the higher the open rate. Use the shortener toggle button to keep your message between 50 and 75 words.
+            </p>
+          }
+          @if (proTipPromotion()) {
+            <p>
+              Your promotion has a higher chance of being viewed by potential customers when you include a photo, video, and sales sheet.
+            </p>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

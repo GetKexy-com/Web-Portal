@@ -1,0 +1,7 @@
+<div [className]="borderRight ? 'deal-other-info-wrap' : 'deal-other-info-wrap'">
+  <div class="icon-wrap" *ngIf="icon">
+    <img [src]="icon" />
+  </div>
+  <p class="title">{{ label }}</p>
+  <p class="value">{{ value }}</p>
+</div>

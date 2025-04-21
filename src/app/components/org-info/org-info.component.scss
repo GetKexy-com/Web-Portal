@@ -1,0 +1,71 @@
+.sidebar-top {
+  padding: 10px 0 0;
+  text-align: center;
+  margin-bottom: 40px;
+  .username {
+    font-size: 16px;
+    margin-top: 30px;
+    color: white;
+    font-weight: bold;
+    letter-spacing: 1px;
+  }
+  .c-name {
+    font-size: 14px;
+    color: white;
+    margin-top: 5px;
+    letter-spacing: 0.5px;
+  }
+  img {
+    width: 140px;
+    margin-top: 25px;
+  }
+}
+
+/*
+####################################################
+M E D I A  Q U E R I E S
+####################################################
+*/
+
+/* Large devices (desktops, 992px and up) */
+@media (min-width: 992px) {
+  .sidebar-top {
+    margin-bottom: 15px;
+    img {
+      margin-top: 20px;
+      width: 100px;
+    }
+    .username {
+      margin-top: 20px;
+      font-size: 15px;
+    }
+    .c-name {
+      font-size: 13px;
+    }
+  }
+}
+
+/* Extra large devices (large desktops, 1200px and up) */
+@media (min-width: 1200px) {
+  .sidebar-top {
+    margin-bottom: 15px;
+    img {
+      margin-top: 20px;
+      width: 120px;
+    }
+    .username {
+      margin-top: 20px;
+    }
+  }
+}
+
+/* Extra extra large devices (extra large desktops, 1400px and up) */
+@media (min-width: 1400px) {
+  .sidebar-top {
+    margin-bottom: 40px;
+    img {
+      width: 140px;
+      margin-top: 25px;
+    }
+  }
+}

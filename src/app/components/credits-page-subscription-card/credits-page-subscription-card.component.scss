@@ -1,0 +1,80 @@
+.credits-page-subscription-card {
+  background: white;
+  border-radius: 10px;
+  .top-area {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 20px;
+    border-bottom: 1px solid #E7F6FE;
+    .left-side {
+      p {
+        font-size: 16px;
+        font-weight: 500;
+        line-height: 19.2px;
+        margin-bottom: 0;
+        color: #0047CC;
+        padding-right: 10px;
+      }
+    }
+    .right-side {
+    }
+  }
+  .content-area {
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    .left-side-content {
+      display: flex;
+      .img-wrap {
+        width: 45px;
+        height: 45px;
+        border-radius: 8px;
+        background: #E7F6FE;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-right: 15px;
+        img {
+          width: 20px;
+        }
+      }
+      .text-content {
+        p {
+          font-size: 16px;
+          font-weight: 600;
+          line-height: 18.8px;
+          margin-bottom: 5px;
+          span {
+            font-size: 12px;
+            font-weight: 400;
+            line-height: 14px;
+            color: #747474;
+          }
+          .line-price {
+            padding-right: 5px;
+            color: #747474;
+          }
+        }
+      }
+    }
+    .right-side-content {
+      display: flex;
+      div {
+        margin-left: 30px;
+      }
+      p {
+        font-size: 14px;
+        font-weight: 400;
+        line-height: 16.4px;
+        margin-bottom: 5px;
+        span {
+          font-size: 12px;
+          font-weight: 400;
+          line-height: 14px;
+          color: #747474;
+        }
+      }
+    }
+  }
+}

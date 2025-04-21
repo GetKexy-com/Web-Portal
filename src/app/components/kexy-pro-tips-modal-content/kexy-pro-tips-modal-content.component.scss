@@ -1,0 +1,308 @@
+.content {
+  display: flex;
+  .left-side {
+    width: 50%;
+    padding: 20px;
+    .close-icon-wrap-for-mobile {
+      display: flex;
+      justify-content: end;
+      margin: 10px 0 20px 0;
+      button {
+        border: none;
+        outline: none;
+        // width: 35px;
+        // height: 35px;
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(17.5px);
+        border-radius: 10px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+    }
+    .left-side-title-text {
+      font-style: normal;
+      font-weight: 600;
+      font-size: 22px;
+      line-height: 28px;
+      color: #000000;
+      margin-bottom: 20px;
+    }
+    .more-from-sarah-btn {
+      margin-top: 40px;
+      margin-bottom: 50px;
+      width: fit-content;
+    }
+    .btn-wrap {
+      display: flex;
+      margin-top: 40px;
+      margin-bottom: 50px;
+    }
+    .dont-show-again-checkbox {
+      position: absolute;
+      bottom: 30px;
+      // margin-top: 30px;
+      input {
+        width: 18px;
+        height: 18px;
+      }
+      label {
+        font-size: 15px;
+        margin-left: 4px;
+      }
+    }
+  }
+  .right-side {
+    width: 50%;
+    background-color: #e7f6fe;
+    position: relative;
+    padding: 25px;
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
+    display: flex;
+    align-items: end;
+    .close-btn-wrap {
+      position: absolute;
+      right: 10px;
+      top: 10px;
+      button {
+        width: 35px;
+        height: 35px;
+        border-radius: 10px;
+        background-color: #e7f6fe;
+        border: none;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+    }
+    .content-wrap {
+      .sarah-img-wrap {
+        background-image: url(/assets/images/sarah.JPG);
+        background-repeat: no-repeat;
+        background-size: cover;
+        width: 100%;
+        height: 100%;
+        background-position: center center;
+        background-color: transparent;
+        border-top-right-radius: 12px;
+        border-bottom-right-radius: 12px;
+      }
+      .pro-tips-card {
+        background-color: #0047cc;
+        border-radius: 16px;
+        padding: 20px;
+        // margin: 0 20px;
+        // position: absolute;
+        bottom: 35px;
+        .top-area {
+          display: flex;
+          width: fit-content;
+          background-color: white;
+          border-radius: 47px;
+          .icon-wrap {
+            span {
+              background-color: #12a5f4;
+              width: 35px;
+              height: 35px;
+              border-radius: 30px;
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              img {
+              }
+            }
+          }
+          p {
+            font-size: 16px;
+            line-height: 28px;
+            color: #0047cc;
+            margin: 4px 18px 0 12px;
+            font-weight: bold;
+          }
+        }
+        .text-content {
+          margin-top: 15px;
+          p {
+            font-size: 15px;
+            line-height: 20px;
+            color: white;
+            margin-bottom: 0;
+          }
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 575px) {
+  .content {
+    .left-side {
+      width: 100%;
+      padding: 5px 20px 20px 20px;
+      .if-you-havent-download-text {
+        font-size: 20px;
+        line-height: 22px;
+      }
+      .close-icon-wrap-for-mobile {
+        button {
+        }
+      }
+      .download-links-area {
+        padding: 10px 0;
+        .app-play-store-section {
+          padding: 0 15px;
+          .scan-code-wrap {
+            padding: 15px;
+          }
+          .app-play-store-img {
+            margin-top: 25px;
+          }
+        }
+      }
+    }
+    .right-side {
+      display: none;
+      .img {
+        display: none;
+        height: 0;
+      }
+    }
+  }
+}
+@media (min-width: 576px) and (max-width: 767px) {
+  .content {
+    .left-side {
+      width: 100%;
+      padding: 5px 20px 20px 20px;
+      .if-you-havent-download-text {
+        font-size: 20px;
+        line-height: 22px;
+      }
+      .close-icon-wrap-for-mobile {
+        button {
+        }
+      }
+      .download-links-area {
+        padding: 10px 0;
+        .app-play-store-section {
+          padding: 0 15px;
+          .scan-code-wrap {
+            padding: 15px;
+          }
+          .app-play-store-img {
+            margin-top: 25px;
+          }
+        }
+      }
+    }
+    .right-side {
+      display: none;
+      .img {
+        display: none;
+        height: 0;
+      }
+    }
+  }
+}
+@media (min-width: 768px) and (max-width: 991px) {
+  .content {
+    .left-side {
+      width: 100%;
+      padding: 5px 20px 20px 20px;
+      .if-you-havent-download-text {
+        font-size: 20px;
+        line-height: 22px;
+      }
+      .close-icon-wrap-for-mobile {
+        button {
+        }
+      }
+      .download-links-area {
+        padding: 10px 0;
+        .app-play-store-section {
+          padding: 0 15px;
+          .scan-code-wrap {
+            padding: 15px;
+          }
+          .app-play-store-img {
+            margin-top: 25px;
+          }
+        }
+      }
+    }
+    .right-side {
+      display: none;
+      .img {
+        display: none;
+        height: 0;
+      }
+    }
+  }
+}
+@media (min-width: 992px) and (max-width: 1199px) {
+  .content {
+    .left-side {
+      .close-icon-wrap-for-mobile {
+        display: none;
+      }
+      .left-side-title-text {
+        font-size: 24px;
+        line-height: 30px;
+      }
+      .dont-show-again-checkbox {
+        input {
+          width: 18px;
+          height: 18px;
+        }
+        label {
+          font-size: 16px;
+        }
+      }
+    }
+    .right-side {
+      .img {
+        display: none;
+        height: 0;
+      }
+      .content-wrap {
+        .pro-tips-card {
+          .text-content {
+            p {
+            }
+          }
+        }
+      }
+    }
+  }
+}
+@media (min-width: 1200px) and (max-width: 1599px) {
+  .content {
+    .left-side {
+      .close-icon-wrap-for-mobile {
+        display: none;
+      }
+    }
+    .right-side {
+      .img {
+        display: none;
+        height: 0;
+      }
+    }
+  }
+}
+@media (min-width: 1600px) {
+  .content {
+    .left-side {
+      .close-icon-wrap-for-mobile {
+        display: none;
+      }
+    }
+    .right-side {
+      .img-for-lg-modal {
+        display: none;
+        height: 0;
+      }
+    }
+  }
+}

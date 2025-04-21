@@ -1,0 +1,14 @@
+.manage-list-page {
+  .top-btns {
+    padding: 10px 30px;
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .content-area {
+    padding: 24px;
+    overflow-x: scroll;
+    height: calc(100vh - 129px);
+    background: #e7f6fe;
+  }
+}

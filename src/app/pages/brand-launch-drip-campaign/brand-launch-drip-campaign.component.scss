@@ -1,0 +1,35 @@
+.company-description-page {
+  background: #e7f6fe;
+  padding: 18px 24px;
+  height: calc(100vh - 70px);
+
+  .card-area-wrap {
+    padding-bottom: 20px;
+  }
+}
+
+
+.brand-drip-campaign-page {
+  .page-content {
+    background: #ffffff;
+    border-radius: 10px;
+    padding: 16px;
+    .credit-content {
+      padding: 15px 15px 10px 0;
+    }
+    .buy-more-link-text {
+      margin-left: 5px;
+      color: #2847cc;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+    .credit-error-message-wrap {
+      width: fit-content;
+      margin-top: 10px;
+    }
+    .launch-btn-wrap {
+      margin-top: 15px;
+      width: 220px;
+    }
+  }
+}

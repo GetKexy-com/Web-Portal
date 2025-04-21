@@ -1,0 +1,56 @@
+<div class="drip-campaign-card" [ngClass]="{'animate__animated animate__backInDown': email['isNewBox']}">
+  <!--  Top blue border in card-->
+  <div *ngIf="showBlueBorder" class="blue-top-border"></div>
+
+  <div class="head-area">
+    <div class="icon-wrap">
+      <img [src]="headerIcon" alt="message icon" />
+    </div>
+    <p class="send-email-text">{{ headerTitle }}</p>
+  </div>
+  <div class="middle-area">
+    <p class="send-text">
+      {{ isDelayCard ? "Delay for" : "Subject:" }} <span (click)="handleShowDetailsBtnClick()">{{ emailText }}</span>
+    </p>
+    <!--    <p *ngIf="clickRate" class="click-rate-text">{{ clickRate }}</p>-->
+  </div>
+  <div class="bottom-area">
+    <div class="right-side-icons d-flex">
+      <app-kexy-button
+        *ngIf="!isDelayCard"
+        [label]="deleteLoading ? 'Deleting...' : 'Delete' "
+        [title]="disableTitle"
+        [disabled]="deleteDisabled()"
+        [iconLeft]="deleteLoading ? 'fa-refresh fa-spin' : 'fa-trash-o'"
+        bgColor="white"
+        textColor="#0047CC"
+        (click)="deleteItem()"
+      ></app-kexy-button>
+      <app-kexy-button
+        *ngIf="isDelayCard && emailContacts.length"
+        [label]="emailContacts.length + ' contact(s) in actions'"
+        bgColor="white"
+        textColor="#f46112"
+        iconLeft="fa-users"
+        (click)="showDripCampaignContacts(emailContacts)"
+      ></app-kexy-button>
+    </div>
+    <div class="left-side-button">
+      <app-kexy-button
+        *ngIf="!isDelayCard && emailText"
+        label="Insights"
+        iconLeft="fa-line-chart"
+        bgColor="white"
+        textColor="#0047CC"
+        (click)="handleInsightsBtnClick()"
+      ></app-kexy-button>
+      <app-kexy-button
+        label="Show details"
+        iconLeft="fa-eye"
+        bgColor="white"
+        textColor="#0047CC"
+        (click)="handleShowDetailsBtnClick()"
+      ></app-kexy-button>
+    </div>
+  </div>
+</div>

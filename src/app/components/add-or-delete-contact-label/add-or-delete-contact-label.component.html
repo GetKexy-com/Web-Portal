@@ -1,0 +1,93 @@
+<div class="canvas-content-wrap non-hide-from-toggle">
+  <div class="head-area">
+    <p class="non-hide-from-toggle">{{ canvasTitle }} List</p>
+    <img class="non-hide-from-toggle" src="/assets/images/close-icon.png" alt="Close"
+         (click)="activeCanvas.dismiss('Cross click')" />
+  </div>
+
+  <div class="canvas-body non-hide-from-toggle">
+    <form [formGroup]="primaryForm" (ngSubmit)="handleSubmit()">
+      <div class="input-wrap non-hide-from-toggle">
+        <div class="label-and-input non-hide-from-toggle">
+          <p class="non-hide-from-toggle">List</p>
+          <input class="form-control non-hide-from-toggle" formControlName="label" type="text" placeholder="EX: HOT LEAD">
+          <div *ngIf="formValidationErrorCheck('label')">
+            <error-message-card message="Field is required!"></error-message-card>
+          </div>
+        </div>
+      </div>
+      <div class="input-wrap non-hide-from-toggle">
+        <div class="label-and-input non-hide-from-toggle">
+          <p class="non-hide-from-toggle">Color</p>
+          <div class="colors-wrap non-hide-from-toggle">
+            <div class="color-item non-hide-from-toggle" *ngFor="let item of colorOptions" [style.background-color]="item.labelBgColor"
+                 (click)="handleColorSelect(item)">
+              <i *ngIf="selectedColor && selectedColor.labelBgColor === item.labelBgColor" class="fa fa-check non-hide-from-toggle"
+                 aria-hidden="true"></i>
+            </div>
+          </div>
+          <div *ngIf="formValidationErrorCheck('bg_color')">
+            <error-message-card message="Field is required!"></error-message-card>
+          </div>
+        </div>
+      </div>
+      <div class="buttons mt-4 non-hide-from-toggle">
+        <button class="blue-button me-3 non-hide-from-toggle" type="submit">
+          Save<i *ngIf="isLoading" class="fa fa-spinner fa-spin ms-2" aria-hidden="true" style="color: white"></i>
+        </button>
+        <button class="blue-border-white-bg-button non-hide-from-toggle" type="button" (click)="activeCanvas.dismiss('Cross click')">Cancel
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!--<div class="canvas-content-wrap non-hide-from-toggle">-->
+<!--  <div class="head-area">-->
+<!--    <p class="non-hide-from-toggle">{{ canvasTitle() }} List</p>-->
+<!--    <img class="non-hide-from-toggle" src="/assets/images/close-icon.png" alt="Close"-->
+<!--         (click)="activeCanvas.dismiss('Cross click')" />-->
+<!--  </div>-->
+
+<!--  <div class="canvas-body non-hide-from-toggle">-->
+<!--    <form [formGroup]="primaryForm" (ngSubmit)="handleSubmit()">-->
+<!--      <div class="input-wrap non-hide-from-toggle">-->
+<!--        <div class="label-and-input non-hide-from-toggle">-->
+<!--          <p class="non-hide-from-toggle">List</p>-->
+<!--          <input class="form-control non-hide-from-toggle" formControlName="label" type="text" placeholder="EX: HOT LEAD">-->
+<!--          @if (formValidationErrorCheck('label')) {-->
+<!--            <error-message-card message="Field is required!"></error-message-card>-->
+<!--          }-->
+<!--        </div>-->
+<!--      </div>-->
+<!--      <div class="input-wrap non-hide-from-toggle">-->
+<!--        <div class="label-and-input non-hide-from-toggle">-->
+<!--          <p class="non-hide-from-toggle">Color</p>-->
+<!--          <div class="colors-wrap non-hide-from-toggle">-->
+<!--            @for (item of colorOptions; track item.labelBgColor) {-->
+<!--              <div class="color-item non-hide-from-toggle" [style.background-color]="item.labelBgColor"-->
+<!--                   (click)="handleColorSelect(item)">-->
+<!--                @if (selectedColor()?.labelBgColor === item.labelBgColor) {-->
+<!--                  <i class="fa fa-check non-hide-from-toggle" aria-hidden="true"></i>-->
+<!--                }-->
+<!--              </div>-->
+<!--            }-->
+<!--          </div>-->
+<!--          @if (formValidationErrorCheck('bg_color')) {-->
+<!--            <error-message-card message="Field is required!"></error-message-card>-->
+<!--          }-->
+<!--        </div>-->
+<!--      </div>-->
+<!--      <div class="buttons mt-4 non-hide-from-toggle">-->
+<!--        <button class="blue-button me-3 non-hide-from-toggle" type="submit">-->
+<!--          Save-->
+<!--          @if (isLoading()) {-->
+<!--            <i class="fa fa-spinner fa-spin ms-2" aria-hidden="true" style="color: white"></i>-->
+<!--          }-->
+<!--        </button>-->
+<!--        <button class="blue-border-white-bg-button non-hide-from-toggle" type="button"-->
+<!--                (click)="activeCanvas.dismiss('Cross click')">Cancel</button>-->
+<!--      </div>-->
+<!--    </form>-->
+<!--  </div>-->
+<!--</div>-->

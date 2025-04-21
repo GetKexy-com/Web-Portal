@@ -1,0 +1,99 @@
+.canvas-content-wrap {
+  position: relative;
+  overflow: auto;
+  height: 100vh;
+  .head-area {
+    display: flex;
+    justify-content: space-between;
+    padding: 24px;
+    border-bottom: 1px solid #e8e8e8;
+    p {
+      margin-bottom: 0;
+      font-weight: 600;
+      font-size: 20px;
+      line-height: 20px;
+      color: #181818;
+    }
+    img {
+      align-self: center;
+      cursor: pointer;
+    }
+  }
+  .add-delete-rep-button-area {
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px solid #e8e8e8;
+    padding: 10px;
+  }
+  .canvas-body {
+    padding: 30px 20px;
+    .input-wrap {
+      padding-right: 20px;
+      margin-top: 15px;
+      .label-and-input {
+        margin-bottom: 18px;
+        textarea {
+          height: 300px;
+        }
+        .form-control {
+          font-size: 14px;
+          padding: 10px;
+        }
+        p {
+          margin-bottom: 10px;
+          font-weight: 700;
+          font-size: 12px;
+          line-height: 12px;
+          letter-spacing: -0.01em;
+          text-transform: uppercase;
+          color: #202020;
+        }
+        select.form-control {
+          padding: 12px;
+        }
+      }
+    }
+    .canvas-headline {
+      color: #274acb;
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 20px;
+    }
+    .establishment-type {
+      overflow: hidden;
+      clear: both;
+      margin-bottom: 10px;
+    }
+    .buttons {
+      display: flex;
+      //width: 400px;
+      padding-right: 20px;
+      button {
+        border-radius: 15px;
+        //height: 45px;
+        padding: 10px 0;
+      }
+      .blue-border-white-bg-button {
+        border: 2px solid #d9d9d9;
+        color: #010101;
+      }
+    }
+  }
+}
+
+@media (min-width: 992px) and (max-width: 1599px) {
+  .canvas-content-wrap {
+    .canvas-body {
+      padding: 15px 0 15px 20px;
+      .canvas-headline {
+        font-size: 20px;
+        margin-bottom: 8px;
+      }
+      .establishment-type {
+        label {
+          font-size: 12px;
+        }
+      }
+    }
+  }
+}

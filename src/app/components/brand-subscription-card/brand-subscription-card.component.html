@@ -1,0 +1,76 @@
+<!--<div [className]="blueBorder ? 'subscription-selection-card blue-border' : 'subscription-selection-card'">-->
+<!--  <div [className]="title === 'Free' ? 'free-card-content' : 'free-card-content'">-->
+<!--    <div class="icon-title-area">-->
+<!--      <div class="icon-wrap">-->
+<!--        <div class="icon">-->
+<!--          <img [src]="icon" />-->
+<!--        </div>-->
+<!--      </div>-->
+<!--      <p class="title">{{ title }}</p>-->
+<!--      <p class="price-text"><span *ngIf="title !== 'Novice'">$</span>{{ priceText }}</p>-->
+<!--    </div>-->
+<!--  </div>-->
+
+<!--  <div>-->
+<!--    <div class="btn-wrap">-->
+<!--      <span *ngIf="!disableChooseBtn">-->
+<!--        <app-kexy-button-->
+<!--          [label]="submitBtnText"-->
+<!--          [iconLeft]="isLoading && selectedChooseBtn === title ? 'fa fa-spinner fa-spin' : ''"-->
+<!--          (click)="handleChooseBtnClick(title)"-->
+<!--        ></app-kexy-button>-->
+<!--      </span>-->
+<!--      <span *ngIf="disableChooseBtn"-->
+<!--      ><app-kexy-button-->
+<!--        [label]="submitBtnText"-->
+<!--        bgColor="white"-->
+<!--        textColor="black"-->
+<!--        borderColor="black"-->
+<!--      ></app-kexy-button-->
+<!--      ></span>-->
+<!--    </div>-->
+<!--  </div>-->
+<!--</div>-->
+
+<div [class]="_blueBorder() ? 'subscription-selection-card blue-border' : 'subscription-selection-card'">
+  <div [class]="_title() === 'Free' ? 'free-card-content' : 'free-card-content'">
+    <div class="icon-title-area">
+      <div class="icon-wrap">
+        <div class="icon">
+          <img [src]="_icon()" alt="subscription icon" />
+        </div>
+      </div>
+      <p class="title">{{ _title() }}</p>
+      <p class="price-text">
+        @if (_title() !== 'Novice') {
+          <span>$</span>
+        }
+        {{ _priceText() }}
+      </p>
+    </div>
+  </div>
+
+  <div>
+    <div class="btn-wrap">
+      @if (!_disableChooseBtn()) {
+        <span>
+          <app-kexy-button
+            [label]="submitBtnText()"
+            [iconLeft]="_isLoading() && selectedChooseBtn() === _title() ? 'fa fa-spinner fa-spin' : ''"
+            (click)="handleChooseBtnClick(_title())"
+          ></app-kexy-button>
+        </span>
+      }
+      @if (_disableChooseBtn()) {
+        <span>
+          <app-kexy-button
+            [label]="submitBtnText()"
+            bgColor="white"
+            textColor="black"
+            borderColor="black"
+          ></app-kexy-button>
+        </span>
+      }
+    </div>
+  </div>
+</div>

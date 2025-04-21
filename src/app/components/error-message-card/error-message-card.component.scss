@@ -1,0 +1,16 @@
+.error-card {
+  box-shadow: 0px 4px 16px 4px rgba(173, 173, 173, 0.29);
+  padding: 12px 20px;
+  border-radius: 6px;
+  display: flex;
+  color: rgba(202, 55, 9, 1);
+  margin-top: 7px;
+  background-color: white;
+
+  img {
+  }
+  p {
+    margin-bottom: 0;
+    margin-left: 6px;
+  }
+}

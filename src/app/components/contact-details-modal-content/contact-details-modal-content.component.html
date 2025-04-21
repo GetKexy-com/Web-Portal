@@ -1,0 +1,69 @@
+<div class="kexy-modal">
+  <section class="header-area">
+    <p>Contact Details</p>
+    <img src="/assets/images/close-icon.png" alt="close-icon" style="cursor:pointer;" (click)="activeModal.close('Close click')" />
+  </section>
+
+  <section class="middle-area">
+    <div class="user-info d-flex align-items-center">
+      <div class="m-2">
+        <brand-convo-avatar
+          [text]="getNameInitials()"
+          [color]="'blue'"
+        ></brand-convo-avatar>
+      </div>
+      <span>
+        {{contactDetails.name}}
+        <br>
+        <span style="font-weight: normal">
+          {{contactDetails.title}}
+          {{contactDetails.organization.name ? 'at' : ''}}
+          <a
+            [href]=""
+            target="_blank"
+            class="company-name"
+          >
+            {{contactDetails.organization.name}}
+          </a>
+        </span>
+      </span>
+    </div>
+    <div class="user-extra-info">
+      <div class="left-side">
+        <p>
+          <span class="contact-info-title">Phone: </span>
+          <span>{{contactDetails?.organization?.phone || 'N/A'}}</span>
+        </p>
+        <p>
+          <span class="contact-info-title">Email: </span>
+          <span>{{contact?.email || 'N/A'}}</span>
+        </p>
+        <p>
+          <span class="contact-info-title">LinkedIn: </span>
+          <a *ngIf="contactDetails?.organization?.linkedin_url" [href]="contactDetails.organization.linkedin_url" target="_blank"><i class="fa fa-linkedin-square" aria-hidden="true"></i></a>
+          <span *ngIf="!contactDetails.organization.linkedin_url">N/A</span>
+        </p>
+        <p>
+          <span class="contact-info-title">City: </span>
+          <span>{{contactDetails?.city || 'N/A'}}</span>
+        </p>
+      </div>
+      <div class="right-side">
+        <p>
+          <span class="contact-info-title">State: </span>
+          <span>{{contactDetails?.state || 'N/A'}}</span>
+        </p>
+        <p>
+          <span class="contact-info-title">Country: </span>
+          <span>{{contactDetails?.country || 'N/A'}}</span>
+        </p>
+        <p>
+          <span class="contact-info-title">Email Status: </span>
+          <span class="email-status status-green" *ngIf="contactDetails.email_status === 'verified'">Valid</span>
+          <span class="email-status status-red" *ngIf="contactDetails.email_status === 'invalid'">Invalid</span>
+          <span class="email-status status-yellow" *ngIf="contactDetails.email_status === 'unverified'">Unverified</span>
+        </p>
+      </div>
+    </div>
+  </section>
+</div>

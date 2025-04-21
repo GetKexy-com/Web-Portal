@@ -1,0 +1,63 @@
+.kexy-logo {
+  text-align: center;
+  margin-bottom: 20px;
+  //margin-top: 50px;
+}
+
+.tr-main-box {
+  overflow: hidden;
+  position: relative;
+  height: 553px;
+  width: 600px;
+  box-shadow: 0px 0px 10px 4px #d8d3d3;
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.tr-kexy-button {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.kexy-button {
+  background: #12a5f4;
+  border: 0;
+  border-radius: 7px;
+  color: #fff !important;
+  text-transform: capitalize;
+  font-size: 18px;
+  padding: 14px 63px;
+  cursor: pointer;
+  margin-top: 6px;
+  display: inline-block;
+}
+
+@media (min-width: 320px) and (max-width: 560px) {
+  .kexy-button {
+    padding: 10px 0;
+    width: 100%;
+  }
+  .tr-main-box {
+    padding: 20px !important;
+  }
+}
+
+@media (min-width: 991px) and (max-width: 1199px) {
+  .kexy-button {
+    font-size: 14px;
+    padding: 10px 63px;
+  }
+  .tr-main-box {
+    padding: 20px !important;
+    height: 450px;
+    width: 400px;
+  }
+  .kexy-logo {
+    img {
+      width: 100px;
+    }
+  }
+}

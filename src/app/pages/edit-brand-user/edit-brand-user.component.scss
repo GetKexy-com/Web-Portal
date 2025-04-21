@@ -1,0 +1,166 @@
+.tr-main-box {
+  overflow: hidden;
+  position: relative;
+  min-height: 600px;
+  background: white;
+  width: 1000px;
+  box-shadow: 0px 0px 10px 4px #d8d3d3;
+  margin: 40px auto auto;
+  padding: 20px;
+}
+
+.kexy-logo {
+  text-align: center;
+  margin-bottom: 20px;
+  margin-top: 20px;
+}
+
+.tr-kexy-button {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.kexy-button {
+  background: #12a5f4;
+  border-radius: 10px;
+  width: 360px;
+  padding: 18px;
+  font-size: 18px;
+  text-transform: capitalize;
+  line-height: 22px;
+  border: none;
+  color: white;
+}
+
+.profile-photo {
+  width: 178px;
+  //height: 178px;
+  border-radius: 10px;
+  margin-top: 60px;
+}
+.profile-photo-wrap {
+  margin-top: 20px;
+}
+.no-profile-image {
+  margin-top: 0px;
+  max-width: 134px;
+}
+.form-control {
+  background: #e7f6fe;
+  padding: 0px 20px;
+  font-size: 18px;
+  height: 55px;
+  line-height: 0px;
+}
+.tr-form {
+  width: 360px;
+  margin: auto;
+}
+
+.tr-hidden {
+  display: none;
+}
+.phonecode {
+  // float: left;
+  background-color: #e7f6fe;
+  border: none;
+  padding: 17px 9px 14px 14px;
+  font-size: 18px;
+}
+.phoneNumber {
+  width: 80%;
+  // float: left;
+  padding-left: 0px;
+  border: none;
+  padding-top: 5px;
+}
+.phonefields {
+  overflow: hidden;
+  border: 1px solid #ccc;
+  background: #e7f6fe;
+  border-radius: 6px;
+  display: flex;
+}
+.phoneNumber:focus {
+  border: none !important;
+  box-shadow: none;
+}
+@media (max-width: 767px) {
+  .phonefields {
+    display: flex;
+  }
+}
+@media (min-width: 980px) and (max-width: 1199px) {
+  .profile-photo {
+    margin-top: 0px;
+    width: 80px;
+  }
+  .no-profile-image {
+    max-width: 75px;
+  }
+  .kexy-button {
+    width: 300px;
+    font-size: 13px;
+    padding: 12px;
+  }
+  .form-control {
+    font-size: 13px;
+    padding: 12px 20px;
+    height: 45px;
+  }
+  .tr-form {
+    width: 300px;
+  }
+  .phonecode {
+    font-size: 13px;
+    padding: 13px 3px 13px 14px;
+  }
+  .phoneNumber {
+    padding-left: 0;
+  }
+  .kexy-logo {
+    margin-top: 0;
+  }
+  .profile-photo-wrap {
+    margin-top: 0;
+  }
+}
+@media (min-width: 1200px) and (max-width: 1599px) {
+  .profile-photo {
+    margin-top: 0px;
+    width: 85px;
+  }
+  .no-profile-image {
+    max-width: 80px;
+  }
+  .kexy-button {
+    width: 320px;
+    font-size: 15px;
+    padding: 14px;
+  }
+  .form-control {
+    font-size: 15px;
+    padding: 12px 20px;
+    height: 50px;
+  }
+  .tr-form {
+    width: 320px;
+  }
+  .phonecode {
+    font-size: 15px;
+    padding: 13px 5px 13px 14px;
+  }
+  .phoneNumber {
+    padding-left: 0;
+  }
+  .kexy-logo {
+    margin-top: 0;
+  }
+  .profile-photo-wrap {
+    margin-top: 0;
+  }
+}

@@ -1,0 +1,41 @@
+.learning-score-card {
+  border: 1px solid #FFFFFF;
+  background: #E7F6FE;
+  border-radius: 8px;
+  padding: 15px;
+  .learning-score-text {
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 20px;
+    color: #0047CC;
+    margin-bottom: 0px;
+  }
+  .make-email-adjustment-text {
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 20px;
+    letter-spacing: 0px;
+    color: #000000;
+    opacity: 60%;
+    margin-bottom: 10px;
+  }
+  .progressbar-wrap {
+    .progress-counter {
+      font-size: 12px;
+      font-weight: 400;
+      line-height: 20px;
+      letter-spacing: 0px;
+      color: #000000;
+      margin-bottom: 0px;
+      .fulfiled-number {
+        font-size: 26px;
+        font-weight: 700;
+        line-height: 40px;
+        letter-spacing: 0px;
+      }
+    }
+    .custom-progress {
+      height: 5px;
+    }
+  }
+}

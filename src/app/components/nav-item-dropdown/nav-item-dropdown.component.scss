@@ -1,0 +1,88 @@
+.accordion-nav-item {
+  padding: 10px 0 10px 40px;
+  // display: inline-block;
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  text-decoration: none;
+  color: rgba(255, 255, 255, 0.6);
+  line-height: 36px;
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+  i {
+    font-size: 18px;
+    font-weight: bold;
+    width: 30px;
+    text-align: left;
+  }
+  &:hover {
+    color: white;
+  }
+}
+
+.sub-nav-item-wrap {
+  display: flex;
+  flex-direction: column;
+  a {
+    margin-bottom: 15px;
+    padding-left: 70px;
+    color: rgba(255, 255, 255, 0.6);
+    text-decoration: none;
+    i {
+      // padding-right: 10px;
+      font-size: 18px;
+      width: 30px;
+      text-align: left;
+    }
+    &:hover {
+      color: white;
+    }
+  }
+  .active {
+    color: #ffffff;
+    background: url("/assets/images/circle.png") no-repeat 0 7px;
+  }
+}
+
+/*
+####################################################
+M E D I A  Q U E R I E S
+####################################################
+*/
+
+/* Large devices (desktops, 992px and up) */
+@media (min-width: 992px) {
+  .accordion-nav-item {
+    padding: 0 0 0 24px;
+    i {
+      font-size: 14px;
+    }
+  }
+}
+
+/* Extra large devices (large desktops, 1200px and up) */
+@media (min-width: 1200px) {
+  .accordion-nav-item {
+    padding: 0 0 0 30px;
+    i {
+      font-size: 16px;
+    }
+  }
+}
+
+/* Extra extra large devices (extra large desktops, 1400px and up) */
+@media (min-width: 1400px) {
+  .nav-dropdown {
+    padding: 5px 0;
+  }
+  .accordion-nav-item {
+    padding: 0 0 0 40px;
+    i {
+      font-size: 18px;
+    }
+  }
+}

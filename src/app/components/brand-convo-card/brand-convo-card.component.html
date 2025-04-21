@@ -1,0 +1,27 @@
+<div
+  class="sing-conv"
+  [class.selected]="selected"
+  [class.unread]="conversation.has_unread"
+  on-mouseenter="onCardHover()"
+  on-mouseleave="onCardHoverEnd()">
+  <div class="m-1">
+    <brand-convo-avatar [text]="getNameInitials(prospect.receiver_details)" [color]="'blue'"></brand-convo-avatar>
+  </div>
+  <div class="conv-user">
+    <div class="name-date">
+      <p>{{ prospect.receiver_details.first_name }} {{ prospect.receiver_details.last_name }}</p>
+      <span *ngIf="prospect.prospecting_conversations_messages?.length">
+        {{ getLatestMessageDate() | date }}
+      </span>
+    </div>
+    <span *ngIf="prospect.prospecting_conversations_messages[0]">
+      {{ shortMessage }}...
+    </span>
+  </div>
+  <div *ngIf="hoverActiveCard && !conversation.is_pinned" class="pinbar-wrap" (click)="handlePinbarClick()">
+    <i class="fa fa-thumb-tack" aria-hidden="true"></i>
+  </div>
+  <div *ngIf="conversation.is_pinned" class="pinbar-wrap" (click)="handlePinbarClick()">
+    <i class="fa fa-thumb-tack" aria-hidden="true" style="color: #12A5F4"></i>
+  </div>
+</div>

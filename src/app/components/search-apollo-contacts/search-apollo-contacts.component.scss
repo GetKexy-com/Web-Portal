@@ -1,0 +1,379 @@
+.select-area-content {
+  background: #ffffff;
+  border-radius: 10px;
+  height: calc(100vh - 245px);
+  overflow-y: auto;
+  margin: 18px 24px;
+  display: flex;
+  flex-direction: column;
+
+  .country-select-wrap, .saved-search {
+    //padding: 16px 16px 10px 16px;
+    padding: 16px;
+    border-bottom: 1px solid #e7f6fe;
+  }
+
+  //.saved-search {
+  //  p {
+  //    font-size: 13px;
+  //    margin-bottom: 5px;
+  //    text-transform: uppercase;
+  //    color: #333333;
+  //  }
+  //}
+
+  .title {
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 18px;
+    letter-spacing: 0.5px;
+    color: #0047cc;
+    margin-bottom: 0;
+    padding: 16px 16px 0 16px;
+  }
+
+  .tab-and-attributes-btn-area {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+
+    .tab-wrap {
+      width: fit-content;
+    }
+  }
+
+  .search-fields-wrap {
+    padding: 8px 16px;
+  }
+
+  .number-of-establishment-and-credit-content-wrap {
+    display: flex;
+    align-items: center;
+    margin: 10px 0 20px 0;
+    padding: 0 16px;
+
+    .number-of-establishments-text {
+      margin: 20px 20px 20px 0;
+      min-width: fit-content;
+
+      p {
+        font-size: 15px;
+        line-height: 19px;
+        font-weight: 700;
+        margin-bottom: 0;
+      }
+
+      span {
+        font-weight: 900;
+        font-size: 20px;
+      }
+    }
+  }
+
+  .checkbox-wrap {
+    margin-top: 20px;
+  }
+
+  .job-title-row {
+    flex: 1;
+    padding: 0 16px 20px 16px;
+    border-top: 1px solid #e7f6fe;
+  }
+
+  .border-right {
+    border-right: 1px solid #e7f6fe;
+  }
+}
+
+.search-area-and-input-wrap {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+
+  .input-wrap {
+    padding-right: 16px;
+
+    .label-and-input {
+      margin-bottom: 18px;
+
+      .form-control {
+        font-size: 14px;
+        padding: 10px;
+      }
+
+      p {
+        margin-bottom: 10px;
+        font-weight: 700;
+        font-size: 12px;
+        line-height: 12px;
+        letter-spacing: -0.01em;
+        text-transform: uppercase;
+        color: #202020;
+      }
+
+      select.form-control {
+        padding: 8px;
+        width: 250px;
+      }
+    }
+  }
+}
+
+.revenue-content-wrap {
+  .min-max-input-wrap {
+    display: flex;
+    padding: 10px 10px 0 10px;
+
+    kexy-select-dropdown {
+      width: 50%;
+    }
+  }
+
+  .checkboxes-wrap {
+    padding: 0px 10px 10px 10px;
+
+    .checkbox-and-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+
+      input {
+        font-size: 14px;
+        margin-top: 0;
+      }
+
+      label {
+        font-size: 14px;
+        margin: 0 0 0 5px;
+      }
+
+      p {
+        font-size: 14px;
+        margin: 0 0 0 10px;
+      }
+    }
+  }
+}
+.hidden {
+  display: none;
+}
+.department-job-function-content-wrap {
+  //padding: 10px;
+  .search-input-wrap {
+    margin: 10px 12px 2px 12px;
+
+    input {
+      font-size: 13px;
+    }
+  }
+
+  .department-list {
+    max-height: 300px;
+    overflow-y: auto;
+    min-height: 60px;
+
+    .department-item {
+      cursor: pointer;
+      border-bottom: 2px solid #e7f6fe;
+      padding: 5px 12px;
+
+      &:hover {
+        background: #f6fcff;
+      }
+
+      &.open {
+        &:hover {
+          background: white;
+        }
+      }
+
+      p {
+        margin: 0 0 0 8px;
+        font-size: 14px;
+      }
+
+      //input {
+      //  min-width: 15px;
+      //  min-height: 15px;
+      //}
+      //i {
+      //  font-size: 17px;
+      //  width: 14px;
+      //}
+      .item-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        span {
+          font-size: 20px;
+          margin-left: 20px;
+          margin-right: 10px;
+        }
+      }
+
+      .sub-items {
+        margin-left: 8px;
+
+        &.sub-open {
+          background: white;
+
+          &:hover {
+            background: white;
+          }
+        }
+
+        .item {
+          display: flex;
+          align-items: center;
+          padding: 6px 8px;
+          border-top: 2px solid #e7f6fe;
+
+          &:hover {
+            background: #f6fcff;
+            border-radius: 3px;
+          }
+        }
+      }
+    }
+  }
+}
+
+.company-keywords-content-wrap {
+  padding: 10px;
+
+  .keyword-content-box {
+    //border: 1px solid #d4d4d4;
+    //padding: 8px;
+    border-radius: 4px;
+
+    .head {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+
+      .checkbox {
+        font-size: 18px;
+        width: 15px;
+        color: grey;
+      }
+
+      p {
+        margin-bottom: 0;
+        font-size: 13px;
+        font-weight: bold;
+        color: grey;
+      }
+    }
+
+    .keyword-content {
+      margin-top: 10px;
+    }
+  }
+}
+
+.advanced-section-content {
+  .head {
+    font-size: 13px;
+    display: flex;
+    gap: 5px;
+    margin: 15px 0 10px 0;
+    color: #0047cc;
+  }
+
+  .what-kind-of-keywords-text {
+    font-size: 13px;
+    font-weight: bold;
+    margin-bottom: 8px;
+  }
+
+  //.checkbox-label {
+  //  font-size: 13px;
+  //  font-weight: bold;
+  //  margin: 0 0 0 5px;
+  //}
+}
+
+.company-content-wrap {
+  padding: 10px;
+
+  .radio-content-wrap {
+    border: 1px solid #d4d4d4;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    padding: 8px;
+
+    .head {
+      display: flex;
+      align-items: center;
+
+      label {
+        flex: 1;
+        font-size: 14px;
+        cursor: pointer;
+      }
+
+      input {
+        cursor: pointer;
+      }
+    }
+
+    .toggle-content {
+      margin-top: 10px;
+    }
+  }
+}
+
+.selected {
+  color: #2646c5 !important;
+}
+
+.disabled {
+  cursor: not-allowed;
+
+  p, i {
+    color: grey !important;
+  }
+}
+
+.checkbox {
+  font-size: 17px;
+  width: 14px;
+  cursor: pointer;
+}
+
+.checkbox-label {
+  font-size: 13px;
+  font-weight: bold;
+  padding: 0 0 0 5px;
+  margin: 0;
+  cursor: pointer;
+}
+
+@media (min-width: 320px) and (max-width: 767px) {
+  .select-area-content {
+    .title {
+      font-size: 13px;
+      line-height: 16px;
+    }
+
+    .establishment-count-wrap {
+      .number-of-establishment-text {
+        font-size: 12px;
+        line-height: 16px;
+      }
+
+      .establishment-count {
+        font-size: 18px;
+        line-height: 20px;
+      }
+    }
+
+    .checkbox-wrap {
+      width: 100%;
+    }
+  }
+}

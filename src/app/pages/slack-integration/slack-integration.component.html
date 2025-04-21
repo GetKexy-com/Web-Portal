@@ -1,0 +1,42 @@
+<brand-layout layoutPaddingNone="true" headerBgWhite="true">
+  <main class="slack-integration-page">
+    <section class="card-area-wrap">
+      <prospecting-common-card
+        cardTitle="KEXY APP"
+        cardTitleLogo="/assets/icon/blue-box-icon.svg"
+        cardDetails="One slack integration stands between you and perfect lead engagement"
+      ></prospecting-common-card>
+    </section>
+
+    <section class="card-area-wrap">
+      <div class="slack-features-details">
+        <p class="get-ready-to-levelup-text">Get ready to level up your game! Connect your Slack workspace to KEXY and start receiving real-time notifications whenever your prospects engage with your emails.</p>
+
+        <div class="feature-list">
+          <div class="items-wrap">
+            <p class="item">
+              <i class="fa fa-bar-chart" aria-hidden="true"></i>
+              Real-Time Lead Activity Tracking.
+            </p>
+            <p class="item">
+              <i class="fa fa-link" aria-hidden="true"></i>
+              Connect to Prospect's LinkedIn Accounts.
+            </p>
+            <p class="item">
+              <i class="fa fa-star-o" aria-hidden="true"></i>
+              Seamlessly Push Leads into Other Campaigns.
+            </p>
+            <p class="item">
+              Stay ahead... Stay connected... and never miss a beat.
+              <i class="fa fa-briefcase ms-2" aria-hidden="true"></i>
+            </p>
+          </div>
+        </div>
+
+        <div class="btn-wrap">
+          <app-kexy-button (click)="openSlackUrl()" label="Integrate"></app-kexy-button>
+        </div>
+      </div>
+    </section>
+  </main>
+</brand-layout>

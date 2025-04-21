@@ -1,0 +1,410 @@
+<main class="canvas-content-wrap">
+  <section class="head-area">
+    <div>
+      <p>Settings</p>
+    </div>
+    <img src="/assets/images/close-icon.png" alt="Close" (click)="activeCanvas.dismiss('Cross click')" />
+  </section>
+
+  <section class="canvas-body">
+    <div *ngIf="isWaitingFlag" class="loading">
+      <i class="fa me-2 fa-spinner fa-spin" aria-hidden="true"></i>
+      Please wait....
+    </div>
+
+    <div *ngIf="!isWaitingFlag" class="width-fit-content">
+      <kexy-tab
+        [tabItemList]="[constants.ENROLLMENT_TRIGGERS, constants.TIMING]"
+        [setSelectedRestaurantSearchType]="setSelectedSettingsType"
+        [selectedTab]="selectedSettingsType"
+        tabBgColor="background-color: #E7F6FE;"
+        tabItemColor="color: #202020;"
+        tabItemActiveColor="color: #0047CC;"
+      ></kexy-tab>
+    </div>
+
+    <!--Timing Settings-->
+    <div *ngIf="!isWaitingFlag && selectedSettingsType === constants.TIMING" class="timing-section-content">
+      <!--      <p class="section-title">Timing</p>-->
+      <form (ngSubmit)="handleSubmitTiming()">
+        <!--Run campaign-->
+        <div class="section-content mt-3">
+          <div>
+            <label class="input-label-text">Run campaign</label>
+            <div class="d-flex align-items-center gap-3">
+              <div>
+                <input type="radio" id="anyTime" name="run_campaign" [value]="constants.ANYTIME"
+                       [(ngModel)]="runCampaign">
+                <label for="anyTime" class="ms-1">Any time</label><br>
+              </div>
+              <div>
+                <input type="radio" id="specific_time" name="run_campaign" value="specific_time"
+                       [(ngModel)]="runCampaign">
+                <label for="specific_time" class="ms-1">Specific times</label><br>
+              </div>
+            </div>
+          </div>
+
+          <div class="d-flex align-items-center gap-2" *ngFor="let item of runCampaignArray; let i = index">
+            <div class="input-wrap section-inputs flex-grow-1">
+              <div class="label-and-input">
+                <kexy-select-dropdown
+                  label="Day"
+                  shortNoteBesideLabel=""
+                  [selectAllBtn]="false"
+                  [required]="false"
+                  [options]="dayOptions"
+                  [addNewBtn]="false"
+                  [onAddNewClick]=""
+                  [selectedOption]="item.day"
+                  [onSelectSingleItem]="onDaySelect"
+                  [editIcon]="false"
+                  [deleteIcon]="false"
+                  [onDeleteClick]=""
+                  [onEditClick]=""
+                  [rowIndex]="i"
+                  optionStyle="button"
+                  backgroundColor="white"
+                  placeholder="Please Select"
+                  style="flex: 1"
+                ></kexy-select-dropdown>
+                <div *ngIf="runCampaign === constants.SPECIFIC_TIME"
+                     class="start-end-time-inputs-wrap pt-3">
+                  <kexy-select-dropdown
+                    label="From"
+                    shortNoteBesideLabel=""
+                    [selectAllBtn]="false"
+                    [required]="false"
+                    [options]="item.fromOptions"
+                    [addNewBtn]="false"
+                    [onAddNewClick]=""
+                    [selectedOption]="item.from"
+                    [onSelectSingleItem]="onStartTimeSelect"
+                    [editIcon]="false"
+                    [deleteIcon]="false"
+                    [onDeleteClick]=""
+                    [onEditClick]=""
+                    [rowIndex]="i"
+                    optionStyle="button"
+                    backgroundColor="white"
+                    placeholder="Please Select"
+                    style="flex: 1"
+                  ></kexy-select-dropdown>
+                  <kexy-select-dropdown
+                    label="To"
+                    shortNoteBesideLabel=""
+                    [selectAllBtn]="false"
+                    [required]="false"
+                    [options]="item.toOptions"
+                    [addNewBtn]="false"
+                    [onAddNewClick]=""
+                    [selectedOption]="item.to"
+                    [onSelectSingleItem]="onEndTimeSelect"
+                    [editIcon]="false"
+                    [deleteIcon]="false"
+                    [onDeleteClick]=""
+                    [onEditClick]=""
+                    [rowIndex]="i"
+                    optionStyle="button"
+                    backgroundColor="white"
+                    placeholder="Please Select"
+                    style="flex: 1"
+                  ></kexy-select-dropdown>
+                </div>
+              </div>
+            </div>
+            <div *ngIf="runCampaignArray.length > 1">
+              <i class="fa fa-trash-o cursor-pointer" aria-hidden="true" (click)="removeRunCampaign(item)"></i>
+            </div>
+          </div>
+
+          <div class="add-new-btn-wrap">
+            <button type="button" (click)="addNewRunCampaign()">
+              <i class="fa fa-plus" aria-hidden="true"></i> ADD NEW
+            </button>
+          </div>
+        </div>
+
+        <!--Dont run campaign-->
+        <div class="section-content mt-3">
+          <label class="input-label-text">Don't run campaign</label>
+          <div class="d-flex align-items-center gap-2 mb-3" *ngFor="let item of dontRunCampaignArray">
+            <div class="section-inputs flex-grow-1">
+              <input
+                type="date"
+                class="form-control kexy-date-input"
+                name="startDateFromExportModal"
+                [ngModelOptions]="{standalone: true}"
+                [(ngModel)]="item.day"
+              />
+            </div>
+
+            <div *ngIf="dontRunCampaignArray.length > 1">
+              <i class="fa fa-trash-o cursor-pointer" aria-hidden="true" (click)="removeDontRunCampaign(item)"></i>
+            </div>
+          </div>
+          <div class="add-new-btn-wrap mt-0">
+            <button type="button" (click)="addNewDontRunCampaign()">
+              <i class="fa fa-plus" aria-hidden="true"></i> ADD NEW
+            </button>
+          </div>
+        </div>
+
+        <!--Schedule campaign to turn off automatically-->
+        <div class="section-content mt-3">
+          <label class="input-label-text">Schedule campaign to turn-off automatically</label>
+          <p class="description-text">When this setting is enabled, the campaign and setting will automatically turn off
+            on the date and time specified. If any records are enabled when the campaign turns off, no additional
+            actions will run.</p>
+
+          <div class="mt-2">
+            <kexy-toggle-switch
+              [isSwitchActive]="scheduleCampaignTurnOffAutomatically"
+              [changeSwitchOption]="changeScheduleCampaignOption"
+              activeText="On"
+              inactiveText="Off"
+            ></kexy-toggle-switch>
+          </div>
+
+          <div *ngIf="scheduleCampaignTurnOffAutomatically" class="section-inputs mt-3">
+            <label class="input-label-text">Turn off this campaign on</label>
+            <input
+              type="date"
+              class="form-control kexy-date-input"
+              name="startDateFromExportModal"
+              [(ngModel)]="scheduleCampaignTurnOffAutomaticallyDate"
+            />
+            <p class="my-2">at</p>
+            <kexy-select-dropdown
+              label=""
+              shortNoteBesideLabel=""
+              [selectAllBtn]="false"
+              [required]="false"
+              [options]="startTimeOptions"
+              [addNewBtn]="false"
+              [onAddNewClick]=""
+              [selectedOption]="scheduleCampaignTurnOffAutomaticallyTime"
+              [onSelectSingleItem]="onScheduleCampaignTurnOffAutomaticallyTime"
+              [editIcon]="false"
+              [deleteIcon]="false"
+              [onDeleteClick]=""
+              [onEditClick]=""
+              optionStyle="button"
+              backgroundColor="white"
+              placeholder="Please Select"
+            ></kexy-select-dropdown>
+          </div>
+        </div>
+
+        <!--Connections-->
+        <p class="section-title mt-3">Connections</p>
+        <div class="mt-2">
+          <div class="section-content">
+            <p class="input-label-text">Unenroll contacts from other campaigns when enrolled in this campaign</p>
+            <div class="mt-2">
+              <kexy-toggle-switch
+                [isSwitchActive]="unenrollContactsFromOtherCampaign"
+                [changeSwitchOption]="changeUnenrollContactOption"
+                activeText="On"
+                inactiveText="Off"
+              ></kexy-toggle-switch>
+            </div>
+
+            <div *ngIf="unenrollContactsFromOtherCampaign" class="d-flex flex-column gap-1 mt-3">
+              <div>
+                <input
+                  type="radio"
+                  id="unenrollFromAll"
+                  name="unenroll_campaign"
+                  value="unenrollFromAll"
+                  [(ngModel)]="unenrollCampaign"
+                >
+                <label for="unenrollFromAll" class="ms-2">
+                  Unenroll from all other campaigns
+                  <!--                  <kexy-tooltip tooltipText="Unenroll from all other campaigns"></kexy-tooltip>-->
+                </label><br>
+              </div>
+              <div>
+                <input
+                  type="radio"
+                  id="unenrollFromSpecific"
+                  name="unenroll_campaign"
+                  value="unenrollFromSpecific"
+                  [(ngModel)]="unenrollCampaign"
+                >
+                <label for="unenrollFromSpecific" class="ms-2">
+                  Unenroll from specific campaigns
+                  <!--                  <kexy-tooltip tooltipText="Unenroll from all other campaigns"></kexy-tooltip>-->
+                </label><br>
+              </div>
+            </div>
+
+            <div
+              *ngIf="unenrollContactsFromOtherCampaign && unenrollCampaign === 'unenrollFromSpecific'"
+              class="mt-3"
+            >
+              <kexy-select-dropdown
+                label="Choose a campaign"
+                shortNoteBesideLabel=""
+                [selectAllBtn]="false"
+                [required]="false"
+                [options]="dripCampaignDropDownList"
+                [addNewBtn]="false"
+                [onAddNewClick]=""
+                [selectedOption]=""
+                [onSelectSingleItem]="onDripCampaignSelect"
+                [editIcon]="false"
+                [deleteIcon]="false"
+                [onDeleteClick]=""
+                [onEditClick]=""
+                optionStyle="checkbox"
+                backgroundColor="white"
+                placeholder="Please Select"
+              ></kexy-select-dropdown>
+            </div>
+          </div>
+        </div>
+
+        <div class="bottom-buttons">
+          <button class="blue-button me-3" type="submit">
+            <i *ngIf="isLoading" class="fa fa-spinner fa-spin ms-2" aria-hidden="true" style="color: white"></i>
+            Save
+          </button>
+          <button class="blue-border-white-bg-button" type="button" (click)="activeCanvas.dismiss('Cross click')">
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!--Enrollment Triggers Settings-->
+    <div *ngIf="!isWaitingFlag && selectedSettingsType === constants.ENROLLMENT_TRIGGERS" class="content-wrap">
+      <form (ngSubmit)="handleSubmitEnrollmentTriggers()">
+        <!--Enrollment content-->
+        <p class="section-title mt-3 mb-0">Enrollment</p>
+        <div class="section-content mt-2">
+          <div *ngIf="enrollList?.length" class="d-flex align-items-center gap-2 mb-3">
+            <label class="input-label-text mb-0">Active List(s):</label>
+            <div *ngFor="let item of enrollList; let i = index">
+              <span
+                class="searched-tag"
+                [style.background-color]="item.itemBgColor ? item.itemBgColor : '#0047cc'"
+                [style.color]="item.itemTextColor ? item.itemTextColor : '#ffffff'"
+                [style.text-transform]="item.itemBgColor && item.itemTextColor ? 'uppercase' : ''"
+              >
+                {{ item.value }}
+                <span class="close-icon-wrap" (click)="removeActiveList(item)">
+                  <i class="fa fa-times-circle non-hide-from-toggle" aria-hidden="true"></i>
+                </span>
+              </span>
+            </div>
+          </div>
+
+          <label class="input-label-text">Contacts on these lists will be automatically enrolled in the campaign as soon
+            as it's activated.</label>
+          <div class="input-wrap">
+            <kexy-select-dropdown
+              label="Lists"
+              shortNoteBesideLabel=""
+              [selectAllBtn]="false"
+              [required]="false"
+              [options]="enrollmentLabelOptions"
+              [addNewBtn]="false"
+              [onAddNewClick]=""
+              [selectedOption]=""
+              [onSelectSingleItem]="onEnrollmentLabelSelect"
+              [rowIndex]="1"
+              [editIcon]="false"
+              [onEditClick]=""
+              [deleteIcon]="false"
+              [onDeleteClick]=""
+              [isSearchAble]="false"
+              [isClearable]="true"
+              optionStyle="checkbox"
+              backgroundColor="white"
+              placeholder="Please Select"
+            ></kexy-select-dropdown>
+            <div
+              *ngIf="submitted && isEmptyEnrollList && !enrollList.length">
+              <error-message-card message="Please select."></error-message-card>
+            </div>
+          </div>
+        </div>
+
+        <!--Unenrollment content-->
+        <p class="section-title mt-3 mb-0">Unenrollment</p>
+        <div class="section-content mt-2">
+          <label class="input-label-text">If contact replies to any of my messages, unenroll them from my
+            campaign</label>
+          <kexy-toggle-switch
+            [isSwitchActive]="prospectUnenrollIfReply"
+            [changeSwitchOption]="changeProspectUnenrollIfReply"
+            activeText="Yes"
+            inactiveText="No"
+          ></kexy-toggle-switch>
+
+          <div class="input-wrap mt-4">
+            <kexy-select-dropdown
+              label="Contacts won't enroll if they are on these list(s)"
+              shortNoteBesideLabel=""
+              [selectAllBtn]="false"
+              [required]="false"
+              [options]="unenrollmentLabelOptions"
+              [addNewBtn]="false"
+              [onAddNewClick]=""
+              [selectedOption]=""
+              [onSelectSingleItem]="onUnenrollmentLabelSelect"
+              [rowIndex]="1"
+              [editIcon]="false"
+              [onEditClick]=""
+              [deleteIcon]="false"
+              [onDeleteClick]=""
+              [isSearchAble]="false"
+              [isClearable]="true"
+              optionStyle="checkbox"
+              backgroundColor="white"
+              placeholder="Please Select"
+            ></kexy-select-dropdown>
+          </div>
+        </div>
+
+        <!--Re-enrollment content-->
+        <p class="section-title mt-3 mb-0">Reenrollment</p>
+        <div class="section-content mt-2">
+          <label class="input-label-text">Allow contacts to re-enroll after completing the workflow</label>
+          <kexy-toggle-switch
+            [isSwitchActive]="allowContactsReenroll"
+            [changeSwitchOption]="changeAllowContactsReenrollOption"
+            activeText="On"
+            inactiveText="Off"
+          ></kexy-toggle-switch>
+          <label class="input-label-text mt-4">Contacts will re-enroll when:</label>
+          <p class="unordered-listed-text">
+            <i class="fa fa-circle" aria-hidden="true"></i>
+            They are manually re-enrolled
+          </p>
+          <p class="unordered-listed-text">
+            <i class="fa fa-circle" aria-hidden="true"></i>
+            If they are included in a new list added to the campaign.
+          </p>
+        </div>
+
+        <div
+          *ngIf="submitted && isEmptyEnrollList && !enrollList.length">
+          <error-message-card message="Please select list(s) in Enrollment."></error-message-card>
+        </div>
+
+        <div class="bottom-buttons">
+          <button class="blue-button me-3" type="submit">
+            <i *ngIf="isLoading" class="fa fa-spinner fa-spin ms-2" aria-hidden="true" style="color: white"></i>
+            Save
+          </button>
+          <button class="blue-border-white-bg-button" type="button" (click)="activeCanvas.dismiss('Cross click')">
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+
+  </section>
+</main>

@@ -1,0 +1,345 @@
+<div id="page-container">
+  <!-- Sidebar -->
+  <a (click)="showSidebar = !showSidebar" class="hideSidebarArrow">
+    <i *ngIf="showSidebar" class="fa fa-arrow-left" aria-hidden="true"></i>
+  </a>
+
+  <!--For mobile screen-->
+  <ul
+    *ngIf="showSidebar && isMobileScreen"
+    id="main-sidebar"
+    class="navbar-nav-mobile-layout bg-gradient-primary sidebar sidebar-dark accordion"
+  >
+    <app-org-info></app-org-info>
+
+    <nav-item-dropdown icon="fa-building-o" [label]="constants.COMPANY_DETAILS" [expand]="expandCompanyDetailsDropdown">
+      <nav-item
+        icon="fa-building-o"
+        [isDropDown]="true"
+        [navigateTo]="brand.PROMOTION_COMPANY_DESC"
+        label="Company Desc."
+      ></nav-item>
+      <nav-item
+        [isDropDown]="true"
+        icon="fa-search"
+        [navigateTo]="brand.PROMOTION_PRODUCT_DESC"
+        label="Product/Service Desc."
+      ></nav-item>
+    </nav-item-dropdown>
+
+    <nav-item-dropdown icon="fa-users" [label]="constants.CONTACTS" [expand]="expandContactsDropdown">
+      <nav-item
+        [isDropDown]="true"
+        icon="fa-list"
+        [navigateTo]="brand.MANAGE_LIST"
+        label="Manage Lists"
+      ></nav-item>
+      <nav-item
+        [isDropDown]="true"
+        icon="fa-bars"
+        [navigateTo]="brand.MANAGE_CONTACTS"
+        label="Manage Contacts"
+      ></nav-item>
+      <nav-item
+        [isDropDown]="true"
+        icon="fa-search"
+        [navigateTo]="brand.FIND_LEADS"
+        label="Find Leads"
+      ></nav-item>
+    </nav-item-dropdown>
+
+    <nav-item-dropdown icon="fa-envelope-open-o" [label]="constants.DRIP_CAMPAIGN"
+                       [expand]="expandDripCampaignDropdown">
+      <nav-item
+        [isDropDown]="true"
+        icon="fa-plus"
+        [navigateTo]="brand.CREATE_DRIP_CAMPAIGN"
+        label="Create Campaign"
+      ></nav-item>
+      <nav-item
+        [isDropDown]="true"
+        icon="fa-rocket"
+        [navigateTo]="brand.LAUNCH_DRIP_CAMPAIGN"
+        label="Launch Campaign"
+      ></nav-item>
+      <nav-item
+        [isDropDown]="true"
+        icon="fa-bars"
+        [navigateTo]="brand.LIST_DRIP_CAMPAIGN"
+        label="Manage Campaigns"
+      ></nav-item>
+    </nav-item-dropdown>
+
+    <nav-item-dropdown icon="fa-clipboard" label="Messages" [expand]="expandProspectingDropdown">
+      <nav-item
+        [isDropDown]="true"
+        icon="fa-inbox"
+        [navigateTo]="brand.PROSPECTING_CONV_ALL"
+        label="Inbox"
+      ></nav-item>
+      <nav-item
+        [isDropDown]="true"
+        icon="fa-paper-plane-o"
+        [navigateTo]="brand.PROSPECTING_SENT_CONV"
+        label="Sent"
+      ></nav-item>
+    </nav-item-dropdown>
+
+    <nav-item-dropdown icon="fa-bullhorn" [label]="constants.LANDING_PAGE + 's'" [expand]="expandPromotionDropdown">
+      <nav-item [isDropDown]="true" icon="fa-plus" [navigateTo]="brand.PROMOTIONS"
+                [label]="'Create ' + constants.LANDING_PAGE"></nav-item>
+      <nav-item
+        [isDropDown]="true"
+        icon="fa-bars"
+        [navigateTo]="brand.LIST_PROMOTION"
+        [label]="'Manage ' + constants.LANDING_PAGE + 's'"
+      ></nav-item>
+    </nav-item-dropdown>
+
+    <nav-item-dropdown icon="fa-cog" label="Settings" [expand]="expandSettingsDropdown">
+      <nav-item
+        icon="fa-briefcase"
+        [isDropDown]="true"
+        [navigateTo]="brand.INVITE_PEOPLE"
+        label="Invite Users"
+      ></nav-item>
+      <nav-item
+        icon="fa-slack"
+        [isDropDown]="true"
+        [navigateTo]="brand.SLACK_INTEGRATION"
+        label="Slack Integration"
+      ></nav-item>
+      <nav-item
+        icon="fa-ban"
+        [isDropDown]="true"
+        [navigateTo]="brand.SUPPRESSION_LIST"
+        label="Suppression List"
+      ></nav-item>
+    </nav-item-dropdown>
+
+    <nav-item
+      [isDropDown]="false"
+      icon="fa-leanpub"
+      [onClick]="tutorialsNavItemClicked"
+      label="Tutorials"
+    ></nav-item>
+  </ul>
+
+  <!--For desktop screen-->
+  <ul
+    *ngIf="showSidebar && !isMobileScreen"
+    class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion"
+    id="main-sidebar"
+  >
+    <app-org-info></app-org-info>
+
+    <nav-item-dropdown icon="fa-building-o" [label]="constants.COMPANY_DETAILS" [expand]="expandCompanyDetailsDropdown">
+      <nav-item
+        icon="fa-building-o"
+        [isDropDown]="true"
+        [navigateTo]="brand.PROMOTION_COMPANY_DESC"
+        label="Company Desc."
+      ></nav-item>
+      <nav-item
+        [isDropDown]="true"
+        icon="fa-search"
+        [navigateTo]="brand.PROMOTION_PRODUCT_DESC"
+        label="Product/Service Desc."
+      ></nav-item>
+    </nav-item-dropdown>
+
+    <nav-item-dropdown icon="fa-users" [label]="constants.CONTACTS" [expand]="expandContactsDropdown">
+      <nav-item
+        [isDropDown]="true"
+        icon="fa-list"
+        [navigateTo]="brand.MANAGE_LIST"
+        label="Manage Lists"
+      ></nav-item>
+      <nav-item
+        [isDropDown]="true"
+        icon="fa-bars"
+        [navigateTo]="brand.MANAGE_CONTACTS"
+        label="Manage Contacts"
+      ></nav-item>
+      <nav-item
+        [isDropDown]="true"
+        icon="fa-search"
+        [navigateTo]="brand.FIND_LEADS"
+        label="Find Leads"
+      ></nav-item>
+    </nav-item-dropdown>
+
+    <nav-item-dropdown icon="fa-envelope-open-o" [label]="constants.DRIP_CAMPAIGN"
+                       [expand]="expandDripCampaignDropdown">
+      <nav-item
+        [isDropDown]="true"
+        icon="fa-plus"
+        [navigateTo]="brand.CREATE_DRIP_CAMPAIGN"
+        label="Create Campaign"
+      ></nav-item>
+      <nav-item
+        [isDropDown]="true"
+        icon="fa-rocket"
+        [navigateTo]="brand.LAUNCH_DRIP_CAMPAIGN"
+        label="Launch Campaign"
+      ></nav-item>
+      <nav-item
+        [isDropDown]="true"
+        icon="fa-bars"
+        [navigateTo]="brand.LIST_DRIP_CAMPAIGN"
+        label="Manage Campaigns"
+      ></nav-item>
+    </nav-item-dropdown>
+
+    <nav-item-dropdown icon="fa-clipboard" label="Messages" [expand]="expandProspectingDropdown">
+      <nav-item
+        [isDropDown]="true"
+        icon="fa-inbox"
+        [navigateTo]="brand.PROSPECTING_CONV_ALL"
+        label="Inbox"
+      ></nav-item>
+      <nav-item
+        [isDropDown]="true"
+        icon="fa-paper-plane-o"
+        [navigateTo]="brand.PROSPECTING_SENT_CONV"
+        label="Sent"
+      ></nav-item>
+    </nav-item-dropdown>
+
+    <nav-item-dropdown icon="fa-bullhorn" [label]="constants.LANDING_PAGE + 's'" [expand]="expandPromotionDropdown">
+      <nav-item [isDropDown]="true" icon="fa-plus" [navigateTo]="brand.PROMOTIONS"
+                [label]="'Create ' + constants.LANDING_PAGE"></nav-item>
+      <nav-item
+        [isDropDown]="true"
+        icon="fa-bars"
+        [navigateTo]="brand.LIST_PROMOTION"
+        [label]="'Manage ' + constants.LANDING_PAGE + 's'"
+      ></nav-item>
+    </nav-item-dropdown>
+
+    <nav-item-dropdown icon="fa-cog" label="Settings" [expand]="expandSettingsDropdown">
+      <nav-item
+        icon="fa-briefcase"
+        [isDropDown]="true"
+        [navigateTo]="brand.INVITE_PEOPLE"
+        label="Invite Users"
+      ></nav-item>
+      <nav-item
+        icon="fa-slack"
+        [isDropDown]="true"
+        [navigateTo]="brand.SLACK_INTEGRATION"
+        label="Slack Integration"
+      ></nav-item>
+      <nav-item
+        icon="fa-envelope-o"
+        [isDropDown]="true"
+        [navigateTo]="brand.SMTP_SETTINGS"
+        label="SMTP Settings"
+      ></nav-item>
+      <nav-item
+        icon="fa-ban"
+        [isDropDown]="true"
+        [navigateTo]="brand.SUPPRESSION_LIST"
+        label="Suppression List"
+      ></nav-item>
+    </nav-item-dropdown>
+
+    <nav-item
+      [isDropDown]="false"
+      icon="fa-leanpub"
+      [onClick]="tutorialsNavItemClicked"
+      label="Tutorials"
+    ></nav-item>
+  </ul>
+
+  <!-- End of Sidebar -->
+
+  <!-- FOH Model popup starts-->
+  <ng-template #tutorialVideoDialog let-c="close" let-d="dismiss">
+    <modal [modalClose]="c">
+      <div class="modal-body" style="padding: 0">
+        <iframe
+          allowfullscreen="true"
+          autoplay
+          frameborder="0"
+          src="https://embed.fleeq.io/l/y5pamfiya2-34egqcq29j"
+          style="width: 100%; height: 600px"
+        ></iframe>
+      </div>
+    </modal>
+  </ng-template>
+
+  <div id="content-wrapper" class="flex-column d-flex" [style.background-color]="mainBgColor">
+    <!-- header starts -->
+    <div class="flash-div">
+      <div class="row justify-content-center">
+<!--        TODO-->
+<!--        <flash-messages></flash-messages>-->
+      </div>
+    </div>
+
+    <header id="main-header" [class]="headerBgWhite ? 'main-warp white-bg' : 'main-warp'">
+      <div class="row justify-content-between">
+        <div class="col d-flex align-items-baseline">
+          <a
+            *ngIf="!showSidebar"
+            id="menu-toggle"
+            (click)="showSidebar = !showSidebar"
+            class="glyphicon glyphicon-align-justify"
+          >
+            <i class="fa fa-bars"></i>
+          </a>
+          <app-back-button *ngIf="showBackButton"></app-back-button>
+        </div>
+
+        <div class="col">
+          <div class="modify-content text-end">
+            <div ngbDropdown class="d-inline-block">
+              <button class="btn btn-link kx-user-name" id="dropdownBasic1" ngbDropdownToggle>
+                <img class="left" src="/assets/icon/user.svg" alt="User" />
+                {{ username }}
+                <i class="fa fa-angle-down right" aria-hidden="true"></i>
+              </button>
+              <div ngbDropdownMenu aria-labelledby="dropdownBasic1" class="kx-dropdown-menu">
+                <button ngbDropdownItem (click)="editProfileTapped()">
+                  <i class="fa fa-user" aria-hidden="true"></i> Edit Profile
+                </button>
+                <button ngbDropdownItem (click)="support()">
+                  <i class="fa fa-headphones" aria-hidden="true"></i> Support
+                </button>
+                <button *ngIf="isAdmin" ngbDropdownItem (click)="editCompanyTapped()">
+                  <i class="fa fa-pencil-square-o" aria-hidden="true"></i> Edit Company
+                </button>
+                <button ngbDropdownItem (click)="subscriptionsTapped()">
+                  <i class="fa fa-credit-card" aria-hidden="true"></i> Subscriptions
+                </button>
+                <button ngbDropdownItem (click)="handleLogout()">
+                  <i class="fa fa-sign-out" aria-hidden="true"></i> Logout
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="text-center" *ngIf="isUploadingCsvFlag">
+        <div class="spinner-border" role="status">
+          <span class="sr-only">Loading...</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- header ends -->
+    <div [id]="fullPageScroll ? 'main-content' : ''" [class]="layoutPaddingNone ? '' : 'main-warp'">
+      <ng-content></ng-content>
+    </div>
+  </div>
+
+  <ng-template #subscriptionModal let-c="close" let-d="dismiss">
+    <brand-subscription-modal [closeModal]="c" [userData]="userData"></brand-subscription-modal>
+  </ng-template>
+
+  <ng-template #tutorialModal let-c="close" let-d="dismiss">
+    <p>hello world</p>
+  </ng-template>
+  <!-- content-wrapper ends -->
+</div>

@@ -1,0 +1,12 @@
+<div class="search-contact-modal">
+  <section class="header-area">
+    <p>Lists</p>
+    <img src="/assets/images/close-icon.png" alt="close-icon" style="cursor:pointer;" (click)="activeModal.close('Close click')" />
+  </section>
+
+  <section class="middle-area">
+    <div class="labels-wrap">
+      <span *ngFor="let label of labels" class="label" [style.background-color]="label.kexy_label.bg_color" [style.color]="label.kexy_label.text_color">{{label.kexy_label.label}}</span>
+    </div>
+  </section>
+</div>

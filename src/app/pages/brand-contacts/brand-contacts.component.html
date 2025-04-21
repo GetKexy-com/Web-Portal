@@ -1,0 +1,244 @@
+<brand-layout layoutPaddingNone="true" headerBgWhite="true" [fullPageScroll]="false">
+  <div class="brand-contacts-page">
+    <div class="top-btns">
+      <!--Buttons for large screen-->
+      <div class="buttons-for-large-screen">
+        <app-kexy-button
+          *ngIf="selectedContacts.length"
+          [disabled]="isWaitingFlag || isLoading || selectAllContacts"
+          (click)="handleAddToDripCampaign()"
+          style="margin-right: 10px"
+          label="Add To Drip Campaign"
+          iconLeft="fa-plus"
+          bgColor="#e7f6fe"
+          textColor="#2847cc"
+          radius="8px"
+        ></app-kexy-button>
+
+        <app-kexy-button
+          *ngIf="selectedContacts.length && !addToDripCampaignId"
+          [disabled]="isWaitingFlag || isLoading"
+          (click)="deleteContacts()"
+          style="margin-right: 10px"
+          label=""
+          iconLeft="fa-trash"
+          bgColor="#e7f6fe"
+          textColor="#2847cc"
+          radius="8px"
+        ></app-kexy-button>
+
+        <app-kexy-button
+          (click)="handleSearchBtnClick()"
+          [disabled]="isWaitingFlag || isLoading"
+          style="margin-right: 10px"
+          label="Filter"
+          iconLeft="fa-search"
+          bgColor="#e7f6fe"
+          textColor="#2847cc"
+          radius="8px"
+        ></app-kexy-button>
+
+        <app-kexy-button
+          *ngIf="!addToDripCampaignId"
+          [disabled]="isWaitingFlag || isLoading"
+          style="margin-right: 10px"
+          label="Add Contact"
+          iconLeft="fa-plus"
+          bgColor="#e7f6fe"
+          textColor="#2847cc"
+          radius="8px"
+          (click)="addContactClick()"
+        ></app-kexy-button>
+
+        <app-kexy-button
+          *ngIf="selectedContacts.length && !addToDripCampaignId"
+          [disabled]="isWaitingFlag || isLoading"
+          style="margin-right: 10px"
+          label="Edit Contact(s)"
+          iconLeft="fa-pencil"
+          bgColor="#e7f6fe"
+          textColor="#2847cc"
+          radius="8px"
+          (click)="editContactClick()"
+        ></app-kexy-button>
+
+        <app-kexy-button
+          *ngIf="!addToDripCampaignId"
+          [disabled]="isWaitingFlag || isLoading"
+          style="margin-right: 10px"
+          label="Import"
+          iconLeft="fa-cloud-upload"
+          (click)="importBtnClick(uploadContacts)"
+          bgColor="#e7f6fe"
+          textColor="#2847cc"
+          radius="8px"
+        ></app-kexy-button>
+
+        <app-kexy-button
+          *ngIf="!addToDripCampaignId"
+          (click)="exportCSV()"
+          [disabled]="exportBtnLoading || isLoading || isWaitingFlag"
+          [label]="exportBtnLoading ? 'Please wait...' : 'Export' "
+          [iconLeft]="exportBtnLoading ? 'fa-refresh fa-spin' : 'fa-cloud-download'"
+          bgColor="#e7f6fe"
+          textColor="#2847cc"
+          radius="8px"
+        ></app-kexy-button>
+      </div>
+
+      <!--Buttons for small laptop screen-->
+      <div class="buttons-for-small-screen">
+        <app-kexy-button
+          *ngIf="selectedContacts.length"
+          [disabled]="isWaitingFlag || isLoading || selectAllContacts"
+          (click)="handleAddToDripCampaign()"
+          style="margin-right: 10px"
+          label="Add To Drip Campaign"
+          iconLeft="fa-plus"
+          bgColor="#e7f6fe"
+          textColor="#2847cc"
+          radius="8px"
+        ></app-kexy-button>
+
+        <app-kexy-button
+          *ngIf="selectedContacts.length && !addToDripCampaignId"
+          [disabled]="isWaitingFlag || isLoading"
+          (click)="deleteContacts()"
+          style="margin-right: 10px"
+          label=""
+          iconLeft="fa-trash"
+          bgColor="#e7f6fe"
+          textColor="#2847cc"
+          radius="8px"
+          tooltip="Delete Contact(s)"
+        ></app-kexy-button>
+
+        <app-kexy-button
+          (click)="handleSearchBtnClick()"
+          [disabled]="isWaitingFlag || isLoading"
+          style="margin-right: 10px"
+          label=""
+          iconLeft="fa-search"
+          bgColor="#e7f6fe"
+          textColor="#2847cc"
+          radius="8px"
+          tooltip="Filter Contact(s)"
+        ></app-kexy-button>
+
+        <app-kexy-button
+          *ngIf="!addToDripCampaignId"
+          [disabled]="isWaitingFlag || isLoading"
+          style="margin-right: 10px"
+          label=""
+          iconLeft="fa-plus"
+          bgColor="#e7f6fe"
+          textColor="#2847cc"
+          radius="8px"
+          (click)="addContactClick()"
+          tooltip="Add Contact"
+        ></app-kexy-button>
+
+        <app-kexy-button
+          *ngIf="selectedContacts.length && !addToDripCampaignId"
+          [disabled]="isWaitingFlag || isLoading"
+          style="margin-right: 10px"
+          label=""
+          iconLeft="fa-pencil"
+          bgColor="#e7f6fe"
+          textColor="#2847cc"
+          radius="8px"
+          (click)="editContactClick()"
+          tooltip="Edit Contact(s)"
+        ></app-kexy-button>
+
+        <app-kexy-button
+          *ngIf="!addToDripCampaignId"
+          [disabled]="isWaitingFlag || isLoading"
+          style="margin-right: 10px"
+          label=""
+          iconLeft="fa-cloud-upload"
+          (click)="importBtnClick(uploadContacts)"
+          bgColor="#e7f6fe"
+          textColor="#2847cc"
+          radius="8px"
+          tooltip="Import Contact(s)"
+        ></app-kexy-button>
+
+        <app-kexy-button
+          *ngIf="!addToDripCampaignId"
+          (click)="exportCSV()"
+          [disabled]="exportBtnLoading || isWaitingFlag || isLoading"
+          [label]="exportBtnLoading ? 'Please wait...' : '' "
+          [iconLeft]="exportBtnLoading ? 'fa-refresh fa-spin' : 'fa-cloud-download'"
+          bgColor="#e7f6fe"
+          textColor="#2847cc"
+          radius="8px"
+          tooltip="Export Csv"
+        ></app-kexy-button>
+      </div>
+    </div>
+
+    <div class="content-area">
+      <p class="d-flex">
+        <span *ngIf="activeFilterCount" class="filter-info ms-2" (click)="handleSearchBtnClick()">
+        <span style="display: inline-block; width: 10px; height: 10px; border-radius: 5px; background: yellow"></span>
+          {{ activeFilterCount }} Filter(s) applied
+      </span>
+        <ng-container *ngIf="activeFilterCount">
+          <span class="link-text ms-2" (click)="resetSearchData()"><u>Clear Filter</u></span>
+        </ng-container>
+      </p>
+
+      <contact-list-card
+        tableHeaderBg="#0047CC"
+        tableHeaderColor="#FFFFFF"
+        [searchLabels]="searchLabels"
+        [searchContactName]="searchContactName"
+        [searchContactCity]="searchContactCity"
+        [searchContactCountry]="searchContactCountry"
+        [searchContactState]="searchContactState"
+        [searchContactEmailStatus]="searchContactEmailStatus"
+        [searchContactMarketingStatus]="searchContactMarketingStatus"
+        [resetSearchData]="resetSearchData"
+        [checkboxClicked]="handleContactSelect"
+        [editContact]="editContactClick"
+        [cardData]="contactList"
+        [totalPage]="totalPage"
+        [totalContactsCount]="totalContactsCount"
+        [currentPage]="page"
+        [limit]="limit"
+        (selectedLimit)="receivedLimitNumber($event)"
+        [paginationLeftArrowClick]="paginationLeftArrowClick"
+        [paginationRightArrowClick]="paginationRightArrowClick"
+        [navigateSpecificPage]="navigateSpecificPage"
+        [sortByCreatedAt]="handleSortByCreatedAt"
+        [activeFilterClick]="handleSearchBtnClick"
+        [activeFilterCount]="activeFilterCount"
+        [isWaitingFlag]="isWaitingFlag"
+        [isLoading]="isLoading"
+        [selectAllContacts]="selectAllContacts"
+        [toggleSelectAllContactSelection]="toggleSelectAllContactSelection"
+      ></contact-list-card>
+    </div>
+  </div>
+  <ng-template #uploadContacts let-c="close" let-d="dismiss">
+    <upload-file-modal-content
+      [closeModal]="closeModal"
+      [isLoading]="isLoading"
+      [bypassZerobounce]="handleBypassZerobounce"
+      [showListsDropdown]="true"
+      (parsedFileData)="getImportedFileData($event)"
+      (selectedLists)="getSelectedLabels($event)"
+      sampleCsvUrl="/assets/contact-list-sample.csv"
+      additionalFileRelatedText="KEXY ensures data integrity by cleaning and validating every imported list. We charge 1 credit for every 100 contacts. For instance, importing a list of 1,000 contacts will deduct 10 credits from your account."
+    >
+    </upload-file-modal-content>
+  </ng-template>
+  <ng-template #searchContacts let-c="close" let-d="dismiss">
+    <search-contact-modal-content
+      [closeModal]="closeSearchModal"
+      [searchContactClick]="searchContactClickHandle"
+    >
+    </search-contact-modal-content>
+  </ng-template>
+</brand-layout>

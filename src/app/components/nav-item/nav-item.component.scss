@@ -1,0 +1,91 @@
+li.nav-item {
+  line-height: 36px;
+}
+
+li.nav-item a {
+  padding: 8px 0 8px 40px;
+  width: calc(100% + 10px);
+  font-size: 14px;
+  text-decoration: none;
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+
+  i {
+    font-size: 18px;
+    font-weight: bold;
+    width: 30px;
+    text-align: left;
+  }
+}
+
+li.nav-item:hover a,
+li.nav-item a.active {
+  color: #ffffff;
+}
+
+li.nav-item a.nav-dropdown {
+  padding-left: 70px;
+}
+
+li.nav-item a.active {
+  color: #ffffff;
+  background: url("/assets/images/circle.png") no-repeat 0 14px;
+}
+
+/*
+####################################################
+M E D I A  Q U E R I E S
+####################################################
+*/
+
+/* Large devices (desktops, 992px and up) */
+@media (min-width: 992px) {
+  li.nav-item {
+    line-height: 25px;
+
+    a {
+      font-size: 14px;
+      padding: 4px 0 4px 24px;
+
+      &.nav-dropdown {
+        padding-left: 50px;
+      }
+    }
+  }
+}
+
+/* Extra large devices (large desktops, 1200px and up) */
+@media (min-width: 1200px) {
+  li.nav-item {
+
+
+    a {
+      font-size: 14px;
+      padding: 6px 0 6px 30px;
+
+      &.nav-dropdown {
+        padding-left: 60px;
+      }
+    }
+  }
+}
+
+/* Extra extra large devices (extra large desktops, 1400px and up) */
+@media (min-width: 1400px) {
+  li.nav-item {
+    line-height: 36px;
+
+    a {
+      font-size: 14px;
+      padding: 5px 0 5px 40px;
+
+      &.nav-dropdown {
+        padding-left: 65px;
+      }
+    }
+  }
+}

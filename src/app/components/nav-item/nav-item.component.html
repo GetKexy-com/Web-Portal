@@ -1,0 +1,22 @@
+<!--<li *ngIf="navigateTo" class="nav-item" [routerLink]="navigateTo">-->
+<!--  <a class="{{ cssClass }}"> <i class="fa {{ icon }}" aria-hidden="true"></i> {{ label }} </a>-->
+<!--</li>-->
+<!--<li *ngIf="onClick" class="nav-item" (click)="onNavItemClick()">-->
+<!--  <a class="{{ cssClass }}"> <i class="fa {{ icon }}" aria-hidden="true"></i> {{ label }} </a>-->
+<!--</li>-->
+
+@if (navigateTo) {
+  <li class="nav-item" [routerLink]="resolvedNavigateTo">
+    <a [class]="cssClass">
+      <i class="fa {{ icon }}" aria-hidden="true"></i> {{ label }}
+    </a>
+  </li>
+}
+
+@if (onClick) {
+  <li class="nav-item" (click)="onNavItemClick()">
+    <a [class]="cssClass">
+      <i class="fa {{ icon }}" aria-hidden="true"></i> {{ label }}
+    </a>
+  </li>
+}

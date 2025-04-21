@@ -1,0 +1,189 @@
+<div class="kexy-table-card">
+  <section class="card-header">
+    <p>
+      Drip Campaign(s)
+      <span class="d-none"> {{ getSelectedItemCount() }} </span>
+      <span
+        *ngIf="totalPage && totalPage > 1 && selectedItemCount > 0 && selectedItemCount === cardData.length"
+        class="ms-3 link-text"
+        (click)="toggleSelectAllSelection()"
+      >
+          {{ selectedAllDripCampaigns ? 'Selected' : 'Select' }} all {{ totalRecordsCount | number }} records
+      </span>
+    </p>
+
+    <div *ngIf="totalPage" class="d-flex">
+      <div class="kexy-table-entry-count">
+        Per Page:
+        <select class="form-control" style="width: auto" [(ngModel)]="limit" (change)="onShowEntriesSelect($event)">
+          <!--          <option value="2">2</option>-->
+          <option value="25">25</option>
+          <option value="50">50</option>
+          <option value="100">100</option>
+          <option value="200">200</option>
+          <option value="500">500</option>
+        </select>
+      </div>
+      <div class="pagination-section">
+        <div class="conv-pagination-wrap">
+          <div class="conv-pagination">
+            <p>
+              Page
+              <ng-container *ngIf="!isLoading">{{ currentPage }}</ng-container>
+              <span *ngIf="isLoading"><i aria-hidden="true" class="fa fa-spinner fa-spin"></i></span>
+              of {{ totalPage }}
+            </p>
+            <div class="ms-2">
+              <span class="pagination-arrow" (click)="paginationLeftArrowClick()">
+                <i aria-hidden="true" class="fa fa-angle-left"></i>
+              </span>
+              <span class="pagination-arrow ms-1" (click)="paginationRightArrowClick()">
+                <i aria-hidden="true" class="fa fa-angle-right"></i>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="new-table-wrapper">
+    <div [style.width]="tableWidth + 'px'" class="list-wrapper">
+      <table *ngIf="columnList" [style.width]="tableWidth + 'px'" class="n-table">
+        <!-- header - start -->
+        <tr class="n-header">
+          <ng-container *ngFor="let column of columnList">
+            <td
+              class="n-header-name"
+              [style.background-color]="tableHeaderBg"
+              [style.color]="tableHeaderColor"
+              [style.width]="column.width ? column.width+'px' : ''"
+            >
+              <!--Showing column name-->
+              <span
+                *ngIf="column.name"
+                [className]="column.key === 'number_of_emails' ? 'w-100 d-inline-block text-center' : '' "
+              >
+                {{ column.name }}
+              </span>
+
+              <!-- Showing Select All Icon -->
+              <span
+                *ngIf="!column.name && column.key === 'action'"
+                class="select-all-header-icons"
+                (click)="checkboxClicked(null, true)"
+              >
+                <i [ngClass]="getCheckboxIcon()" aria-hidden="true"></i>
+              </span>
+
+            </td>
+          </ng-container>
+        </tr>
+        <!-- header - end -->
+
+        <!-- body - start -->
+        <ng-container *ngIf="!isWaitingFlag && cardData.length > 0">
+          <tr class="n-product" [class.selected]="row.is_selected" *ngFor="let row of cardData; let i = index">
+            <ng-container *ngFor="let column of columnList">
+              <td
+                class="n-cell"
+                [style.width]="column.width ? column.width+'px' : ''"
+              >
+                <span *ngIf="column.key === 'date_created'">{{ row.created_at | date : "medium" }}</span>
+
+                <span *ngIf="column.key == 'drip_campaign_title'" class="text-link"
+                      (click)="redirectToEditPage(row)">{{ getCampaignTitle(row.drip_campaign_detail.drip_campaign_title_id) }}</span>
+
+                <span *ngIf="column.key == 'number_of_emails'"
+                      class="w-100 d-inline-block text-center">{{ row.drip_campaign_detail.number_of_emails }}</span>
+
+                <span *ngIf="column.key == 'email_tone'">{{ row.drip_campaign_detail.email_tone }}</span>
+
+                <span *ngIf="column.key == 'status'" class="text-capitalize">
+                  <ng-container *ngIf="row.status === constants.INACTIVE">Draft</ng-container>
+                  <ng-container *ngIf="row.status !== constants.INACTIVE">{{ row.status }}</ng-container>
+                </span>
+
+                <span *ngIf="column.key === 'label'">
+                  <span
+                    *ngIf="getList(row.drip_campaign_kexy_labels)"
+                    [style.background-color]="list.bg_color"
+                    [style.color]="list.text_color"
+                    class="label-tag"
+                  >
+                    {{ list.label }}
+                  </span>
+                  <span
+                    *ngIf="enrolledLists.length > 1"
+                    class="see-more-label-text"
+                    (click)="openShowAllLabelModal(row.drip_campaign_kexy_labels)"
+                  >
+                    +{{ enrolledLists.length - 1 }} more
+                  </span>
+                </span>
+
+                <span *ngIf="column.key === 'action'" style="cursor: pointer" (click)="checkboxClicked(row)">
+                  <i *ngIf="!isRowSelected(row)" aria-hidden="true" class="fa fa-square-o checkbox-icon"></i>
+                  <i *ngIf="isRowSelected(row)" aria-hidden="true"
+                     class="fa fa-check-square checkbox-icon selected"></i>
+                </span>
+              </td>
+            </ng-container>
+          </tr>
+        </ng-container>
+        <ng-container *ngIf="!isWaitingFlag && cardData.length === 0">
+          <tr class="n-product">
+            <td [colSpan]="columnList.length" class="n-cell">
+              <span class="text-center d-inline-block"
+                    [style.width]="browserWidthForTable + 'px'">Sorry, no data found.</span>
+            </td>
+          </tr>
+        </ng-container>
+        <ng-container *ngIf="isWaitingFlag">
+          <tr class="n-product">
+            <td [colSpan]="columnList.length" class="n-cell">
+              <span class="text-center d-inline-block" [style.width]="browserWidthForTable + 'px'"><i
+                class="fa fa-refresh fa-spin"></i></span>
+            </td>
+          </tr>
+        </ng-container>
+        <!-- body - end -->
+      </table>
+    </div>
+  </section>
+
+  <section *ngIf="totalPage" class="card-footer justify-content-end">
+    <div class="d-flex">
+      <div class="kexy-table-entry-count">
+        Per Page:
+        <select class="form-control" style="width: auto" [(ngModel)]="limit" (change)="onShowEntriesSelect($event)">
+          <option value="25">25</option>
+          <option value="50">50</option>
+          <option value="100">100</option>
+          <option value="200">200</option>
+          <option value="500">500</option>
+        </select>
+      </div>
+      <div class="pagination-section">
+        <div class="conv-pagination-wrap">
+          <div class="conv-pagination">
+            <p>
+              Page
+              <ng-container *ngIf="!isLoading">{{ currentPage }}</ng-container>
+              <span *ngIf="isLoading"><i aria-hidden="true" class="fa fa-spinner fa-spin"></i></span>
+              of {{ totalPage }}
+            </p>
+            <div class="ms-2">
+              <span class="pagination-arrow" (click)="paginationLeftArrowClick()">
+                <i aria-hidden="true" class="fa fa-angle-left"></i>
+              </span>
+              <span class="pagination-arrow ms-1" (click)="paginationRightArrowClick()">
+                <i aria-hidden="true" class="fa fa-angle-right"></i>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>

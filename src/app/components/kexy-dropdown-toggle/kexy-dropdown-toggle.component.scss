@@ -1,0 +1,366 @@
+.kexy-dropdown {
+  position: relative;
+
+  .dropdown-input-box {
+    position: relative;
+
+    i {
+      font-weight: bold;
+      position: absolute;
+      right: 10px;
+      top: 13px;
+      bottom: 0;
+      font-size: 15px;
+    }
+  }
+
+  .kexy-dropdown-btn {
+    cursor: pointer;
+    padding: 8px 40px 8px 10px;
+    border-radius: 10px;
+    background: white;
+    font-size: 13px;
+
+    &:focus,
+    &:active {
+      outline: 0;
+      box-shadow: none;
+    }
+
+    &.non-outline {
+      border: none;
+      background: none;
+    }
+
+    &.outline {
+      border: 1px solid #b3b3b3;
+    }
+  }
+
+  .label {
+    margin-bottom: 10px;
+    font-style: normal;
+    font-weight: 700;
+    font-size: 13px;
+    line-height: 15px;
+    letter-spacing: -0.01em;
+    text-transform: uppercase;
+    color: #202020;
+
+    span {
+      font-size: 11px;
+      line-height: 11px;
+      text-transform: none;
+      color: #202020;
+      opacity: 60%;
+    }
+  }
+
+  .required-icon-wrap {
+    margin-bottom: 0;
+    margin-top: -12px;
+    margin-left: 2px;
+
+    i {
+      color: red;
+      font-size: 8px;
+    }
+  }
+
+  .kexy-dropdown-items {
+    box-shadow: 0 5px 8px 0 #d9d9d9;
+    background: white;
+    border-radius: 8px;
+    border: 1px solid #f2f3f3;
+    position: absolute;
+    left: 0;
+    right: 0;
+    // If is it more than 1060 then, it will show above the bootstrap modal.
+    z-index: 1040;
+
+    &.top {
+      bottom: 38px;
+      box-shadow: 0 0 5px 0 #d9d9d9;
+    }
+
+    .dropdown-items {
+      max-height: 300px;
+      overflow-y: auto;
+      line-height: 14px;
+
+      button {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: transparent;
+        padding: 0;
+        width: 100%;
+        text-align: left;
+        border: none;
+        font-size: 15px;
+        color: #181818;
+
+        .label-wrap {
+          display: flex;
+
+          i {
+            font-size: 18px;
+            padding-right: 10px;
+            color: #b8b6b6;
+
+            &.selected {
+              color: #2646c5;
+            }
+          }
+        }
+
+        .action-icons-text {
+          min-width: fit-content;
+          margin-left: 10px;
+        }
+      }
+
+      .option-btn-wrap {
+        border-bottom: 2px solid #e7f6fe;
+        padding: 12px;
+        cursor: pointer;
+
+        &:hover {
+          background: #f6fcff;
+        }
+
+        &:last-child {
+          border: none;
+
+          &:hover {
+            border-radius: 8px;
+          }
+        }
+
+        .rightSideText {
+          font-size: 14px;
+          color: #686868;
+        }
+      }
+
+      &.add-new {
+        .option-btn-wrap {
+          border-bottom: 2px solid #e7f6fe;
+
+          &:last-child {
+            &:hover {
+              border-radius: 0;
+            }
+          }
+        }
+      }
+
+
+      .sub-text-in-option {
+        font-size: 12px;
+        line-height: 14px;
+        letter-spacing: -0.01em;
+        color: #808080;
+        margin-left: 25px;
+      }
+    }
+
+    .add-new-btn-wrap, .select-all-btn {
+      padding: 12px;
+
+      button {
+        background: transparent !important;
+        color: #0047cc !important;
+        border: none !important;
+        font-size: 12px !important;
+        font-weight: bold !important;
+
+        i {
+          margin-right: 6px !important;
+        }
+      }
+    }
+
+    .select-all-btn {
+      border-bottom: 2px solid #e7f6fe;
+
+      button {
+        font-size: 14px !important;
+
+        i {
+          font-size: 18px;
+        }
+      }
+    }
+  }
+}
+
+
+.checkbox-selected-value-wrap {
+  position: absolute;
+  top: 38px;
+  left: 15px;
+  display: flex;
+
+  .value-wrap {
+    background: #0047cc;
+    border-radius: 48px;
+    font-style: normal;
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 18px;
+    letter-spacing: -0.01em;
+    color: #ffffff;
+    padding: 5px 7px 5px 12px;
+    text-transform: capitalize;
+    margin: 1px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+}
+
+.custom-input-and-tag {
+  background: #ffffff;
+  border: 1px solid #b3b3b3;
+  border-radius: 8px;
+  padding: 3px 40px 3px 5px;
+  //padding: 4px 40px 4px 5px;
+  display: flex;
+  flex-wrap: wrap;
+  max-height: 100px;
+  min-height: 37px;
+  overflow-y: auto;
+
+  .searched-tag {
+    //background: #0047cc;
+    //border-radius: 48px;
+    //font-style: normal;
+    //font-weight: 500;
+    //font-size: 14px;
+    //line-height: 18px;
+    //letter-spacing: -0.01em;
+    //color: #ffffff;
+    //padding: 5px 10px;
+    //text-transform: capitalize;
+    //margin: 1px;
+    //display: flex;
+    //justify-content: center;
+    //align-items: center;
+
+    background: #0047cc;
+    border-radius: 48px;
+    font-style: normal;
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 18px;
+    letter-spacing: -0.01em;
+    color: #ffffff;
+    padding: 3px 3px 3px 10px;
+    margin: 1px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    .close-icon-wrap {
+      background: #ffffff;
+      border-radius: 50%;
+      display: inline-block;
+      width: 17px;
+      height: 17px;
+      min-width: 17px;
+      min-height: 17px;
+      text-align: center;
+      margin-left: 6px;
+      position: relative;
+      // top: 3px;
+      i {
+        color: #0047cc;
+        font-size: 12px;
+        position: absolute;
+        top: 4px;
+        left: 4px;
+      }
+    }
+  }
+
+  input {
+    border: none;
+    padding-left: 4px;
+    flex: 1;
+    background: transparent;
+    margin-bottom: 5px;
+  }
+}
+
+.placeholder-text-wrap {
+  display: flex;
+  align-items: center;
+  padding-left: 3px;
+
+  span {
+    font-size: 13px;
+    color: grey;
+  }
+}
+
+.error-card-wrap {
+  position: absolute;
+  width: 100%;
+}
+
+@media (min-width: 320px) and (max-width: 991px) {
+  .kexy-dropdown {
+    .label {
+      font-size: 10px !important;
+      line-height: 12px !important;
+    }
+
+    .required-icon-wrap {
+      i {
+        font-size: 6px !important;
+      }
+    }
+
+    .dropdown-input-box {
+      i {
+        top: 11px;
+        font-size: 13px;
+      }
+    }
+  }
+  .custom-input-and-tag {
+    min-height: 38px;
+  }
+}
+
+@media (min-width: 992px) and (max-width: 1599px) {
+  .kexy-dropdown {
+    .label {
+      font-size: 11px;
+      line-height: 13px;
+    }
+
+    .dropdown-input-box {
+      i {
+        font-size: 13px;
+      }
+    }
+
+    .kexy-dropdown-btn {
+      &.non-outline {
+        font-size: 13px;
+      }
+
+      &.outline {
+        font-size: 13px;
+      }
+    }
+
+    .kexy-dropdown-items {
+      button {
+        font-size: 14px;
+      }
+    }
+  }
+}

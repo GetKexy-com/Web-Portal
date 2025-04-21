@@ -1,0 +1,14 @@
+<div class="content" [style.background-color]="bgColor">
+  <div *ngIf="cardTitle" class="title-wrap">
+    <ng-container>
+      <p>
+        {{ cardTitle }}
+        <span *ngIf="showProgressbar">{{insightRate}}%</span>
+      </p>
+    </ng-container>
+  </div>
+
+  <div *ngIf="showProgressbar">
+    <ngb-progressbar class="credit-progressbar-orange" [value]="insightRate" />
+  </div>
+</div>

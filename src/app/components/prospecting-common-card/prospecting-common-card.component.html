@@ -1,0 +1,38 @@
+<div class="content" [style.box-shadow]="cardBoxShadow" [style.padding]="cardPadding">
+  <div *ngIf="cardTitle" class="icon-and-title-wrap">
+    <img [src]="cardTitleLogo" />
+    <p>{{ cardTitle }}</p>
+  </div>
+
+  <p *ngIf="cardDetails" class="details-text">
+    {{ cardDetails }}
+  </p>
+
+  <div>
+    <ng-content></ng-content>
+  </div>
+
+  <div class="text-area-wrap" [style.margin]="textAreaMargin" *ngIf="textAreaLabel">
+    <label class="input-label-text" [style.font-size]="textAreaLabelFontSize">{{ textAreaLabel }}</label>
+    <textarea
+      type="text"
+      class="form-control"
+      [(ngModel)]="description"
+      placeholder="Type text"
+    ></textarea>
+    <!--    <p class="word-count">{{ description.length }}/1000</p>-->
+  </div>
+
+  <div class="learning-score-area-wrap" *ngIf="showLearningScoreCard">
+    <learning-score-card></learning-score-card>
+  </div>
+
+  <div class="list-info" *ngIf="listInfo">
+    <p class="details-text">Creator: <span>{{ listInfo.user.first_name }} {{ listInfo.user.last_name }}</span></p>
+    <p class="ms-3 details-text">Total Contact(s): <span>{{ listInfo.kexy_contact_labels.length }}</span></p>
+  </div>
+
+  <div class="bottom-btn-wrap" *ngIf="bottomBtnLabel">
+    <app-kexy-button (click)="bottomBtnClicked()" [label]="bottomBtnLabel"></app-kexy-button>
+  </div>
+</div>

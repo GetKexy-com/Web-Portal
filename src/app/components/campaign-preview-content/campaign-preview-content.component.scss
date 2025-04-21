@@ -1,0 +1,79 @@
+.preview-content {
+  background: #ffffff;
+  border-radius: 10px;
+  height: calc(100vh - 245px);
+  margin: 18px 24px;
+  padding: 10px;
+  .head-area {
+    position: relative;
+    height: 35px;
+    background: white;
+  }
+  .desktop-or-mobile-preview-wrap {
+    height: calc(100vh - 335px);
+    overflow-y: auto;
+    background: #e7f6fe;
+  }
+}
+.input-label-text {
+  font-size: 10px;
+  line-height: 12px;
+}
+
+// custom switch
+.switch-item {
+  font-size: 14px;
+  line-height: 16px;
+}
+.switch-item-active {
+  font-size: 14px;
+  line-height: 16px;
+  color: #0047cc;
+}
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 18px;
+  margin: 0 20px;
+}
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: white;
+  -webkit-transition: 0.4s;
+  transition: 0.4s;
+  border: 1px solid #12a5f4;
+}
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 12px;
+  width: 12px;
+  left: 4px;
+  bottom: 2px;
+  background-color: #12a5f4;
+  -webkit-transition: 0.4s;
+  transition: 0.4s;
+}
+input:checked + .slider:before {
+  -webkit-transform: translateX(17px);
+  -ms-transform: translateX(17px);
+  transform: translateX(17px);
+}
+/* Rounded sliders */
+.slider.round {
+  border-radius: 34px;
+}
+.slider.round:before {
+  border-radius: 50%;
+}

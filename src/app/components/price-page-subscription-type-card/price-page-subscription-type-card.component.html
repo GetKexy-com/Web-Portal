@@ -1,0 +1,253 @@
+<!--<div class="subscription-type-card" [style.border]="subscriptionDetails.active ? '2px solid #0047CC' : ''"-->
+<!--     (click)="subscriptionCardClicked()">-->
+
+<!--  <p class="card-title"><img [src]="subscriptionDetails.icon" alt="novice" /> {{ subscriptionDetails.title }}</p>-->
+
+<!--  <p *ngIf="subscriptionDetails.price" class="price-text">-->
+<!--    <del-->
+<!--      class="line-price"-->
+<!--      *ngIf="hasPriceDifference()"-->
+<!--    >-->
+<!--      ${{ subscriptionDetails.original_price }}-->
+<!--    </del>-->
+<!--    <span *ngIf="!subscriptionDetails.lifeTime">-->
+<!--      {{ subscriptionDetails.price | currency }}-->
+<!--      <span style="display: inline-block; font-size: 12px">/mo</span>-->
+<!--    </span>-->
+<!--    <span *ngIf="subscriptionDetails.lifeTime">-->
+<!--      {{ subscriptionDetails.price | currency }}-->
+<!--      <span style="display: block; font-size: 12px">(one-time fee)</span>-->
+<!--    </span>-->
+<!--    <br>-->
+<!--  </p>-->
+<!--  <div *ngIf="!subscriptionDetails.price" class="contact-us-btn-wrap">-->
+<!--    <button (click)="contactUsTap()">Contact Us</button>-->
+<!--  </div>-->
+
+<!--  <div class="facilities">-->
+<!--    <p>{{ subscriptionDetails.listYourProducts }}</p>-->
+<!--    <p>{{ subscriptionDetails.emailCredits }}</p>-->
+<!--    &lt;!&ndash;Leads prospecting tool&ndash;&gt;-->
+<!--    <p>-->
+<!--      <img-->
+<!--        *ngIf="subscriptionDetails.leadsProspectingTool"-->
+<!--        src="/assets/icon/green-check-without-circle-icon.svg"-->
+<!--        class="green-check-img"-->
+<!--      />-->
+<!--      <img-->
+<!--        *ngIf="!subscriptionDetails.leadsProspectingTool"-->
+<!--        src="/assets/icon/red-cross-without-circle-icon.svg"-->
+<!--      />-->
+<!--    </p>-->
+
+<!--    &lt;!&ndash;AI drip campaign creator&ndash;&gt;-->
+<!--    <p>-->
+<!--      <img-->
+<!--        *ngIf="subscriptionDetails.aiDripCampaignCreator"-->
+<!--        src="/assets/icon/green-check-without-circle-icon.svg"-->
+<!--        class="green-check-img"-->
+<!--      />-->
+<!--      <img-->
+<!--        *ngIf="!subscriptionDetails.aiDripCampaignCreator"-->
+<!--        src="/assets/icon/red-cross-without-circle-icon.svg"-->
+<!--      />-->
+<!--    </p>-->
+
+<!--    &lt;!&ndash;Campaign performance metrics&ndash;&gt;-->
+<!--    <p>-->
+<!--      <img-->
+<!--        *ngIf="subscriptionDetails.campaignPerformanceMetrics"-->
+<!--        src="/assets/icon/green-check-without-circle-icon.svg"-->
+<!--        class="green-check-img"-->
+<!--      />-->
+<!--      <img-->
+<!--        *ngIf="!subscriptionDetails.campaignPerformanceMetrics"-->
+<!--        src="/assets/icon/red-cross-without-circle-icon.svg"-->
+<!--      />-->
+<!--    </p>-->
+
+<!--    &lt;!&ndash;Custom landing pages&ndash;&gt;-->
+<!--    <p>-->
+<!--      <img-->
+<!--        *ngIf="subscriptionDetails.customLandingPages"-->
+<!--        src="/assets/icon/green-check-without-circle-icon.svg"-->
+<!--        class="green-check-img"-->
+<!--      />-->
+<!--      <img-->
+<!--        *ngIf="!subscriptionDetails.customLandingPages"-->
+<!--        src="/assets/icon/red-cross-without-circle-icon.svg"-->
+<!--      />-->
+<!--    </p>-->
+
+<!--    &lt;!&ndash;Purchase additional leads&ndash;&gt;-->
+<!--    <p>-->
+<!--      <img-->
+<!--        *ngIf="subscriptionDetails.purchaseAdditionalLeads"-->
+<!--        src="/assets/icon/green-check-without-circle-icon.svg"-->
+<!--        class="green-check-img"-->
+<!--      />-->
+<!--      <img-->
+<!--        *ngIf="!subscriptionDetails.purchaseAdditionalLeads"-->
+<!--        src="/assets/icon/red-cross-without-circle-icon.svg"-->
+<!--      />-->
+<!--    </p>-->
+
+<!--    &lt;!&ndash;Account setup and training&ndash;&gt;-->
+<!--    <p>-->
+<!--      <img *ngIf="subscriptionDetails.accountSetupAndTraining" src="/assets/icon/green-check-without-circle-icon.svg"-->
+<!--           class="green-check-img" />-->
+<!--      <img *ngIf="!subscriptionDetails.accountSetupAndTraining" src="/assets/icon/red-cross-without-circle-icon.svg" />-->
+<!--    </p>-->
+<!--  </div>-->
+<!--</div>-->
+<!--<div class="current-or-choose-plan-btn-wrap">-->
+<!--  <app-kexy-button-->
+<!--    *ngIf="isCurrentPlan && subscriptionDetails.showChangePlanOrCurrentPlanBtn"-->
+<!--    label="Current plan"-->
+<!--    bgColor="transparent"-->
+<!--    borderColor="transparent"-->
+<!--    textColor="#45C0A4">-->
+<!--  </app-kexy-button>-->
+<!--  <app-kexy-button-->
+<!--    *ngIf="!isCurrentPlan && subscriptionDetails.showChangePlanOrCurrentPlanBtn"-->
+<!--    label="Select"-->
+<!--    bgColor="transparent"-->
+<!--    borderColor="#45C0A4"-->
+<!--    textColor="#45C0A4"-->
+<!--    (click)="handleChangePlanBtnClick()">-->
+<!--  </app-kexy-button>-->
+<!--  <app-kexy-button-->
+<!--    *ngIf="!subscriptionDetails.showChangePlanOrCurrentPlanBtn"-->
+<!--    label="Contact Us"-->
+<!--    bgColor="transparent"-->
+<!--    borderColor="#45C0A4"-->
+<!--    textColor="#45C0A4"-->
+<!--    (click)="contactUsTap()">-->
+<!--  </app-kexy-button>-->
+<!--</div>-->
+
+<div class="subscription-type-card" [style.border]="subscriptionDetails.active ? '2px solid #0047CC' : ''"
+     (click)="subscriptionCardClicked()">
+
+  <p class="card-title"><img [src]="subscriptionDetails.icon" alt="novice" /> {{ subscriptionDetails.title }}</p>
+
+  @if (subscriptionDetails.price) {
+    <p class="price-text">
+      @if (hasPriceDifference()) {
+        <del class="line-price">
+          ${{ subscriptionDetails.original_price }}
+        </del>
+      }
+      @if (!subscriptionDetails.lifeTime) {
+        <span>
+          {{ subscriptionDetails.price | currency }}
+          <span style="display: inline-block; font-size: 12px">/mo</span>
+        </span>
+      }
+      @if (subscriptionDetails.lifeTime) {
+        <span>
+          {{ subscriptionDetails.price | currency }}
+          <span style="display: block; font-size: 12px">(one-time fee)</span>
+        </span>
+      }
+      <br>
+    </p>
+  }
+  @if (!subscriptionDetails.price) {
+    <div class="contact-us-btn-wrap">
+      <button (click)="contactUsTap()">Contact Us</button>
+    </div>
+  }
+
+  <div class="facilities">
+    <p>{{ subscriptionDetails.listYourProducts }}</p>
+    <p>{{ subscriptionDetails.emailCredits }}</p>
+    <!--Leads prospecting tool-->
+    <p>
+      @if (subscriptionDetails.leadsProspectingTool) {
+        <img src="/assets/icon/green-check-without-circle-icon.svg" class="green-check-img" />
+      }
+      @if (!subscriptionDetails.leadsProspectingTool) {
+        <img src="/assets/icon/red-cross-without-circle-icon.svg" />
+      }
+    </p>
+
+    <!--AI drip campaign creator-->
+    <p>
+      @if (subscriptionDetails.aiDripCampaignCreator) {
+        <img src="/assets/icon/green-check-without-circle-icon.svg" class="green-check-img" />
+      }
+      @if (!subscriptionDetails.aiDripCampaignCreator) {
+        <img src="/assets/icon/red-cross-without-circle-icon.svg" />
+      }
+    </p>
+
+    <!--Campaign performance metrics-->
+    <p>
+      @if (subscriptionDetails.campaignPerformanceMetrics) {
+        <img src="/assets/icon/green-check-without-circle-icon.svg" class="green-check-img" />
+      }
+      @if (!subscriptionDetails.campaignPerformanceMetrics) {
+        <img src="/assets/icon/red-cross-without-circle-icon.svg" />
+      }
+    </p>
+
+    <!--Custom landing pages-->
+    <p>
+      @if (subscriptionDetails.customLandingPages) {
+        <img src="/assets/icon/green-check-without-circle-icon.svg" class="green-check-img" />
+      }
+      @if (!subscriptionDetails.customLandingPages) {
+        <img src="/assets/icon/red-cross-without-circle-icon.svg" />
+      }
+    </p>
+
+    <!--Purchase additional leads-->
+    <p>
+      @if (subscriptionDetails.purchaseAdditionalLeads) {
+        <img src="/assets/icon/green-check-without-circle-icon.svg" class="green-check-img" />
+      }
+      @if (!subscriptionDetails.purchaseAdditionalLeads) {
+        <img src="/assets/icon/red-cross-without-circle-icon.svg" />
+      }
+    </p>
+
+    <!--Account setup and training-->
+    <p>
+      @if (subscriptionDetails.accountSetupAndTraining) {
+        <img src="/assets/icon/green-check-without-circle-icon.svg" class="green-check-img" />
+      }
+      @if (!subscriptionDetails.accountSetupAndTraining) {
+        <img src="/assets/icon/red-cross-without-circle-icon.svg" />
+      }
+    </p>
+  </div>
+</div>
+<div class="current-or-choose-plan-btn-wrap">
+  @if (isCurrentPlan && subscriptionDetails.showChangePlanOrCurrentPlanBtn) {
+    <app-kexy-button
+      label="Current plan"
+      bgColor="transparent"
+      borderColor="transparent"
+      textColor="#45C0A4">
+    </app-kexy-button>
+  }
+  @if (!isCurrentPlan && subscriptionDetails.showChangePlanOrCurrentPlanBtn) {
+    <app-kexy-button
+      label="Select"
+      bgColor="transparent"
+      borderColor="#45C0A4"
+      textColor="#45C0A4"
+      (click)="handleChangePlanBtnClick()">
+    </app-kexy-button>
+  }
+  @if (!subscriptionDetails.showChangePlanOrCurrentPlanBtn) {
+    <app-kexy-button
+      label="Contact Us"
+      bgColor="transparent"
+      borderColor="#45C0A4"
+      textColor="#45C0A4"
+      (click)="contactUsTap()">
+    </app-kexy-button>
+  }
+</div>

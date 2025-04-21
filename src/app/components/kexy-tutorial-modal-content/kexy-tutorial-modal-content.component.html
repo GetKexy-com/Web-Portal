@@ -1,0 +1,126 @@
+<!--<div class="content">-->
+<!--  <div class="left-side">-->
+<!--    <div class="close-icon-wrap-for-mobile">-->
+<!--      <button><img src="/assets/images/close-icon-image.png" (click)="activeModal.close('Close click')" /></button>-->
+<!--    </div>-->
+
+<!--    <p class="title">Tutorials</p>-->
+<!--    <div class="option-list">-->
+<!--      <p *ngFor="let item of tutorialOptionList; let i = index"-->
+<!--         [className]="selectedOption['title'] === item.title ? 'option-item active' : 'option-item'"-->
+<!--         [style.border-top]="i === 0 ? '1px solid #e0e0e0' : ''"-->
+<!--         (click)="changeSelectedOption(item)">{{ item.title }}</p>-->
+<!--    </div>-->
+
+<!--    <div class="dont-show-again-checkbox">-->
+<!--      <div class="form-check">-->
+<!--        <input class="form-check-input" type="checkbox" id="dontShowAgain" (change)="toggleDontShowCheckbox($event)" />-->
+<!--        <label class="form-check-label mb-0" for="dontShowAgain">Don’t show again</label>-->
+<!--      </div>-->
+<!--    </div>-->
+<!--  </div>-->
+<!--  <div class="right-side">-->
+<!--    <div class="top-area-wrap">-->
+<!--      <p>{{ selectedOption.title }}</p>-->
+<!--      <button><img src="/assets/images/close-icon-image.png" (click)="activeModal.close('Close click')" /></button>-->
+<!--    </div>-->
+
+<!--    <div class="content-wrap">-->
+<!--      <div class="sarah-img-wrap">-->
+<!--        <div class="pro-tips-card">-->
+<!--          <div class="top-area">-->
+<!--            <div class="pro-tip-btn">-->
+<!--              <div class="icon-wrap">-->
+<!--                <span><img src="/assets/icon/blue-pro-subscription-icon.svg" alt="icon" /></span>-->
+<!--              </div>-->
+<!--              <p>PRO tip</p>-->
+<!--            </div>-->
+<!--            <div class="right-side-btn-wrap">-->
+<!--              <app-kexy-button-->
+<!--                (click)="openVideoUrl(selectedOption.videoUrl)"-->
+<!--                [label]="selectedOption['proTipsBtnText'] || 'Play Video'"-->
+<!--                bgColor="transparent"-->
+<!--                textColor="white"-->
+<!--                [iconLeft]="selectedOption['proTipsBtnIcon'] || 'fa-play'"-->
+<!--                borderColor="white"-->
+<!--              ></app-kexy-button>-->
+<!--            </div>-->
+<!--          </div>-->
+<!--          <div class="text-content">-->
+<!--            <p [innerHTML]="selectedOption.proTips">-->
+<!--            </p>-->
+<!--          </div>-->
+<!--        </div>-->
+<!--      </div>-->
+<!--    </div>-->
+<!--  </div>-->
+<!--</div>-->
+
+
+<div class="content">
+  <div class="left-side">
+    <div class="close-icon-wrap-for-mobile">
+      <button><img src="/assets/images/close-icon-image.png" (click)="activeModal.close('Close click')" alt="Close" /></button>
+    </div>
+
+    <p class="title">Tutorials</p>
+    <div class="option-list">
+      @for (item of tutorialOptionList; track item.title; let i = $index) {
+        <p
+          [class]="selectedOption()['title'] === item.title ? 'option-item active' : 'option-item'"
+          [style.border-top]="i === 0 ? '1px solid #e0e0e0' : ''"
+          (click)="changeSelectedOption(item)"
+        >
+          {{ item.title }}
+        </p>
+      }
+    </div>
+
+    <div class="dont-show-again-checkbox">
+      <div class="form-check">
+        <input
+          class="form-check-input"
+          type="checkbox"
+          id="dontShowAgain"
+          [checked]="dontShowAgainCheck()"
+          (change)="toggleDontShowCheckbox($event)"
+        />
+        <label class="form-check-label mb-0" for="dontShowAgain">Don't show again</label>
+      </div>
+    </div>
+  </div>
+  <div class="right-side">
+    <div class="top-area-wrap">
+      <p>{{ selectedOption().title }}</p>
+      <button><img src="/assets/images/close-icon-image.png" (click)="activeModal.close('Close click')" alt="Close" /></button>
+    </div>
+
+    <div class="content-wrap">
+      <div class="sarah-img-wrap">
+        <div class="pro-tips-card">
+          <div class="top-area">
+            <div class="pro-tip-btn">
+              <div class="icon-wrap">
+                <span><img src="/assets/icon/blue-pro-subscription-icon.svg" alt="icon" /></span>
+              </div>
+              <p>PRO tip</p>
+            </div>
+            <div class="right-side-btn-wrap">
+              <app-kexy-button
+                (click)="openVideoUrl(selectedOption().videoUrl)"
+                [label]="selectedOption()['proTipsBtnText'] || 'Play Video'"
+                bgColor="transparent"
+                textColor="white"
+                [iconLeft]="selectedOption()['proTipsBtnIcon'] || 'fa-play'"
+                borderColor="white"
+              ></app-kexy-button>
+            </div>
+          </div>
+          <div class="text-content">
+            <p [innerHTML]="selectedOption().proTips"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

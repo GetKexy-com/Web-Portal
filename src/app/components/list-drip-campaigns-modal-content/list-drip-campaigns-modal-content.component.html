@@ -1,0 +1,17 @@
+<div class="search-contact-modal">
+  <section class="header-area">
+    <p>Drip Campaign(s)</p>
+    <img src="/assets/images/close-icon.png" alt="close-icon" style="cursor:pointer;" (click)="activeModal.close('Close click')" />
+  </section>
+
+  <section class="middle-area">
+    <div *ngIf="dripCampaigns.length">
+      <div *ngFor="let campaign of dripCampaigns; let i = index">
+        <p>{{i + 1}}. <span class="link-text">{{campaign.title}}</span></p>
+      </div>
+    </div>
+    <div *ngIf="!dripCampaigns.length" class="text-center">
+      <p class="mb-0">No drip campaigns found!</p>
+    </div>
+  </section>
+</div>

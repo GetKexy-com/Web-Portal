@@ -1,0 +1,123 @@
+<!--<div class="credits-page-subscription-card">-->
+<!--  <div class="top-area">-->
+<!--    <div class="left-side">-->
+<!--      <p>Subscription</p>-->
+<!--    </div>-->
+<!--    <div class="right-side d-flex" *ngIf="!isLoading">-->
+<!--      <app-kexy-button-->
+<!--        *ngIf="productDetails.subscription_product.type !== constants.BRAND_NOVICE"-->
+<!--        label="Update Payment Method"-->
+<!--        [iconLeft]="isLoading ? 'fa-refresh fa-spin' : 'fa-credit-card'"-->
+<!--        bgColor="rgb(231, 246, 254)"-->
+<!--        textColor="#0047CC"-->
+<!--        [disabled]="isLoading || userData.role !== constants.ADMIN"-->
+<!--        (click)="updatePaymentMethod()">-->
+<!--      </app-kexy-button>-->
+<!--      <app-kexy-button-->
+<!--        label="Change plan"-->
+<!--        iconRight="fa-angle-right"-->
+<!--        bgColor="white"-->
+<!--        textColor="#0047CC"-->
+<!--        [disabled]="userData.role !== constants.ADMIN"-->
+<!--        (click)="changePlanBtnClick()">-->
+<!--      </app-kexy-button>-->
+<!--    </div>-->
+<!--  </div>-->
+
+<!--  <div *ngIf="isLoading" class="d-flex justify-content-center">-->
+<!--    <p class="m-3"><i class="fa fa-refresh fa-spin"></i> Loading...</p>-->
+<!--  </div>-->
+
+
+<!--  <div class="content-area" *ngIf="!isLoading">-->
+<!--    <div class="left-side-content">-->
+<!--      <div class="img-wrap">-->
+<!--        <img src="/assets/icon/double-star-blue-icon.svg" />-->
+<!--      </div>-->
+<!--      <div class="text-content">-->
+<!--        <p>{{productDetails.subscription_product.name}} plan</p>-->
+<!--        <p class="mb-0">-->
+<!--          {{pricePerUser | currency}}-->
+<!--          <span *ngIf="recurringType && (productDetails.subscription_product.type !== constants.BRAND_299_MONTH_PER_USER && productDetails.subscription_product.type !== constants.BRAND_PRESALE_LIFETIME)">{{recurringType}}</span>-->
+<!--        </p>-->
+<!--      </div>-->
+<!--    </div>-->
+<!--    <div class="right-side-content">-->
+<!--      <div>-->
+<!--        <p>Number of users</p>-->
+<!--        <p class="mb-0">{{subscription.total_seats}}</p>-->
+<!--      </div>-->
+<!--      <div *ngIf="creditsInfo">-->
+<!--        <p>Monthly credits</p>-->
+<!--        <p class="mb-0">{{creditsInfo.allowed_credit_limit}}</p>-->
+<!--      </div>-->
+<!--    </div>-->
+<!--  </div>-->
+<!--</div>-->
+
+<div class="credits-page-subscription-card">
+  <div class="top-area">
+    <div class="left-side">
+      <p>Subscription</p>
+    </div>
+    @if (!isLoading()) {
+      <div class="right-side d-flex">
+        @if (productDetails().subscription_product.type !== constants.BRAND_NOVICE) {
+          <app-kexy-button
+            label="Update Payment Method"
+            [iconLeft]="isLoading() ? 'fa-refresh fa-spin' : 'fa-credit-card'"
+            bgColor="rgb(231, 246, 254)"
+            textColor="#0047CC"
+            [disabled]="isLoading() || userData().role !== constants.ADMIN"
+            (click)="updatePaymentMethod()">
+          </app-kexy-button>
+        }
+        <app-kexy-button
+          label="Change plan"
+          iconRight="fa-angle-right"
+          bgColor="white"
+          textColor="#0047CC"
+          [disabled]="userData().role !== constants.ADMIN"
+          (click)="changePlanBtnClick()">
+        </app-kexy-button>
+      </div>
+    }
+  </div>
+
+  @if (isLoading()) {
+    <div class="d-flex justify-content-center">
+      <p class="m-3"><i class="fa fa-refresh fa-spin"></i> Loading...</p>
+    </div>
+  }
+
+  @if (!isLoading()) {
+    <div class="content-area">
+      <div class="left-side-content">
+        <div class="img-wrap">
+          <img src="/assets/icon/double-star-blue-icon.svg" />
+        </div>
+        <div class="text-content">
+          <p>{{productDetails().subscription_product.name}} plan</p>
+          <p class="mb-0">
+            {{pricePerUser() | currency}}
+            @if (recurringType() && (productDetails().subscription_product.type !== constants.BRAND_299_MONTH_PER_USER && productDetails().subscription_product.type !== constants.BRAND_PRESALE_LIFETIME)) {
+              <span>{{recurringType()}}</span>
+            }
+          </p>
+        </div>
+      </div>
+      <div class="right-side-content">
+        <div>
+          <p>Number of users</p>
+          <p class="mb-0">{{subscription().total_seats}}</p>
+        </div>
+        @if (creditsInfo()) {
+          <div>
+            <p>Monthly credits</p>
+            <p class="mb-0">{{creditsInfo().allowed_credit_limit}}</p>
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>

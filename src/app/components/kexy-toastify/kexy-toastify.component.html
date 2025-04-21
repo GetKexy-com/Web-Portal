@@ -1,0 +1,17 @@
+<div
+  style="display: none"
+  class="animate__animated"
+  [class.animate__bounceInRight]="isBounce"
+  [class.animate__bounceOutRight]="isAnimateBack"
+  [class.tr-animate]="isBounce || isAnimateBack"
+>
+  <div class="toastify-content">
+    <span>
+      <i class="fa fa-check-circle" aria-hidden="true"></i>
+    </span>
+    <span>{{ message }}</span>
+  </div>
+  <ng-container *ngIf="isBounce">
+    <div class="tr-progress" [style]="progressBarCss()" [class.animate]="progressAnimate"></div>
+  </ng-container>
+</div>

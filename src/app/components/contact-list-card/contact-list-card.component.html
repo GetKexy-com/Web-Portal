@@ -1,0 +1,331 @@
+<div class="kexy-table-card">
+  <section class="card-header">
+    <p class="d-flex align-items-center">
+      <a *ngIf="showBackBtn" class="d-flex align-items-center pe-2" href="javascript.void(0)"
+         (click)="backBtnClickHandler($event)">
+        <i class="fa fa-angle-left me-2" style="font-size: 20px" aria-hidden="true"></i> Back
+      </a>
+      Contacts
+      <span class="d-none"> {{ getSelectedItemCount() }} </span>
+      <span
+        *ngIf="totalPage && totalPage > 1 && selectedItemCount > 0 && selectedItemCount === cardData.length"
+        class="ms-3 link-text"
+        (click)="toggleSelectAllContactSelection()"
+      >
+        {{ selectAllContacts ? 'Selected' : 'Select' }} all {{ totalContactsCount | number }} records
+      </span>
+    </p>
+
+    <div class="d-flex flex-wrap">
+      <div *ngIf="showActionBtns" class="action-btns-wrap">
+        <div class="buttons-for-large-screen">
+          <app-kexy-button
+            *ngIf="selectedContacts.length"
+            (click)="deleteContacts()"
+            label=""
+            tooltip="Delete Selected Contact(s)"
+            iconLeft="fa-trash"
+            bgColor="#e7f6fe"
+            textColor="#2847cc"
+            radius="8px"
+          ></app-kexy-button>
+          <app-kexy-button
+            (click)="createContactClick()"
+            label="Add Contact"
+            tooltip="Add New Contact"
+            iconLeft="fa-plus"
+            bgColor="#e7f6fe"
+            textColor="#2847cc"
+            radius="8px"
+          ></app-kexy-button>
+          <app-kexy-button
+            label="Import"
+            iconLeft="fa-cloud-upload"
+            (click)="importBtnClick()"
+            tooltip="Import Contacts(s)"
+            bgColor="#e7f6fe"
+            textColor="#2847cc"
+            radius="8px"
+          ></app-kexy-button>
+        </div>
+
+        <div class="buttons-for-small-screen">
+          <app-kexy-button
+            *ngIf="selectedContacts.length"
+            (click)="deleteContacts()"
+            label=""
+            tooltip="Delete Selected Contact(s)"
+            iconLeft="fa-trash"
+            bgColor="#e7f6fe"
+            textColor="#2847cc"
+            radius="8px"
+          ></app-kexy-button>
+          <app-kexy-button
+            (click)="createContactClick()"
+            label=""
+            tooltip="Add New Contact"
+            iconLeft="fa-plus"
+            bgColor="#e7f6fe"
+            textColor="#2847cc"
+            radius="8px"
+          ></app-kexy-button>
+          <app-kexy-button
+            label=""
+            iconLeft="fa-cloud-upload"
+            (click)="importBtnClick()"
+            tooltip="Import Contacts(s)"
+            bgColor="#e7f6fe"
+            textColor="#2847cc"
+            radius="8px"
+          ></app-kexy-button>
+        </div>
+      </div>
+      <div *ngIf="totalPage" class="kexy-table-entry-count">
+        Per Page:
+        <select class="form-control" style="width: auto" [(ngModel)]="limit" (change)="onShowEntriesSelect($event)">
+          <option value="25">25</option>
+          <option value="50">50</option>
+          <option value="100">100</option>
+          <option value="200">200</option>
+          <option value="500">500</option>
+          <option value="1000">1000</option>
+          <!--          <option value="2500">2500</option>-->
+        </select>
+      </div>
+      <div *ngIf="totalPage" class="pagination-section">
+        <div class="conv-pagination-wrap">
+          <div class="conv-pagination">
+            <form (ngSubmit)="handleNavigate()">
+              <p class="d-flex me-2">
+                <span *ngIf="!showNavigationInput" class="link-text me-1" (click)="showHideNavigationInput()">Jump to Page</span>
+                <input *ngIf="showNavigationInput" class="navigation-input form-control me-1" type="number"
+                       [(ngModel)]="navigatePageNumber" [ngModelOptions]="{standalone: true}" />
+                <span *ngIf="showNavigationInput">
+                  <app-kexy-button
+                    label="Go"
+                    type="submit"
+                  ></app-kexy-button>
+                </span>
+              </p>
+            </form>
+            <p>
+              Page
+              <ng-container *ngIf="!isLoading">{{ currentPage }}</ng-container>
+              <span *ngIf="isLoading"><i aria-hidden="true" class="fa fa-spinner fa-spin"></i></span>
+              of {{ totalPage }}
+            </p>
+            <div class="ms-2">
+              <span class="pagination-arrow" (click)="paginationLeftArrowClick()">
+                <i aria-hidden="true" class="fa fa-angle-left"></i>
+              </span>
+              <span class="pagination-arrow ms-1" (click)="paginationRightArrowClick()">
+                <i aria-hidden="true" class="fa fa-angle-right"></i>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="new-table-wrapper">
+    <!--    [style.width]="tableWidth + 'px'"-->
+    <div
+      [style.height]="!isWaitingFlag && cardData.length ? 'calc(100vh - 330px)' : 'auto'" class="list-wrapper"
+    >
+      <table *ngIf="columnList" [style.width]="tableWidth + 'px'" class="n-table">
+        <!-- header - start -->
+        <thead>
+        <tr class="n-header">
+          <ng-container *ngFor="let column of columnList">
+            <td
+              class="n-header-name"
+              [style.background-color]="tableHeaderBg"
+              [style.color]="tableHeaderColor"
+              [style.width]="column.width ? column.width+'px' : ''"
+            >
+              <!--Showing column name-->
+              <span
+                *ngIf="column.name && column.key !== 'created' && column.key !== 'title' && column.key !== 'company_name'"
+              >
+                {{ column.name }}
+              </span>
+              <span
+                *ngIf="column.name && (column.key === 'created' || column.key === 'title' || column.key === 'company_name')"
+                style="cursor: pointer"
+                (click)="sortByCreatedAt(column.key)"
+              >
+                {{ column.name }}
+                <i class="fa fa-long-arrow-up" aria-hidden="true"></i>
+                <i class="fa fa-long-arrow-down" aria-hidden="true"></i>
+              </span>
+
+              <!--Showing select all icon-->
+              <span *ngIf="!column.name && column.key === 'action'" class="select-all-header-icons"
+                    (click)="checkboxClicked(null, true)">
+                  <i *ngIf="selectedItemCount === 0" aria-hidden="true" class="fa fa-square-o checkbox-icon"></i>
+                  <i *ngIf="selectedItemCount > 0 && selectedItemCount < cardData.length" aria-hidden="true"
+                     class="fa fa-minus-square-o"></i>
+                  <i *ngIf="cardData.length && selectedItemCount === cardData.length" aria-hidden="true"
+                     class="fa fa-check-square-o"></i>
+              </span>
+            </td>
+          </ng-container>
+        </tr>
+        </thead>
+        <!-- header - end -->
+
+        <!-- body - start -->
+        <ng-container *ngIf="!isWaitingFlag && cardData.length > 0">
+          <tbody>
+          <tr class="n-product" [class.selected]="row.is_selected" *ngFor="let row of cardData; let i = index"
+              (click)="editContact(row)">
+            <ng-container *ngFor="let column of columnList">
+              <td
+                [className]="
+                  column.key === 'title_of_campaign'
+                    ? 'n-cell title-of-campaign-column-width'
+                    : 'n-cell ' + getCellClasses(column)
+                "
+                [style.width]="column.width"
+              >
+                <span
+                  *ngIf="column.key !== 'action' && column.key !== 'linkedin_url' && column.key !== 'label' && column.key !== 'marketing_status' && column.key !== 'email_status' && column.key !== 'created'"
+                  [className]="column.key !== 'email' ? 'text-capitalize' : ''">
+                  {{ getCellValueToDisplay(row, column) || 'N/A' }}
+                </span>
+
+                <span *ngIf="column.key === 'created'">
+                  {{ row.created_at | date: 'medium' }}
+                </span>
+
+                <span *ngIf="column.key === 'marketing_status'" class="marketing-status">
+                  <span class="ms-green" *ngIf="row.marketing_status === 'subscribed'">
+                    {{ row.marketing_status }}
+                  </span>
+                  <span class="ms-red" *ngIf="row.marketing_status === 'unsubscribed'">
+                    {{ row.marketing_status }}
+                  </span>
+                </span>
+
+                <span *ngIf="column.key === 'linkedin_url'" class="linkedin-icon-wrap"
+                      (click)="stopPropagation($event)">
+                  <a [href]="getCellValue(row, column)" target="_blank"><i class="fa fa-linkedin-square"
+                                                                           aria-hidden="true"></i></a>
+                </span>
+                <span *ngIf="column.key === 'email_status'">
+                  <span class="email-status status-green" *ngIf="row.email_status === 'verified'">
+                    Valid
+                  </span>
+                  <span class="email-status status-red" *ngIf="row.email_status === 'invalid'">
+                    Invalid
+                  </span>
+                  <span class="email-status status-yellow" *ngIf="row.email_status === 'catch-all'">
+                    Catch-all
+                  </span>
+                  <span class="email-status status-yellow" *ngIf="row.email_status === 'unverified'">
+                    Unverified
+                  </span>
+                </span>
+
+                <span *ngIf="column.key === 'label'">
+                  <span
+                    *ngIf="row.kexy_contact_labels?.length"
+                    [style.background-color]="row.kexy_contact_labels[0].kexy_label.bg_color"
+                    [style.color]="row.kexy_contact_labels[0].kexy_label.text_color"
+                    class="label-tag"
+                  >
+                    {{ row.kexy_contact_labels[0].kexy_label.label }}
+                  </span>
+                  <span
+                    *ngIf="row.kexy_contact_labels?.length > 1"
+                    class="see-more-label-text"
+                    (click)="openShowAllLabelModal($event, row.kexy_contact_labels)">
+                    +{{ row.kexy_contact_labels?.length - 1 }} more
+                  </span>
+                </span>
+
+                <span *ngIf="column.key === 'action'" class="text-center d-inline-block w-100"
+                      (click)="onCheckboxClicked($event, row)">
+                  <i *ngIf="!row.is_selected" aria-hidden="true" class="fa fa-square-o checkbox-icon"></i>
+                  <i *ngIf="row.is_selected" aria-hidden="true" class="fa fa-check-square checkbox-icon selected"></i>
+                </span>
+
+              </td>
+            </ng-container>
+          </tr>
+          </tbody>
+        </ng-container>
+        <ng-container *ngIf="!isWaitingFlag && cardData.length === 0">
+          <tr class="n-product">
+            <td [colSpan]="columnList.length" class="n-cell">
+              <span class="text-center d-inline-block"
+                    [style.width]="browserWidthForTable + 'px'">Sorry, no data found.</span>
+            </td>
+          </tr>
+        </ng-container>
+        <ng-container *ngIf="isWaitingFlag">
+          <tr class="n-product">
+            <td [colSpan]="columnList.length" class="n-cell">
+              <span class="text-center d-inline-block" [style.width]="browserWidthForTable + 'px'"><i
+                class="fa fa-refresh fa-spin"></i></span>
+            </td>
+          </tr>
+        </ng-container>
+        <!-- body - end -->
+
+      </table>
+    </div>
+  </section>
+
+  <div *ngIf="totalPage" class="card-footer justify-content-end">
+    <div class="kexy-table-entry-count">
+      Per Page:
+      <select class="form-control" style="width: auto" [(ngModel)]="limit" (change)="onShowEntriesSelect($event)">
+        <option value="25">25</option>
+        <option value="50">50</option>
+        <option value="100">100</option>
+        <option value="200">200</option>
+        <option value="500">500</option>
+        <option value="1000">1000</option>
+        <!--        <option value="2500">2500</option>-->
+      </select>
+    </div>
+    <div class="pagination-section d-flex">
+      <div class="conv-pagination-wrap">
+        <div class="conv-pagination">
+          <form (ngSubmit)="handleNavigate()">
+            <p class="d-flex me-2">
+              <span *ngIf="!showNavigationInput" class="link-text me-1"
+                    (click)="showHideNavigationInput()">Jump to Page</span>
+              <input *ngIf="showNavigationInput" class="navigation-input form-control me-1" type="number"
+                     [(ngModel)]="navigatePageNumber" [ngModelOptions]="{standalone: true}" />
+              <span *ngIf="showNavigationInput">
+                    <app-kexy-button
+                      label="Go"
+                      type="submit"
+                    ></app-kexy-button>
+                  </span>
+            </p>
+          </form>
+          <p>
+            Page
+            <ng-container *ngIf="!isLoading">{{ currentPage }}</ng-container>
+            <span *ngIf="isLoading">
+              <i aria-hidden="true" class="fa fa-spinner fa-spin"></i>
+            </span>
+            of {{ totalPage }}
+          </p>
+          <div class="ms-2">
+                <span class="pagination-arrow" (click)="paginationLeftArrowClick()">
+                  <i aria-hidden="true" class="fa fa-angle-left"></i>
+                </span>
+            <span class="pagination-arrow ms-1" (click)="paginationRightArrowClick()">
+                  <i aria-hidden="true" class="fa fa-angle-right"></i>
+                </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

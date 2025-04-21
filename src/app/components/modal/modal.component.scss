@@ -1,0 +1,92 @@
+.modal-wrap {
+  .head-area {
+    padding: 20px;
+    width: 100%;
+    background: url("/assets/images/sidebar-bg.png") no-repeat;
+    background-size: cover;
+    position: relative;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    .modal-close-icon-wrap {
+      position: absolute;
+      top: 15px;
+      right: 20px;
+      p {
+        width: 28px;
+        height: 28px;
+        background: white;
+        border-radius: 10px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 0;
+        cursor: pointer;
+      }
+    }
+    .head-title {
+      font-weight: 700;
+      font-size: 20px;
+      text-align: center;
+      letter-spacing: 0.5px;
+      color: #ffffff;
+      margin: 0px;
+    }
+  }
+}
+
+.modal-big {
+  width: 1200px;
+  left: -350px;
+  padding: 0px;
+  border-radius: 11px;
+  background: white;
+}
+.modal-body {
+  position: relative;
+}
+
+@media (min-width: 360px) and (max-width: 574px) {
+  .modal-big {
+    width: 350px;
+    left: 73px;
+  }
+}
+
+@media (min-width: 575px) and (max-width: 759px) {
+  .modal-big {
+    width: 555px;
+    left: -21px;
+  }
+}
+
+@media (min-width: 760px) and (max-width: 979px) {
+  .modal-big {
+    width: 744px;
+    left: -120px;
+  }
+}
+
+@media (min-width: 980px) and (max-width: 1199px) {
+  .modal-big {
+    width: 970px;
+    left: -236px;
+    border-radius: 10px;
+  }
+  .modal-wrap {
+    .head-area {
+      .head-title {
+        font-size: 16px;
+      }
+    }
+  }
+}
+
+@media (min-width: 1200px) and (max-width: 1399px) {
+  .modal-wrap {
+    .head-area {
+      .head-title {
+        font-size: 18px;
+      }
+    }
+  }
+}

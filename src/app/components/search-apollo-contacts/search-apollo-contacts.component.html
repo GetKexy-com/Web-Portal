@@ -1,0 +1,809 @@
+<section class="select-area-content">
+  <div class="saved-search">
+    <div class="row">
+      <div class="col-md-6">
+        <kexy-select-dropdown
+          label="Saved searches"
+          [selectAllBtn]="false"
+          [editIcon]="false"
+          [deleteIcon]="true"
+          [onDeleteClick]="deleteSavedSearch"
+          [required]="false"
+          [options]="savedSearches"
+          [addNewBtn]="false"
+          [onOpenDropdown]="null"
+          [selectedOption]="selectedSavedSearches['value']"
+          [onSelectSingleItem]="onSavedSearchSelect"
+          optionStyle="button"
+          backgroundColor="white"
+          placeholder="Please select"
+        ></kexy-select-dropdown>
+      </div>
+    </div>
+  </div>
+  <!--country select-->
+  <div class="country-select-wrap">
+    <div class="row">
+      <div class="col-12 col-md-6">
+        <kexy-select-dropdown
+          label="Select what country are you searching"
+          [selectAllBtn]="false"
+          [editIcon]="false"
+          [deleteIcon]="false"
+          [required]="false"
+          [options]="countries"
+          [allOptions]="countries"
+          [addNewBtn]="false"
+          [onOpenDropdown]="onCountryOpen"
+          [selectedOption]="selectedCountry"
+          [onSelectSingleItem]="onCountrySelect"
+          [isSearchAble]="true"
+          optionStyle="button"
+          backgroundColor="white"
+          placeholder="Search for a country"
+        ></kexy-select-dropdown>
+      </div>
+    </div>
+
+    <div class="row" *ngIf="!isIndustryFoodAndBeverage">
+      <div class="col-12 col-md-4">
+        <div class="checkbox-wrap">
+          <kexy-select-dropdown
+            label="Industries"
+            shortNoteBesideLabel=""
+            [selectAllBtn]="true"
+            [editIcon]="false"
+            [deleteIcon]="false"
+            [required]="false"
+            [options]="organizationIndustryTagIds"
+            [addNewBtn]="false"
+            [selectedOption]=""
+            [onOpenDropdown]="onDtcOpen"
+            [onSelectSingleItem]="onIndustrySelect"
+            [onSelectAll]="selectAllIndustry"
+            [isClearable]="true"
+            optionStyle="checkbox"
+            backgroundColor="white"
+            placeholder="Please select"
+          ></kexy-select-dropdown>
+        </div>
+      </div>
+      <div class="col-12 col-md-4">
+        <div class="checkbox-wrap">
+          <div #jobTitleScrollElRef></div>
+          <kexy-select-dropdown
+            label="Job titles"
+            shortNoteBesideLabel=""
+            [selectAllBtn]="false"
+            [showTypeAndPress]="true"
+            [editIcon]="false"
+            [deleteIcon]="false"
+            [required]="false"
+            [options]="jobList"
+            [allOptions]="allJobList"
+            [addNewBtn]="false"
+            [selectedOption]=""
+            [onOpenDropdown]="onJobTitleOpen"
+            [onSelectSingleItem]="onJobSelect"
+            [onSelectAll]="selectAllJobs"
+            [isSearchAble]="true"
+            [isClearable]="true"
+            [isHideDropdown]="true"
+            optionStyle="checkbox"
+            backgroundColor="white"
+            placeholder="Search for a job title"
+          ></kexy-select-dropdown>
+        </div>
+      </div>
+      <div class="col-12 col-md-4">
+        <div #dtcScrollElRef></div>
+        <div class="checkbox-wrap">
+          <kexy-select-dropdown
+            label="Management level"
+            shortNoteBesideLabel=""
+            [selectAllBtn]="true"
+            [editIcon]="false"
+            [deleteIcon]="false"
+            [required]="false"
+            [options]="personSeniorities"
+            [addNewBtn]="false"
+            [selectedOption]=""
+            [onOpenDropdown]="onDtcOpen"
+            [onSelectSingleItem]="onPersonSenioritiySelect"
+            [onSelectAll]="selectAllSeniorities"
+            [isClearable]="true"
+            optionStyle="checkbox"
+            backgroundColor="white"
+            placeholder="Please select"
+          ></kexy-select-dropdown>
+        </div>
+      </div>
+      <div class="col-12 col-md-4" style="margin-top: 20px">
+        <kexy-dropdown-toggle
+          label="Departments & Job Function"
+          placeholder="Please select"
+          backgroundColor="white"
+          [selectedData]="departmentsAndJobFunctionFieldDataToShow"
+          [isClearable]="true"
+          [clearItem]="clearDepartmentAndJobFunction"
+        >
+          <div class="department-job-function-content-wrap non-hide-from-toggle">
+            <div class="search-input-wrap">
+              <input class="form-control" placeholder="Search departments" [(ngModel)]="searchDepartmentQuery"
+                     (input)="handleSearchDepartment()" />
+            </div>
+            <div class="department-list">
+              <div class="department-item non-hide-from-toggle"
+                   *ngFor="let department of filteredDepartmentsAndJobFunctions"
+                   (click)="handleToggleDepartment(department)" [class.open]="department.isOpen">
+                <div class="item-head">
+                  <div class="d-flex align-items-center">
+                    <i
+                      (click)="toggleDepartmentSelection(department, $event)"
+                      class="fa checkbox"
+                      [ngClass]="getDepartmentIconClass(department)"
+                      aria-hidden="true"
+                    ></i>
+                    <p>{{ department.name }}</p>
+                  </div>
+                  <span>{{ department.isOpen ? '-' : '+' }}</span>
+                </div>
+
+                <div *ngIf="department.isOpen" class="sub-items non-hide-from-toggle"
+                     (click)="eventStopPropagation($event)">
+                  <div class="item non-hide-from-toggle" *ngFor="let subitem of department.subItems"
+                       (click)="toggleDepartmentSubItemSelection(subitem)">
+                    <i
+                      class="fa checkbox non-hide-from-toggle"
+                      [ngClass]="getDepartmentSubItemClass(subitem)"
+                      aria-hidden="true"
+                    ></i>
+                    <p>{{ subitem.name }}</p>
+                  </div>
+                </div>
+              </div>
+              <div class="non-hide-from-toggle" *ngIf="!filteredDepartmentsAndJobFunctions.length">
+                <p class="text-center mt-3" style="font-size: 14px">No departments found!</p>
+              </div>
+            </div>
+          </div>
+        </kexy-dropdown-toggle>
+      </div>
+      <div class="col-12 col-md-3">
+        <div #employeeScrollElRef></div>
+        <div class="checkbox-wrap">
+          <kexy-select-dropdown
+            label="No. of Employees"
+            shortNoteBesideLabel=""
+            [selectAllBtn]="true"
+            [editIcon]="false"
+            [deleteIcon]="false"
+            [required]="false"
+            [options]="noOfEmployees"
+            [addNewBtn]="false"
+            [selectedOption]=""
+            [onOpenDropdown]="onEmployeeScrollOpen"
+            [onSelectSingleItem]="onNoOfEmployeeSelect"
+            [onSelectAll]="selectAllNoOfEmployee"
+            [isClearable]="true"
+            optionStyle="checkbox"
+            backgroundColor="white"
+            placeholder="Please select"
+          ></kexy-select-dropdown>
+        </div>
+      </div>
+
+      <div class="col-12 col-md-5" style="margin-top: 20px">
+        <kexy-dropdown-toggle
+          label="Revenue"
+          placeholder="Please select"
+          backgroundColor="white"
+          [selectedData]="revenueFieldDataToShow"
+          [isClearable]="true"
+          [clearItem]="clearRevenueItem"
+        >
+          <div class="revenue-content-wrap">
+            <div class="min-max-input-wrap">
+              <div #revenueScrollElRef></div>
+              <kexy-select-dropdown
+                style="margin-right: 5px;"
+                label="Min"
+                shortNoteBesideLabel=""
+                [selectAllBtn]="false"
+                [editIcon]="false"
+                [deleteIcon]="false"
+                [required]="false"
+                [options]="revenueMinMaxList"
+                [addNewBtn]="false"
+                [selectedOption]="minRevenueSelected && minRevenueSelected['value']"
+                [onOpenDropdown]="onRevenueScrollOpen"
+                [onSelectSingleItem]="onMinRevenueSelect"
+                [onSelectAll]=""
+                optionStyle="radio"
+                backgroundColor="white"
+                placeholder="Please select"
+              ></kexy-select-dropdown>
+              <kexy-select-dropdown
+                label="Max"
+                shortNoteBesideLabel=""
+                [selectAllBtn]="false"
+                [editIcon]="false"
+                [deleteIcon]="false"
+                [required]="false"
+                [options]="revenueMinMaxList"
+                [addNewBtn]="false"
+                [selectedOption]="maxRevenueSelected && maxRevenueSelected['value']"
+                [onOpenDropdown]="onRevenueScrollOpen"
+                [onSelectSingleItem]="onMaxRevenueSelect"
+                [onSelectAll]=""
+                optionStyle="radio"
+                backgroundColor="white"
+                placeholder="Please select"
+              ></kexy-select-dropdown>
+            </div>
+            <hr />
+            <div class="checkboxes-wrap">
+              <div class="checkbox-and-label" *ngFor="let revenue of revenueList">
+                <div class="d-flex align-items-center">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    [value]="revenue"
+                    [checked]="revenue.isSelected"
+                    [id]="revenue.key"
+                    (change)="onRevenueSelect(revenue, 0, 0)"
+                  />
+                  <label class="form-check-label purchase-info-label" [for]="revenue.key">{{ revenue.value }}</label>
+                </div>
+                <p>{{ revenue.rightSideText }}</p>
+              </div>
+            </div>
+          </div>
+        </kexy-dropdown-toggle>
+      </div>
+      <div class="col-12 col-md-4">
+        <div #fundingScrollElRef></div>
+        <div class="checkbox-wrap">
+          <kexy-select-dropdown
+            label="Funding"
+            shortNoteBesideLabel=""
+            [selectAllBtn]="true"
+            [editIcon]="false"
+            [deleteIcon]="false"
+            [required]="false"
+            [options]="fundingList"
+            [addNewBtn]="false"
+            [selectedOption]=""
+            [onOpenDropdown]="onFundingOpen"
+            [onSelectSingleItem]="onFundingSelect"
+            [onSelectAll]="selectAllFunding"
+            [isClearable]="true"
+            optionStyle="checkbox"
+            backgroundColor="white"
+            placeholder="Please select"
+          ></kexy-select-dropdown>
+        </div>
+      </div>
+      <div class="col-12 col-md-4" style="margin-top: 20px">
+        <kexy-dropdown-toggle
+          label="Company Keywords"
+          placeholder="Please select"
+          backgroundColor="white"
+          [selectedData]="companyKeywordsFieldDataToShow"
+          [isClearable]="true"
+          [clearItem]="clearCompanyKeyWords"
+        >
+          <div class="company-keywords-content-wrap">
+            <div class="keyword-content-box">
+              <div class="head">
+                <p>Include Keywords</p>
+                <img
+                  class="info-img tooltip-question tooltip-btn ms-1"
+                  ngbTooltip="Keyword filter may slow down your search"
+                  tooltipClass="custom-tooltip-class"
+                  src="/assets/icon/grey-circle-info-icon.svg"
+                />
+              </div>
+              <div class="keyword-content">
+                <kexy-select-dropdown
+                  label=""
+                  shortNoteBesideLabel=""
+                  [selectAllBtn]="false"
+                  [showTypeAndPress]="true"
+                  [editIcon]="false"
+                  [deleteIcon]="false"
+                  [required]="false"
+                  [options]="companyKeywords"
+                  [allOptions]="companyKeywords"
+                  [addNewBtn]="false"
+                  [selectedOption]=""
+                  [onOpenDropdown]=""
+                  [onSelectSingleItem]="onSelectCompanyKeyword"
+                  [onSelectAll]=""
+                  [isSearchAble]="true"
+                  [isClearable]="true"
+                  [isHideDropdown]="true"
+                  optionStyle="checkbox"
+                  backgroundColor="white"
+                  placeholder="e.g. AWS, Cloud"
+                ></kexy-select-dropdown>
+                <div class="advanced-section-content">
+                  <p class="head" (click)="toggleAdvancedSection()">
+                    {{ showAdvancedSectionInIncludeKeywords ? 'Hide Advanced' : 'Advanced' }}
+                    <i
+                      class="fa"
+                      [class.fa-sort-desc]="!showAdvancedSectionInIncludeKeywords"
+                      [class.fa-sort-asc]="showAdvancedSectionInIncludeKeywords"
+                      [ngStyle]="{
+                        'margin-top': showAdvancedSectionInIncludeKeywords ? '7px' : '',
+                        'margin-bottom': !showAdvancedSectionInIncludeKeywords ? '2px' : ''
+                      }"
+                      aria-hidden="true"
+                    ></i>
+                  </p>
+                  <div *ngIf="showAdvancedSectionInIncludeKeywords">
+                    <p class="what-kind-of-keywords-text">What kind of keywords would you like to search for?</p>
+                    <div
+                      class="d-flex align-items-center mb-2"
+                      [class.disabled]="!isSelectedSocialMediaTags && !isSelectedSocialMediaDescription && !isSelectedSeoDescription"
+                      (click)="toggleCompanyNameSelection()"
+                    >
+                      <i
+                        class="fa checkbox"
+                        [class.fa-square-o]="!isSelectedCompanyName"
+                        [class.fa-check-square]="isSelectedCompanyName"
+                        [class.selected]="isSelectedCompanyName"
+                        aria-hidden="true"
+                      ></i>
+                      <p class="checkbox-label">Company name</p>
+                    </div>
+
+                    <div
+                      class="d-flex align-items-center mb-2"
+                      [class.disabled]="!isSelectedCompanyName && !isSelectedSocialMediaDescription && !isSelectedSeoDescription"
+                      (click)="toggleSocialMediaTagsSelection()"
+                    >
+                      <i
+                        class="fa checkbox"
+                        [class.fa-square-o]="!isSelectedSocialMediaTags"
+                        [class.fa-check-square]="isSelectedSocialMediaTags"
+                        [class.selected]="isSelectedSocialMediaTags"
+                        aria-hidden="true"
+                      ></i>
+                      <p class="checkbox-label">
+                        Social media tags
+                        <img
+                          class="info-img tooltip-question tooltip-btn ms-1"
+                          ngbTooltip="The industry, subindustries, and specialties listed on a company's social media profiles."
+                          tooltipClass="custom-tooltip-class"
+                          src="/assets/icon/grey-circle-info-icon.svg"
+                          alt="info"
+                        />
+                      </p>
+                    </div>
+
+                    <div
+                      class="d-flex align-items-center mb-2"
+                      [class.disabled]="!isSelectedCompanyName && !isSelectedSocialMediaTags && !isSelectedSeoDescription"
+                      (click)="toggleSocialMediaDescriptionSelection()"
+                    >
+                      <i
+                        class="fa checkbox"
+                        [class.fa-square-o]="!isSelectedSocialMediaDescription"
+                        [class.fa-check-square]="isSelectedSocialMediaDescription"
+                        [class.selected]="isSelectedSocialMediaDescription"
+                        aria-hidden="true"
+                      ></i>
+                      <p class="checkbox-label">
+                        Social media description
+                        <img
+                          class="info-img tooltip-question tooltip-btn ms-1"
+                          ngbTooltip="The words a company uses to describe itself on its social media profiles. This may not be accurate"
+                          tooltipClass="custom-tooltip-class"
+                          src="/assets/icon/grey-circle-info-icon.svg"
+                          alt="info"
+                        />
+                      </p>
+                    </div>
+
+                    <div
+                      class="d-flex align-items-center"
+                      [class.disabled]="!isSelectedCompanyName && !isSelectedSocialMediaTags && !isSelectedSocialMediaDescription"
+                      (click)="toggleSeoDescriptionSelection()"
+                    >
+                      <i
+                        class="fa checkbox"
+                        [class.fa-square-o]="!isSelectedSeoDescription"
+                        [class.fa-check-square]="isSelectedSeoDescription"
+                        [class.selected]="isSelectedSeoDescription"
+                        aria-hidden="true"
+                      ></i>
+                      <p class="checkbox-label">
+                        SEO description
+                        <img
+                          class="info-img tooltip-question tooltip-btn ms-1"
+                          ngbTooltip="The SEO description the company puts up for search engines sucs as Google and Bing. This may not be accurate."
+                          tooltipClass="custom-tooltip-class"
+                          src="/assets/icon/grey-circle-info-icon.svg"
+                          alt="info"
+                        />
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </kexy-dropdown-toggle>
+      </div>
+      <div class="col-12 col-md-4" style="margin-top: 20px">
+        <kexy-select-dropdown
+          label="Technologies"
+          shortNoteBesideLabel=""
+          [selectAllBtn]="false"
+          [showTypeAndPress]="true"
+          [editIcon]="false"
+          [deleteIcon]="false"
+          [required]="false"
+          [options]="technologies"
+          [allOptions]="supportedTechnologies"
+          [addNewBtn]="false"
+          [selectedOption]=""
+          [onOpenDropdown]=""
+          [onSelectSingleItem]="onSelectTechnology"
+          [onSelectAll]=""
+          [isClearable]="true"
+          [isSearchAble]="true"
+          [isHideDropdown]="true"
+          optionStyle="checkbox"
+          backgroundColor="white"
+          placeholder="Search for a technology"
+        ></kexy-select-dropdown>
+      </div>
+      <div class="col-12 col-md-4" style="margin-top: 20px">
+        <kexy-dropdown-toggle
+          label="Company"
+          placeholder="Please select"
+          backgroundColor="white"
+          [selectedData]="companyFieldDataToShow"
+          [isClearable]="true"
+          [clearItem]="clearCompanyFields"
+        >
+          <div class="company-content-wrap">
+            <div class="radio-content-wrap">
+              <div class="head">
+                <input type="radio" id="isAnyOf" name="company" [value]="isAnyOf" [(ngModel)]="selectedCompanyType">
+                <label for="isAnyOf" class="ps-2 mb-0">Is any of</label><br>
+              </div>
+              <div *ngIf="selectedCompanyType === isAnyOf" class="toggle-content">
+                <kexy-select-dropdown
+                  label=""
+                  shortNoteBesideLabel=""
+                  [selectAllBtn]="false"
+                  [showTypeAndPress]="true"
+                  [editIcon]="false"
+                  [deleteIcon]="false"
+                  [required]="false"
+                  [options]="companies"
+                  [allOptions]="[]"
+                  [addNewBtn]="false"
+                  [selectedOption]=""
+                  [onOpenDropdown]=""
+                  [onSelectSingleItem]="onSearchAndSetCompanies"
+                  [onSelectAll]=""
+                  [isSearchAble]="true"
+                  [isClearable]="true"
+                  [isHideDropdown]="false"
+                  [isLoading]="isCompanyFieldLoading"
+                  [isUseSearchQueryAsOption]="false"
+                  optionStyle="checkbox"
+                  backgroundColor="white"
+                  placeholder="Search for a company"
+                ></kexy-select-dropdown>
+
+                <div class="mt-2">
+                  <div
+                    class="mb-2"
+                  >
+                    <div class="d-flex align-items-center" (click)="toggleCompanySelectOption('isNotAnyOf')">
+                      <i
+                        class="fa checkbox"
+                        [class.fa-square-o]="!isSelectedNotAnyOfCompany"
+                        [class.fa-check-square]="isSelectedNotAnyOfCompany"
+                        [class.selected]="isSelectedNotAnyOfCompany"
+                        aria-hidden="true"
+                      ></i>
+                      <p class="checkbox-label">Is not any of</p>
+                    </div>
+                    <div class="mt-1" [class.hidden]="!isSelectedNotAnyOfCompany">
+                      <kexy-select-dropdown
+                        label=""
+                        shortNoteBesideLabel=""
+                        [selectAllBtn]="false"
+                        [showTypeAndPress]="true"
+                        [editIcon]="false"
+                        [deleteIcon]="false"
+                        [required]="false"
+                        [options]="excludedCompanies"
+                        [allOptions]="[]"
+                        [addNewBtn]="false"
+                        [selectedOption]=""
+                        [onOpenDropdown]=""
+                        [onSelectSingleItem]="onSearchAndSetExcludeCompanies"
+                        [onSelectAll]=""
+                        [isSearchAble]="true"
+                        [isClearable]="true"
+                        [isHideDropdown]="false"
+                        [isLoading]="isExcludeCompanyFieldLoading"
+                        [isUseSearchQueryAsOption]="false"
+                        optionStyle="checkbox"
+                        backgroundColor="white"
+                        placeholder="Search for a company"
+                      ></kexy-select-dropdown>
+                    </div>
+                  </div>
+
+                  <div class="mb-2">
+                    <div class="d-flex align-items-center" (click)="toggleCompanySelectOption('includePastCompany')">
+                      <i
+                        class="fa checkbox"
+                        [class.fa-square-o]="!isSelectedIncludePastCompany"
+                        [class.fa-check-square]="isSelectedIncludePastCompany"
+                        [class.selected]="isSelectedIncludePastCompany"
+                        aria-hidden="true"
+                      ></i>
+                      <p class="checkbox-label">
+                        Include past company
+                      </p>
+                    </div>
+                    <div class="mt-1" [class.hidden]="!isSelectedIncludePastCompany">
+                      <kexy-select-dropdown
+                        label=""
+                        shortNoteBesideLabel=""
+                        [selectAllBtn]="false"
+                        [showTypeAndPress]="true"
+                        [editIcon]="false"
+                        [deleteIcon]="false"
+                        [required]="false"
+                        [options]="pastCompanies"
+                        [allOptions]="[]"
+                        [addNewBtn]="false"
+                        [selectedOption]=""
+                        [onOpenDropdown]=""
+                        [onSelectSingleItem]="onSearchAndSetPastCompanies"
+                        [onSelectAll]=""
+                        [isSearchAble]="true"
+                        [isClearable]="true"
+                        [isHideDropdown]="false"
+                        [isLoading]="isPastCompanyFieldLoading"
+                        [isUseSearchQueryAsOption]="false"
+                        optionStyle="checkbox"
+                        backgroundColor="white"
+                        placeholder="Search for a company"
+                      ></kexy-select-dropdown>
+                    </div>
+                  </div>
+
+                  <div
+                    class="d-flex align-items-center"
+                    (click)="toggleCompanySelectOption('domainExists')"
+                  >
+                    <i
+                      class="fa checkbox"
+                      [class.fa-square-o]="!isSelectedDomainExists"
+                      [class.fa-check-square]="isSelectedDomainExists"
+                      [class.selected]="isSelectedDomainExists"
+                      aria-hidden="true"
+                    ></i>
+                    <p class="checkbox-label">
+                      Domain exists
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="radio-content-wrap">
+              <div class="head">
+                <input type="radio" id="isKnown" name="company" [value]="isKnown" [(ngModel)]="selectedCompanyType">
+                <label for="isKnown" class="ps-2 mb-0">Is known</label><br>
+              </div>
+            </div>
+            <div class="radio-content-wrap">
+              <div class="head">
+                <input type="radio" id="isUnknown" name="company" [value]="isUnknown" [(ngModel)]="selectedCompanyType">
+                <label for="isUnknown" class="ps-2 mb-0">Is unknown</label><br>
+              </div>
+            </div>
+          </div>
+        </kexy-dropdown-toggle>
+      </div>
+    </div>
+
+    <div class="row" *ngIf="isIndustryFoodAndBeverage">
+      <div class="col-12 col-md-5 border-right">
+        <div #targetPeopleScrollElRef></div>
+        <div class="checkbox-wrap">
+          <kexy-select-dropdown
+            label="Select the type of people you want to target"
+            [selectAllBtn]="false"
+            [editIcon]="false"
+            [deleteIcon]="false"
+            [required]="false"
+            [options]="targetPeopleTypeOptions"
+            [addNewBtn]="false"
+            [onOpenDropdown]="onTargetPeopleOpen"
+            [selectedOption]="selectedTargettedPeople"
+            [onSelectSingleItem]="onSelectTargetPeople"
+            optionStyle="button"
+            backgroundColor="white"
+            placeholder="Please select"
+          ></kexy-select-dropdown>
+        </div>
+      </div>
+      <div class="col-12 col-md-7">
+        <!--job titles-->
+        <div *ngIf="selectedTargettedPeople !== constants.DTC" class="checkbox-wrap">
+          <div #jobTitleScrollElRef></div>
+          <kexy-select-dropdown
+            label="Job titles"
+            shortNoteBesideLabel="When searching by job title, search broadly to avoid low results."
+            [selectAllBtn]="true"
+            [showTypeAndPress]="true"
+            [editIcon]="false"
+            [deleteIcon]="false"
+            [required]="false"
+            [options]="jobList"
+            [addNewBtn]="false"
+            [selectedOption]=""
+            [onOpenDropdown]="onJobTitleOpen"
+            [onSelectSingleItem]="onJobSelect"
+            [onSelectAll]="selectAllJobs"
+            [isClearable]="true"
+            optionStyle="checkbox"
+            backgroundColor="white"
+            placeholder="Please select"
+          ></kexy-select-dropdown>
+        </div>
+
+        <ng-container *ngIf="selectedTargettedPeople === constants.DTC">
+          <div #dtcScrollElRef></div>
+          <div class="checkbox-wrap">
+            <kexy-select-dropdown
+              label="Search criteria: Management level"
+              shortNoteBesideLabel=""
+              [selectAllBtn]="true"
+              [editIcon]="false"
+              [deleteIcon]="false"
+              [required]="false"
+              [options]="personSeniorities"
+              [addNewBtn]="false"
+              [selectedOption]=""
+              [onOpenDropdown]="onDtcOpen"
+              [onSelectSingleItem]="onPersonSenioritiySelect"
+              [onSelectAll]="selectAllSeniorities"
+              [isClearable]="true"
+              optionStyle="checkbox"
+              backgroundColor="white"
+              placeholder="Please select"
+            ></kexy-select-dropdown>
+          </div>
+          <div class="checkbox-wrap">
+            <kexy-select-dropdown
+              label="Search criteria: Industries"
+              shortNoteBesideLabel=""
+              [selectAllBtn]="true"
+              [editIcon]="false"
+              [deleteIcon]="false"
+              [required]="false"
+              [options]="organizationIndustryTagIds"
+              [addNewBtn]="false"
+              [selectedOption]=""
+              [onOpenDropdown]="onDtcOpen"
+              [onSelectSingleItem]="onIndustrySelect"
+              [onSelectAll]="selectAllIndustry"
+              [isClearable]="true"
+              optionStyle="checkbox"
+              backgroundColor="white"
+              placeholder="Please select"
+            ></kexy-select-dropdown>
+          </div>
+        </ng-container>
+      </div>
+    </div>
+  </div>
+
+  <!--search area-->
+  <div class="search-area-and-input-wrap">
+    <div>
+      <p class="title">Search</p>
+      <div class="tab-and-attributes-btn-area">
+        <div class="tab-wrap">
+          <kexy-tab
+            [tabItemList]="[constants.ZIP_POSTAL_CODE, constants.CITY, constants.STATE_PROVINCE]"
+            [setSelectedRestaurantSearchType]="setSelectedRestaurantSearchType"
+            [selectedTab]="selectedRestaurantSearchType"
+            tabBgColor="background-color: #E7F6FE;"
+            tabItemColor="color: #202020;"
+            tabItemActiveColor="color: #0047CC;"
+          ></kexy-tab>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="search-fields-wrap">
+    <restaurant-search-fields
+      [selectedCountry]="selectedCountry"
+      [selectedRestaurantSearchType]="selectedRestaurantSearchType"
+      [getCityListOrZipcodeValue]="getCityListOrZipcodeValue"
+      [removeCityListOrZipcodeValue]="removeCityListOrZipcodeValue"
+      [zipCodeList]="zipcode"
+      [cityList]="cityList"
+      [stateList]="selectedStates"
+      [openStateSelectionModal]="openStateSelectionModal"
+      [handleAddCityOrZipcodeName]="handleAddCityOrZipcodeName"
+      [handleRemoveCityOrZipcodeName]="handleRemoveCityOrZipcodeName"
+    ></restaurant-search-fields>
+  </div>
+  <div class="number-of-establishment-and-credit-content-wrap">
+    <div class="number-of-establishments-text">
+      <p class="section-title">Number of contacts:</p>
+      <span>{{ numberOfEstablishment | number }}</span>
+    </div>
+  </div>
+</section>
+
+<campaign-layout-bottm-btns
+  [rightSecondBtnClick]="handleClickNextButton"
+  [showRightSideFirstBtn]="false"
+></campaign-layout-bottm-btns>
+
+<ng-template #stateSelectionModal let-c="close" let-d="dismiss">
+  <state-selection-content
+    [states]="filteredStates"
+    [toggleStateValue]="toggleStateValue"
+    [selectedStates]="selectedStatesCopy"
+    [toggleAllStateSelection]="toggleAllStateSelection"
+    [handleStateSearchQueryChange]="handleStateSearchQueryChange"
+    [stateSearchQuery]="stateSearchQuery"
+    [closeModal]="closeModal"
+    [submitStateSelection]="submitStateSelection"
+  ></state-selection-content>
+</ng-template>
+
+
+<ng-template #saveSearchModal let-d="dismiss" let-c="close">
+  <modal [modalClose]="c" title="Save Search">
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="control-label">Enter a name:</label>
+        <input
+          type="text"
+          class="form-control"
+          [(ngModel)]="saveSearchName"
+          placeholder="Enter a name"
+        />
+      </div>
+
+      <div class="bottom-btn-wrap d-flex">
+        <app-kexy-button
+          style="width: 100%; margin-right: 20px"
+          label="Cancel"
+          bgColor="transparent"
+          borderColor="#0047CC"
+          textColor="#0047CC"
+          (click)="d('Cancel')()"
+          [disabled]="saveSearchLoading"
+        ></app-kexy-button>
+        <app-kexy-button
+          style="width: 100%"
+          [label]="saveSearchLoading ? 'Please wait...' : 'Save' "
+          [disabled]=""
+          [iconLeft]="saveSearchLoading ? 'fa-refresh fa-spin' : ''"
+          (click)="saveSearchBtnClick()"
+          radius="5px"
+        ></app-kexy-button>
+      </div>
+    </div>
+  </modal>
+</ng-template>

@@ -1,0 +1,76 @@
+<div class="subscription-modal">
+  <kexy-modal-head title="Pricing for subscription" [closeModal]="closeModal"></kexy-modal-head>
+  <div class="body-section" *ngIf="userData.isAdmin && !isLoading">
+    <div class="switch-input-wrap">
+      <span [className]="isMonthlySelected ? 'switch-item-active' : 'switch-item'">Monthly</span>
+      <label class="switch">
+        <input type="checkbox" name="switchInput" (change)="changeSwitchInputOption($event)" />
+        <span class="slider round"></span>
+      </label>
+      <span [className]="!isMonthlySelected ? 'switch-item-active' : 'switch-item'"
+      >Annual <span style="color: #ca3709">(Save 20%)</span></span
+      >
+    </div>
+    <div class="coupon-code-area-wrap">
+      <div class="coupon-code-area">
+        <img src="/assets/images/coupon-icon.png" class="left-icon-img" />
+        <input
+          type="text"
+          class="form-control shadow-none coupon-code-input"
+          [(ngModel)]="couponCode"
+          placeholder="Please enter coupon code"
+        />
+        <img src="/assets/images/double-tikmark.png" class="right-icon-img" *ngIf="couponCode" />
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-12">
+        <div class="row">
+          <div class="col-12 col-sm-6 col-lg-4">
+            <brand-subscription-card
+              icon="/assets/images/free-img.png"
+              title="Novice"
+              priceText="Free"
+              [subscriptionType]="subscriptionType"
+              [chooseBtnClick]="chooseFreeBtnClick"
+              [isLoading]="subscriptionTypeNoviceCardLoading"
+              [userData]="userData"
+              [initial]="false"
+            ></brand-subscription-card>
+          </div>
+          <div class="col-12 col-sm-6 col-lg-4">
+            <brand-subscription-card
+              icon="/assets/images/round-circle-star.png"
+              title="Amateur"
+              [priceText]="amateurPrice"
+              [subscriptionType]="subscriptionType"
+              [chooseBtnClick]="chooseAmateurBtnClick"
+              [isLoading]="subscriptionTypeAmateurCardLoading"
+              [userData]="userData"
+              [initial]="false"
+            ></brand-subscription-card>
+          </div>
+          <div class="col-12 col-sm-6 col-lg-4">
+            <brand-subscription-card
+              icon="/assets/images/diamond-img.png"
+              title="Pro"
+              [priceText]="proPrice"
+              [subscriptionType]="subscriptionType"
+              [chooseBtnClick]="chooseProBtnClick"
+              [isLoading]="subscriptionTypeProCardLoading"
+              [blueBorder]="true"
+              [userData]="userData"
+              [initial]="false"
+            ></brand-subscription-card>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p *ngIf="userData.isAdmin && isLoading" class="text-center">
+    <i class="fa fa-spinner fa-spin" aria-hidden="true" style="color: black"></i>
+  </p>
+  <div *ngIf="!userData.isAdmin" style="padding: 20px">
+    <p class="m-3">Please contact with your admin to add subscription</p>
+  </div>
+</div>

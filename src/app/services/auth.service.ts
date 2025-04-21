@@ -133,13 +133,6 @@ export class AuthService {
     }
   };
 
-  addUserTokenInLocalStorage(data) {
-    let userData = data.user;
-    userData.token = data.token;
-    localStorage.setItem("userToken", JSON.stringify(userData));
-    this.userTokenSubject.next(userData);
-  }
-
   async storeUserToken(data: any, presale = false) {
     let userData = data.user;
     userData.token = data.token;

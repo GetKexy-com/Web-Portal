@@ -1,0 +1,53 @@
+<brand-layout layoutPaddingNone="true" headerBgWhite="true">
+  <main class="brand-list-contacts-page">
+    <section class="card-area-wrap">
+      <prospecting-common-card
+        [cardTitle]="listObj?.label"
+        [listInfo]="listObj"
+        cardTitleLogo="/assets/icon/blue-box-icon.svg"
+      ></prospecting-common-card>
+    </section>
+
+    <section>
+      <contact-list-card
+        tableHeaderBg="#0047CC"
+        tableHeaderColor="#FFFFFF"
+        [searchLabels]="[]"
+        [checkboxClicked]="handleContactSelect"
+        [editContact]="editContactClick"
+        [createContactClick]="createContactClick"
+        [deleteContacts]="deleteContactsFromList"
+        [importBtnClick]="importBtnClick"
+        [cardData]="contactList"
+        [selectedContacts]="selectedContacts"
+        [totalPage]="totalPage"
+        [currentPage]="page"
+        [limit]="limit"
+        (selectedLimit)="receivedLimitNumber($event)"
+        [paginationLeftArrowClick]="paginationLeftArrowClick"
+        [paginationRightArrowClick]="paginationRightArrowClick"
+        [navigateSpecificPage]="navigateSpecificPage"
+        [sortByCreatedAt]="handleSortByCreatedAt"
+        [showBackBtn]="true"
+        [showActionBtns]="true"
+        [backBtnClick]="backBtnClick"
+        [isWaitingFlag]="isWaitingFlag"
+        [isLoading]="isLoading"
+        [totalContactsCount]="totalContactsCount"
+        [selectAllContacts]="selectAllContacts"
+        [toggleSelectAllContactSelection]="toggleSelectAllContactSelection"
+      ></contact-list-card>
+    </section>
+  </main>
+  <ng-template #uploadContacts let-c="close" let-d="dismiss">
+    <upload-file-modal-content
+      [closeModal]="closeModal"
+      [isLoading]="isLoading"
+      [bypassZerobounce]="handleBypassZerobounce"
+      (parsedFileData)="getImportedFileData($event)"
+      sampleCsvUrl="/assets/contact-list-sample.csv"
+      additionalFileRelatedText="KEXY ensures data integrity by cleaning and validating every imported list. We charge 1 credit for every 100 contacts. For instance, importing a list of 1,000 contacts will deduct 10 credits from your account."
+    >
+    </upload-file-modal-content>
+  </ng-template>
+</brand-layout>

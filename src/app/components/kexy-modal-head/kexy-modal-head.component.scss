@@ -1,0 +1,33 @@
+.head-area {
+  padding: 20px;
+  width: 100%;
+  background: url("/assets/images/sidebar-bg.png") no-repeat;
+  background-size: cover;
+  position: relative;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+  .modal-close-icon-wrap {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    p {
+      width: 28px;
+      height: 28px;
+      background: white;
+      border-radius: 10px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 0;
+      cursor: pointer;
+    }
+  }
+  .head-title {
+    font-weight: 700;
+    font-size: 20px;
+    text-align: center;
+    letter-spacing: 0.5px;
+    color: #ffffff;
+    margin: 0px;
+  }
+}

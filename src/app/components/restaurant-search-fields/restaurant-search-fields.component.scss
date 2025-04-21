@@ -1,0 +1,146 @@
+.restaurant-search-fields {
+  display: flex;
+  align-items: end;
+  .input-wrap {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    label {
+      margin-bottom: 10px;
+      font-style: normal;
+      font-weight: 700;
+      font-size: 13px;
+      line-height: 15px;
+      letter-spacing: -0.01em;
+      text-transform: uppercase;
+      color: #202020;
+    }
+    .custom-input-and-tag {
+      background: #ffffff;
+      border: 1px solid #e1e1e1;
+      border-radius: 8px;
+      padding: 8px;
+      display: flex;
+      flex-wrap: wrap;
+      .searched-tag {
+        background: #0047cc;
+        border-radius: 48px;
+        font-style: normal;
+        font-weight: 500;
+        font-size: 14px;
+        line-height: 18px;
+        letter-spacing: -0.01em;
+        color: #ffffff;
+        padding: 5px 5px 5px 12px;
+        text-transform: capitalize;
+        margin: 1px;
+        // margin-right: 4px;
+        // margin-bottom: 5px;
+        // display: inline-block;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        .close-icon-wrap {
+          background: #ffffff;
+          border-radius: 50%;
+          display: inline-block;
+          width: 17px;
+          height: 17px;
+          min-width: 17px;
+          min-height: 17px;
+          text-align: center;
+          margin-left: 6px;
+          position: relative;
+          // top: 3px;
+          i {
+            color: #0047cc;
+            font-size: 12px;
+            position: absolute;
+            top: 4px;
+            left: 4px;
+          }
+        }
+      }
+      input {
+        border: none;
+        padding-left: 4px;
+        flex: 1;
+        background: transparent;
+        margin-bottom: 5px;
+      }
+    }
+  }
+  .submit-btn-wrap {
+    margin-left: 12px;
+    button {
+      background: #12a5f4;
+      border-radius: 10px;
+      border: none;
+      outline: none;
+      font-style: normal;
+      font-weight: 600;
+      font-size: 13px;
+      line-height: 16px;
+      color: #ffffff;
+      padding: 16px;
+      width: 200px;
+    }
+  }
+}
+
+@media (min-width: 320px) and (max-width: 991px) {
+  .restaurant-search-fields {
+    display: unset;
+    .input-wrap {
+      margin-bottom: 10px;
+      label {
+        font-size: 10px;
+        line-height: 12px;
+      }
+      .custom-input-and-tag {
+        padding: 5px;
+        .searched-tag {
+          font-size: 12px;
+          line-height: 15px;
+          padding: 6px;
+        }
+        input {
+          margin: 1px;
+          font-size: 13px;
+        }
+      }
+    }
+    .submit-btn-wrap {
+      margin-left: 0;
+      button {
+        padding: 10px 35px;
+        font-size: 12px;
+        line-height: 16px;
+      }
+    }
+  }
+}
+
+@media (min-width: 992px) and (max-width: 1399px) {
+  .restaurant-search-fields {
+    .input-wrap {
+      label {
+        font-size: 10px;
+        line-height: 12px;
+      }
+      .custom-input-and-tag {
+        padding: 5px;
+        .searched-tag {
+          font-size: 12px;
+          line-height: 15px;
+          padding: 6px;
+        }
+      }
+    }
+    .submit-btn-wrap {
+      button {
+        padding: 13px 40px;
+      }
+    }
+  }
+}

@@ -1,0 +1,72 @@
+<brand-layout layoutPaddingNone="true" headerBgWhite="true" mainBgColor="#e7f6fe">
+  <div class="brand-list-of-landing-page">
+    <div class="top-btns">
+      <div class="d-flex">
+        <app-kexy-button
+          *ngIf="selectedLandingPages.length === 1"
+          (click)="redirectToEditPage()"
+          style="margin-right: 10px"
+          label="Edit"
+          iconLeft="fa-pencil-square-o"
+          bgColor="#e7f6fe"
+          textColor="#2847cc"
+          radius="8px"
+        ></app-kexy-button>
+
+        <app-kexy-button
+          *ngIf="selectedLandingPages.length === 1"
+          (click)="redirectToEditPage(true)"
+          style="margin-right: 10px"
+          label="Duplicate"
+          iconLeft="fa-pencil-square-o"
+          bgColor="#e7f6fe"
+          textColor="#2847cc"
+          radius="8px"
+        ></app-kexy-button>
+
+        <app-kexy-button
+          *ngIf="selectedLandingPages.length === 1"
+          (click)="copyUrl()"
+          style="margin-right: 10px"
+          [label]="isUrlCopied ? 'Copied' : 'Copy Url'"
+          iconLeft="fa-clone"
+          bgColor="#e7f6fe"
+          textColor="#2847cc"
+          radius="8px"
+        ></app-kexy-button>
+
+        <app-kexy-button
+          *ngIf="selectedLandingPages.length"
+          (click)="deleteLandingPages()"
+          style="margin-right: 10px"
+          label="Delete"
+          [iconLeft]="isUrlCopied ? '' : 'fa-trash'"
+          bgColor="#e7f6fe"
+          textColor="#2847cc"
+          radius="8px"
+        ></app-kexy-button>
+      </div>
+    </div>
+
+    <div class="content-area">
+      <list-of-landing-page-table
+        tableHeaderBg="#0047CC"
+        tableHeaderColor="#FFFFFF"
+        [checkboxClicked]="handleContactSelect"
+        [cardData]="landingPageList"
+        [selectedLandingPages]="selectedLandingPages"
+        [totalRecordsCount]="totalRecordsCount"
+        [totalPage]="totalPageCounts"
+        [currentPage]="page"
+        [limit]="limit"
+        (selectedLimit)="receivedLimitNumber($event)"
+        [paginationLeftArrowClick]="paginationLeftArrowClick"
+        [paginationRightArrowClick]="paginationRightArrowClick"
+        [isWaitingFlag]="isWaitingFlag"
+        [isLoading]="isLoading"
+        [selectedAllLandingPages]="selectedAllLandingPages"
+        [toggleSelectAllSelection]="toggleSelectAllSelection"
+      ></list-of-landing-page-table>
+    </div>
+  </div>
+</brand-layout>

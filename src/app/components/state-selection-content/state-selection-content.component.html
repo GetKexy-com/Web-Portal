@@ -1,0 +1,51 @@
+<div class="state-selection">
+  <div class="head">
+    <div class="text-content">
+      <p class="choose-location-text">Choose locations</p>
+      <p class="one-or-more-text">Choose one or multiple - you can always adjust this later.</p>
+    </div>
+    <div class="close-icon-wrap">
+      <img src="/assets/images/close-icon.png" (click)="handleCloseIconClick()" />
+    </div>
+  </div>
+  <div class="search-bar-wrap">
+    <div class="search-input">
+      <img src="/assets/icon/search-icon.svg" />
+      <input
+        type="text"
+        class=""
+        name=""
+        placeholder="Search"
+        [value]="stateSearchQuery"
+        (input)="handleInputChange($event)"
+      />
+    </div>
+  </div>
+  <div class="mutliselect-area-wrap">
+    <div class="btn-wrap">
+      <span *ngFor="let state of states">
+        <button
+          [className]="checkActiveStatus(state.name) > -1 ? 'active-select-btn' : 'select-btn'"
+          (click)="handleStateClicked(state.name)"
+        >
+          {{ state.name }}
+        </button>
+      </span>
+    </div>
+  </div>
+  <div class="select-all-wrap">
+    <div class="form-check">
+      <input
+        class="form-check-input"
+        type="checkbox"
+        id="selectAll"
+        (change)="toggleAllStateSelection()"
+        [checked]="selectedStates.length === states.length"
+      />
+      <label class="form-check-label mb-0" for="selectAll"> Select all </label>
+    </div>
+  </div>
+  <div class="bottom-btn-wrap">
+    <button class="blue-button" (click)="DoneBtnClick()">Done</button>
+  </div>
+</div>

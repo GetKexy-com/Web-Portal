@@ -1,0 +1,14 @@
+.next-back-btn-wrap {
+  display: flex;
+  padding: 14px 24px;
+  background: white;
+  min-height: 62px;
+  .right-side {
+    display: flex;
+    flex: 1;
+    justify-content: end;
+  }
+  .btn-wrap {
+    width: 150px;
+  }
+}

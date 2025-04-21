@@ -1,0 +1,81 @@
+<brand-layout>
+  <div class="kexy-logo" [hidden]="imageUrl">
+    <img class="profile-photo no-profile-image" src="/assets/images/no_profile_image.png" alt="" />
+  </div>
+  <div class="form-group text-center profile-photo-wrap" [hidden]="!imageUrl">
+    <img class="profile-photo" [src]="imageUrl" />
+  </div>
+
+  <div class="form-group text-center">
+    <button class="kexy-button" type="submit" (click)="openFileDialog()">Change Profile Image</button>
+    <input type="file" name="" class="profile-photo-file-input tr-hidden" (change)="fileSelected($event)" />
+  </div>
+
+  <form class="tr-form" [formGroup]="primaryForm" (ngSubmit)="primaryFormSubmitted()">
+    <div class="form-group">
+      <input
+        [class.error]="
+          (submitted || primaryForm.controls['first_name'].dirty) && primaryForm.controls['first_name'].invalid
+        "
+        type="text"
+        formControlName="first_name"
+        class="form-control"
+        placeholder="First Name"
+      />
+      <div
+        *ngIf="primaryForm.controls['first_name'].invalid && (submitted || primaryForm.controls['first_name'].dirty)"
+      >
+        <span class="text-danger">Please enter a valid First Name.</span>
+      </div>
+    </div>
+    <div class="form-group">
+      <input
+        [class.error]="
+          (submitted || primaryForm.controls['last_name'].dirty) && primaryForm.controls['last_name'].invalid
+        "
+        type="text"
+        formControlName="last_name"
+        class="form-control"
+        placeholder="Last Name"
+      />
+      <div *ngIf="primaryForm.controls['last_name'].invalid && (submitted || primaryForm.controls['last_name'].dirty)">
+        <span class="text-danger">Please enter a valid Last Name.</span>
+      </div>
+    </div>
+    <div class="form-group">
+      <select formControlName="role" class="form-control" [disabled]="true">
+        <option value="">Please Select Role</option>
+        <option value="rep" selected>Rep</option>
+        <option value="admin">Admin</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <input type="email" class="form-control" value="{{ userData.email }}" disabled />
+    </div>
+    <div class="form-group">
+      <input type="text" disabled class="form-control" value="{{ userData.supplier_country }}" />
+    </div>
+    <div class="form-group">
+      <div class="phonefields">
+        <div class="phonecode">{{ userData.phone_country_code }}</div>
+        <input
+          [class.error]="(submitted || primaryForm.controls['phone'].dirty) && primaryForm.controls['phone'].invalid"
+          class="form-control phoneNumber"
+          formControlName="phone"
+          placeholder="Mobile Phone"
+          type="tel"
+        />
+      </div>
+      <div *ngIf="primaryForm.controls['phone'].invalid && (submitted || primaryForm.controls['phone'].dirty)">
+        <span class="text-danger">Please enter a valid mobile phone.</span>
+      </div>
+    </div>
+
+    <div class="form-group text-center">
+      <button class="kexy-button tr-kexy-button" type="submit" name="submit" id="submit">
+        <i *ngIf="isWaitingFlag" class="fa fa-spinner fa-spin" aria-hidden="true"></i>
+        Update
+      </button>
+    </div>
+  </form>
+</brand-layout>

@@ -1,0 +1,119 @@
+.state-selection {
+  padding: 10px 20px 20px 20px;
+  .head {
+    display: flex;
+    justify-content: space-between;
+    .text-content {
+      margin-top: 10px;
+      .choose-location-text {
+        font-weight: 700;
+        font-size: 20px;
+        line-height: 24px;
+        color: #0047cc;
+        margin-bottom: 5px;
+      }
+      .one-or-more-text {
+        font-weight: 400;
+        font-size: 14px;
+        line-height: 17px;
+        color: #6f6f6f;
+        margin-bottom: 0;
+      }
+    }
+    .close-icon-wrap {
+      img {
+      }
+    }
+  }
+  .search-bar-wrap {
+    margin-top: 24px;
+    .search-input {
+      border: 1px solid #e1e1e1;
+      border-radius: 8px;
+      padding: 8px 11px;
+      display: flex;
+      img {
+      }
+      input {
+        border: 0;
+        flex: 1;
+        margin-left: 8px;
+      }
+    }
+  }
+  .mutliselect-area-wrap {
+    background: #e7f6fe;
+    border-radius: 12px;
+    margin-top: 17px;
+    padding: 18px 5px 18px 14px;
+    .btn-wrap {
+      max-height: 256px;
+      overflow-y: auto;
+
+      .select-btn {
+        padding: 6px 14px;
+        background: #ffffff;
+        border-radius: 30px;
+        font-weight: 400;
+        font-size: 14px;
+        line-height: 18px;
+        letter-spacing: -0.01em;
+        color: #000000;
+        margin-right: 8px;
+        margin-bottom: 8px;
+        border: 0;
+        outline: none;
+      }
+      .active-select-btn {
+        padding: 6px 14px;
+        background: #0047cc;
+        border-radius: 30px;
+        font-size: 14px;
+        line-height: 18px;
+        letter-spacing: -0.01em;
+        color: #ffffff;
+        margin-right: 8px;
+        margin-bottom: 8px;
+        border: 0;
+        outline: none;
+      }
+    }
+  }
+  .select-all-wrap {
+    margin-top: 20px;
+    label {
+      font-weight: 600;
+      font-size: 14px;
+      line-height: 17px;
+      letter-spacing: -0.01em;
+      color: #000000;
+    }
+  }
+  .bottom-btn-wrap {
+    margin-top: 30px;
+    button {
+      width: 160px;
+      padding: 12px 0;
+    }
+  }
+}
+
+/* width */
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: #8eb6cc;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #8eb6cc;
+}

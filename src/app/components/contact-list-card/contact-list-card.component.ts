@@ -1,0 +1,212 @@
+import { AfterViewChecked, Component, EventEmitter, Input, OnDestroy, OnInit, Output } from "@angular/core";
+import { AuthService } from "../../services/auth.service";
+import { constants } from "../../helpers/constants";
+import { Subscription } from "rxjs";
+import { NgbModal } from "@ng-bootstrap/ng-bootstrap";
+import {
+  ContactLabelsModalContentComponent,
+} from "../contact-labels-modal-content/contact-labels-modal-content.component";
+import { ProspectingService } from "../../services/prospecting.service";
+import { PageUiService } from "../../services/page-ui.service";
+import {KexyButtonComponent} from '../kexy-button/kexy-button.component';
+import {CommonModule, DatePipe, DecimalPipe} from '@angular/common';
+import {FormsModule} from '@angular/forms';
+
+@Component({
+  selector: 'contact-list-card',
+  imports: [
+    KexyButtonComponent,
+    DecimalPipe,
+    FormsModule,
+    DatePipe,
+    CommonModule,
+  ],
+  templateUrl: './contact-list-card.component.html',
+  styleUrl: './contact-list-card.component.scss'
+})
+export class ContactListCardComponent {
+  @Input() tableHeaderBg;
+  @Input() tableHeaderColor;
+  @Input() cardData = [];
+  @Input() selectedContacts = [];
+  @Input() isLoading: boolean = false;
+  @Input() isWaitingFlag: boolean;
+  @Input() checkboxClicked;
+  @Input() createContactClick;
+  @Input() importBtnClick;
+  @Input() deleteContacts;
+  @Input() editContact;
+  @Input() paginationLeftArrowClick;
+  @Input() paginationRightArrowClick;
+  @Input() navigateSpecificPage;
+  @Input() totalPage;
+  @Input() totalContactsCount;
+  @Input() currentPage;
+  @Input() searchLabels;
+  @Input() searchContactName;
+  @Input() searchContactCity;
+  @Input() searchContactState;
+  @Input() searchContactCountry;
+  @Input() searchContactMarketingStatus;
+  @Input() searchContactEmailStatus;
+  @Input() resetSearchData;
+  @Input() limit;
+  @Input() backBtnClick;
+  @Input() showBackBtn = false;
+  @Input() showActionBtns = false;
+  @Input() sortByCreatedAt;
+  @Input() activeFilterClick;
+  @Input() activeFilterCount;
+  @Input() selectAllContacts;
+  @Input() toggleSelectAllContactSelection;
+  @Output() selectedLimit: EventEmitter<any> = new EventEmitter();
+
+  public tableWidth = 500;
+  public columnList: any[];
+  public userData;
+  public showNavigationInput: boolean = false;
+  public navigatePageNumber;
+  public loadingSubscription: Subscription;
+
+  constructor(private _authService: AuthService, private modal: NgbModal, private prospectingService: ProspectingService, private pageUiService: PageUiService) {
+  }
+
+  ngOnInit(): void {
+    this.userData = this._authService.userTokenValue;
+    this.getListViewData();
+  }
+
+  ngOnDestroy(): void {
+    if (this.loadingSubscription) this.loadingSubscription.unsubscribe();
+  }
+
+  ngAfterViewChecked() {
+    this.calcWidth();
+  }
+
+  getListViewData = () => {
+    let columnList: any;
+    columnList = [
+      { name: "", key: "action", width: 40 },
+      { name: "Name", key: "name", width: 120 },
+      { name: "Linkedin", key: "linkedin_url", width: 70 },
+      { name: "Email Address", key: "email", width: 180 },
+      { name: "Email Status", key: "email_status", width: 120 },
+      { name: "Job Title", key: "title", width: 170 },
+      { name: "Company Name", key: "company_name", width: 160 },
+      { name: "Phone Number", key: "phone_number", width: 120 },
+      { name: "City", key: "city", width: 100 },
+      { name: "State/Province", key: "state", width: 100 },
+      { name: "Country", key: "country", width: 120 },
+      { name: "Lists", key: "label", width: 130 },
+      { name: "Marketing Status", key: "marketing_status", width: 120 },
+      { name: "Created", key: "created", width: 160 },
+    ];
+    this.columnList = columnList;
+  };
+
+  browserWidthForTable;
+  calcWidth = () => {
+    const sidebarWidth = document.getElementById("main-sidebar")?.clientWidth;
+    const pageMargin = 48;
+    let sum = 300;
+    let map = {};
+    this.columnList.forEach((column) => {
+      sum += column.width;
+      map[column.key] = column.width;
+    });
+
+    // In smaller devices there is no fixed sidebar
+    if (sidebarWidth) {
+      this.browserWidthForTable = window.innerWidth - sidebarWidth - pageMargin;
+    } else {
+      this.browserWidthForTable = window.innerWidth - pageMargin;
+    }
+    this.tableWidth = this.browserWidthForTable > sum ? this.browserWidthForTable : sum;
+  };
+
+  getCellClasses = (column) => {
+    let classes = {
+      "n-cell-only-name": column.key === "no",
+      "col-zip": column.key === "zip_code",
+    };
+
+    return Object.keys(classes)
+      .filter((key) => classes[key])
+      .join(" ");
+  };
+
+  getCellValueToDisplay = (row, column) => this.getCellValue(row, column);
+
+  getCellValue = (row, column) => {
+    const details = typeof row.details === "string" ? JSON.parse(row.details) : row.details;
+    // console.log('details', details);
+    if (details[column.key]) {
+      return details[column.key];
+    }
+    if (column.key === "company_name") {
+      return details.organization?.name || "";
+    }
+    if (column.key === "phone_number") {
+
+      // if (details.organization?.phone) {
+      //   let cleanNumber = details.organization.phone.replace(/[^\d]/g, "");
+      //   if (cleanNumber) {
+      //     let filterNUmber = parsePhoneNumber("+" + cleanNumber);
+      //     details.organization.phone = filterNUmber.formatInternational();
+      //   }
+      // }
+
+      return `${details.organization?.phone || ""}`;
+    }
+  };
+
+  selectedItemCount;
+  getSelectedItemCount = () => {
+    this.selectedItemCount = this.cardData.filter((i) => i.is_selected).length;
+    return this.selectedItemCount;
+  };
+
+  stopPropagation = (event: Event) => {
+    // Stop the event propagation to prevent the outer button click handler from being called
+    event.stopPropagation();
+  };
+
+  openShowAllLabelModal = (event, labelsArray) => {
+    this.stopPropagation(event);
+    this.prospectingService.selectedContactLabels = labelsArray;
+    this.modal.open(ContactLabelsModalContentComponent);
+  };
+
+  onCheckboxClicked = (event, data) => {
+    this.stopPropagation(event);
+    this.checkboxClicked(data);
+  };
+
+  protected readonly constants = constants;
+
+  // resetSearchDataClicked($event) {
+  //   $event.preventDefault();
+  //   this.resetSearchData();
+  // }
+
+  onShowEntriesSelect = ($event) => {
+    this.selectedLimit.emit(this.limit);
+  };
+
+  backBtnClickHandler = ($event: MouseEvent) => {
+    $event.preventDefault();
+    this.backBtnClick();
+  };
+
+  showHideNavigationInput = () => {
+    this.showNavigationInput = !this.showNavigationInput;
+  };
+
+  handleNavigate = () => {
+    if (this.navigatePageNumber < 1) this.navigatePageNumber = 1;
+    if (this.navigatePageNumber > this.totalPage) this.navigatePageNumber = parseInt(this.totalPage);
+    this.navigateSpecificPage(this.navigatePageNumber);
+    this.showNavigationInput = false;
+  };
+}

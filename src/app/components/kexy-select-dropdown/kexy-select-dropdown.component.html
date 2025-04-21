@@ -1,0 +1,219 @@
+<div class="kexy-dropdown">
+  <!--LABEL: This the label of the dropdown-->
+  <div class="d-flex kexy-drop-label-wrap non-hide-from-toggle" *ngIf="label">
+    <p class="label non-hide-from-toggle">
+      {{ label }} <span *ngIf="shortNoteBesideLabel">({{ shortNoteBesideLabel }})</span>
+    </p>
+    <p class="required-icon-wrap non-hide-from-toggle" *ngIf="required">
+      <i class="fa fa-asterisk non-hide-from-toggle" aria-hidden="true"></i>
+    </p>
+  </div>
+  <!--END LABEL: This the label of the dropdown-->
+
+  <!--INPUT: The main INPUT of the dropdown-->
+  <div class="dropdown-input-box">
+    <div #scrollMe [scrollTop]="scrollMe.scrollHeight" class="custom-input-and-tag">
+      <div class="d-flex flex-wrap" *ngIf="showPlaceholder()" style="padding-right: 10px">
+
+        <ng-container *ngIf="optionStyle === 'checkbox'">
+          <div *ngFor="let item of options; let i = index">
+            <span
+              *ngIf="item.isSelected"
+              class="searched-tag"
+              [style.background-color]="item.itemBgColor ? item.itemBgColor : '#0047cc'"
+              [style.color]="item.itemTextColor ? item.itemTextColor : '#ffffff'"
+              [style.text-transform]="item.itemBgColor && item.itemTextColor ? 'uppercase' : ''"
+            >
+              {{ item.value }}
+              <span class="close-icon-wrap" [class.hidden]="!isClearable" (click)="onSelectItem(item, i, $event)">
+                <i class="fa fa-times-circle non-hide-from-toggle" aria-hidden="true"></i>
+              </span>
+            </span>
+          </div>
+        </ng-container>
+
+        <ng-container *ngIf="optionStyle === 'button' && selectedOption">
+          <span
+            class="searched-tag"
+            [class.button]="!selectedOption.itemBgColor && !selectedOption.itemTextColor"
+            [style.background-color]="selectedOption.itemBgColor ? selectedOption.itemBgColor : 'transparent'"
+            [style.color]="selectedOption.itemTextColor ? selectedOption.itemTextColor : '#000000'"
+            [style.text-transform]="selectedOption.itemBgColor && selectedOption.itemTextColor ? 'uppercase' : ''"
+          >
+<!--            {{ selectedOption }}-->
+            {{ selectedOption?.value ? selectedOption.value : selectedOption }}
+
+            <span class="close-icon-wrap" *ngIf="isClearable" (click)="clearSelectedOption()">
+              <i class="fa fa-times-circle" aria-hidden="true"></i>
+            </span>
+          </span>
+        </ng-container>
+
+      </div>
+      <div *ngIf="!showPlaceholder() && !isSearchAble" class="placeholder-text-wrap">
+        <span>{{ placeholder }}</span>
+      </div>
+      <form (ngSubmit)="onFormSubmit($event)" style="flex: 1">
+        <input
+          (click)="toggleDropdown()"
+          [ngModelOptions]="{standalone: true}"
+          [class.non-outline]="dropdownStyle === nonOutline"
+          [class.outline]="dropdownStyle !== nonOutline"
+          [className]="!isSearchAble ? 'd-none' : ''"
+          [readonly]="!isSearchAble"
+          (input)="handleChangeSearchInput($event)"
+          [(ngModel)]="queryString"
+          [placeholder]="placeholder"
+          style="font-size: 13px; color: grey; margin-bottom: 0; width: 100%"
+        />
+      </form>
+    </div>
+
+    <i *ngIf="isLoading" class="fa fa-refresh fa-spin me-3" aria-hidden="true"
+       style="height: 10px; font-size: 10px"></i>
+    <i *ngIf="isOpen" class="fa fa-angle-up" aria-hidden="true"></i>
+    <i *ngIf="!isOpen" class="fa fa-angle-down" aria-hidden="true"></i>
+  </div>
+  <!--END INPUT: The main INPUT of the dropdown-->
+
+  <!--DropDown Open Section-->
+  <div
+    *ngIf="isOpen"
+    class="kexy-dropdown-items"
+    [class.non-outline]="dropdownStyle === nonOutline"
+    [class.outline]="dropdownStyle !== nonOutline"
+    [class.top]="!dropdownPositionBottom"
+  >
+    <ng-container *ngIf="selectAllBtn && !queryString">
+      <div class="select-all-btn non-hide-from-toggle">
+        <button (click)="selectAllClicked($event)" type="button" class="non-hide-from-toggle">
+          <i
+            class="fa"
+            [class.fa-square-o]="!areSelectedAll"
+            [class.fa-check-square]="areSelectedAll"
+            [class.selected]="areSelectedAll"
+            aria-hidden="true"
+          ></i>
+          Select All
+        </button>
+      </div>
+    </ng-container>
+
+    <!--If no options is available and isSearchable is true-->
+    <div *ngIf="showTypeAndPress" class="p-2 text-center">
+      <span *ngIf="!isLoading">Type and press Enter</span>
+      <span *ngIf="isLoading">Loading...</span>
+    </div>
+
+    <!--For Normal Time-->
+    <div *ngIf="!queryString && !isHideDropdown" class="dropdown-items" [class.add-new]="addNewBtn">
+      <div
+        *ngFor="let option of options; let i = index; let last = last"
+        (click)="onSelectItem(option, i, $event)"
+        class="option-btn-wrap non-hide-from-toggle"
+        [class.has-label]="option.itemBgColor && option.itemTextColor"
+      >
+        <button class="non-hide-from-toggle" type="button">
+          <span class="label-wrap non-hide-from-toggle">
+            <span *ngIf="optionStyle == 'checkbox'" class="non-hide-from-toggle">
+              <i
+                class="fa"
+                [class.fa-square-o]="!option.isSelected"
+                [class.fa-check-square]="option.isSelected"
+                [class.selected]="option.isSelected"
+                aria-hidden="true"
+              ></i>
+            </span>
+            <span
+              class="non-hide-from-toggle width-fit-content"
+              [class.label-or-tag]="option.itemBgColor && option.itemTextColor "
+              [style.background-color]="option.itemBgColor ? option.itemBgColor : ''"
+              [style.color]="option.itemTextColor ? option.itemTextColor : ''"
+            >
+              {{ option.value }}
+            </span>
+          </span>
+
+          <!--Right side icons or text-->
+          <span *ngIf="editIcon || deleteIcon || option.rightSideText" class="action-icons-text non-hide-from-toggle">
+            <!--Edit icon-->
+            <span class="non-hide-from-toggle" *ngIf="editIcon" (click)="onEditIconClick(option, $event)">
+              <i class="fa fa-pencil me-3 non-hide-from-toggle" [style.color]="editIconColor" aria-hidden="true"></i>
+            </span>
+            <!--Delete icon-->
+            <span class="non-hide-from-toggle" *ngIf="deleteIcon" (click)="onDeleteIconClick(option, $event)">
+              <i class="fa fa-trash non-hide-from-toggle" [style.color]="deleteIconColor" aria-hidden="true"></i>
+            </span>
+            <!--Right side text-->
+            <span *ngIf="option.rightSideText"
+                  class="ms-3 rightSideText non-hide-from-toggle">{{ option.rightSideText }}</span>
+          </span>
+        </button>
+        <span *ngIf="option.subText" class="sub-text-in-option ms-0 non-hide-from-toggle">{{ option.subText }}</span>
+      </div>
+
+      <!--If no options is available-->
+      <div *ngIf="!options.length && !addNewBtn && !allOptions?.length && !isSearchAble" class="p-3 text-center">
+        No options available
+      </div>
+    </div>
+
+    <!--For search-->
+    <div *ngIf="queryString" class="dropdown-items non-hide-from-toggle" [class.add-new]="addNewBtn">
+      <div
+        *ngFor="let option of filteredOptions; let i = index; let last = last"
+        (click)="onSelectItem(option, i, $event)"
+        class="option-btn-wrap non-hide-from-toggle"
+      >
+        <button class="non-hide-from-toggle" type="button">
+          <span class="label-wrap non-hide-from-toggle">
+            <span *ngIf="optionStyle == 'checkbox'" class="non-hide-from-toggle">
+              <i
+                class="fa non-hide-from-toggle"
+                [class.fa-square-o]="!option.isSelected"
+                [class.fa-check-square]="option.isSelected"
+                [class.selected]="option.isSelected"
+                aria-hidden="true"
+              ></i>
+            </span>
+            <span class="non-hide-from-toggle" style="min-width: fit-content">{{ option.value }}</span>
+          </span>
+
+          <!--Right side icons or text-->
+          <span *ngIf="editIcon || deleteIcon || option.rightSideText" class="action-icons-text non-hide-from-toggle">
+            <!--Edit icon-->
+            <span class="non-hide-from-toggle" *ngIf="editIcon" (click)="onEditIconClick(option, $event)">
+              <i class="fa fa-pencil me-3 non-hide-from-toggle" [style.color]="editIconColor" aria-hidden="true"></i>
+            </span>
+            <!--Delete icon-->
+            <span class="non-hide-from-toggle" *ngIf="deleteIcon" (click)="onDeleteIconClick(option, $event)">
+              <i class="fa fa-trash non-hide-from-toggle" [style.color]="deleteIconColor" aria-hidden="true"></i>
+            </span>
+            <!--Right side text-->
+            <span *ngIf="option.rightSideText"
+                  class="ms-3 rightSideText non-hide-from-toggle">{{ option.rightSideText }}</span>
+          </span>
+        </button>
+        <span *ngIf="option.subText" class="sub-text-in-option ms-0 non-hide-from-toggle">{{ option.subText }}</span>
+      </div>
+
+      <!--If no options is available-->
+      <div *ngIf="options.length < 1 && !addNewBtn && !queryString" class="p-3 text-center non-hide-from-toggle">
+        No options available
+      </div>
+    </div>
+
+    <ng-container *ngIf="addNewBtn">
+      <div class="add-new-btn-wrap">
+        <button (click)="addNewBtnClick(label, $event)" type="button" class="non-hide-from-toggle">
+          <i class="fa fa-plus non-hide-from-toggle" aria-hidden="true"></i> ADD NEW
+        </button>
+      </div>
+    </ng-container>
+  </div>
+
+  <!--End DropDown Open Section-->
+  <!--This div is required for the auto smooth scroll.-->
+  <!--Do not remove-->
+  <div #emailSmoothScroll></div>
+</div>

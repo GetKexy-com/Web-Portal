@@ -1,0 +1,84 @@
+<!--<div class="prorate-price-section">-->
+<!--  <div class="summary">-->
+<!--    <p>Summary</p>-->
+<!--    <h4 *ngIf="!subscriptionData.lifeTime">{{subscriptionData.title}} {{subscriptionRecuring}} Plan + {{usersCount}} user(s)</h4>-->
+<!--    <h4 *ngIf="subscriptionData.lifeTime">{{subscriptionData.title}} + {{usersCount}} user(s) (one-time fee)</h4>-->
+<!--  </div>-->
+<!--  <div *ngIf="subscriptionData.subscriptionType !== constants.BRAND_NOVICE && subscriptionData.title !==constants.ENTERPRISE" class="mx-4">-->
+<!--    <span *ngIf="!isShowCouponInput" class="apply-coupon-link" (click)="applyCouponClicked()">Apply Coupon</span>-->
+<!--    <input *ngIf="isShowCouponInput" class="coupon-code-input form-control" placeholder="Coupon code" [disabled]="isLoading" (change)="handleCouponInputChange($event)"/>-->
+<!--  </div>-->
+<!--  <div class="price-monthly">-->
+<!--    {{(subscriptionData.price * usersCount) | currency}}<span *ngIf="!subscriptionData.lifeTime">/mo</span>-->
+<!--  </div>-->
+<!--  <div class="purchase">-->
+<!--    <div class="due-price">-->
+<!--      <p class="m-0">-->
+<!--        Due Today <br>-->
+<!--        <span>{{prorationPrice | currency}}</span>-->
+<!--      </p>-->
+<!--    </div>-->
+<!--    <div class="purchase-btn">-->
+<!--      <app-kexy-button-->
+<!--        style="width: 100%;"-->
+<!--        [label]="isLoading ? 'Please wait...' : 'Next' "-->
+<!--        [disabled]="nextButtonDisable()"-->
+<!--        [iconLeft]="isLoading ? 'fa-refresh fa-spin' : 'fa-credit-card'"-->
+<!--        (click)="purchaseTaped()"-->
+<!--        radius="5px"-->
+<!--      ></app-kexy-button>-->
+<!--    </div>-->
+<!--  </div>-->
+<!--</div>-->
+
+<div class="prorate-price-section">
+  <div class="summary">
+    <p>Summary</p>
+    @if (!subscriptionData.lifeTime) {
+      <h4>{{subscriptionData.title}} {{subscriptionRecuring}} Plan + {{usersCount}} user(s)</h4>
+    }
+    @if (subscriptionData.lifeTime) {
+      <h4>{{subscriptionData.title}} + {{usersCount}} user(s) (one-time fee)</h4>
+    }
+  </div>
+
+  @if (subscriptionData.subscriptionType !== constants.BRAND_NOVICE && subscriptionData.title !== constants.ENTERPRISE) {
+    <div class="mx-4">
+      @if (!isShowCouponInput) {
+        <span class="apply-coupon-link" (click)="applyCouponClicked()">Apply Coupon</span>
+      }
+      @if (isShowCouponInput) {
+        <input class="coupon-code-input form-control"
+               placeholder="Coupon code"
+               [disabled]="isLoading"
+               (change)="handleCouponInputChange($event)"/>
+      }
+    </div>
+  }
+
+  <div class="price-monthly">
+    {{(subscriptionData.price * usersCount) | currency}}
+    @if (!subscriptionData.lifeTime) {
+      <span>/mo</span>
+    }
+  </div>
+
+  <div class="purchase">
+    <div class="due-price">
+      <p class="m-0">
+        Due Today <br>
+        <span>{{prorationPrice | currency}}</span>
+      </p>
+    </div>
+    <div class="purchase-btn">
+      <app-kexy-button
+        style="width: 100%;"
+        [label]="isLoading ? 'Please wait...' : 'Next'"
+        [disabled]="nextButtonDisable()"
+        [iconLeft]="isLoading ? 'fa-refresh fa-spin' : 'fa-credit-card'"
+        (click)="purchaseTaped()"
+        radius="5px"
+      ></app-kexy-button>
+    </div>
+  </div>
+</div>

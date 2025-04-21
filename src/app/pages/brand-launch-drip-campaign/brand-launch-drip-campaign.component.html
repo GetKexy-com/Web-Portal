@@ -1,0 +1,75 @@
+<brand-layout layoutPaddingNone="true" headerBgWhite="true">
+  <div class="company-description-page">
+    <div class="card-area-wrap">
+      <prospecting-common-card
+        cardTitle="Launch Your Campaign"
+        cardTitleLogo="/assets/icon/blue-box-icon.svg"
+        cardDetails=" To launch your campaign select all the label you would like to use in your campaign. All contacts of selected labels will receive your drip campaign emails. "
+      ></prospecting-common-card>
+    </div>
+
+    <div class="brand-drip-campaign-page">
+      <div class="page-content">
+        <section>
+          <kexy-select-dropdown
+            label="Select Drip campaign"
+            [selectAllBtn]="false"
+            [editIcon]="false"
+            [deleteIcon]="false"
+            [required]="true"
+            [options]="dripCampaignDropDownList"
+            [addNewBtn]="false"
+            [onOpenDropdown]=""
+            [selectedOption]="selectedDripCampaign? selectedDripCampaign['value'] : ''"
+            [onSelectSingleItem]="onDripCampaignSelect"
+            optionStyle="button"
+            backgroundColor="white"
+            placeholder="Please Select"
+          ></kexy-select-dropdown>
+          <div *ngIf="submitted && !selectedDripCampaign">
+            <error-message-card message="Field is required!"></error-message-card>
+          </div>
+        </section>
+        <section class="mt-3">
+          <kexy-select-dropdown
+            label="Lists"
+            shortNoteBesideLabel=""
+            [selectAllBtn]="false"
+            [required]="true"
+            [options]="labelOptions"
+            [addNewBtn]="false"
+            [onAddNewClick]=""
+            [selectedOption]=""
+            [onSelectSingleItem]="onLabelSelect"
+            [rowIndex]="1"
+            [editIcon]="false"
+            [onEditClick]=""
+            [deleteIcon]="false"
+            [onDeleteClick]=""
+            [isSearchAble]="false"
+            [isClearable]="true"
+            optionStyle="checkbox"
+            backgroundColor="white"
+            placeholder="Please Select"
+          ></kexy-select-dropdown>
+          <div *ngIf="submitted">
+            <div *ngIf="!isLabelSelected()">
+              <error-message-card message="Field is required!"></error-message-card>
+            </div>
+          </div>
+        </section>
+
+        <section class="launch-btn-wrap">
+          <app-kexy-button
+            [label]="isLoading ? 'Please wait...' : 'Launch'"
+            [disabled]="isLoading"
+            [iconLeft]="isLoading ? 'fa-refresh fa-spin' : ''"
+            (click)="launchDripCampaign()"
+          ></app-kexy-button>
+        </section>
+      </div>
+    </div>
+  </div>
+
+
+</brand-layout>

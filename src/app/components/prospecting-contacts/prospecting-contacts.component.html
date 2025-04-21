@@ -1,0 +1,232 @@
+<div class="canvas-content-wrap">
+  <div class="head-area">
+    <p>{{ canvasTitle }} Contact<span *ngIf="isMultipleContactsSelected">(s)</span></p>
+    <img src="/assets/images/close-icon.png" alt="Close" (click)="activeCanvas.dismiss('Cross click')" />
+  </div>
+
+  <div class="canvas-body">
+    <form [formGroup]="primaryForm" (ngSubmit)="handleSubmit()">
+      <div class="mb-4">
+        <div class="row">
+          <div class="col-12">
+            <div class="input-wrap">
+              <kexy-select-dropdown
+                label="Marketing Status"
+                shortNoteBesideLabel=""
+                [selectAllBtn]="false"
+                [required]="false"
+                [options]="marketingStatusOptions"
+                [addNewBtn]="false"
+                [onAddNewClick]=""
+                [selectedOption]="selectedMarketingStatus"
+                [onSelectSingleItem]="onMarketingStatusSelect"
+                [rowIndex]="1"
+                [editIcon]="false"
+                [deleteIcon]="false"
+                [onDeleteClick]=""
+                [onEditClick]=""
+                [isSearchAble]="false"
+                optionStyle="button"
+                backgroundColor="white"
+                placeholder="Please Select"
+              ></kexy-select-dropdown>
+              <div *ngIf="formValidationErrorCheck('marketing_status')">
+                <error-message-card message="Field is required!"></error-message-card>
+              </div>
+            </div>
+          </div>
+          <div class="col-12" *ngIf="!labelIdFromListContactPage">
+            <div class="input-wrap">
+              <kexy-select-dropdown
+                label="Lists"
+                shortNoteBesideLabel=""
+                [selectAllBtn]="false"
+                [required]="false"
+                [options]="labelOptions"
+                [addNewBtn]="true"
+                [onAddNewClick]="openContactLabelCanvas"
+                [selectedOption]=""
+                [onSelectSingleItem]="onLabelSelect"
+                [rowIndex]="1"
+                [editIcon]="true"
+                [onEditClick]="handleEditContactLabel"
+                [deleteIcon]="true"
+                [onDeleteClick]="handleDeleteLabel"
+                [isSearchAble]="false"
+                [isClearable]="true"
+                optionStyle="checkbox"
+                backgroundColor="white"
+                placeholder="Please Select"
+              ></kexy-select-dropdown>
+              <!--              <div *ngIf="formValidationErrorCheck('label')">-->
+              <!--                <error-message-card message="Field is required!"></error-message-card>-->
+              <!--              </div>-->
+            </div>
+          </div>
+          <div class="col-12 col-md-6">
+            <div *ngIf="!isMultipleContactsSelected" class="input-wrap">
+              <div class="label-and-input">
+                <p>First Name</p>
+                <input class="form-control" formControlName="first_name" type="text" placeholder="First Name" />
+                <div *ngIf="formValidationErrorCheck('first_name')">
+                  <error-message-card message="Field is required!"></error-message-card>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-12 col-md-6">
+            <div *ngIf="!isMultipleContactsSelected" class="input-wrap">
+              <div class="label-and-input">
+                <p>Last Name</p>
+                <input class="form-control" formControlName="last_name" type="text" placeholder="Last Name" />
+                <div *ngIf="formValidationErrorCheck('last_name')">
+                  <error-message-card message="Field is required!"></error-message-card>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-12 col-md-6">
+            <div *ngIf="!isMultipleContactsSelected" class="input-wrap">
+              <div class="label-and-input">
+                <p>LinkedIn</p>
+                <input class="form-control" formControlName="linkedin" type="text" placeholder="LinkedIn" />
+              </div>
+            </div>
+          </div>
+          <div class="col-12 col-md-6">
+            <div *ngIf="!isMultipleContactsSelected" class="input-wrap">
+              <div class="label-and-input">
+                <p>Email Address</p>
+                <input class="form-control" formControlName="email_address" type="text" placeholder="Email Address" />
+                <div *ngIf="formValidationErrorCheck('email_address')">
+                  <error-message-card message="Field is required!"></error-message-card>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-12 col-md-6">
+            <div *ngIf="!isMultipleContactsSelected" class="input-wrap">
+              <div class="label-and-input">
+                <p>Job Title</p>
+                <input class="form-control" formControlName="job_title" type="text" placeholder="Job Title" />
+              </div>
+            </div>
+          </div>
+          <div class="col-12 col-md-6">
+            <div *ngIf="!isMultipleContactsSelected" class="input-wrap">
+              <div class="label-and-input">
+                <p>Company Name</p>
+                <input class="form-control" formControlName="company_name" type="text" placeholder="Company Name" />
+              </div>
+            </div>
+          </div>
+          <div class="col-12 col-md-6">
+            <div *ngIf="!isMultipleContactsSelected" class="input-wrap">
+              <div class="label-and-input">
+                <p>Phone Number</p>
+                <div class="d-flex form-control">
+                  <!--                  <span class="me-2">+1</span>-->
+                  <input style="border: none; flex: 1" formControlName="phone_number" type="text"
+                         placeholder="+1 (123) 123-1231" />
+                </div>
+              </div>
+              <div *ngIf="formValidationErrorCheck('phone_number')">
+                <error-message-card message="Invalid Number!"></error-message-card>
+              </div>
+            </div>
+          </div>
+          <div class="col-12 col-md-6">
+            <div *ngIf="!isMultipleContactsSelected" class="input-wrap">
+              <div class="label-and-input">
+                <kexy-select-dropdown
+                  label="Country"
+                  [selectAllBtn]="false"
+                  [editIcon]="false"
+                  [deleteIcon]="false"
+                  [required]="false"
+                  [options]="countries"
+                  [addNewBtn]="false"
+                  [onOpenDropdown]=""
+                  [selectedOption]="selectedCountry"
+                  [onSelectSingleItem]="onCountrySelect"
+                  optionStyle="button"
+                  backgroundColor="white"
+                  placeholder="Please Select"
+                ></kexy-select-dropdown>
+              </div>
+            </div>
+          </div>
+          <div class="col-12 col-md-6">
+            <div *ngIf="!isMultipleContactsSelected" class="input-wrap">
+              <div class="label-and-input">
+                <p>City</p>
+                <input class="form-control" formControlName="city" type="text" placeholder="City" />
+              </div>
+            </div>
+          </div>
+          <div class="col-12 col-md-6">
+            <div *ngIf="!isMultipleContactsSelected" class="input-wrap">
+              <div class="label-and-input">
+                <kexy-select-dropdown
+                  label="State"
+                  [selectAllBtn]="false"
+                  [editIcon]="false"
+                  [deleteIcon]="false"
+                  [required]="false"
+                  [options]="statesOptions"
+                  [addNewBtn]="false"
+                  [onOpenDropdown]=""
+                  [selectedOption]="selectedState"
+                  [onSelectSingleItem]="onStateSelect"
+                  optionStyle="button"
+                  backgroundColor="white"
+                  placeholder="Please Select"
+                ></kexy-select-dropdown>
+              </div>
+            </div>
+          </div>
+          <div class="col-12">
+            <div *ngIf="!isMultipleContactsSelected" class="input-wrap">
+              <div class="label-and-input">
+                <p>Drip Campaigns:</p>
+                <div>
+                  <ng-container *ngIf="contactDripCampaigns.length > 0 && !initialLoading">
+                    <span class="ms-2 mb-1 drip-campaign-title"
+                          *ngFor="let campaign of contactDripCampaigns; let i = index" href="javascript: void(0);"
+                          (click)="redirectToEditPage(campaign)">
+                      <span>{{ i + 1 }}.</span>
+                      {{ campaign.title }}
+                      <span class="ms-2 link-text border-0" (click)="removeContactFromDripCampaign(campaign)"><i
+                        class="fa fa-trash-o me-1" aria-hidden="true"></i>Delete</span>
+                    </span>
+                  </ng-container>
+                  <span *ngIf="contactDripCampaigns.length === 0 && !initialLoading" class="ms-2">None</span>
+                  <span *ngIf="initialLoading" style="color: black">
+                    <i class="fa fa-refresh fa-spin ms-2" aria-hidden="true"></i>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-12">
+            <div *ngIf="!isMultipleContactsSelected" class="input-wrap">
+              <div class="label-and-input">
+                <p>Notes</p>
+                <textarea class="form-control" formControlName="notes" type="text" placeholder="Notes"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="buttons">
+        <button class="blue-button me-3" type="submit" [disabled]="isLoading">
+          Save<i *ngIf="isLoading" class="fa fa-spinner fa-spin ms-2" aria-hidden="true" style="color: white"></i>
+        </button>
+        <button class="blue-border-white-bg-button" type="button" (click)="activeCanvas.dismiss('Cross click')">
+          Cancel
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

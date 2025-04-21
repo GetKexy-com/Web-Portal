@@ -1,0 +1,34 @@
+.slack-integration-page {
+  background: #e7f6fe;
+  padding: 18px 24px;
+  height: calc(100vh - 70px);
+
+  .card-area-wrap {
+    padding-bottom: 20px;
+    .slack-features-details {
+      background: white;
+      border-radius: 10px;
+      padding: 20px;
+      .get-ready-to-levelup-text {
+        font-size: 16px;
+      }
+      .feature-list {
+        margin-top: 30px;
+        .items-wrap {
+          .item {
+            font-size: 14px;
+            i {
+              color: #0048cd;
+              margin-right: 10px;
+              font-size: 16px;
+            }
+          }
+        }
+      }
+      .btn-wrap {
+        margin-top: 20px;
+        width: 200px;
+      }
+    }
+  }
+}

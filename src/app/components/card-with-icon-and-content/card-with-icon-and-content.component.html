@@ -1,0 +1,48 @@
+<div
+  *ngIf="data.previous"
+  [className]="!data.next && data.previous ? 'card-with-contents padding-bottom-26' : 'card-with-contents'"
+>
+  <img *ngIf="data.previous" src="/assets/images/blue-dott-line-new.png" style="margin-left: 23px" />
+  <div class="icon-content-wrap">
+    <div class="icon-box">
+      <img *ngIf="data.icon" [src]="data.icon" />
+      <i *ngIf="data.faIcon" class="fa {{ data.faIcon }}"  aria-hidden="true"></i>
+    </div>
+    <div class="icons-right-side-content">
+      <p>{{ data.message }}</p>
+    </div>
+  </div>
+  <img *ngIf="data.next" src="/assets/images/blue-dott-line-new.png" style="margin-left: 23px" />
+  <!-- <img *ngIf="data.next" src="/assets/images/blue-dotted-line-small.png" style="margin-left: 23px" /> -->
+  <div *ngIf="data.categories.length > 0" class="categories-wrap">
+    <img src="/assets/images/blue-dotted-line.png" style="margin-left: 23px" />
+    <img src="/assets/images/blue-dotted-line.png" style="margin: 28px 0 0 -1px" />
+    <img src="/assets/images/blue-dotted-line.png" style="transform: rotate(90deg); margin: 44px 16px 0 14px" />
+    <div class="categories-list">
+      <p *ngFor="let category of data.categories">
+        <span>{{ category.no }}</span
+        >{{ category.name }}
+      </p>
+    </div>
+  </div>
+</div>
+
+<div
+  *ngIf="!data.previous"
+  [className]="!data.previous && data.next ? 'card-with-contents padding-top-26' : 'card-with-contents'"
+>
+  <img *ngIf="data.previous" src="/assets/images/blue-dott-line-new.png" style="margin-left: 23px" />
+  <div class="icon-content-wrap">
+    <div class="icon-box">
+      <img [src]="data.icon" />
+    </div>
+    <div class="icons-right-side-content">
+      <p>{{ data.message }}</p>
+      <div *ngIf="data.categories.length > 0" class="categories-list">
+        <p><span>01</span>Created</p>
+        <p><span>01</span>Created</p>
+      </div>
+    </div>
+  </div>
+  <img *ngIf="data.next" src="/assets/images/blue-dott-line-new.png" style="margin-left: 23px" />
+</div>

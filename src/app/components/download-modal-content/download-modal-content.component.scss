@@ -1,0 +1,265 @@
+.content {
+  display: flex;
+  .left-side {
+    width: 50%;
+    padding: 30px;
+    .close-icon-wrap-for-mobile {
+      display: flex;
+      justify-content: end;
+      margin: 10px 0 20px 0;
+      button {
+        border: none;
+        outline: none;
+        // width: 35px;
+        // height: 35px;
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(17.5px);
+        border-radius: 10px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+    }
+    .if-you-havent-download-text {
+      font-style: normal;
+      font-weight: 400;
+      font-size: 24px;
+      line-height: 26px;
+      color: #000000;
+      margin-bottom: 40px;
+      .kexy-mobile-app-text {
+        color: #12a5f4;
+        font-weight: 600;
+      }
+    }
+    .download-links-area {
+      display: flex;
+      background: #e7f6fe;
+      border-radius: 20px;
+      padding: 24px 0;
+      .app-play-store-section {
+        width: 50%;
+        padding: 0px 24px;
+        .scan-code-wrap {
+          background: white;
+          border-radius: 10px;
+          padding: 18px;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        }
+        .app-play-store-img {
+          margin-top: 40px;
+        }
+      }
+    }
+  }
+  .right-side {
+    width: 50%;
+    .img {
+      background-image: url(/assets/images/app-download-modal-left-side-img.png);
+      background-repeat: no-repeat;
+      background-size: cover;
+      width: 100%;
+      height: 555px;
+      background-position: right;
+      background-color: transparent;
+      border-top-right-radius: 12px;
+      border-bottom-right-radius: 12px;
+      .close-btn-wrap {
+        display: flex;
+        justify-content: end;
+        padding: 15px;
+        button {
+          width: 35px;
+          height: 35px;
+          background: rgba(255, 255, 255, 0.8);
+          backdrop-filter: blur(17.5px);
+          border-radius: 10px;
+          border: none;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        }
+      }
+    }
+    .img-for-lg-modal {
+      background-image: url(/assets/images/app-download-modal-left-side-img.png);
+      background-repeat: no-repeat;
+      background-size: cover;
+      width: 100%;
+      height: 500px;
+      background-position: right;
+      background-color: transparent;
+      border-top-right-radius: 12px;
+      border-bottom-right-radius: 12px;
+      .close-btn-wrap {
+        display: flex;
+        justify-content: end;
+        padding: 15px;
+        button {
+          width: 35px;
+          height: 35px;
+          background: rgba(255, 255, 255, 0.8);
+          backdrop-filter: blur(17.5px);
+          border-radius: 10px;
+          border: none;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 575px) {
+  .content {
+    .left-side {
+      width: 100%;
+      padding: 5px 20px 20px 20px;
+      .if-you-havent-download-text {
+        font-size: 20px;
+        line-height: 22px;
+      }
+      .close-icon-wrap-for-mobile {
+        button {
+        }
+      }
+      .download-links-area {
+        padding: 10px 0;
+        .app-play-store-section {
+          padding: 0 15px;
+          .scan-code-wrap {
+            padding: 15px;
+          }
+          .app-play-store-img {
+            margin-top: 25px;
+          }
+        }
+      }
+    }
+    .right-side {
+      display: none;
+      .img {
+        display: none;
+        height: 0;
+      }
+    }
+  }
+}
+@media (min-width: 576px) and (max-width: 767px) {
+  .content {
+    .left-side {
+      width: 100%;
+      padding: 5px 20px 20px 20px;
+      .if-you-havent-download-text {
+        font-size: 20px;
+        line-height: 22px;
+      }
+      .close-icon-wrap-for-mobile {
+        button {
+        }
+      }
+      .download-links-area {
+        padding: 10px 0;
+        .app-play-store-section {
+          padding: 0 15px;
+          .scan-code-wrap {
+            padding: 15px;
+          }
+          .app-play-store-img {
+            margin-top: 25px;
+          }
+        }
+      }
+    }
+    .right-side {
+      display: none;
+      .img {
+        display: none;
+        height: 0;
+      }
+    }
+  }
+}
+@media (min-width: 768px) and (max-width: 991px) {
+  .content {
+    .left-side {
+      width: 100%;
+      padding: 5px 20px 20px 20px;
+      .if-you-havent-download-text {
+        font-size: 20px;
+        line-height: 22px;
+      }
+      .close-icon-wrap-for-mobile {
+        button {
+        }
+      }
+      .download-links-area {
+        padding: 10px 0;
+        .app-play-store-section {
+          padding: 0 15px;
+          .scan-code-wrap {
+            padding: 15px;
+          }
+          .app-play-store-img {
+            margin-top: 25px;
+          }
+        }
+      }
+    }
+    .right-side {
+      display: none;
+      .img {
+        display: none;
+        height: 0;
+      }
+    }
+  }
+}
+@media (min-width: 992px) and (max-width: 1199px) {
+  .content {
+    .left-side {
+      .close-icon-wrap-for-mobile {
+        display: none;
+      }
+    }
+    .right-side {
+      .img {
+        display: none;
+        height: 0;
+      }
+    }
+  }
+}
+@media (min-width: 1200px) and (max-width: 1599px) {
+  .content {
+    .left-side {
+      .close-icon-wrap-for-mobile {
+        display: none;
+      }
+    }
+    .right-side {
+      .img {
+        display: none;
+        height: 0;
+      }
+    }
+  }
+}
+@media (min-width: 1600px) {
+  .content {
+    .left-side {
+      .close-icon-wrap-for-mobile {
+        display: none;
+      }
+    }
+    .right-side {
+      .img-for-lg-modal {
+        display: none;
+        height: 0;
+      }
+    }
+  }
+}

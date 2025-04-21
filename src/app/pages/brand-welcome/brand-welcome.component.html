@@ -1,0 +1,19 @@
+<login-layout>
+  <div class="tr-main-box">
+    <div class="kexy-logo">
+      <img src="/assets/images/client-logo.png" alt="" />
+    </div>
+    <div class="login-form">
+      <div class="tr-kexy-button">
+        <a (click)="openVideoDialog()" class="kexy-button">Play Video</a>
+      </div>
+
+      <p class="text-center">
+        <a href="#" (click)="autoLogin($event)">Skip explainer video & login</a>
+      </p>
+    </div>
+    <ng-template #kexyAppDownloadModal let-c="close" let-d="dismiss">
+      <app-download-modal-content [closeModal]="c"></app-download-modal-content>
+    </ng-template>
+  </div>
+</login-layout>

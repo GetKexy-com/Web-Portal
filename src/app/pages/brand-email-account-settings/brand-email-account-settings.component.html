@@ -1,0 +1,209 @@
+<brand-layout layoutPaddingNone="true" headerBgWhite="true">
+  <main class="slack-integration-page">
+    <section class="card-area-wrap">
+      <prospecting-common-card
+        cardTitle="SMTP Settings"
+        cardTitleLogo="/assets/icon/blue-box-icon.svg"
+      >
+        <div class="details-content mt-2">
+          <a href="#" (click)="openVideoDialog(emailAccountSettingsVideo); $event.preventDefault()">
+            <i class="fa fa-play-circle-o" aria-hidden="true"></i>
+            Watch video
+          </a>
+          <a href="https://docs.google.com/document/d/1_56QqdPV0d6FomIuxnro8hycooTeZ97zMZ1LQ6UGngE/edit?tab=t.0"
+             target="_blank">
+            <i class="fa fa-book" aria-hidden="true"></i>
+            Read guide
+          </a>
+          <a href="#" (click)="support(); $event.preventDefault()">
+            <i class="fa fa-question-circle" aria-hidden="true"></i>
+            Help
+          </a>
+        </div>
+      </prospecting-common-card>
+    </section>
+
+    <section
+      class="message"
+      [class.failed]="connectionFailed"
+      [class.success]="isConnectionSuccessful"
+      *ngIf="connectionMessage"
+    >
+      <p class="m-0">
+        <i class="fa" [class.fa-exclamation-triangle]="connectionFailed"
+           [class.fa-check-circle-o]="isConnectionSuccessful"
+           aria-hidden="true"></i>
+        {{ connectionMessage }}
+      </p>
+    </section>
+
+    <section class="card-area-wrap">
+      <div class="card-content">
+        <p class="section-title">SMTP (Sending emails)</p>
+
+        <div class="d-flex gap-3 mt-3">
+          <app-kexy-button
+            label="Connect with gmail"
+            type="button"
+            iconLeft="fa-google"
+            bgColor="transparent"
+            [borderColor]="smtpConnectionType === constants.GMAIL ? '#0047cc' : 'black'"
+            [textColor]="smtpConnectionType === constants.GMAIL ? '#0047cc' : 'black'"
+            (click)="setSmtpSendingType(constants.GMAIL)"
+            [disabled]="isLoading"
+          ></app-kexy-button>
+
+          <app-kexy-button
+            label="Connect with smtp"
+            type="button"
+            bgColor="transparent"
+            [borderColor]="smtpConnectionType === constants.SMTP ? '#0047cc' : 'black'"
+            [textColor]="smtpConnectionType === constants.SMTP ? '#0047cc' : 'black'"
+            (click)="setSmtpSendingType(constants.SMTP)"
+            [disabled]="isLoading"
+          ></app-kexy-button>
+        </div>
+
+        <form *ngIf="smtpConnectionType === constants.SMTP" [formGroup]="primaryForm" (ngSubmit)="handleSubmit()">
+          <div class="container-fluid">
+            <div class="row">
+              <div class="col-12 col-md-6 ps-0">
+                <div class="col-12 mt-3 ps-0">
+                  <label class="input-label-text">
+                    From name
+                    <i class="fa fa-asterisk" aria-hidden="true"></i>
+                  </label>
+                  <input type="text" class="form-control" placeholder="Enter your name" name="name"
+                         formControlName="from_name" />
+                  <div *ngIf="formValidationErrorCheck('from_name')">
+                    <error-message-card message="Field is required!"></error-message-card>
+                  </div>
+                </div>
+                <div class="col-12 mt-3 ps-0">
+                  <label class="input-label-text">
+                    SMTP Email/Username
+                    <i class="fa fa-asterisk" aria-hidden="true"></i>
+                  </label>
+                  <input type="email" class="form-control"
+                         placeholder="Enter email address"
+                         name="smtp_email_username"
+                         formControlName="smtp_email_username" />
+                  <div *ngIf="formValidationErrorCheck('smtp_email_username')">
+                    <error-message-card message="Field is required!"></error-message-card>
+                  </div>
+                </div>
+                <div class="col-12 mt-3 ps-0">
+                  <label class="input-label-text">
+                    Host
+                    <i class="fa fa-asterisk" aria-hidden="true"></i>
+                  </label>
+                  <input type="text" class="form-control" placeholder="Enter SMTP host" name="host"
+                         formControlName="host" />
+                  <div *ngIf="formValidationErrorCheck('host')">
+                    <error-message-card message="Field is required!"></error-message-card>
+                  </div>
+                </div>
+                <div class="col-12 mt-3 ps-0">
+                  <div class="d-flex align-items-center gap-3">
+                    <div>
+                      <input type="radio" id="tls" name="smtp_security" value="tls" formControlName="smtp_security">
+                      <label for="tls" class="ms-1">TLS</label><br>
+                    </div>
+                    <div>
+                      <input type="radio" id="ssl" name="smtp_security" value="ssl" formControlName="smtp_security">
+                      <label for="ssl" class="ms-1">SSL</label><br>
+                    </div>
+                    <div>
+                      <input type="radio" id="none" name="smtp_security" value="none" formControlName="smtp_security">
+                      <label for="none" class="ms-1">None</label>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-12 mt-3 ps-0">
+                  <app-kexy-button
+                    *ngIf="!isConnectionSuccessful"
+                    [label]="isLoading ? 'Please wait...' : 'Send a test email to check connection'"
+                    type="submit"
+                    [iconLeft]="isLoading ? 'fa-refresh fa-spin' : ''"
+                    [disabled]="isLoading"
+                  ></app-kexy-button>
+
+                  <app-kexy-button
+                    *ngIf="isConnectionSuccessful"
+                    [label]="isLoading ? 'Please wait...' : 'Disconnect'"
+                    [iconLeft]="isLoading ? 'fa-refresh fa-spin' : ''"
+                    [disabled]="isLoading"
+                    bgColor="#FF3541"
+                    type="submit"
+                  ></app-kexy-button>
+                </div>
+
+              </div>
+              <div class="col-12 col-md-6 ps-0">
+                <div class="col-12 mt-3 ps-0">
+                  <label class="input-label-text">
+                    From email
+                    <i class="fa fa-asterisk" aria-hidden="true"></i>
+                  </label>
+                  <input type="email" class="form-control" placeholder="Enter email address" name="email"
+                         formControlName="from_email" />
+                  <div *ngIf="formValidationErrorCheck('from_email')">
+                    <error-message-card message="Field is required!"></error-message-card>
+                  </div>
+                </div>
+                <div class="col-12 mt-3 ps-0">
+                  <label class="input-label-text">
+                    Password
+                    <i class="fa fa-asterisk" aria-hidden="true"></i>
+                  </label>
+                  <input type="password" class="form-control" placeholder="Enter password"
+                         name="password"
+                         formControlName="password" />
+                  <div *ngIf="formValidationErrorCheck('password')">
+                    <error-message-card message="Field is required!"></error-message-card>
+                  </div>
+                </div>
+                <div class="col-12 mt-4 ps-0">
+                  <kexy-select-dropdown
+                    label="Port"
+                    shortNoteBesideLabel=""
+                    [selectAllBtn]="false"
+                    [required]="false"
+                    [options]="ports"
+                    [addNewBtn]="false"
+                    [onAddNewClick]=""
+                    [selectedOption]="selectedPort"
+                    [onSelectSingleItem]="onEmailPortSelect"
+                    [rowIndex]="1"
+                    [editIcon]="false"
+                    [deleteIcon]="false"
+                    [onDeleteClick]=""
+                    [onEditClick]=""
+                    optionStyle="button"
+                    backgroundColor="white"
+                    placeholder="Please Select"
+                  ></kexy-select-dropdown>
+                </div>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <ng-template #emailAccountSettingsVideo let-c="close" let-d="dismiss">
+    <div class="modal-body" style="padding: 0; height: 500px">
+      <iframe
+        class="embed-responsive-item"
+        style="height: 500px; width: 100%"
+        src="https://www.youtube.com/embed/YyrCj3vR7I0?autoplay=1&rel=0"
+        title="Setting Up Your SMTP Server Inside of KEXY"
+        frameborder="0"
+        allow="autoplay"
+        referrerpolicy="strict-origin-when-cross-origin"
+        allowfullscreen
+      ></iframe>
+    </div>
+  </ng-template>
+</brand-layout>

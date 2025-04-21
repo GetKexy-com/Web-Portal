@@ -1,9 +1,9 @@
 export class ExportToCsv {
   static download(name: string, data: string) {
     const blob = new Blob([data], { type: "text/csv;charset=utf-8;" });
-    if (navigator.msSaveBlob) {
+    if (navigator["msSaveBlob"]) {
       // IE 10+
-      navigator.msSaveBlob(blob, name);
+      navigator["msSaveBlob"](blob, name);
     } else {
       ExportToCsv._downloadOnHtml5(name, blob);
     }

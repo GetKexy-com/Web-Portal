@@ -1,0 +1,34 @@
+.tr-animate {
+  display: block !important;
+  position: fixed;
+  top: 20px;
+  background: white;
+  right: 30px;
+  width: 300px;
+  box-shadow: 0 0 4px 1px #e9e7e7;
+  border-radius: 4px;
+  overflow: hidden;
+  .toastify-content {
+    padding: 15px 10px;
+    display: flex;
+    align-items: center;
+    span {
+      font-size: 15px;
+      color: #888282;
+      i {
+        color: #09bc0f;
+        padding-right: 10px;
+        font-size: 20px;
+      }
+
+    }
+  }
+}
+.tr-progress {
+  height: 5px;
+  background-color: #09bc0f;
+  width: 100%;
+  &.animate {
+    width:0%;
+  }
+}

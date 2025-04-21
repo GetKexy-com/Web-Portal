@@ -1,0 +1,12 @@
+<div class="progress-count">
+  <div class="circle-and-contents">
+    <div class="step-wrap" *ngFor="let step of steps; let i = index">
+      <div class="circle-with-step" [class.active]="step.no === currentStep" [class.completed]="step.no < currentStep">
+        <span *ngIf="step.no >= currentStep">{{ step.no }}</span>
+        <img *ngIf="step.no < currentStep" src="/assets/images/double-check-white.png" />
+        <p class="step-title">{{ step.title }}</p>
+      </div>
+      <div *ngIf="steps.length !== i + 1" class="connecting-line" [class.active]="step.no < currentStep"></div>
+    </div>
+  </div>
+</div>

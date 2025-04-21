@@ -1,0 +1,106 @@
+<brand-layout>
+  <div class="kexy-logo" [hidden]="imageUrl">
+    <img class="profile-photo company-default-logo" src="/assets/images/company_default_logo_black.png" alt="" />
+  </div>
+  <div class="form-group text-center profile-photo-wrap">
+    <img class="profile-photo" [src]="imageUrl" [hidden]="!imageUrl" />
+  </div>
+
+  <div class="form-group text-center">
+    <button class="kexy-button" type="submit" (click)="openFileDialog()">Change Company Logo</button>
+    <input type="file" name="" class="profile-photo-file-input tr-hidden" (change)="fileSelected($event)" />
+  </div>
+
+  <form class="tr-form" [formGroup]="primaryForm" (ngSubmit)="primaryFormSubmitted()">
+    <div class="form-group">
+      <input
+        [class.error]="(submitted || primaryForm.controls['name'].dirty) && primaryForm.controls['name'].invalid"
+        type="text"
+        formControlName="name"
+        class="form-control"
+        placeholder="Company Name"
+      />
+      <div *ngIf="primaryForm.controls['name'].invalid && (submitted || primaryForm.controls['name'].dirty)">
+        <span class="text-danger">Please enter a valid Company Name.</span>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <input
+        [class.error]="(submitted || primaryForm.controls['city'].dirty) && primaryForm.controls['city'].invalid"
+        type="text"
+        formControlName="city"
+        class="form-control"
+        placeholder="City"
+      />
+      <div *ngIf="primaryForm.controls['city'].invalid && (submitted || primaryForm.controls['city'].dirty)">
+        <span class="text-danger">Please enter a valid City name.</span>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <select
+        [class.error]="(submitted || primaryForm.controls['state'].dirty) && primaryForm.controls['state'].invalid"
+        formControlName="state"
+        class="form-control"
+      >
+        <option value="" selected>{{ stateLabel }}</option>
+        <option *ngFor="let state of states" [value]="state.isoCode">
+          {{ state.name }}
+        </option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <select
+        [disabled]="true"
+        [class.error]="(submitted || primaryForm.controls['country'].dirty) && primaryForm.controls['country'].invalid"
+        formControlName="country"
+        class="form-control"
+        style="background: #80808026"
+      >
+        <option value="" selected>Please Select Country</option>
+        <option *ngFor="let country of countries" [value]="country.isoCode">
+          {{ country.name }}
+        </option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <input
+        [class.error]="
+          (submitted || primaryForm.controls['zip_code'].dirty) && primaryForm.controls['zip_code'].invalid
+        "
+        type="text"
+        formControlName="zip_code"
+        class="form-control"
+        placeholder="{{ zipCodePlaceholder }}"
+      />
+      <div *ngIf="primaryForm.controls['zip_code'].invalid && (submitted || primaryForm.controls['zip_code'].dirty)">
+        <span class="text-danger">{{ zipCodePlaceholder }} is invalid</span>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <div class="phonefields">
+        <div class="phonecode">{{ phoneCode }}</div>
+        <input
+          [class.error]="(submitted || primaryForm.controls['phone'].dirty) && primaryForm.controls['phone'].invalid"
+          class="form-control phoneNumber"
+          formControlName="phone"
+          placeholder="Mobile Phone"
+          type="tel"
+        />
+      </div>
+      <div *ngIf="primaryForm.controls['phone'].invalid && (submitted || primaryForm.controls['phone'].dirty)">
+        <span class="text-danger">Please enter a valid mobile phone.</span>
+      </div>
+    </div>
+    <div class="form-group text-center">
+      <button class="kexy-button tr-kexy-button" type="submit" name="submit" id="submit">
+        <i *ngIf="isWaitingFlag" class="fa fa-spinner fa-spin" aria-hidden="true"></i>
+        Update
+      </button>
+    </div>
+  </form>
+</brand-layout>

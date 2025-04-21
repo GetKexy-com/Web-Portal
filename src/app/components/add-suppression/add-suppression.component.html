@@ -1,0 +1,197 @@
+<!--<div class="canvas-content-wrap">-->
+<!--  <div class="head-area">-->
+<!--    <p>Add User to Suppression List</p>-->
+<!--    <img src="/assets/images/close-icon.png" alt="Close" (click)="activeCanvas.dismiss('Cross click')" />-->
+<!--  </div>-->
+
+<!--  <div class="canvas-body">-->
+<!--    <form (ngSubmit)="handleSubmit()">-->
+<!--      <div *ngFor="let user of userObjList; let i = index" class="form-body">-->
+<!--        <div class="row w-100 align-items-center">-->
+<!--          <div class="col-3">-->
+<!--            <div class="input-wrap">-->
+<!--              <div class="label-and-input">-->
+<!--                <p *ngIf="i === 0">First Name</p>-->
+<!--                <input-->
+<!--                  class="form-control"-->
+<!--                  [(ngModel)]="user.contact_first_name"-->
+<!--                  [ngModelOptions]="{ standalone: true }"-->
+<!--                  type="text"-->
+<!--                  placeholder="John"-->
+<!--                />-->
+<!--                <div *ngIf="submitted && !user.contact_first_name">-->
+<!--                  <error-message-card message="Field is required!"></error-message-card>-->
+<!--                </div>-->
+<!--              </div>-->
+<!--            </div>-->
+<!--          </div>-->
+<!--          <div class="col-3">-->
+<!--            <div class="input-wrap">-->
+<!--              <div class="label-and-input">-->
+<!--                <p *ngIf="i === 0">Last Name</p>-->
+<!--                <input-->
+<!--                  class="form-control"-->
+<!--                  [(ngModel)]="user.contact_last_name"-->
+<!--                  [ngModelOptions]="{ standalone: true }"-->
+<!--                  type="text"-->
+<!--                  placeholder="Doe"-->
+<!--                />-->
+<!--                <div *ngIf="submitted && !user.contact_last_name">-->
+<!--                  <error-message-card message="Field is required!"></error-message-card>-->
+<!--                </div>-->
+<!--              </div>-->
+<!--            </div>-->
+<!--          </div>-->
+<!--          <div class="col-5">-->
+<!--            <div class="input-wrap">-->
+<!--              <div class="label-and-input">-->
+<!--                <p *ngIf="i === 0">Email</p>-->
+<!--                <input-->
+<!--                  class="form-control"-->
+<!--                  [(ngModel)]="user.contact_email"-->
+<!--                  [ngModelOptions]="{ standalone: true }"-->
+<!--                  type="email"-->
+<!--                  placeholder="john@email.com"-->
+<!--                />-->
+<!--                <div *ngIf="submitted && !user.contact_email">-->
+<!--                  <error-message-card message="Field is required!"></error-message-card>-->
+<!--                </div>-->
+<!--              </div>-->
+<!--            </div>-->
+<!--          </div>-->
+<!--          <div class="col-1">-->
+<!--            <i class="fa fa-trash-o" aria-hidden="true" style="cursor: pointer" [style.margin-top]="i === 0 ? '15px' : ''" (click)="removePeople(i)"></i>-->
+<!--          </div>-->
+<!--        </div>-->
+<!--      </div>-->
+<!--      <div class="add-btn-wrap">-->
+<!--        <div class="btn-wrap">-->
+<!--          <a href="javascript: void(0);" class="add-another-invitation-link" (click)="addPeopleRow()"-->
+<!--          >+ Add another user</a-->
+<!--          >-->
+<!--        </div>-->
+<!--      </div>-->
+
+<!--      <div class="buttons mt-4">-->
+<!--        <button class="blue-button me-3" type="submit">-->
+<!--          Save<i *ngIf="isLoading" class="fa fa-spinner fa-spin ms-2" aria-hidden="true" style="color: white"></i>-->
+<!--        </button>-->
+<!--        <button class="blue-border-white-bg-button" type="button" (click)="activeCanvas.dismiss('Cross click')">-->
+<!--          Cancel-->
+<!--        </button>-->
+<!--      </div>-->
+<!--    </form>-->
+<!--  </div>-->
+<!--</div>-->
+
+<div class="canvas-content-wrap">
+  <div class="head-area">
+    <p>Add User to Suppression List</p>
+    <img src="/assets/images/close-icon.png" alt="Close" (click)="activeCanvas.dismiss('Cross click')" />
+  </div>
+
+  <div class="canvas-body">
+    <form (ngSubmit)="handleSubmit()">
+      @for (user of userObjList(); track user; let i = $index) {
+        <div class="form-body">
+          <div class="row w-100 align-items-center">
+            <div class="col-3">
+              <div class="input-wrap">
+                <div class="label-and-input">
+                  @if (i === 0) {
+                    <p>First Name</p>
+                  }
+                  <input
+                    class="form-control"
+                    [(ngModel)]="user.contact_first_name"
+                    [ngModelOptions]="{ standalone: true }"
+                    type="text"
+                    placeholder="John"
+                  />
+                  @if (submitted() && !user.contact_first_name) {
+                    <error-message-card message="Field is required!" />
+                  }
+                </div>
+              </div>
+            </div>
+            <div class="col-3">
+              <div class="input-wrap">
+                <div class="label-and-input">
+                  @if (i === 0) {
+                    <p>Last Name</p>
+                  }
+                  <input
+                    class="form-control"
+                    [(ngModel)]="user.contact_last_name"
+                    [ngModelOptions]="{ standalone: true }"
+                    type="text"
+                    placeholder="Doe"
+                  />
+                  @if (submitted() && !user.contact_last_name) {
+                    <error-message-card message="Field is required!" />
+                  }
+                </div>
+              </div>
+            </div>
+            <div class="col-5">
+              <div class="input-wrap">
+                <div class="label-and-input">
+                  @if (i === 0) {
+                    <p>Email</p>
+                  }
+                  <input
+                    class="form-control"
+                    [(ngModel)]="user.contact_email"
+                    [ngModelOptions]="{ standalone: true }"
+                    type="email"
+                    placeholder="john@email.com"
+                  />
+                  @if (submitted() && !user.contact_email) {
+                    <error-message-card message="Field is required!" />
+                  }
+                </div>
+              </div>
+            </div>
+            <div class="col-1">
+              <i
+                class="fa fa-trash-o"
+                aria-hidden="true"
+                style="cursor: pointer"
+                [style.margin-top]="i === 0 ? '15px' : ''"
+                (click)="removePeople(i)"
+              ></i>
+            </div>
+          </div>
+        </div>
+      }
+
+      <div class="add-btn-wrap">
+        <div class="btn-wrap">
+          <a
+            href="javascript: void(0);"
+            class="add-another-invitation-link"
+            (click)="addPeopleRow()"
+          >
+            + Add another user
+          </a>
+        </div>
+      </div>
+
+      <div class="buttons mt-4">
+        <button class="blue-button me-3" type="submit">
+          Save
+          @if (isLoading()) {
+            <i class="fa fa-spinner fa-spin ms-2" aria-hidden="true" style="color: white"></i>
+          }
+        </button>
+        <button
+          class="blue-border-white-bg-button"
+          type="button"
+          (click)="activeCanvas.dismiss('Cross click')"
+        >
+          Cancel
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

@@ -1,0 +1,241 @@
+<!--<div class="kexy-table-card">-->
+<!--  <div class="card-header">-->
+<!--    <p>{{ constants.LANDING_PAGE }}s (select one) - <span>This section is optional</span></p>-->
+<!--    <div class="kexy-table-entry-count">-->
+<!--      Show-->
+<!--      <select class="form-control" style="width: auto" [(ngModel)]="limit" (change)="onShowEntriesSelect($event)">-->
+<!--        <option value="5">5</option>-->
+<!--        <option value="10">10</option>-->
+<!--        <option value="25">25</option>-->
+<!--        <option value="50">50</option>-->
+<!--        <option value="100">100</option>-->
+<!--      </select>-->
+<!--      {{ constants.LANDING_PAGE }}s per page-->
+<!--    </div>-->
+<!--  </div>-->
+<!--  <div class="new-table-wrapper">-->
+<!--    <div class="list-wrapper" [style.width]="tableWidth + 'px'">-->
+<!--      <table class="n-table" [style.width]="tableWidth + 'px'" *ngIf="columnList">-->
+<!--        &lt;!&ndash; header - start &ndash;&gt;-->
+<!--        <tr class="n-header">-->
+<!--          <ng-container *ngFor="let column of columnList">-->
+<!--            <td-->
+<!--              [ngClass]="column.key === 'title_of_campaign' ? 'n-header-product' : 'n-header-name'"-->
+<!--              [style.width]="column.width"-->
+<!--              [width]="column.width"-->
+<!--              [style.background-color]="tableHeaderBg"-->
+<!--              [style.color]="tableHeaderColor"-->
+<!--            >-->
+<!--              {{ column.name }}-->
+<!--            </td>-->
+<!--          </ng-container>-->
+<!--        </tr>-->
+<!--        &lt;!&ndash; header - end &ndash;&gt;-->
+
+<!--        &lt;!&ndash; product - start &ndash;&gt;-->
+
+<!--        <ng-container *ngIf="!isWaitingFlag && cardData.length > 0">-->
+<!--          <tr class="n-product" *ngFor="let row of cardData; let i = index" (click)="handleClickRadioButton(row)">-->
+<!--            <ng-container *ngFor="let column of columnList">-->
+<!--              <td-->
+<!--                [style.width]="column.width"-->
+<!--                [className]="-->
+<!--                  column.key === 'title_of_campaign'-->
+<!--                    ? 'n-cell title-of-campaign-column-width'-->
+<!--                    : 'n-cell ' + getCellClasses(column)-->
+<!--                "-->
+<!--              >-->
+<!--                <span *ngIf="column.key !== 'action' && column.key !== 'promotion_type'">-->
+<!--                  {{ getCellValueToDisplay(row, column) }}-->
+<!--                </span>-->
+
+<!--                <span *ngIf="column.key === 'action' && column.key !== 'promotion_type'"-->
+<!--                      class="text-center d-inline-block w-100">-->
+<!--                  <i *ngIf="promotionId !== row.id" class="fa fa-square-o checkbox-icon" aria-hidden="true"></i>-->
+<!--                  <i *ngIf="promotionId === row.id" class="fa fa-check-square checkbox-icon selected"-->
+<!--                     aria-hidden="true"></i>-->
+<!--                </span>-->
+
+<!--                <span *ngIf="column.key === 'promotion_type'" class="">-->
+<!--                  <div-->
+<!--                    class="kexy-tag pl"-->
+<!--                  >-->
+<!--&lt;!&ndash;                    <div class="dot"></div>&ndash;&gt;-->
+<!--                    <span-->
+<!--                      *ngIf="row.promotion_type === constants.DEAL_WITH_PRICE">{{ constants.DEAL_LIST_PRICE }}</span>-->
+<!--                    <span-->
+<!--                      *ngIf="row.promotion_type === constants.ANNOUNCEMENT_KEY">{{ constants.ANNOUNCEMENT_VALUE }}</span>-->
+<!--                    <span-->
+<!--                      *ngIf="row.promotion_type === constants.FEATURED_PRODUCT">{{ constants.PRODUCT_OFFERING_NO_PRICE_LISTED }}</span>-->
+<!--                    <span-->
+<!--                      *ngIf="row.promotion_type === constants.LISTING_OF_PRODUCT">{{ constants.LIST_PRODUCT_ON_PLATFORM }}</span>-->
+<!--                  </div>-->
+<!--                </span>-->
+
+<!--                <span *ngIf="column.key === 'copy_url'">-->
+<!--                  <i *ngIf="!row['copied']" class="fa fa-clone" (click)="copyUrl(row, $event)" aria-hidden="true"-->
+<!--                     style="margin-left: 20px"></i>-->
+<!--                  <span class="copied" *ngIf="row['copied']">copied</span>-->
+<!--                </span>-->
+<!--              </td>-->
+<!--            </ng-container>-->
+<!--          </tr>-->
+<!--        </ng-container>-->
+<!--        <ng-container *ngIf="!isWaitingFlag && cardData.length === 0">-->
+<!--          <tr class="n-product">-->
+<!--            <td class="n-cell" [colSpan]="columnList.length">-->
+<!--              <span class="text-center d-inline-block w-100">Sorry, no data found.</span>-->
+<!--            </td>-->
+<!--          </tr>-->
+<!--        </ng-container>-->
+<!--        <ng-container *ngIf="isWaitingFlag">-->
+<!--          <tr class="n-product">-->
+<!--            <td class="n-cell" [colSpan]="columnList.length">-->
+<!--              <span class="text-center d-inline-block w-100"><i class="fa fa-refresh fa-spin"></i></span>-->
+<!--            </td>-->
+<!--          </tr>-->
+<!--        </ng-container>-->
+<!--        &lt;!&ndash; product - end &ndash;&gt;-->
+<!--      </table>-->
+<!--    </div>-->
+<!--  </div>-->
+
+<!--  <p *ngIf="isLoading" class="load-more-text mt-3 mb-3 text-center">-->
+<!--    <i class="fa fa-spinner fa-spin" aria-hidden="true" style="color: black"></i>-->
+<!--  </p>-->
+<!--</div>-->
+
+
+<div class="kexy-table-card">
+  <div class="card-header">
+    <p>{{ constants.LANDING_PAGE }}s (select one) - <span>This section is optional</span></p>
+    <div class="kexy-table-entry-count">
+      Show
+      <select class="form-control" style="width: auto" [ngModel]="limit()" (change)="onShowEntriesSelect($event)">
+        <option value="5">5</option>
+        <option value="10">10</option>
+        <option value="25">25</option>
+        <option value="50">50</option>
+        <option value="100">100</option>
+      </select>
+      {{ constants.LANDING_PAGE }}s per page
+    </div>
+  </div>
+  <div class="new-table-wrapper">
+    <div class="list-wrapper" [style.width]="tableWidth() + 'px'">
+      @if (columnList()) {
+        <table class="n-table" [style.width]="tableWidth() + 'px'">
+          <!-- header - start -->
+          <tr class="n-header">
+            @for (column of columnList(); track column.key) {
+              <td
+                [ngClass]="column.key === 'title_of_campaign' ? 'n-header-product' : 'n-header-name'"
+                [style.width]="column.width + 'px'"
+                [width]="column.width"
+                [style.background-color]="tableHeaderBg"
+                [style.color]="tableHeaderColor"
+              >
+                {{ column.name }}
+              </td>
+            }
+          </tr>
+          <!-- header - end -->
+
+          <!-- product - start -->
+          @if (!_isWaitingFlag() && _cardData().length > 0) {
+            @for (row of _cardData(); track row.id; let i = $index) {
+              <tr class="n-product" (click)="handleClickRadioButton(row)">
+                @for (column of columnList(); track column.key) {
+                  <td
+                    [style.width]="column.width + 'px'"
+                    [className]="
+                      column.key === 'title_of_campaign'
+                        ? 'n-cell title-of-campaign-column-width'
+                        : 'n-cell ' + getCellClasses(column)
+                    "
+                  >
+<!--                    @if (column.key !== 'action' && column.key !== 'promotion_type' && column.key !== 'date_created') {-->
+<!--                      <span>{{ getCellValueToDisplay(row, column) }}</span>-->
+<!--                    }-->
+
+                    @if (column.key === 'action' && column.key !== 'promotion_type') {
+                      <span class="text-center d-inline-block w-100">
+                        @if (promotionId !== row.id) {
+                          <i class="fa fa-square-o checkbox-icon" aria-hidden="true"></i>
+                        }
+                        @if (promotionId === row.id) {
+                          <i class="fa fa-check-square checkbox-icon selected" aria-hidden="true"></i>
+                        }
+                      </span>
+                    }
+
+                    @if (column.key === 'title_of_campaign') {
+                      <span>{{ row.title_of_campaign }}</span>
+                    }
+
+                    @if (column.key === 'promotion_type') {
+                      <span>
+                        <div class="kexy-tag pl">
+                          @if (row.promotion_type === constants.DEAL_WITH_PRICE) {
+                            <span>{{ constants.DEAL_LIST_PRICE }}</span>
+                          }
+                          @if (row.promotion_type === constants.ANNOUNCEMENT_KEY) {
+                            <span>{{ constants.ANNOUNCEMENT_VALUE }}</span>
+                          }
+                          @if (row.promotion_type === constants.FEATURED_PRODUCT) {
+                            <span>{{ constants.PRODUCT_OFFERING_NO_PRICE_LISTED }}</span>
+                          }
+                          @if (row.promotion_type === constants.LISTING_OF_PRODUCT) {
+                            <span>{{ constants.LIST_PRODUCT_ON_PLATFORM }}</span>
+                          }
+                        </div>
+                      </span>
+                    }
+
+                    @if (column.key === 'date_created') {
+                      <span>{{ row.date_created | date:'MMM d, y' }}</span>
+                    }
+
+                    @if (column.key === 'copy_url') {
+                      <span>
+                        @if (!row['copied']) {
+                          <i class="fa fa-clone" (click)="copyUrl(row, $event)" aria-hidden="true" style="margin-left: 20px"></i>
+                        }
+                        @if (row['copied']) {
+                          <span class="copied">copied</span>
+                        }
+                      </span>
+                    }
+                  </td>
+                }
+              </tr>
+            }
+          }
+
+          @if (!_isWaitingFlag() && _cardData().length === 0) {
+            <tr class="n-product">
+              <td class="n-cell" [colSpan]="columnList().length">
+                <span class="text-center d-inline-block w-100">Sorry, no data found.</span>
+              </td>
+            </tr>
+          }
+
+          @if (_isWaitingFlag()) {
+            <tr class="n-product">
+              <td class="n-cell" [colSpan]="columnList().length">
+                <span class="text-center d-inline-block w-100"><i class="fa fa-refresh fa-spin"></i></span>
+              </td>
+            </tr>
+          }
+          <!-- product - end -->
+        </table>
+      }
+    </div>
+  </div>
+
+  @if (isLoading) {
+    <p class="load-more-text mt-3 mb-3 text-center">
+      <i class="fa fa-spinner fa-spin" aria-hidden="true" style="color: black"></i>
+    </p>
+  }
+</div>

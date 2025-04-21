@@ -1,0 +1,48 @@
+.canvas-content-wrap {
+  overflow: auto;
+  height: 100vh;
+  .head-area {
+    display: flex;
+    justify-content: space-between;
+    padding: 15px 24px;
+    border-bottom: 1px solid #e8e8e8;
+    p {
+      margin-bottom: 0;
+      font-size: 20px;
+      font-weight: 500;
+      line-height: 24px;
+      letter-spacing: 0em;
+      color: #0047CC;
+    }
+    span {
+      font-size: 14px;
+      font-weight: 400;
+      line-height: 17px;
+      letter-spacing: 0px;
+    }
+    img {
+      align-self: start;
+      cursor: pointer;
+    }
+  }
+  .canvas-body {
+    padding: 15px 24px;
+    .email-sent-delivered-text {
+      font-size: 18px;
+      span {
+        font-size: 20px;
+        color: #0047CC;
+      }
+    }
+    .insights-contact-or-links-wrap {
+      display: flex;
+      gap: 20px;
+      .contacts-or-links-card-wrap {
+        flex: 1;
+      }
+    }
+  }
+}
+
+@media (min-width: 992px) and (max-width: 1599px) {
+}

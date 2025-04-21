@@ -1,0 +1,59 @@
+.sing-conv {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #E7F6FE;
+  padding: 6px 3px;
+  margin: 8px;
+  position: relative;
+  .pinbar-wrap {
+    margin: 0 5px;
+    cursor: pointer;
+    position: absolute;
+    right: 0;
+    top: 20px;
+  }
+  &.unread {
+    .conv-user {
+      .name-date {
+        p {
+          font-weight: 900 !important;
+        }
+      }
+      span {
+        font-weight: 900 !important;
+      }
+    }
+  }
+  .conv-user {
+    width: calc(100% - 34px);
+    padding: 0 5px;
+    .name-date {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      p {
+        font-size: 14px;
+        font-style: normal;
+        font-weight: 400;
+        margin: 0;
+      }
+      span {
+        font-size: 12px;
+        font-style: normal;
+        font-weight: 400;
+        line-height: normal;
+        letter-spacing: -0.3px;
+      }
+    }
+    span {
+      font-size: 13px;
+      font-style: normal;
+      font-weight: 400;
+      line-height: normal;
+    }
+  }
+  &.selected {
+    background-color: #e7f6fe;
+    border-radius: 8px;
+  }
+}

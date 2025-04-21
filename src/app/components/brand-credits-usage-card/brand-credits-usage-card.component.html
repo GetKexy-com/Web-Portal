@@ -1,0 +1,59 @@
+<div class="error-message" *ngIf="subscription">
+  <div class="message" *ngIf="subscription.status === 'canceled' || subscription.status === 'paused'">
+    <p class="m-0">
+      <i class="fa fa-exclamation-triangle" aria-hidden="true"></i>
+      Your subscription is <strong>{{subscription.status}}</strong>. Please re-activate before
+      <u>{{subscription.expire_date | date}}</u> to keep access to your account.
+    </p>
+  </div>
+  <div class="message"
+       *ngIf="subscription.status === 'past_due' || subscription.status === 'unpaid' || subscription.status === 'inactive'">
+    <p class="m-0">
+      <i class="fa fa-exclamation-triangle" aria-hidden="true"></i>
+      Payment Failure. Please correct your billing information before <u>{{subscription.expire_date | date}}</u> to keep
+      access to your account.
+    </p>
+  </div>
+  <div class="message" *ngIf="subscription.cancel_at_period_end || subscription.upcoming_status === 'downgrade'">
+    <p class="m-0">
+      <i class="fa fa-exclamation-triangle" aria-hidden="true"></i>
+      Subscription will change on <u>{{subscription.expire_date | date}}</u> (at the end of the billing cycle).
+    </p>
+  </div>
+</div>
+<div class="brand-credits-usage-card">
+  <div class="top-area">
+    <div class="left-side">
+      <p class="credit-usage-text">Credits usage</p>
+      <p class="date-range-text" *ngIf="subscription">{{subscription.start_date | date}}
+        - {{subscription.expire_date | date}}</p>
+    </div>
+    <div class="right-side">
+      <p>
+        <img src="/assets/icon/blue-clock-icon.svg" class="clock-img" />
+        Estimated Credit Renewal on: <span *ngIf="subscription">{{subscription.expire_date | date}}</span>
+        <img
+          class="info-img tooltip-question tooltip-btn"
+          ngbTooltip="The time it takes to process your credit renewal is an estimate and can vary. We'll update your account as soon as everything is confirmed."
+          tooltipClass="custom-tooltip-class"
+          src="/assets/icon/grey-circle-info-icon.svg" />
+      </p>
+    </div>
+  </div>
+  <div class="credit-usage-content-area" *ngIf="subscription">
+    <div class="left-side-content">
+      <credits-usage-content [creditUsageContent]="monthlyCreditUsage"></credits-usage-content>
+    </div>
+    <div class="right-side-content">
+      <credits-usage-content [creditUsageContent]="additionalCreditUsage"
+                             [handleBuyMoreCredit]="handleBuyMoreCredit"></credits-usage-content>
+    </div>
+  </div>
+</div>
+
+<div class="subscription-card-wrap" *ngIf="subscription">
+  <credits-page-subscription-card [subscription]="subscription"></credits-page-subscription-card>
+</div>
+<div *ngIf="isLoading" class="d-flex justify-content-center" style="margin-top: 100px">
+  <p><i class="fa fa-refresh fa-spin"></i> Loading...</p>
+</div>

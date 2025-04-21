@@ -1,0 +1,192 @@
+<div class="kexy-table-card">
+  <section class="card-header">
+    <p class="d-flex align-items-center">
+      <a class="d-flex align-items-center pe-2" href="javascript.void(0)" (click)="backBtnClickHandler($event)">
+        <i class="fa fa-angle-left me-2" style="font-size: 20px" aria-hidden="true"></i> Back
+      </a>
+      Contacts
+
+      <span class="saved-contact-flag">
+        <span class="blue-box"></span>
+        <span>Saved Contact</span>
+      </span>
+    </p>
+
+    <div class="d-flex align-items-center">
+      <app-kexy-button
+        *ngIf="selectedContactCount"
+        style="margin-right: 10px"
+        label="Save Contact(s)"
+        iconLeft=""
+        bgColor="#e7f6fe"
+        textColor="#2847cc"
+        radius="8px"
+        (click)="saveBtnClick()"
+      ></app-kexy-button>
+
+      <div *ngIf="totalPage" class="pagination-section">
+        <div class="conv-pagination-wrap">
+          <div class="conv-pagination">
+            <form (ngSubmit)="handleNavigate()">
+              <p class="d-flex me-2">
+                <span *ngIf="!showNavigationInput" class="link-text me-1" (click)="showHideNavigationInput()">Jump to Page</span>
+                <input *ngIf="showNavigationInput" class="navigation-input form-control me-1" type="number"
+                       [(ngModel)]="navigatePageNumber" [ngModelOptions]="{standalone: true}" />
+                <span *ngIf="showNavigationInput">
+                  <app-kexy-button
+                    label="Go"
+                    type="submit"
+                  ></app-kexy-button>
+                </span>
+              </p>
+            </form>
+
+            <p>
+              Page
+              <ng-container *ngIf="!isLoading">{{ currentPage }}</ng-container>
+              <span *ngIf="isLoading"><i aria-hidden="true" class="fa fa-spinner fa-spin"></i></span>
+              of {{ totalPage }}
+            </p>
+            <div class="ms-2">
+              <span class="pagination-arrow" (click)="paginationLeftArrowClick()">
+                <i aria-hidden="true" class="fa fa-angle-left"></i>
+              </span>
+              <span class="pagination-arrow ms-1" (click)="paginationRightArrowClick()">
+                <i aria-hidden="true" class="fa fa-angle-right"></i>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="new-table-wrapper">
+    <div [style.width]="tableWidth + 'px'" class="list-wrapper">
+      <table *ngIf="columnList" [style.width]="tableWidth + 'px'" class="n-table">
+        <!-- header - start -->
+        <tr class="n-header">
+          <ng-container *ngFor="let column of columnList">
+            <td
+              class="n-header-name"
+              [style.background-color]="tableHeaderBg"
+              [style.color]="tableHeaderColor"
+              [style.width]="column.width"
+              [width]="column.width"
+            >
+              <!--Showing column name-->
+              <span *ngIf="column.name">{{ column.name }}</span>
+
+              <!--Showing select all icon-->
+              <span *ngIf="!column.name && column.key === 'action'" class="select-all-header-icons"
+                    (click)="checkboxClicked(null, true)">
+                <i *ngIf="isNoItemSelected()" aria-hidden="true" class="fa fa-square-o checkbox-icon"></i>
+                <i *ngIf="selectedItemCount > 0 && selectedItemCount < cardData.length" aria-hidden="true"
+                   class="fa fa-minus-square-o"></i>
+                <i *ngIf="cardData.length && selectedItemCount === cardData.length" aria-hidden="true"
+                   class="fa fa-check-square-o"></i>
+              </span>
+            </td>
+          </ng-container>
+        </tr>
+        <!-- header - end -->
+
+        <!-- body - start -->
+        <ng-container *ngIf="!isWaitingFlag && cardData.length > 0">
+          <tr class="n-product"
+              [class.selected]="row.is_selected"
+              [class.saved-badge]="row.data.receiver_details.saved"
+              *ngFor="let row of cardData; let i = index"
+              (click)="checkboxClickHandle(row)"
+          >
+            <ng-container *ngFor="let column of columnList">
+              <td
+                [className]="
+                  column.key === 'title_of_campaign'
+                    ? 'n-cell title-of-campaign-column-width'
+                    : 'n-cell ' + getCellClasses(column)
+                "
+                [style.width]="column.width"
+              >
+                <span *ngIf="column.key !== 'action' && column.key !== 'linkedin_url' && column.key !== 'email_status'"
+                      [className]="column.key !== 'email' ? 'text-capitalize' : ''">
+                  {{ getCellValueToDisplay(row, column) }}
+                </span>
+
+                <span *ngIf="column.key === 'linkedin_url'" class="linkedin-icon-wrap"
+                      (click)="stopPropagation($event)">
+                  <a [href]="getCellValue(row, column)" target="_blank"><i class="fa fa-linkedin-square"
+                                                                           aria-hidden="true"></i></a>
+                </span>
+
+                <span *ngIf="column.key === 'email_status'" class="marketing-status">
+                  <span class="status-blue">Verified</span>
+                </span>
+
+                <span *ngIf="column.key === 'action'" class="text-center d-inline-block w-100">
+                  <i *ngIf="!row.is_selected" aria-hidden="true" class="fa fa-square-o checkbox-icon"></i>
+                  <i *ngIf="row.is_selected" aria-hidden="true" class="fa fa-check-square checkbox-icon selected"></i>
+                </span>
+
+              </td>
+            </ng-container>
+          </tr>
+        </ng-container>
+        <ng-container *ngIf="!isWaitingFlag && cardData.length === 0">
+          <tr class="n-product">
+            <td [colSpan]="columnList.length" class="n-cell">
+              <span class="text-center d-inline-block"
+                    [style.width]="browserWidthForTable + 'px'">Sorry, no data found.</span>
+            </td>
+          </tr>
+        </ng-container>
+        <ng-container *ngIf="isWaitingFlag">
+          <tr class="n-product">
+            <td [colSpan]="columnList.length" class="n-cell">
+              <span class="text-center d-inline-block" [style.width]="browserWidthForTable + 'px'"><i
+                class="fa fa-refresh fa-spin"></i></span>
+            </td>
+          </tr>
+        </ng-container>
+        <!-- body - end -->
+      </table>
+    </div>
+  </section>
+
+  <section *ngIf="totalPage" class="card-footer justify-content-end">
+    <div class="d-flex align-items-center">
+      <app-kexy-button
+        *ngIf="selectedContactCount"
+        style="margin-right: 10px"
+        label="Save Contact(s)"
+        iconLeft=""
+        bgColor="#e7f6fe"
+        textColor="#2847cc"
+        radius="8px"
+        (click)="saveBtnClick()"
+      ></app-kexy-button>
+
+      <div class="pagination-section">
+        <div class="conv-pagination-wrap">
+          <div class="conv-pagination">
+            <p>
+              Page
+              <ng-container *ngIf="!isLoading">{{ currentPage }}</ng-container>
+              <span *ngIf="isLoading"><i aria-hidden="true" class="fa fa-spinner fa-spin"></i></span>
+              of {{ totalPage }}
+            </p>
+            <div class="ms-2">
+              <span class="pagination-arrow" (click)="paginationLeftArrowClick()">
+                <i aria-hidden="true" class="fa fa-angle-left"></i>
+              </span>
+              <span class="pagination-arrow ms-1" (click)="paginationRightArrowClick()">
+                <i aria-hidden="true" class="fa fa-angle-right"></i>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </section>
+</div>

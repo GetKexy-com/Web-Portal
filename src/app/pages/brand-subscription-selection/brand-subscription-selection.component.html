@@ -1,0 +1,179 @@
+<!--<login-layout [isContentCentered]="false" bgColor="#e7f6fe" [layoutPaddingNone]="true">-->
+<!--  <div class="brand-price-page">-->
+<!--    <div class="pricing-for-brands-card">-->
+<!--      <p class="pricing-for-brand-text">Pricing</p>-->
+<!--      <p class="start-crushing-text">Start crushing your competition and increase your sales with less effort and-->
+<!--        time.</p>-->
+
+<!--      <div class="kexy-toogle d-flex align-items-center justify-content-center">-->
+<!--        <span [className]="isMonthlySelected ? 'switch-item-active' : 'switch-item'">Monthly</span>-->
+
+<!--        <label [ngClass]="isMonthlySelected ? 'switch active' : 'switch'">-->
+<!--          <input type="checkbox" name="status" [checked]="!isMonthlySelected"-->
+<!--                 (change)="toggleSubscriptionRecurringType()" />-->
+<!--          <span class="slider round active"></span>-->
+<!--        </label>-->
+<!--        <span [className]="isMonthlySelected ? 'switch-item' : 'switch-item-active'">Annual (Save 20%)</span>-->
+<!--      </div>-->
+
+<!--      <div class="schedule-call-btn-area">-->
+<!--        <div class="button-wrap">-->
+<!--          <app-kexy-button (click)="scheduleCallTap()" label="Schedule a call" bgColor="#F46112"></app-kexy-button>-->
+<!--        </div>-->
+<!--      </div>-->
+<!--    </div>-->
+
+<!--    <div class="number-of-users-area">-->
+<!--      <p>How many users do you have?</p>-->
+<!--      <button (click)="minusBtnClicked()"><i class="fa fa-minus" aria-hidden="true"></i></button>-->
+<!--      <input type="number" [readOnly]="true" [(ngModel)]="usersCount" />-->
+<!--      <button (click)="plusBtnClicked()"><i class="fa fa-plus" aria-hidden="true"></i></button>-->
+<!--    </div>-->
+
+<!--    <div class="subscription-card">-->
+<!--      <div class="subscription-features-text">-->
+<!--        <p class="subscription-title-text">Subscription</p>-->
+
+<!--        <div class="features-list">-->
+<!--          <p style="padding-bottom: 28px;">Cost (per user)</p>-->
+<!--          <p>List Your Products & Services</p>-->
+<!--          <p>Monthly Credits (1 lead = 1 credit)</p>-->
+<!--          <p>Leads Prospecting Tool</p>-->
+<!--          <p>AI Drip Campaign Creator</p>-->
+<!--          <p>Campaign Performance Metrics</p>-->
+<!--          <p>Custom Landing Pages</p>-->
+<!--          <p>Purchase Additional Leads</p>-->
+<!--          <p>Account Set Up & Training (extra fee)</p>-->
+<!--        </div>-->
+<!--      </div>-->
+
+<!--      <div class="subscription-type-card-wrap">-->
+<!--        <price-page-subscription-type-card-->
+<!--          [subscriptionDetails]="noviceSubscriptionData"-->
+<!--          [changePlanBtnClick]="toggleSubscriptionSelectedBox"-->
+<!--          [toggleSubscriptionSelectedBox]="toggleSubscriptionSelectedBox"-->
+<!--          [isCurrentPlan]="currentSubscriptionPlan.name === noviceSubscriptionData.title"-->
+<!--        >-->
+<!--        </price-page-subscription-type-card>-->
+<!--      </div>-->
+
+<!--      <div class="subscription-type-card-wrap">-->
+<!--        <price-page-subscription-type-card-->
+<!--          [subscriptionDetails]="amateurSubscriptionData"-->
+<!--          [changePlanBtnClick]="toggleSubscriptionSelectedBox"-->
+<!--          [toggleSubscriptionSelectedBox]="toggleSubscriptionSelectedBox"-->
+<!--          [isCurrentPlan]="currentSubscriptionPlan.name === amateurSubscriptionData.title"-->
+<!--        >-->
+<!--        </price-page-subscription-type-card>-->
+<!--      </div>-->
+<!--      <div class="subscription-type-card-wrap">-->
+<!--        <price-page-subscription-type-card-->
+<!--          [subscriptionDetails]="proSubscriptionData"-->
+<!--          [changePlanBtnClick]="toggleSubscriptionSelectedBox"-->
+<!--          [toggleSubscriptionSelectedBox]="toggleSubscriptionSelectedBox"-->
+<!--          [isCurrentPlan]="currentSubscriptionPlan.name === proSubscriptionData.title"-->
+<!--        >-->
+<!--        </price-page-subscription-type-card>-->
+<!--      </div>-->
+<!--      <div class="subscription-type-card-wrap">-->
+<!--        <price-page-subscription-type-card-->
+<!--          [subscriptionDetails]="lifetimeSubscriptionData"-->
+<!--          [changePlanBtnClick]="toggleSubscriptionSelectedBox"-->
+<!--          [toggleSubscriptionSelectedBox]="toggleSubscriptionSelectedBox"-->
+<!--          [isCurrentPlan]="currentSubscriptionPlan.name === lifetimeSubscriptionData.title"-->
+<!--        >-->
+<!--        </price-page-subscription-type-card>-->
+<!--      </div>-->
+<!--    </div>-->
+<!--  </div>-->
+<!--  <div *ngIf="selectedSubscriptionCardData" class="subscription-price-summary-area">-->
+<!--    <prorated-price-info-->
+<!--      [switchSubscriptionForBrandsApi]="changePlanBtnClick"-->
+<!--      [subscriptionData]="selectedSubscriptionCardData"-->
+<!--      [subscriptionRecuring]="isMonthlySelected ? constants.MONTHLY : constants.ANNUAL"-->
+<!--      [usersCount]="usersCount"-->
+<!--      [prorationPrice]="prorationPrice"-->
+<!--      [isLoading]="proratedPriceInfoComponentLoading"-->
+<!--      [couponInputChange]="handlecouponInputChange"-->
+<!--    >-->
+<!--    </prorated-price-info>-->
+<!--  </div>-->
+<!--</login-layout>-->
+
+
+<login-layout [isContentCentered]="false" bgColor="#e7f6fe" [layoutPaddingNone]="true">
+  <div class="brand-price-page">
+    <div class="pricing-for-brands-card">
+      <p class="pricing-for-brand-text">Pricing</p>
+      <p class="start-crushing-text">Start crushing your competition and increase your sales with less effort and time.</p>
+
+      <div class="kexy-toogle d-flex align-items-center justify-content-center">
+        <span [class]="isMonthlySelected() ? 'switch-item-active' : 'switch-item'">Monthly</span>
+
+        <label [class]="isMonthlySelected() ? 'switch active' : 'switch'">
+          <input type="checkbox" name="status" [checked]="!isMonthlySelected()"
+                 (change)="toggleSubscriptionRecurringType()" />
+          <span class="slider round active"></span>
+        </label>
+        <span [class]="isMonthlySelected() ? 'switch-item' : 'switch-item-active'">Annual (Save 20%)</span>
+      </div>
+
+      <div class="schedule-call-btn-area">
+        <div class="button-wrap">
+          <app-kexy-button (click)="scheduleCallTap()" label="Schedule a call" bgColor="#F46112"></app-kexy-button>
+        </div>
+      </div>
+    </div>
+
+    <div class="number-of-users-area">
+      <p>How many users do you have?</p>
+      <button (click)="minusBtnClicked()"><i class="fa fa-minus" aria-hidden="true"></i></button>
+      <input type="number" [readonly]="true" [ngModel]="usersCount()" />
+      <button (click)="plusBtnClicked()"><i class="fa fa-plus" aria-hidden="true"></i></button>
+    </div>
+
+    <div class="subscription-card">
+      <div class="subscription-features-text">
+        <p class="subscription-title-text">Subscription</p>
+
+        <div class="features-list">
+          <p style="padding-bottom: 28px;">Cost (per user)</p>
+          <p>List Your Products & Services</p>
+          <p>Monthly Credits (1 lead = 1 credit)</p>
+          <p>Leads Prospecting Tool</p>
+          <p>AI Drip Campaign Creator</p>
+          <p>Campaign Performance Metrics</p>
+          <p>Custom Landing Pages</p>
+          <p>Purchase Additional Leads</p>
+          <p>Account Set Up & Training (extra fee)</p>
+        </div>
+      </div>
+
+      @for (subscription of subscriptionData(); track subscription.title) {
+        <div class="subscription-type-card-wrap">
+          <price-page-subscription-type-card
+            [subscriptionDetails]="subscription"
+            [changePlanBtnClick]="changePlanBtnClick"
+            [isCurrentPlan]="currentSubscriptionPlan().name === subscription.title"
+            [toggleSubscriptionSelectedBox]="toggleSubscriptionSelectedBox"
+          >
+          </price-page-subscription-type-card>
+        </div>
+      }
+    </div>
+  </div>
+  @if (selectedSubscriptionCardData()) {
+    <div class="subscription-price-summary-area">
+      <prorated-price-info
+        [switchSubscriptionForBrandsApi]="changePlanBtnClick"
+        [subscriptionData]="selectedSubscriptionCardData()"
+        [subscriptionRecuring]="isMonthlySelected() ? constants.MONTHLY : constants.ANNUAL"
+        [usersCount]="usersCount()"
+        [prorationPrice]="prorationPrice()"
+        [isLoading]="proratedPriceInfoComponentLoading()"
+        [couponInputChange]="handlecouponInputChange"
+      >
+      </prorated-price-info>
+    </div>
+  }
+</login-layout>

@@ -1,0 +1,280 @@
+.subscription-selection-card {
+  padding: 20px;
+  border: 2px solid #00000033;
+  border-radius: 10px;
+  height: 300px;
+  position: relative;
+  .free-card-content {
+    height: 80%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    width: 100%;
+  }
+  .icon-title-area {
+    width: 100%;
+  }
+  .icon-wrap {
+    display: flex;
+    justify-content: center;
+    .icon {
+      width: 50px;
+    }
+  }
+  .title {
+    font-weight: 700;
+    font-size: 18px;
+    line-height: 22px;
+    text-align: center;
+    color: #000000;
+    margin-top: 10px;
+    margin-bottom: 0;
+  }
+  .price-text {
+    font-weight: 500;
+    font-size: 20px;
+    line-height: 24px;
+    text-align: center;
+    color: rgba(0, 71, 204, 1);
+    margin-top: 5px;
+    margin-bottom: 0;
+  }
+  .btn-wrap {
+    margin-top: 0px;
+    bottom: 15px;
+  }
+}
+.errorText {
+  font-size: 14px;
+  line-height: 14px;
+}
+.blue-border {
+  border-color: #0c50ce !important;
+}
+
+@media (max-width: 575px) {
+  .subscription-selection-card {
+    padding: 15px;
+    height: auto;
+    margin-bottom: 30px;
+    .free-card-content {
+      height: 90%;
+    }
+    .icon-wrap {
+      .icon {
+        width: 50px;
+      }
+    }
+    .title {
+      font-size: 18px;
+      line-height: 22px;
+      margin-top: 10px;
+      margin-bottom: 0px;
+    }
+    .price-text {
+      font-size: 20px;
+      line-height: 24px;
+    }
+    .subscription-recurring-area {
+      label {
+        margin-left: 5px;
+        margin-bottom: 0px;
+        font-size: 14px;
+        color: #625a5a;
+      }
+      .subscription-recurring-wrapper {
+        width: 50%;
+      }
+    }
+    .input-label-text {
+      font-size: 13px;
+      line-height: 17px;
+    }
+    .btn-wrap {
+      margin-top: 10px;
+      .blue-button {
+        padding: 10px 0;
+        font-weight: 700;
+        font-size: 15px;
+        line-height: 19px;
+      }
+    }
+  }
+}
+@media (min-width: 576px) and (max-width: 767px) {
+  .subscription-selection-card {
+    padding: 15px;
+    height: 450px;
+    .free-card-content {
+      height: 90%;
+    }
+    .icon-wrap {
+      .icon {
+        width: 50px;
+      }
+    }
+    .title {
+      font-size: 18px;
+      line-height: 22px;
+      margin-top: 10px;
+      margin-bottom: 0px;
+    }
+    .price-text {
+      font-size: 20px;
+      line-height: 24px;
+    }
+    .subscription-recurring-area {
+      label {
+        margin-left: 5px;
+        margin-bottom: 0px;
+        font-size: 14px;
+        color: #625a5a;
+      }
+      .subscription-recurring-wrapper {
+        width: 50%;
+      }
+    }
+    .input-label-text {
+      font-size: 13px;
+      line-height: 17px;
+    }
+    .btn-wrap {
+      margin-top: 0px;
+      .blue-button {
+        padding: 10px 0;
+        font-weight: 700;
+        font-size: 15px;
+        line-height: 19px;
+      }
+    }
+  }
+}
+@media (min-width: 768px) and (max-width: 991px) {
+  .subscription-selection-card {
+    padding: 15px;
+    height: 450px;
+    .free-card-content {
+      height: 90%;
+    }
+    .icon-wrap {
+      .icon {
+        width: 50px;
+      }
+    }
+    .title {
+      font-size: 18px;
+      line-height: 22px;
+      margin-top: 10px;
+      margin-bottom: 0px;
+    }
+    .price-text {
+      font-size: 20px;
+      line-height: 24px;
+    }
+    .subscription-recurring-area {
+      label {
+        margin-left: 5px;
+        margin-bottom: 0px;
+        font-size: 14px;
+        color: #625a5a;
+      }
+      .subscription-recurring-wrapper {
+        width: 50%;
+      }
+    }
+    .input-label-text {
+      font-size: 13px;
+      line-height: 17px;
+    }
+    .btn-wrap {
+      margin-top: 0px;
+      .blue-button {
+        padding: 10px 0;
+        font-weight: 700;
+        font-size: 15px;
+        line-height: 19px;
+      }
+    }
+  }
+}
+@media (min-width: 992px) and (max-width: 1199px) {
+  .subscription-selection-card {
+    padding: 15px;
+    height: 250px;
+    .free-card-content {
+      height: 80%;
+      // height: 90%;
+    }
+    .icon-wrap {
+      .icon {
+        width: 50px;
+      }
+    }
+    .title {
+      font-size: 18px;
+      line-height: 22px;
+      margin-top: 10px;
+      margin-bottom: 0px;
+    }
+    .price-text {
+      font-size: 20px;
+      line-height: 24px;
+    }
+    .subscription-recurring-area {
+      label {
+        margin-left: 5px;
+        margin-bottom: 0px;
+        font-size: 14px;
+        color: #625a5a;
+      }
+      .subscription-recurring-wrapper {
+        width: 50%;
+      }
+    }
+    .input-label-text {
+      font-size: 13px;
+      line-height: 17px;
+    }
+    .btn-wrap {
+      margin-top: 0px;
+      .blue-button {
+        padding: 10px 0;
+        font-weight: 700;
+        font-size: 15px;
+        line-height: 19px;
+      }
+    }
+  }
+}
+@media (min-width: 1200px) and (max-width: 1399px) {
+  .subscription-selection-card {
+    padding: 20px;
+    // height: 550px;
+    .free-card-content {
+      height: 80%;
+      // height: 90%;
+    }
+    .icon-wrap {
+      .icon {
+        width: 50px;
+      }
+    }
+    .title {
+      font-size: 18px;
+      line-height: 22px;
+      margin-top: 10px;
+      margin-bottom: 0px;
+    }
+    .price-text {
+      font-size: 20px;
+      line-height: 24px;
+    }
+    .btn-wrap {
+      margin-top: 0px;
+    }
+  }
+}
+@media (min-width: 1400px) and (max-width: 1599px) {
+
+}

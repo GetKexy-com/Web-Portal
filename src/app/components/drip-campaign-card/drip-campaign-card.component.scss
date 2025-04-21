@@ -1,0 +1,91 @@
+.drip-campaign-card {
+  border-radius: 8px;
+  background: white;
+  .blue-top-border {
+    height: 3px;
+    background: #0047CC;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+  }
+  .info-block {
+    text-align: center;
+    background: #e9e9ff;
+    font-size: 14px;
+    padding: 4px
+  }
+  .head-area {
+    display: flex;
+    align-items: center;
+    padding: 20px 15px 0px 15px;
+    .icon-wrap {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: #0047CC;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-right: 10px;
+    }
+    .send-email-text {
+      margin-bottom: 0;
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 19px;
+      letter-spacing: 0px;
+    }
+  }
+  .middle-area {
+    padding: 10px 15px 15px 15px;
+    .send-text {
+      font-size: 15px;
+      font-weight: 400;
+      line-height: 22px;
+      letter-spacing: 0em;
+      margin-bottom: 3px;
+      span {
+        color: #0047CC;
+        cursor: pointer;
+      }
+    }
+    .click-rate-text {
+      font-size: 14px;
+      font-weight: 500;
+      line-height: 16px;
+      letter-spacing: 0px;
+      margin: 5px 0 0 0;
+    }
+  }
+  .bottom-area {
+    border-top: 1px solid #E7F6FE;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    .right-side-icons {
+      span {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding-left: 15px;
+        cursor: pointer;
+      }
+      i {
+        color: #0047CC;
+        font-size: 19px;
+      }
+    }
+
+    .left-side-button {
+      display: flex;
+    }
+  }
+}
+
+.modal-body {
+  .input-wrap {
+    .input-label-text {
+      font-size: 11px;
+      line-height: 13px;
+    }
+  }
+}

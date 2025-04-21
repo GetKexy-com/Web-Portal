@@ -1,0 +1,113 @@
+.title-text {
+  font-size: 18px;
+  font-weight: bold;
+}
+.kexy-button {
+  background: #12a5f4;
+  border-radius: 10px;
+  width: 140px;
+  padding: 10px 0px;
+  font-size: 15px;
+  text-transform: capitalize;
+  line-height: 20px;
+  outline: none;
+  border: none;
+  color: white;
+}
+.action-label {
+  width: 60px;
+  display: inline-block;
+}
+.datatable {
+  border-collapse: collapse;
+  width: 100%;
+  margin-bottom: 15px;
+}
+.datatable td {
+  border-right: 1px solid #ddd;
+  border-bottom: 1px solid #ddd;
+  padding: 15px 25px;
+}
+.datatable td:last-child {
+  border-right: none;
+}
+.datatable tr:last-child td {
+  border-bottom: none;
+}
+.datatable tr:hover {
+  background-color: #ececec;
+  cursor: pointer;
+}
+.datatable th:first-child {
+  border-top-left-radius: 10px;
+  border-bottom-left-radius: 10px;
+  border-left-color: transparent;
+}
+.datatable th:last-child {
+  border-top-right-radius: 10px;
+  border-bottom-right-radius: 10px;
+  border-right-color: transparent;
+}
+.datatable th {
+  /*padding-top: 12px;
+    padding-bottom: 12px;*/
+  padding: 16px 0px 16px 25px;
+  text-align: left;
+  background-color: #095dd1;
+  color: #fff;
+  border-color: #948686;
+  border-top: none;
+}
+
+@media (max-width: 767px) {
+  .datatable th {
+    padding: 10px 0px 10px 25px;
+  }
+  .datatable td {
+    padding: 10px 15px;
+  }
+  .delete-icon {
+    margin-left: 28px;
+  }
+}
+@media (min-width: 992px) and (max-width: 1199px) {
+  .datatable {
+    th {
+      padding: 8px 0px 8px 25px;
+      font-size: 13px;
+    }
+    td {
+      font-size: 13px;
+      padding: 10px 25px;
+    }
+  }
+  .add-another-invitation-link {
+    font-size: 14px;
+  }
+  .kexy-button {
+    width: 128px;
+    padding: 8px 0px;
+    font-size: 13px;
+  }
+}
+
+@media (min-width: 1200px) and (max-width: 1599px) {
+  .datatable {
+    th {
+      padding: 10px 0px 10px 25px;
+      font-size: 15px;
+    }
+    td {
+      font-size: 15px;
+      padding: 12px 25px;
+    }
+  }
+  .add-another-invitation-link {
+    font-size: 16px;
+  }
+  .kexy-button {
+    width: 135px;
+    padding: 10px 0px;
+    font-size: 15px;
+  }
+}

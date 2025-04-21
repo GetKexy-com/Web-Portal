@@ -1,0 +1,31 @@
+<button
+  [type]="type"
+  [disabled]="disabled"
+  [style.background-color]="bgColor"
+  [style.color]="textColor"
+  [style.justify-content]="align"
+  [style.align-items]="flexAlignItems"
+  [style.border-radius]="radius"
+  [style.border-color]="borderColor"
+  [style.font-size]="fontSize"
+  [title]="title"
+  [ngbTooltip]="tooltip"
+>
+  @if (iconLeft) {
+    <i
+      [className]="label ? 'fa ' + iconLeft + ' me-2' : 'fa ' + iconLeft"
+      [class.large]="iconSize == iconLarge"
+      [class.small]="iconSize == iconSmall"
+      aria-hidden="true"
+    ></i>
+  }
+  {{ label }}
+  @if (iconRight) {
+    <i
+      class="fa ms-2 {{ iconRight }}"
+      [class.large]="iconSize == iconLarge"
+      [class.small]="iconSize == iconSmall"
+      aria-hidden="true"
+    ></i>
+  }
+</button>

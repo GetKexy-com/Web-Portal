@@ -1,0 +1,8 @@
+<div [class.ckeditor-border]="border">
+  <ckeditor
+    [config]="ckEditorConfig"
+    (change)="onChange($event)"
+    [editor]="editor" [data]="content">
+  </ckeditor>
+</div>
+

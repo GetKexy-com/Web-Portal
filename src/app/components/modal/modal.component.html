@@ -1,0 +1,11 @@
+<div [className]="bigModal ? 'modal-wrap modal-big modal-body' : 'modal-wrap'">
+  <div class="head-area">
+    <p class="head-title">{{ title }}</p>
+    <div class="modal-close-icon-wrap">
+      <p (click)="close()"><i class="fa fa-times" aria-hidden="true"></i></p>
+    </div>
+  </div>
+  <div class="content-area">
+    <ng-content></ng-content>
+  </div>
+</div>

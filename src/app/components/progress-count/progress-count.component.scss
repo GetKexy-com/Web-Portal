@@ -1,0 +1,94 @@
+.progress-count {
+  margin-top: 7px;
+
+  .circle-and-contents {
+    display: flex;
+
+    .step-wrap {
+      position: relative;
+
+      &:not(:last-child) {
+        margin-right: 7px; // Adjust the spacing between circles
+      }
+
+      .circle-with-step {
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        // border: 1.5px solid #f46112;
+        background: #eff1f4;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+        span {
+          font-size: 13px;
+          font-weight: 700;
+          line-height: 16px;
+          letter-spacing: 0px;
+          //   color: #f46112;
+          color: black;
+          opacity: 60%;
+        }
+        .step-title {
+          position: absolute;
+          top: 28px;
+          width: max-content;
+          font-size: 12px;
+          font-weight: 700;
+          line-height: 16px;
+          letter-spacing: 0px;
+          //   color: #f46112;
+          color: black;
+          opacity: 60%;
+        }
+        &.active {
+          background: transparent;
+          border: 1.5px solid #f46112;
+          span {
+            color: #f46112;
+            opacity: 100%;
+          }
+          .step-title {
+            color: #f46112;
+            opacity: 100%;
+          }
+        }
+        &.completed {
+          background: #f46112;
+          span {
+            color: #f46112;
+            opacity: 100%;
+          }
+          .step-title {
+            color: #f46112;
+            opacity: 100%;
+          }
+        }
+      }
+      .connecting-line {
+        height: 2px;
+        width: 138px;
+        margin-left: 32px;
+        margin-top: -12px;
+        background-color: #eff1f4;
+        transform: translateY(-50%);
+        &.active {
+          background-color: #f46112;
+        }
+      }
+    }
+  }
+}
+
+@media (min-width: 992px) and (max-width: 1199px) {
+  .progress-count {
+    .circle-and-contents {
+      .step-wrap {
+        .connecting-line {
+          width: 110px;
+        }
+      }
+    }
+  }
+}

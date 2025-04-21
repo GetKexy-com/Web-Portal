@@ -1,0 +1,26 @@
+<div class="canvas-content-wrap">
+  <div class="head-area">
+    <p>Contact(s)</p>
+    <img src="/assets/images/close-icon.png" alt="Close" (click)="activeCanvas.dismiss('Cross click')" />
+  </div>
+
+  <div class="canvas-body">
+    <div class="contacts-table-wrapper">
+      <active-contacts-table
+        tableHeaderBg="#0047CC"
+        tableHeaderColor="#FFFFFF"
+        [cardData]="paginatedContacts"
+        [checkboxClicked]="handleContactSelect"
+        [selectedContacts]="selectedContacts"
+        [unenrollBtnClicked]="unenrollBtnClicked"
+        [totalPage]="totalPage"
+        [currentPage]="page"
+        [limit]="limit"
+        [paginationLeftArrowClick]="paginationLeftArrowClick"
+        [paginationRightArrowClick]="paginationRightArrowClick"
+        (selectedLimit)="receivedLimitNumber($event)"
+      >
+      </active-contacts-table>
+    </div>
+  </div>
+</div>

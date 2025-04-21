@@ -1,0 +1,29 @@
+<brand-layout layoutPaddingNone="true" headerBgWhite="true">
+  <div class="brand-find-leads-page">
+    <div class="progress-wrap">
+      <progress-count [currentStep]="currentStep" [steps]="steps"></progress-count>
+    </div>
+    <div class="page-content">
+      <div *ngIf="isWaitingFlag" class="loading">
+        <i class="fa me-2 fa-spinner fa-spin" aria-hidden="true"></i>
+        Please wait....
+      </div>
+      <div class="content">
+        <div *ngIf="currentStep === 1">
+          <search-apollo-contacts
+            [setWaitingFlagToFalse]="setWaitingFlagToFalse"
+            [setWaitingFlagToTrue]="setWaitingFlagToTrue"
+            [nextBtnClick]="nextBtnClick"
+            [backBtnClick]="backBtnClick"
+          ></search-apollo-contacts>
+        </div>
+        <div *ngIf="currentStep === 2">
+          <prospecting-select-contact
+            [backBtnClick]="backBtnClick"
+            [nextBtnClick]="nextBtnClick"
+          ></prospecting-select-contact>
+        </div>
+      </div>
+    </div>
+  </div>
+</brand-layout>

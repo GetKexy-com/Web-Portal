@@ -1,0 +1,60 @@
+<div class="kexy-dropdown">
+  <!--LABEL: This the label of the dropdown-->
+  <div class="d-flex kexy-drop-label-wrap" *ngIf="label">
+    <p class="label">
+      {{ label }} <span *ngIf="shortNoteBesideLabel">({{ shortNoteBesideLabel }})</span>
+    </p>
+    <p class="required-icon-wrap" *ngIf="required">
+      <i class="fa fa-asterisk" aria-hidden="true"></i>
+    </p>
+  </div>
+  <!--END LABEL: This the label of the dropdown-->
+
+  <!--INPUT: The main INPUT of the dropdown-->
+  <div class="dropdown-input-box">
+    <div class="custom-input-and-tag">
+      <div class="d-flex flex-wrap" *ngIf="selectedData.length" style="padding-right: 10px">
+        <div *ngFor="let item of selectedData; let i = index">
+          <span class="searched-tag">
+            {{item}}
+            <span *ngIf="isClearable" style="margin-left: 6px" (click)="closeIconClick(item)">
+              <img style="width: 17px" src="/assets/icon/blue-close-icon-with-white-bg.svg" />
+            </span>
+          </span>
+        </div>
+      </div>
+      <div *ngIf="!selectedData.length" class="placeholder-text-wrap">
+        <span>{{ placeholder }}</span>
+      </div>
+      <input
+        (click)="toggleDropdown()"
+        [class.non-outline]="dropdownStyle === nonOutline"
+        [class.outline]="dropdownStyle !== nonOutline"
+        class="d-none"
+        [readonly]="true"
+        [placeholder]="placeholder"
+        style="font-size: 13px; color: grey; margin-bottom: 0; width: 100px"
+      />
+    </div>
+
+    <i *ngIf="isOpen" class="fa fa-angle-up" aria-hidden="true"></i>
+    <i *ngIf="!isOpen" class="fa fa-angle-down" aria-hidden="true"></i>
+  </div>
+  <!--END INPUT: The main INPUT of the dropdown-->
+
+  <!--DropDown Open Section-->
+  <div
+    *ngIf="isOpen"
+    class="kexy-dropdown-items"
+    [class.non-outline]="dropdownStyle === nonOutline"
+    [class.outline]="dropdownStyle !== nonOutline"
+    [class.top]="!dropdownPositionBottom"
+  >
+    <ng-content></ng-content>
+  </div>
+
+  <!--End DropDown Open Section-->
+  <!--This div is required for the auto smooth scroll.-->
+  <!--Do not remove-->
+  <div #emailSmoothScroll></div>
+</div>

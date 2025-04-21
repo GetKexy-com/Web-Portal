@@ -1,0 +1,49 @@
+.prorate-price-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  .summary {
+    flex: 1;
+    p {
+      margin: 0 0 0 0;
+      font-size: 14px;
+    }
+    h4 {
+      font-weight: bolder;
+      font-size: 15px;
+    }
+  }
+  .price-monthly {
+    padding-right: 30px;
+    font-weight: bolder;
+    font-size: 17px;
+    border-right: 1px solid lightgray;
+  }
+  .purchase {
+    padding-left: 30px;
+    display: flex;
+    align-items: center;
+    .due-price {
+      span {
+        font-weight: bolder;
+      }
+    }
+    .purchase-btn {
+      margin-left: 30px;
+      width: 180px;
+      display: flex;
+    }
+  }
+}
+.apply-coupon-link {
+  cursor: pointer !important;
+  margin-left: 10px;
+  font-weight: 400 !important;
+  text-decoration: underline !important;
+  color: #0D6EFD;
+}
+.coupon-code-input {
+  width: 120px;
+  font-size: 16px;
+  padding: 5px;
+}

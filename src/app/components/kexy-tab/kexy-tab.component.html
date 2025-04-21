@@ -1,0 +1,9 @@
+<div class="tab-wrapper" [style]="tabBgColor">
+  <div *ngFor="let tabItem of tabItemList">
+    <div [className]="selectedTab === tabItem ? 'tab-item active' : 'tab-item'" (click)="setSelectedTab(tabItem)">
+      <div>
+        <p class="tab-title" [style]="selectedTab === tabItem ? tabItemActiveColor : tabItemColor">{{ tabItem }}</p>
+      </div>
+    </div>
+  </div>
+</div>

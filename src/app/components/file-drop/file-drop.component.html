@@ -1,0 +1,21 @@
+<div class="drag-drop-file-selection-wrap">
+  <ngx-file-drop
+    dropZoneLabel="Drop files here"
+    (onFileDrop)="dropped($event)"
+    (onFileOver)="fileOver($event)"
+    (onFileLeave)="fileLeave($event)"
+    dropZoneClassName="drag-drop-input"
+    contentClassName="drag-drop-input-content"
+  >
+    <ng-template ngx-file-drop-content-tmp let-openFileSelector="openFileSelector">
+      <span class="drag-drop-text"
+      ><span class="image-wrap"><img src="/assets/images/file-select-img.png" class="left-image" /></span>
+        <!--        All .csv, xlsx, and .xls file types are supported-->
+        <span class="detail-text"
+        >Drag and drop or <button type="button" (click)="openFileSelector()">choose a file</button> to import your
+          Contacts. csv file type are supported.</span
+        >
+      </span>
+    </ng-template>
+  </ngx-file-drop>
+</div>

@@ -1,0 +1,267 @@
+<section class="drip-campaign-content">
+  <div class="drip-campaign-fields mt-3">
+    <div class="title-and-shortener-wrap">
+      <p class="title">Drip Campaign Emails</p>
+
+      <div class="kexy-boost-toogle d-flex align-items-center">
+        <kexy-select-dropdown
+          style="margin-right: 10px"
+          label="Email Tone"
+          shortNoteBesideLabel=""
+          [selectAllBtn]="false"
+          [required]="false"
+          [options]="emailTones"
+          [addNewBtn]="false"
+          [onAddNewClick]=""
+          [selectedOption]="selectedEmailToneKey"
+          [onSelectSingleItem]="onEmailToneSelect"
+          [rowIndex]="1"
+          [editIcon]="false"
+          [deleteIcon]="false"
+          [onDeleteClick]=""
+          [onEditClick]=""
+          [isClearable]="false"
+          optionStyle="button"
+          backgroundColor="white"
+          placeholder="Please Select"
+        ></kexy-select-dropdown>
+
+        <kexy-select-dropdown
+          label="Email Length"
+          shortNoteBesideLabel=""
+          [selectAllBtn]="false"
+          [required]="false"
+          [options]="emailLengthKeys"
+          [addNewBtn]="false"
+          [onAddNewClick]=""
+          [selectedOption]="selectedEmailLength ? selectedEmailLength['value'] : ''"
+          [onSelectSingleItem]="onEmailLengthSelect"
+          [rowIndex]="1"
+          [editIcon]="false"
+          [deleteIcon]="false"
+          [onDeleteClick]=""
+          [onEditClick]=""
+          [isSearchAble]="false"
+          [isClearable]="false"
+          optionStyle="button"
+          backgroundColor="white"
+          placeholder="Please Select"
+        ></kexy-select-dropdown>
+      </div>
+    </div>
+
+    <div class="generate-drip-campaign-content">
+      <div class="d-flex">
+        <div class="drip-campaign-icon-wrap">
+          <img src="/assets/icon/drip-campaign-blue-icon.svg" />
+        </div>
+        <div class="ms-3">
+          <p class="length-of-campaign-text">Number of Emails
+            <span
+              *ngIf="dripCampaignStatus === constants.INACTIVE && !numberOfEmailsInputShow"
+              class="ms-1"
+              (click)="handleShowHideNumberOfEmailsInput()"
+            >
+              <i class="fa fa-pencil" style="cursor: pointer" aria-hidden="true"></i></span></p>
+          <p *ngIf="!numberOfEmailsInputShow"
+             class="day-text">{{ dripCampaign.drip_campaign_detail.number_of_emails }}</p>
+          <div *ngIf="numberOfEmailsInputShow" class="d-flex mt-2">
+            <div class="d-flex">
+              <input class="form-control number-of-email-input" type="number" min="1" [(ngModel)]="numberOfEmail"
+                     (change)="onChangeNumberOfEmail($event)" />
+            </div>
+            <div class="d-flex">
+              <app-kexy-button
+                label="Save"
+                class="ms-2"
+                style="width: fit-content"
+                [disabled]="numberOfEmailUpdateApiLoading"
+                [iconLeft]="numberOfEmailUpdateApiLoading ? 'fa-refresh fa-spin' : ''"
+                (click)="handleUpdateNumberOfEmail()">
+              </app-kexy-button>
+              <app-kexy-button
+                label="Cancel"
+                class="ms-2"
+                style="width: fit-content"
+                bgColor="#e7f6fe"
+                textColor="#2847cc"
+                (click)="handleShowHideNumberOfEmailsInput()">
+              </app-kexy-button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="d-flex">
+
+        <app-kexy-button
+          (click)="openSettingsCanvas()"
+          class="me-2"
+          label="Settings"
+          [disabled]="isContentLoading || isSendEmailLoading"
+          iconLeft="fa-cog"
+          radius="8px"
+          bgColor="#e7f6fe"
+          textColor="#2847cc"
+        ></app-kexy-button>
+
+        <app-kexy-button
+          *ngIf="emails.length"
+          [class]="'me-2'"
+          label="Send Test Campaign"
+          [label]="isSendEmailLoading ? 'Sending...' : 'Send Test Campaign' "
+          [disabled]="isSendEmailLoading || isContentLoading || !emails || dripCampaignStatus === constants.COMPLETE"
+          [iconLeft]="isSendEmailLoading ? 'fa-refresh fa-spin' : 'fa-envelope-o'"
+          bgColor="#e7f6fe"
+          textColor="#2847cc"
+          radius="8px"
+          (click)="openTestEmailPopUp(sendTestEmailModal)"
+        ></app-kexy-button>
+        <app-kexy-button
+          *ngIf="dripCampaignStatus === constants.INACTIVE || dripCampaignStatus === constants.PUBLISHED"
+          class="me-2"
+          [label]="isContentLoading ? 'Please wait...' : 'Generate Emails' "
+          [disabled]="isContentLoading || isSendEmailLoading"
+          [iconLeft]="isContentLoading ? 'fa-refresh fa-spin' : 'fa-refresh'"
+          (click)="generateEmailContent()"
+          radius="8px"
+        ></app-kexy-button>
+        <app-kexy-button
+          *ngIf="dripCampaignStatus === constants.ACTIVE"
+          [label]="isContentLoading ? 'Please wait...' : 'Pause' "
+          [disabled]="isContentLoading || isSendEmailLoading"
+          [iconLeft]="isContentLoading ? 'fa-refresh fa-spin' : 'fa-pause'"
+          (click)="pauseOrResumeDripCampaign()"
+          radius="8px"
+        ></app-kexy-button>
+        <app-kexy-button
+          *ngIf="dripCampaignStatus === constants.PAUSE"
+          [label]="isContentLoading ? 'Please wait...' : 'Resume' "
+          [disabled]="isContentLoading || isSendEmailLoading"
+          [iconLeft]="isContentLoading ? 'fa-refresh fa-spin' : 'fa-play'"
+          (click)="pauseOrResumeDripCampaign()"
+          radius="8px"
+        ></app-kexy-button>
+      </div>
+    </div>
+  </div>
+  <div class="row justify-content-center mt-3" id="emailContainer">
+    <!--    headerTitle="1. Send dripEmail # 1"-->
+    <div class="col-12 col-md-7">
+      <!--      <div class="enrollment-trigger-card" (click)="openEnrollmentTriggerCanvas()">-->
+      <!--        <div class="top-border"></div>-->
+      <!--        <p>Enrollment Triggers</p>-->
+      <!--      </div>-->
+
+      <ng-container *ngFor="let email of emails; let i = index">
+        <drip-campaign-card
+          headerIcon="/assets/icon/message-sent-white-icon.svg"
+          [headerTitle]="'Send Email #' + (i + 1)"
+          [emailText]="email.email_subject"
+          [email]="email"
+          clickRate="50% click rate"
+          [showBlueBorder]="true"
+          [showDetailsBtnClick]="showEmailDetailsBtnClick"
+          [insightsBtnClick]="insightsBtnClick"
+          [deleteEmptyEmail]="deleteEmptyEmail"
+        ></drip-campaign-card>
+        <ng-container *ngIf="i < emails.length - 1">
+          <div class="separating-line-wrap">
+            <div class="line"></div>
+            <!--            <div class="plus-icon-wrap" (click)="handleClickPlusBtn(email, false, i)"><i class="fa fa-plus" aria-hidden="true"></i></div>-->
+            <!--            <div class="line"></div>-->
+          </div>
+          <drip-campaign-card
+            headerIcon="/assets/icon/loading-white-icon.svg"
+            headerTitle="Delay"
+            [emailText]="email.emailText"
+            [email]="email"
+            [isDelayCard]="true"
+            [emailContacts]="getEmailContactsInAction(i+2)"
+            [showDripCampaignContacts]="showDripCampaignContacts"
+            [showDetailsBtnClick]="showEmailDelayBtnClick"
+          ></drip-campaign-card>
+          <div class="separating-line-wrap">
+            <div class="line"></div>
+            <!--            <div class="plus-icon-wrap" (click)="handleClickPlusBtn(email, true, i)"><i class="fa fa-plus" aria-hidden="true"></i></div>-->
+            <!--            <div class="line"></div>-->
+          </div>
+        </ng-container>
+      </ng-container>
+
+
+      <div class="conv-view" [class.mt-3]="isContentLoading" *ngIf="!emails.length || isContentLoading">
+        <div class="no-data-found-content">
+          <div class="content-wrap">
+            <div class="top-circle-with-icon">
+              <img *ngIf="!isContentLoading" src="/assets/icon/double-envelop.svg" />
+              <i *ngIf="isContentLoading" class="fa fa-refresh fa-spin" style="font-size: 25px"></i>
+            </div>
+            <div class="content" *ngIf="isContentLoading">
+              <p class="sorry-text">Please wait..</p>
+              <p class="desc-text">Emails are being generated.</p>
+            </div>
+            <div class="content" *ngIf="!isContentLoading">
+              <p class="sorry-text">No emails generated.</p>
+              <p class="desc-text">Generate emails by clicking the button below and connect with others</p>
+              <div class="d-flex justify-content-center">
+                <div style="width: fit-content" class="pb-4">
+                  <app-kexy-button
+                    [label]="isContentLoading ? 'Please wait...' : 'Generate Emails' "
+                    [disabled]="isContentLoading"
+                    [iconLeft]="isContentLoading ? 'fa-refresh fa-spin' : 'fa-refresh'"
+                    (click)="generateEmailContent()"
+                  ></app-kexy-button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!--This div is required for the auto smooth scroll.-->
+      <!--Do not remove-->
+      <div #emailSmoothScroll></div>
+
+
+    </div>
+  </div>
+</section>
+
+<app-kexy-toastify
+  *ngIf="showToastifyMessage"
+  [duration]="6000"
+  message="Congratulations! Emails are ready for your review."
+  [onHide]="hideToastify"
+></app-kexy-toastify>
+
+<campaign-layout-bottm-btns
+  [rightSecondBtnClick]="handleClickNextButton"
+  [rightFirstBtnClick]="handleClickBackButton"
+  [handleClickSaveDraft]="handleClickSaveDraft"
+  [showSaveDraftBtn]="dripCampaign.status !== constants.ACTIVE"
+  [showNextButton]="dripCampaign.status === constants.INACTIVE || dripCampaign.status === constants.PUBLISHED"
+  rightSecondBtnLabel="Activate"
+></campaign-layout-bottm-btns>
+
+<ng-template #sendTestEmailModal let-c="close" let-d="dismiss">
+  <modal [modalClose]="c" title="Send Test Campaign">
+    <div class="modal-body">
+      <div class="input-wrap">
+        <label class="input-label-text">Enter Email Address</label>
+        <input type="text" class="form-control" name="numberOfEmail" [(ngModel)]="testEmailText" />
+        <div *ngIf="submittedTestEmailSend && !isValidEmail">
+          <error-message-card message="Please enter valid email."></error-message-card>
+        </div>
+      </div>
+      <div class="mt-4" style="width: 150px">
+        <app-kexy-button
+          [disabled]="isSendEmailLoading"
+          [label]="isSendEmailLoading? 'Please wait...' : 'Send'"
+          [iconLeft]="isSendEmailLoading ? 'fa-refresh fa-spin' : 'fa-paper-plane-o'"
+          (click)="handleSendTestEmail()">
+        </app-kexy-button>
+      </div>
+    </div>
+  </modal>
+</ng-template>
+

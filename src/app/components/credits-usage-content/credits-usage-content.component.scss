@@ -1,0 +1,57 @@
+.credits-usage-content {
+  .top-area-wrap {
+    display: flex;
+    justify-content: space-between;
+    height: 34px;
+    img {
+      align-self: start;
+    }
+    .buy-more-btn-wrap {
+      width: fit-content;
+    }
+  }
+  .bottom-area-wrap {
+    margin-top: 15px;
+    .monthly-credit-usage-text {
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 18.8px;
+      margin-bottom: 6px;
+    }
+    .credits-count-text {
+      font-size: 14px;
+      font-weight: 400;
+      line-height: 22px;
+      margin-bottom: 15px;
+      color: #666666;
+      span {
+        font-size: 16px;
+        font-weight: 700;
+        line-height: 22px;
+      }
+    }
+    .credit-progressbar-blue {
+      height: 8px;
+      background-color: #E7F6FE;
+      ::ng-deep .progress-bar {
+        background-color: #12A5F4 !important;
+        border-radius: 5px;
+      }
+    }
+    .credit-progressbar-orange {
+      height: 8px;
+      background-color: #f4611230;
+      ::ng-deep .progress-bar {
+        background-color: #F46112 !important;
+        border-radius: 5px;
+      }
+    }
+    .credits-are-changed-text {
+      font-size: 14px;
+      font-weight: 400;
+      line-height: 20px;
+      margin: 15px 0 0 0;
+      color: #666666;
+    }
+  }
+}

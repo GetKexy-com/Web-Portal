@@ -1,0 +1,80 @@
+.brand-contacts-page {
+  .top-btns {
+    padding: 10px 30px;
+    display: flex;
+    justify-content: flex-end;
+    min-height: 60px;
+
+    .buttons-for-large-screen {
+      display: flex;
+    }
+
+    .buttons-for-small-screen {
+      display: none;
+    }
+  }
+
+  .content-area {
+    padding: 24px;
+    //overflow-x: scroll;
+    height: calc(100vh - 129px);
+    background: #e7f6fe;
+
+    .filter-info {
+      text-decoration: none !important;
+      padding: 4px 15px 4px 10px;
+      border-radius: 15px;
+      font-size: 14px;
+      background: #5879d9;
+      color: white !important;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+
+      span {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 5px;
+        background: #ffff00;
+        margin-right: 5px;
+      }
+    }
+  }
+}
+
+@media (min-width: 320px) and (max-width: 991px) {
+  .brand-contacts-page {
+    .top-btns {
+      padding: 10px;
+      justify-content: unset;
+    }
+
+    .content-area {
+      padding: 10px;
+    }
+
+    .buttons-for-large-screen {
+      display: none !important;
+    }
+
+    .buttons-for-small-screen {
+      display: flex !important;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+  }
+}
+
+@media (min-width: 992px) and (max-width: 1199px) {
+  .brand-contacts-page {
+    .buttons-for-large-screen {
+      display: none !important;
+    }
+
+    .buttons-for-small-screen {
+      display: flex !important;
+    }
+  }
+}

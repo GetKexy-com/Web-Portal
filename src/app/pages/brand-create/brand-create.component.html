@@ -1,0 +1,268 @@
+<!--<login-layout>-->
+<!--  <div class="tr-main-box">-->
+<!--    <div class="d-flex flex-column align-items-center">-->
+<!--      <div class="progress custom-progress">-->
+<!--        <div-->
+<!--          class="progress-bar progress-bar-striped bg-success"-->
+<!--          role="progressbar"-->
+<!--          style="width: 75%"-->
+<!--          aria-valuenow="25"-->
+<!--          aria-valuemin="0"-->
+<!--          aria-valuemax="100"-->
+<!--        ></div>-->
+<!--      </div>-->
+<!--      <p class="progress-completed-text">75% Complete</p>-->
+<!--    </div>-->
+<!--    <div class="kexy-logo" [hidden]="imageUrl">-->
+<!--      <img class="company-default-logo" src="/assets/images/company_default_logo_black.png" alt="" />-->
+<!--    </div>-->
+<!--    <div class="login-form">-->
+<!--      <p *ngIf="error" class="text-danger form-error">{{ error }}</p>-->
+
+<!--      <div class="form-group text-center" [hidden]="!imageUrl">-->
+<!--        <img class="profile-photo" [src]="imageUrl" />-->
+<!--      </div>-->
+
+<!--      <div class="form-group text-center">-->
+<!--        <button class="kexy-button" type="submit" (click)="openFileDialog()">-->
+<!--          <i class="fa fa-file" aria-hidden="true"></i> Upload Company Logo-->
+<!--        </button>-->
+<!--        <input type="file" name="" class="profile-photo-file-input tr-hidden" (change)="fileSelected($event)" />-->
+<!--      </div>-->
+
+<!--      <form class="tr-form Restaurant_Webportal_Restaurant_Create" [formGroup]="primaryForm" (ngSubmit)="onSubmit()">-->
+<!--        <div class="form-group">-->
+<!--          <input-->
+<!--            [class.error]="(submitted || primaryForm.controls['name'].dirty) && primaryForm.controls['name'].invalid"-->
+<!--            type="text"-->
+<!--            formControlName="name"-->
+<!--            class="form-control"-->
+<!--            placeholder="Company Name"-->
+<!--          />-->
+<!--          <div *ngIf="primaryForm.controls['name'].invalid && (submitted || primaryForm.controls['name'].dirty)">-->
+<!--            <span class="text-danger">Please enter a valid Company Name</span>-->
+<!--          </div>-->
+<!--        </div>-->
+
+<!--        <div class="form-group">-->
+<!--          <select-->
+<!--            formControlName="country"-->
+<!--            class="form-control"-->
+<!--            (change)="onCountrySelect($any($event.target).value)"-->
+<!--            [(ngModel)]="selectedCountry"-->
+<!--          >-->
+<!--            <option value="" [selected]="!selectedCountry">Please Select Country</option>-->
+<!--            <option *ngFor="let country of countries" [value]="country.isoCode">-->
+<!--              {{ country.name }}-->
+<!--            </option>-->
+<!--          </select>-->
+<!--        </div>-->
+
+<!--        <div class="form-group">-->
+<!--          <input-->
+<!--            [class.error]="(submitted || primaryForm.controls['city'].dirty) && primaryForm.controls['city'].invalid"-->
+<!--            type="text"-->
+<!--            formControlName="city"-->
+<!--            class="form-control"-->
+<!--            placeholder="City"-->
+<!--          />-->
+<!--          <div *ngIf="primaryForm.controls['city'].invalid && (submitted || primaryForm.controls['city'].dirty)">-->
+<!--            <span class="text-danger">Please enter a valid City name.</span>-->
+<!--          </div>-->
+<!--        </div>-->
+
+<!--        <div class="form-group">-->
+<!--          <select formControlName="state" class="form-control" [(ngModel)]="geolocationDetails.state">-->
+<!--            <option value="" selected>{{ stateLabel }}</option>-->
+<!--            <option *ngFor="let state of states" [value]="state.isoCode">-->
+<!--              {{ state.name }}-->
+<!--            </option>-->
+<!--          </select>-->
+<!--        </div>-->
+
+<!--        <div class="form-group">-->
+<!--          <input-->
+<!--            [class.error]="-->
+<!--              (submitted || primaryForm.controls['zip_code_list'].dirty) &&-->
+<!--              primaryForm.controls['zip_code_list'].invalid-->
+<!--            "-->
+<!--            type="text"-->
+<!--            formControlName="zip_code_list"-->
+<!--            class="form-control"-->
+<!--            placeholder="{{ zipCodePlaceholder }}"-->
+<!--          />-->
+<!--          <div-->
+<!--            *ngIf="-->
+<!--              primaryForm.controls['zip_code_list'].invalid &&-->
+<!--              (submitted || primaryForm.controls['zip_code_list'].dirty)-->
+<!--            "-->
+<!--          >-->
+<!--            <span class="text-danger">{{ zipCodeLabel }}</span>-->
+<!--          </div>-->
+<!--        </div>-->
+
+<!--        <div class="form-group">-->
+<!--          <div class="phonefields">-->
+<!--            <div class="phonecode">{{ phoneCode }}</div>-->
+<!--            <input-->
+<!--              [class.error]="-->
+<!--                (submitted || primaryForm.controls['phone'].dirty) && primaryForm.controls['phone'].invalid-->
+<!--              "-->
+<!--              type="tel"-->
+<!--              formControlName="phone"-->
+<!--              appPhoneNumberMask-->
+<!--              class="form-control phoneNumber"-->
+<!--              placeholder="Company Phone Number"-->
+<!--            />-->
+<!--          </div>-->
+<!--          <div *ngIf="primaryForm.controls['phone'].invalid && (submitted || primaryForm.controls['phone'].dirty)">-->
+<!--            <span class="text-danger">Please enter a valid Phone Number.</span>-->
+<!--          </div>-->
+<!--        </div>-->
+
+<!--        <div class="tr-kexy-button">-->
+<!--          <button type="submit" name="submit" class="kexy-button" id="submit">-->
+<!--            <i *ngIf="isWaitingFlag" class="fa fa-spinner fa-spin" aria-hidden="true"></i>-->
+<!--            Continue-->
+<!--          </button>-->
+<!--        </div>-->
+<!--      </form>-->
+<!--    </div>-->
+<!--  </div>-->
+<!--</login-layout>-->
+
+<login-layout>
+  <div class="tr-main-box">
+    <div class="d-flex flex-column align-items-center">
+      <div class="progress custom-progress">
+        <div
+          class="progress-bar progress-bar-striped bg-success"
+          role="progressbar"
+          style="width: 75%"
+          aria-valuenow="25"
+          aria-valuemin="0"
+          aria-valuemax="100"
+        ></div>
+      </div>
+      <p class="progress-completed-text">75% Complete</p>
+    </div>
+    <div class="kexy-logo" [hidden]="imageUrl()">
+      <img class="company-default-logo" src="/assets/images/company_default_logo_black.png" alt="" />
+    </div>
+    <div class="login-form">
+      @if (error()) {
+        <p class="text-danger form-error">{{ error() }}</p>
+      }
+
+      <div class="form-group text-center" [hidden]="!imageUrl()">
+        <img class="profile-photo" [src]="imageUrl()" />
+      </div>
+
+      <div class="form-group text-center">
+        <button class="kexy-button" type="button" (click)="openFileDialog()">
+          <i class="fa fa-file" aria-hidden="true"></i> Upload Company Logo
+        </button>
+        <input type="file" class="profile-photo-file-input tr-hidden" (change)="fileSelected($event)" />
+      </div>
+
+      <form class="tr-form Restaurant_Webportal_Restaurant_Create" [formGroup]="primaryForm" (ngSubmit)="onSubmit()">
+        <div class="form-group">
+          <input
+            [class.error]="(submitted() || primaryForm.controls['name'].dirty) && primaryForm.controls['name'].invalid"
+            type="text"
+            formControlName="name"
+            class="form-control"
+            placeholder="Company Name"
+          />
+          @if (primaryForm.controls['name'].invalid && (submitted() || primaryForm.controls['name'].dirty)) {
+            <span class="text-danger">Please enter a valid Company Name</span>
+          }
+        </div>
+
+        <div class="form-group">
+          <select
+            formControlName="country"
+            class="form-control"
+            (change)="onCountrySelect($any($event.target).value)"
+            [ngModel]="selectedCountry()"
+          >
+            <option value="">Please Select Country</option>
+            @for (country of countries(); track country.isoCode) {
+              <option [value]="country.isoCode">
+                {{ country.name }}
+              </option>
+            }
+          </select>
+        </div>
+
+        <div class="form-group">
+          <input
+            [class.error]="(submitted() || primaryForm.controls['city'].dirty) && primaryForm.controls['city'].invalid"
+            type="text"
+            formControlName="city"
+            class="form-control"
+            placeholder="City"
+          />
+          @if (primaryForm.controls['city'].invalid && (submitted() || primaryForm.controls['city'].dirty)) {
+            <span class="text-danger">Please enter a valid City name.</span>
+          }
+        </div>
+
+        <div class="form-group">
+          <select formControlName="state" class="form-control" [ngModel]="geolocationDetails().state">
+            <option value="">{{ stateLabel() }}</option>
+            @for (state of states(); track state) {
+              <option [value]="state.isoCode">
+                {{ state.name }}
+              </option>
+            }
+          </select>
+        </div>
+
+        <div class="form-group">
+          <input
+            [class.error]="
+              (submitted() || primaryForm.controls['zip_code_list'].dirty) &&
+              primaryForm.controls['zip_code_list'].invalid
+            "
+            type="text"
+            formControlName="zip_code_list"
+            class="form-control"
+            [placeholder]="zipCodePlaceholder()"
+          />
+          @if (primaryForm.controls['zip_code_list'].invalid && (submitted() || primaryForm.controls['zip_code_list'].dirty)) {
+            <span class="text-danger">{{ zipCodeLabel() }}</span>
+          }
+        </div>
+
+        <div class="form-group">
+          <div class="phonefields">
+            <div class="phonecode">{{ phoneCode() }}</div>
+            <input
+              [class.error]="
+                (submitted() || primaryForm.controls['phone'].dirty) && primaryForm.controls['phone'].invalid
+              "
+              type="tel"
+              formControlName="phone"
+              appPhoneNumberMask
+              class="form-control phoneNumber"
+              placeholder="Company Phone Number"
+            />
+          </div>
+          @if (primaryForm.controls['phone'].invalid && (submitted() || primaryForm.controls['phone'].dirty)) {
+            <span class="text-danger">Please enter a valid Phone Number.</span>
+          }
+        </div>
+
+        <div class="tr-kexy-button">
+          <button type="submit" name="submit" class="kexy-button" id="submit">
+            @if (isWaitingFlag()) {
+              <i class="fa fa-spinner fa-spin" aria-hidden="true"></i>
+            }
+            Continue
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</login-layout>

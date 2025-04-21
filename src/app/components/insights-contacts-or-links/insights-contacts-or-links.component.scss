@@ -1,0 +1,94 @@
+.content {
+  padding: 16px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  height: 100%;
+  .title-wrap {
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 41px;
+    p {
+      font-size: 16px;
+      line-height: 16px;
+      margin-bottom: 0;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      span {
+        color: #0047CC;
+      }
+    }
+  }
+  .data-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    .link {
+      flex: 1;
+      margin-bottom: 0;
+      font-size: 14px;
+    }
+    .clicks {
+      margin-left: 40px;
+      margin-bottom: 0;
+      font-size: 14px;
+      //font-weight: 600;
+    }
+    .row-title {
+      flex: 1;
+      margin-bottom: 0;
+      font-size: 11px;
+      font-weight: 600;
+      color: #747474;
+    }
+  }
+}
+
+.pagination-section {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+
+  .btn-wrap {
+    width: fit-content;
+  }
+
+  .conv-pagination-wrap {
+    padding-left: 20px;
+    border-radius: 10px;
+
+    .conv-pagination {
+      display: flex;
+      //justify-content: flex-end;
+      align-items: center;
+      p {
+        color: #5e5e5e;
+        font-size: 13px;
+        margin-bottom: 0;
+      }
+
+      .pagination-arrow {
+        font-size: 18px;
+        width: 28px;
+        cursor: pointer;
+        border-radius: 50%;
+        height: 28px;
+        display: inline-block;
+        text-align: center;
+        background: #e7f6fe;
+
+        &:hover {
+          background: lightgray;
+        }
+      }
+
+      .disabled {
+        color: grey;
+        pointer-events: none;
+        cursor: crosshair;
+      }
+    }
+  }
+}

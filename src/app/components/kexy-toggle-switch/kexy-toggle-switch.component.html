@@ -1,0 +1,11 @@
+<div>
+  <label [ngClass]="isSwitchActive ? 'switch active' : 'switch'">
+    <input type="checkbox" name="kexyBoost" [checked]="isSwitchActive" (change)="changeSwitchOption()" />
+    <span [ngClass]="isSwitchActive ? 'slider round active' : 'slider round'"></span>
+  </label>
+  <span
+    [className]="isSwitchActive ? 'switch-item-active' : 'switch-item'"
+  >
+    {{ isSwitchActive ? activeText : inactiveText }}
+  </span>
+</div>

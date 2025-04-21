@@ -1,0 +1,217 @@
+<!--<div class="product-card">-->
+<!--  <div class="card-header">-->
+<!--    <div class="card-add-new">-->
+<!--      <app-kexy-button-->
+<!--        label="ADD PRODUCT/SERVICE"-->
+<!--        iconLeft="fa-plus"-->
+<!--        bgColor="white"-->
+<!--        textColor="#0047cc"-->
+<!--        fontSize="12px !important"-->
+<!--        iconSize="small"-->
+<!--        (click)="addNewBtnClick($event)"-->
+<!--      ></app-kexy-button>-->
+<!--    </div>-->
+<!--  </div>-->
+<!--  <div class="list-table">-->
+<!--    <div class="head-area">-->
+<!--      <p class="number-cell">No</p>-->
+<!--      <p class="product-name-cell">Product/Service Name</p>-->
+<!--      <p class="icons-cell"></p>-->
+<!--    </div>-->
+<!--    <div class="body-area">-->
+<!--      <ng-container *ngIf="products.length > 0">-->
+<!--        <div class="table-row-wrap" *ngFor="let product of products; let i = index">-->
+<!--          <div class="table-row">-->
+<!--            <div class="d-flex" style="width: 70%">-->
+<!--              <p class="number">{{ i + 1 }}</p>-->
+<!--              <p *ngIf="!product.isEditClicked" class="product-name category-product-name-typography">-->
+<!--                {{ product.name }}-->
+<!--              </p>-->
+<!--              &lt;!&ndash; edit mode &ndash;&gt;-->
+<!--              <div *ngIf="product.isEditClicked" class="product-name">-->
+<!--                <input class="form-control" [(ngModel)]="product.name" [value]="product.name" />-->
+<!--              </div>-->
+<!--              &lt;!&ndash; end &ndash;&gt;-->
+<!--            </div>-->
+<!--            <div class="icons-wrap">-->
+<!--              <div class="edit-delete-icon-wrap">-->
+<!--                <i (click)="handleEditClick(i)" class="fa fa-pencil" aria-hidden="true"></i>-->
+<!--                <i (click)="deleteProduct(product)" class="fa fa-trash-o" aria-hidden="true"></i>-->
+<!--              </div>-->
+<!--              <div *ngIf="!product.isOpened" class="toggle-icon-wrap" (click)="handleRowClick(i)">-->
+<!--                <i class="fa fa-angle-down" aria-hidden="true"></i>-->
+<!--              </div>-->
+<!--              <div *ngIf="product.isOpened" class="toggle-icon-wrap active" (click)="handleRowClick(i)">-->
+<!--                <i class="fa fa-angle-up" aria-hidden="true"></i>-->
+<!--              </div>-->
+<!--            </div>-->
+<!--          </div>-->
+<!--          <ng-container *ngIf="product.isOpened">-->
+<!--            <div class="product-desc">-->
+<!--              <div class="d-flex flex-row align-items-center justify-content-between">-->
+<!--                <p></p>-->
+<!--                <app-kexy-button-->
+<!--                  label="ADD NEW DESCRIPTION"-->
+<!--                  iconLeft="fa-plus"-->
+<!--                  bgColor="white"-->
+<!--                  textColor="#0047cc"-->
+<!--                  fontSize="12px !important"-->
+<!--                  iconSize="small"-->
+<!--                  (click)="addNewDescription($event, product)"-->
+<!--                ></app-kexy-button>-->
+<!--              </div>-->
+<!--              <div-->
+<!--                *ngFor="let description of product.descriptions; let j = index"-->
+<!--                [ngClass]="{ 'mt-2': j === 0, 'mt-4': j !== 0 }"-->
+<!--              >-->
+<!--                <p class="input-label-text description-label">Product/Service Description {{ j + 1 }}</p>-->
+<!--                <div class="d-flex">-->
+<!--                  <textarea-->
+<!--                    (blur)="syncProductDescription($event, product, j)"-->
+<!--                    [value]="product.descriptions[j]"-->
+<!--                    class="form-control mt-2"-->
+<!--                  ></textarea>-->
+<!--                  <app-kexy-button-->
+<!--                    label=""-->
+<!--                    iconLeft="fa-trash"-->
+<!--                    bgColor="white"-->
+<!--                    textColor="#0047cc"-->
+<!--                    fontSize="12px !important"-->
+<!--                    iconSize="small"-->
+<!--                    (click)="deleteProductDescription(product, j)"-->
+<!--                  ></app-kexy-button>-->
+<!--                </div>-->
+<!--              </div>-->
+<!--            </div>-->
+<!--            <div class="bottom-btn-wrap" *ngIf="product.isEditClicked">-->
+<!--              <app-kexy-button (click)="createOrUpdateProduct(product)" label="Save changes"></app-kexy-button>-->
+<!--            </div>-->
+<!--          </ng-container>-->
+<!--        </div>-->
+<!--      </ng-container>-->
+<!--      <ng-container *ngIf="products.length === 0 && !isLoading">-->
+<!--        <p class="p-3 text-center">Sorry! No data found.</p>-->
+<!--      </ng-container>-->
+<!--    </div>-->
+
+<!--    <p *ngIf="isLoading" class="load-more-text mt-3 mb-3 pb-3 text-center">-->
+<!--      <i class="fa fa-spinner fa-spin" aria-hidden="true" style="color: black"></i>-->
+<!--    </p>-->
+<!--  </div>-->
+<!--</div>-->
+
+<div class="product-card">
+  <div class="card-header">
+    <div class="card-add-new">
+      <app-kexy-button
+        label="ADD PRODUCT/SERVICE"
+        iconLeft="fa-plus"
+        bgColor="white"
+        textColor="#0047cc"
+        fontSize="12px !important"
+        iconSize="small"
+        (click)="addNewBtnClick($event)"
+      />
+    </div>
+  </div>
+  <div class="list-table">
+    <div class="head-area">
+      <p class="number-cell">No</p>
+      <p class="product-name-cell">Product/Service Name</p>
+      <p class="icons-cell"></p>
+    </div>
+    <div class="body-area">
+      @if (products().length > 0) {
+        @for (product of products(); track product.id; let i = $index) {
+          <div class="table-row-wrap">
+            <div class="table-row">
+              <div class="d-flex" style="width: 70%">
+                <p class="number">{{ i + 1 }}</p>
+                @if (!product.isEditClicked) {
+                  <p class="product-name category-product-name-typography">
+                    {{ product.name }}
+                  </p>
+                }
+                @if (product.isEditClicked) {
+                  <div class="product-name">
+                    <input class="form-control" [(ngModel)]="product.name" [value]="product.name" />
+                  </div>
+                }
+              </div>
+              <div class="icons-wrap">
+                <div class="edit-delete-icon-wrap">
+                  <i (click)="handleEditClick(i)" class="fa fa-pencil" aria-hidden="true"></i>
+                  <i (click)="deleteProduct(product)" class="fa fa-trash-o" aria-hidden="true"></i>
+                </div>
+                @if (!product.isOpened) {
+                  <div class="toggle-icon-wrap" (click)="handleRowClick(i)">
+                    <i class="fa fa-angle-down" aria-hidden="true"></i>
+                  </div>
+                }
+                @if (product.isOpened) {
+                  <div class="toggle-icon-wrap active" (click)="handleRowClick(i)">
+                    <i class="fa fa-angle-up" aria-hidden="true"></i>
+                  </div>
+                }
+              </div>
+            </div>
+            @if (product.isOpened) {
+              <div class="product-desc">
+                <div class="d-flex flex-row align-items-center justify-content-between">
+                  <p></p>
+                  <app-kexy-button
+                    label="ADD NEW DESCRIPTION"
+                    iconLeft="fa-plus"
+                    bgColor="white"
+                    textColor="#0047cc"
+                    fontSize="12px !important"
+                    iconSize="small"
+                    (click)="addNewDescription($event, product)"
+                  />
+                </div>
+                @for (description of product.descriptions; track description; let j = $index) {
+                  <div [ngClass]="{ 'mt-2': j === 0, 'mt-4': j !== 0 }">
+                    <p class="input-label-text description-label">Product/Service Description {{ j + 1 }}</p>
+                    <div class="d-flex">
+                      <textarea
+                        (blur)="syncProductDescription($event, product, j)"
+                        [value]="description"
+                        class="form-control mt-2"
+                      ></textarea>
+                      <app-kexy-button
+                        label=""
+                        iconLeft="fa-trash"
+                        bgColor="white"
+                        textColor="#0047cc"
+                        fontSize="12px !important"
+                        iconSize="small"
+                        (click)="deleteProductDescription(product, j)"
+                      />
+                    </div>
+                  </div>
+                }
+              </div>
+              @if (product.isEditClicked) {
+                <div class="bottom-btn-wrap">
+                  <app-kexy-button
+                    (click)="createOrUpdateProduct(product)"
+                    label="Save changes"
+                  />
+                </div>
+              }
+            }
+          </div>
+        }
+      }
+      @if (products().length === 0 && !isLoading()) {
+        <p class="p-3 text-center">Sorry! No data found.</p>
+      }
+    </div>
+
+    @if (isLoading()) {
+      <p class="load-more-text mt-3 mb-3 pb-3 text-center">
+        <i class="fa fa-spinner fa-spin" aria-hidden="true" style="color: black"></i>
+      </p>
+    }
+  </div>
+</div>

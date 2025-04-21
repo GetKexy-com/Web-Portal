@@ -1,0 +1,150 @@
+.subscription-modal {
+  // padding: 30px;
+
+  .kexy-button {
+    background: #12a5f4;
+    border-radius: 10px;
+    width: auto;
+    padding: 18px;
+    font-size: 15px;
+    text-transform: capitalize;
+    line-height: 20px;
+    outline: none;
+    border: none;
+    color: white;
+  }
+
+  .head-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    p {
+      font-size: 22px;
+      margin-bottom: 0;
+    }
+    .close-btn {
+      font-size: 24px;
+    }
+  }
+  .body-section {
+    margin-bottom: 5px;
+    font-size: 17px;
+    padding: 30px;
+
+    label {
+      margin-left: 8px;
+      margin-bottom: 0px;
+      font-size: 16px;
+    }
+    .radio-input {
+      // width: 18px;
+      // height: 18px;
+    }
+    .increase-decrease-btn {
+      margin-right: 10px;
+      border: 1px solid #ced4da;
+      padding: 0 15px;
+      border: 1px solid #ced4da;
+      font-size: 30px;
+      color: #12a5f4;
+      background: white;
+      height: 43px;
+      border-radius: 5px;
+      outline: none;
+    }
+    .switch-input-wrap {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    .coupon-code-area-wrap {
+      margin-bottom: 30px;
+      display: flex;
+      justify-content: center;
+      .coupon-code-area {
+        position: relative;
+        width: 300px;
+        // margin: 15px 0;
+        .coupon-code-input {
+          border: none;
+          border-bottom: 1px solid #b4b4b4;
+          outline: none;
+          padding: 0px 30px;
+          width: 100%;
+          border-radius: 0;
+        }
+        .left-icon-img {
+          position: absolute;
+          top: 2px;
+        }
+        .right-icon-img {
+          position: absolute;
+          right: 0;
+          top: 6px;
+        }
+      }
+    }
+  }
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 20px;
+  margin: 0 12px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.switch-item {
+  font-size: 16px;
+  line-height: 18px;
+}
+.switch-item-active {
+  font-size: 16px;
+  line-height: 18px;
+  color: #0047cc;
+}
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: white;
+  -webkit-transition: 0.4s;
+  transition: 0.4s;
+  border: 1px solid #12a5f4;
+}
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 12px;
+  width: 12px;
+  left: 4px;
+  bottom: 3px;
+  background-color: #12a5f4;
+  -webkit-transition: 0.4s;
+  transition: 0.4s;
+}
+input:checked + .slider:before {
+  -webkit-transform: translateX(17px);
+  -ms-transform: translateX(17px);
+  transform: translateX(17px);
+}
+
+/* Rounded sliders */
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}

@@ -1,0 +1,81 @@
+.kexy-modal {
+  padding: 20px;
+  background: #EDF4F7;
+  border-radius: 12px;
+
+  .header-area {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    p {
+      font-size: 18px;
+      font-weight: 600;
+      line-height: 21.6px;
+      margin-bottom: 0;
+      color: #0047CC;
+    }
+  }
+
+  .middle-area {
+    background: white;
+    border-radius: 16px;
+    padding: 12px;
+    margin-top: 20px;
+
+    .user-info {
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 5px;
+      span {
+        font-size: 15px;
+        font-weight: 600;
+      }
+    }
+    .user-extra-info {
+      display: flex;
+      div {
+        width: 50%;
+      }
+      p {
+        margin: 10px 0 0 10px;
+        font-size: 15px;
+        i {
+          font-size: 17px;
+        }
+      }
+      .left-side {
+        .contact-info-title {
+          width: 72px;
+          display: inline-block;
+        }
+      }
+      .right-side {
+        .contact-info-title {
+          width: 92px;
+          display: inline-block;
+        }
+      }
+      .email-status {
+        padding: 2px 14px;
+        border-radius: 15px;
+        font-size: 14px;
+        text-transform: capitalize;
+        &.status-red {
+          background-color: #c91b00;
+          color: white;
+        }
+        &.status-yellow {
+          background-color: #ffea99;
+          color: black;
+        }
+        &.status-green {
+          background-color: #68ba7f;
+          color: white;
+        }
+      }
+    }
+  }
+}
+
+@media (min-width: 992px) and (max-width: 1599px) {
+}

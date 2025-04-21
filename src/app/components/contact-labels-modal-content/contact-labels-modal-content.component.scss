@@ -1,0 +1,44 @@
+.search-contact-modal {
+  padding: 20px;
+  background: #EDF4F7;
+  border-radius: 12px;
+
+  .header-area {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    p {
+      font-size: 18px;
+      font-weight: 600;
+      line-height: 21.6px;
+      margin-bottom: 0;
+      color: #0047CC;
+    }
+  }
+
+  .middle-area {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    margin-top: 20px;
+
+    .labels-wrap {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      .label {
+        background-color: blue;
+        color: white;
+        text-transform: uppercase;
+        font-size: 12px;
+        font-weight: bold;
+        border-radius: 16px;
+        padding: 6px 22px;
+      }
+    }
+  }
+}
+
+@media (min-width: 992px) and (max-width: 1599px) {
+}

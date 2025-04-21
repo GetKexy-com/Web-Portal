@@ -1,0 +1,66 @@
+<div class="canvas-content-wrap">
+  <div class="head-area">
+    <p>Insights</p>
+    <img src="/assets/images/close-icon.png" alt="Close" (click)="activeCanvas.dismiss('Cross click')" />
+  </div>
+
+  <div class="canvas-body">
+    <div class="row">
+      <div class="col-12">
+        <p class="email-sent-delivered-text">Sent to <span>{{sentEmailCount}}</span></p>
+      </div>
+      <div class="col-4">
+        <div class="statistics-card-wrap">
+          <insights-statistics-card
+            cardTitle="Open rate"
+            bgColor="#E7F6FE"
+            [insightRate]="openRate"
+          >
+          </insights-statistics-card>
+        </div>
+      </div>
+      <div class="col-4">
+        <div class="statistics-card-wrap">
+          <insights-statistics-card
+            cardTitle="Click rate"
+            bgColor="#E7F6FE"
+            [insightRate]="clickRate"
+          >
+          </insights-statistics-card>
+        </div>
+      </div>
+      <div class="col-4">
+        <div class="statistics-card-wrap">
+          <insights-statistics-card
+            cardTitle="Reply rate"
+            bgColor="#E7F6FE"
+            [insightRate]="replyRate"
+          >
+          </insights-statistics-card>
+        </div>
+      </div>
+      <div class="col-12 mt-3 insights-contact-or-links-wrap">
+        <div class="contacts-or-links-card-wrap">
+          <insights-contacts-or-links
+            cardTitle="Top engaged contacts"
+            [showTab]="true"
+            [showContacts]="true"
+            [clickedContacts]="topClickedContacts"
+            [openedContacts]="topOpenedContacts"
+            [isLoading]="isLoading"
+          >
+          </insights-contacts-or-links>
+        </div>
+        <div class="contacts-or-links-card-wrap">
+          <insights-contacts-or-links
+            cardTitle="Top clicked links"
+            [showLinks]="true"
+            [links]="topClickedLinks"
+            [isLoading]="isLoading"
+          >
+          </insights-contacts-or-links>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

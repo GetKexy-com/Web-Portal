@@ -1,0 +1,80 @@
+.subscription-type-card {
+  background: #E7F6FE;
+  border-radius: 10px;
+  padding: 15px 2px;
+  text-align: center;
+  border: 2px solid transparent;
+  //height: 100%;
+  .card-title {
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 13px;
+    margin-bottom: 20px;
+    color: #0047CC;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    img {
+      margin-right: 3px;
+      width: 15px;
+    }
+  }
+
+  .price-text {
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 26px;
+    margin-bottom: 7px;
+    color: #45C0A4;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    .line-price {
+      font-size: 16px;
+      padding-right: 5px;
+    }
+
+    span {
+      line-height: 18px;
+    }
+
+  }
+
+  .contact-us-btn-wrap {
+    margin-bottom: 7px;
+    height: 26px;
+
+    button {
+      font-size: 12px;
+      background: transparent;
+      border: 2px solid #45C0A4;
+      border-radius: 6px;
+      padding: 5px;
+      color: #060608;
+      font-weight: 500;
+    }
+  }
+
+  .facilities {
+    p {
+      font-size: 14px;
+      font-weight: 400;
+      line-height: 26px;
+      color: #656565;
+      margin-bottom: 0;
+      padding: 12px 0;
+
+      .green-check-img {
+        width: 18px;
+      }
+    }
+  }
+}
+
+.current-or-choose-plan-btn-wrap {
+  margin: 20px 0 5px 0;
+}

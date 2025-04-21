@@ -1,0 +1,53 @@
+<brand-layout layoutPaddingNone="true" headerBgWhite="true">
+  <div class="brand-create-campaign-page">
+    <div class="progress-wrap">
+      <progress-count [currentStep]="currentStep" [steps]="steps"></progress-count>
+    </div>
+    <div class="page-content">
+      <div *ngIf="isWaitingFlag" class="loading">
+        <i class="fa me-2 fa-spinner fa-spin" aria-hidden="true"></i>
+        Please wait....
+      </div>
+      <div class="content">
+        <div *ngIf="currentStep === 1">
+          <campaign-details-form-content
+            [nextBtnClick]="nextBtnClick"
+            [backBtnClick]="backBtnClick"
+          ></campaign-details-form-content>
+        </div>
+        <div *ngIf="currentStep === 2">
+          <campaign-contact-info-form-content
+            [setWaitingFlagToFalse]="setWaitingFlagToFalse"
+            [setWaitingFlagToTrue]="setWaitingFlagToTrue"
+            [nextBtnClick]="nextBtnClick"
+            [backBtnClick]="backBtnClick"
+          ></campaign-contact-info-form-content>
+        </div>
+        <div *ngIf="currentStep === 3">
+          <campaign-preview-content
+            [closePreview]=""
+            [formData]=""
+            [setWaitingFlagToFalse]="setWaitingFlagToFalse"
+            [setWaitingFlagToTrue]="setWaitingFlagToTrue"
+            [nextBtnClick]="nextBtnClick"
+            [backBtnClick]="backBtnClick"
+          ></campaign-preview-content>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <ng-template #promotionInitialModal let-c="close" let-d="dismiss">
+    <kexy-pro-tips-modal-content
+      [closeModal]="c"
+      [features]="features"
+      [titlePart1]="'How to Create a ' + constants.LANDING_PAGE"
+      [bookCallBtnShow]="true"
+      [from]="routeConstants.BRAND.PROMOTIONS"
+      audioPlayBtnText="Product demo video"
+      aurdioUrl=""
+      audioPlayBtnIconLeft="fa-play"
+      [audioOrTutorialBtnClick]="handleTutorialBtnClick"
+    ></kexy-pro-tips-modal-content>
+  </ng-template>
+</brand-layout>

@@ -1,0 +1,83 @@
+<div class="content">
+  <div class="head-area">
+    <p>Import your file here</p>
+    <img src="/assets/images/close-icon.png" (click)="closeIconClick()" />
+  </div>
+  <div class="drag-drop-area">
+    <file-drop [getSelectedFile]="getSelectedFile"></file-drop>
+
+    <div *ngIf="fileInfo?.name" class="show-selected-file">
+      <div class="icon-and-file-name">
+        <div class="icon-wrap">
+          <i class="fa fa-file-text-o" aria-hidden="true"></i>
+        </div>
+        <p>{{ fileInfo.name }}</p>
+      </div>
+      <div class="close-btn-wrap">
+        <app-kexy-button
+          label="Delete"
+          iconLeft="fa-trash"
+          bgColor="white"
+          textColor="red"
+          (click)="removeSelectedFile()"
+        ></app-kexy-button>
+      </div>
+    </div>
+
+    <div *ngIf="fileInfo?.name && showListsDropdown" class="mt-3">
+      <kexy-select-dropdown
+        label="Lists"
+        shortNoteBesideLabel=""
+        [selectAllBtn]="false"
+        [required]="false"
+        [options]="labelOptions"
+        [addNewBtn]="true"
+        [onAddNewClick]="openContactLabelCanvas"
+        [selectedOption]="selectedLabel"
+        [onSelectSingleItem]="onLabelSelect"
+        [editIcon]="false"
+        [onEditClick]=""
+        [deleteIcon]="false"
+        [onDeleteClick]=""
+        [isSearchAble]="false"
+        [isClearable]="true"
+        optionStyle="button"
+        backgroundColor="white"
+        placeholder="Please Select"
+      ></kexy-select-dropdown>
+    </div>
+  </div>
+  <div class="btns-area">
+    <div class="btn-wrap">
+      <app-kexy-button
+        label="Import"
+        (click)="saveBtnClicked()"
+        [iconRight]="isLoading ? 'fa-refresh fa-spin' : ''"
+        [disabled]="isLoading"
+      ></app-kexy-button>
+    </div>
+    <div class="btn-wrap">
+      <app-kexy-button
+        label="Cancel"
+        bgColor="transparent"
+        borderColor="black"
+        textColor="black"
+        (click)="closeIconClick()"
+      ></app-kexy-button>
+    </div>
+  </div>
+  <div *ngIf="additionalFileRelatedText" class="additional-file-text">
+    <p>{{ additionalFileRelatedText }}</p>
+  </div>
+  <div class="bottom-area">
+    <ng-container *ngIf="clickCount > 4">
+      <div class="bypass">
+        <p>Zerobounce bypass is active!</p>
+      </div>
+    </ng-container>
+    <p class="need-help-text" (click)="checkHiddenClick()">Need help getting started?</p>
+    <a [href]="sampleCsvUrl" class="download-spreadsheet-link" target="_blank"
+    >Download sample spreadsheet <img src="/assets/icon/link-icon.svg"
+    /></a>
+  </div>
+</div>

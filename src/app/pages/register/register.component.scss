@@ -1,0 +1,277 @@
+.kexy-logo {
+  text-align: center;
+  margin-bottom: 20px;
+  margin-top: 20px;
+}
+.tr-main-box {
+  overflow: hidden;
+  position: relative;
+  min-height: 600px;
+  background: white;
+  width: 1000px;
+  margin: 40px auto auto;
+  padding: 20px;
+}
+.custom-progress {
+  width: 360px;
+}
+.default-logo {
+  margin-top: 0px;
+  max-width: 134px;
+}
+.form-group {
+  margin-bottom: 16px;
+}
+.form-control {
+  background: #e7f6fe;
+  padding: 15px 20px;
+  font-size: 18px;
+}
+select.form-control {
+  background: #e7f6fe;
+  padding: 0px 18px;
+  font-size: 18px;
+  height: 52px;
+  /*webkit browsers */
+  -webkit-appearance: menulist;
+  /*Firefox */
+  -moz-appearance: menulist;
+}
+.tr-kexy-button {
+  text-align: center;
+  margin-bottom: 20px;
+}
+.kexy-button {
+  background: #12a5f4;
+  border-radius: 10px;
+  width: 360px;
+  padding: 18px;
+  font-size: 18px;
+  text-transform: capitalize;
+  line-height: 22px;
+  border: none;
+  margin-bottom: 16px;
+  color: white;
+}
+.profile-photo {
+  width: 178px;
+  //height: 178px;
+  border-radius: 10px;
+  margin-top: 60px;
+}
+.display-none {
+  display: none;
+}
+.tr-form {
+  width: 360px;
+  margin: auto;
+}
+.tr-hidden {
+  display: none;
+}
+p.text-danger.form-error {
+  text-align: center;
+}
+// .phonecode {
+//   // float: left;
+//   background-color: #e7f6fe;
+//   border: none;
+//   // padding: 17px 9px 14px 14px;
+//   font-size: 18px;
+// }
+// .phoneNumber {
+//   // width: 80%;
+//   // float: left;
+//   padding-left: 8px;
+//   border: none;
+//   // padding-top: 29px;
+// }
+// .phonefields {
+//   // overflow: hidden;
+//   display: flex;
+//   align-items: center;
+//   padding-left: 20px;
+//   border: 1px solid #ccc;
+//   background: #e7f6fe;
+//   border-radius: 6px;
+// }
+// .phoneNumber:focus {
+//   border: none !important;
+//   box-shadow: none;
+// }
+
+.phonecode {
+  // float: left;
+  background-color: #e7f6fe;
+  border: none;
+  padding: 17px 9px 14px 14px;
+  font-size: 18px;
+}
+.phoneNumber {
+  width: 80%;
+  // float: left;
+  padding-left: 0px;
+  border: none;
+  // padding-top: 29px;
+}
+.phonefields {
+  overflow: hidden;
+  border: 1px solid #ccc;
+  background: #e7f6fe;
+  border-radius: 6px;
+  display: flex;
+}
+.phoneNumber:focus {
+  border: none !important;
+  box-shadow: none;
+}
+
+@media (min-width: 320px) and (max-width: 559px) {
+  .kexy-button {
+    width: 100%;
+    padding: 10px;
+    font-size: 13px;
+    line-height: 17px;
+  }
+  .tr-form {
+    width: 100%;
+  }
+  .tr-main-box {
+    padding: 0;
+  }
+  .custom-progress {
+    height: 10px;
+  }
+  .progress-completed-text {
+    font-size: 14px;
+  }
+  .profile-photo {
+    margin-top: 0;
+    width: 80px;
+  }
+  input,
+  select,
+  .phonecode {
+    font-size: 12px !important;
+    padding: 10px !important;
+    height: auto !important;
+  }
+}
+@media (min-width: 560px) and (max-width: 979px) {
+  .kexy-button {
+    width: 100%;
+    padding: 12px;
+    font-size: 15px;
+    line-height: 19px;
+  }
+  .tr-form {
+    width: 100%;
+  }
+  .custom-progress {
+    height: 10px;
+  }
+  .progress-completed-text {
+    font-size: 14px;
+  }
+  .profile-photo {
+    margin-top: 0;
+    width: 90px;
+  }
+  input,
+  select,
+  .phonecode {
+    font-size: 12px !important;
+    padding: 10px !important;
+    height: auto !important;
+  }
+}
+@media (min-width: 980px) and (max-width: 1199px) {
+  .tr-main-box {
+    // margin: 190px auto auto;
+  }
+  .custom-progress {
+    width: 300px;
+    height: 10px;
+  }
+  .progress-completed-text {
+    font-size: 14px;
+  }
+  .company-default-logo {
+    max-width: 75px;
+  }
+  .profile-photo {
+    margin-top: 0px;
+    width: 80px;
+  }
+  .kexy-logo {
+    margin-top: 0;
+  }
+  .kexy-button {
+    width: 300px;
+    font-size: 13px;
+    padding: 12px;
+  }
+  .tr-form {
+    width: 300px;
+  }
+  select.form-control {
+    font-size: 13px;
+    height: 45px;
+  }
+  .form-control {
+    font-size: 13px;
+    padding: 12px 20px;
+  }
+  .phonecode {
+    font-size: 13px;
+    padding: 13px 3px 13px 14px;
+  }
+  .phoneNumber {
+    padding-left: 0;
+  }
+}
+@media (min-width: 1200px) and (max-width: 1599px) {
+  .tr-main-box {
+    // margin: 240px auto auto;
+  }
+  .custom-progress {
+    width: 320px;
+    height: 15px;
+  }
+  .progress-completed-text {
+    font-size: 16px;
+  }
+  .company-default-logo {
+    max-width: 80px;
+  }
+  .profile-photo {
+    margin-top: 0px;
+    width: 85px;
+  }
+  .kexy-logo {
+    margin-top: 0;
+  }
+  .kexy-button {
+    width: 320px;
+    font-size: 15px;
+    padding: 14px;
+  }
+  .tr-form {
+    width: 320px;
+  }
+  select.form-control {
+    font-size: 15px;
+    height: 50px;
+  }
+  .form-control {
+    font-size: 15px;
+    padding: 14px 20px;
+  }
+  .phonecode {
+    font-size: 15px;
+    padding: 15px 5px 15px 14px;
+  }
+  .phoneNumber {
+    padding-left: 0;
+  }
+}

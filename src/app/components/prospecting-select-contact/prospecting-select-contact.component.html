@@ -1,0 +1,28 @@
+<div class="prospect-select">
+  <div class="content-area">
+    <kexy-scrollable-table
+      tableHeaderBg="#0047CC"
+      tableHeaderColor="#FFFFFF"
+      [cardData]="contactList"
+      [checkboxClicked]="checkboxClicked"
+      [totalPage]="totalPageNumber"
+      [currentPage]="page"
+      [paginationLeftArrowClick]="leftArrowClick"
+      [paginationRightArrowClick]="rightArrowClick"
+      [saveBtnClick]="saveContactsBtnClick"
+      [navigateSpecificPage]="navigateSpecificPage"
+      [selectedContactCount]="selectedContacts.length"
+      [isWaitingFlag]="initialLoading"
+      [backBtnClick]="backBtnClick"
+      [isLoading]="isLoading"
+    >
+    </kexy-scrollable-table>
+  </div>
+</div>
+
+<campaign-layout-bottm-btns
+  [rightSecondBtnClick]="saveContactsBtnClick"
+  [showNextButton]="false"
+  [showRightSideFirstBtn]="false"
+  rightSecondBtnLabel="Save Contact(s)"
+></campaign-layout-bottm-btns>

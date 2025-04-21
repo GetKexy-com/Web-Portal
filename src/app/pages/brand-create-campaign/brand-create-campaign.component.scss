@@ -1,0 +1,44 @@
+.brand-create-campaign-page {
+  height: calc(100vh - 70px);
+  overflow: hidden;
+  background: #e7f6fe;
+
+  .progress-wrap {
+    display: flex;
+    justify-content: center;
+    overflow: hidden;
+    height: 70px;
+    padding: 8px;
+    background: white;
+  }
+  .page-content {
+    .loading {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: absolute;
+      width: 300px;
+      height: 200px;
+      margin: 100px auto;
+      left: 0;
+      right: 0;
+      z-index: 10;
+      overflow: hidden;
+      background: white;
+      border-radius: 10px;
+    }
+    .content {
+      position: relative;
+      z-index: 11;
+
+    }
+  }
+  .next-back-btn-wrap {
+    display: flex;
+    justify-content: flex-end;
+    padding: 14px 24px;
+    .btn-wrap {
+      width: 150px;
+    }
+  }
+}

@@ -1,0 +1,17 @@
+<ul class="nav-dropdown">
+  <button class="accordion-nav-item" (click)="toggleNavDropdown()">
+    <i class="fa {{ icon }}" aria-hidden="true"></i>
+    <span class="me-3">{{ label }}</span>
+    @if(!isOpen()) {
+      <i class="fa fa-angle-down" aria-hidden="true"></i>
+    }
+    @if(isOpen()) {
+      <i class="fa fa-angle-up" aria-hidden="true"></i>
+    }
+  </button>
+  @if(isOpen()) {
+    <div class="sub-nav-item-wrap">
+      <ng-content></ng-content>
+    </div>
+  }
+</ul>

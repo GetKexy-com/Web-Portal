@@ -1,0 +1,29 @@
+<div class="credits-usage-content">
+  <div class="top-area-wrap">
+    <img [src]="creditUsageContent.img" alt="monthly-credit" />
+    <div *ngIf="creditUsageContent.buyMoreBtnShow" class="buy-more-btn-wrap">
+      <app-kexy-button label="Buy more" bgColor="#E7F6FE" textColor="#0047CC"
+                       (click)="buyMoreBtnClick()"></app-kexy-button>
+    </div>
+  </div>
+  <div class="bottom-area-wrap">
+    <p class="monthly-credit-usage-text">{{creditUsageContent.title}}</p>
+    <p class="credits-count-text" *ngIf="creditUsageContent"><span
+      [style.color]="creditUsageContent.creditTextColor">{{creditUsageContent.used_credits}}</span>
+      of {{creditUsageContent.total_credits}}
+      credits</p>
+    <ngb-progressbar
+      [ngClass]="creditUsageContent.progressColor === 'blue' ? 'credit-progressbar-blue' : 'credit-progressbar-orange'"
+      [value]="creditUsageContent.used_credits * 100 / creditUsageContent.total_credits" />
+    <p *ngIf="creditUsageContent.descText !== 'monthlyCreditText'" class="credits-are-changed-text">{{creditUsageContent.descText}}</p>
+    <p *ngIf="creditUsageContent.descText === 'monthlyCreditText'" class="credits-are-changed-text">Credits are charged when we find a new lead for you (1 credit = 1 new prospect).  KEXY also ensures data integrity by cleaning and validating every imported list. Learn more
+      <span
+        class="link-text"
+        ngbTooltip="KEXY ensures data integrity by cleaning and validating every imported list. We charge 1 credit for every 100 contacts. For instance, importing a list of 1,000 contacts will deduct 10 credits from your account."
+        tooltipClass="custom-tooltip-class"
+      >
+        here.
+      </span>
+    </p>
+  </div>
+</div>

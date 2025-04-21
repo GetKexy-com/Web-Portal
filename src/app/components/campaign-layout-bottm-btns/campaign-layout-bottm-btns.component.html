@@ -1,0 +1,43 @@
+<section class="next-back-btn-wrap">
+  <div *ngIf="showLeftSideBtn" class="left-side">
+    <div class="btn-wrap">
+      <app-kexy-button
+        label="Save"
+        bgColor="#E7F6FE"
+        textColor="#0047CC"
+        iconLeft="fa-bookmark-o"
+        (click)="handleClickLeftFirstBtn()"
+      ></app-kexy-button>
+    </div>
+  </div>
+  <div class="right-side">
+    <div *ngIf="showRightSideFirstBtn" class="btn-wrap me-2">
+      <app-kexy-button
+        label="Back"
+        bgColor="transparent"
+        borderColor="#0047CC"
+        textColor="#0047CC"
+        (click)="handleClickRightFirstBtn()"
+        [disabled]="isWaitingFlag"
+      ></app-kexy-button>
+    </div>
+    <div *ngIf="showSaveDraftBtn" class="btn-wrap me-2">
+      <app-kexy-button
+        label="Save Draft"
+        bgColor="transparent"
+        borderColor="#0047CC"
+        textColor="#0047CC"
+        (click)="onClickSaveDraft()"
+        [disabled]="isWaitingFlag"
+      ></app-kexy-button>
+    </div>
+    <div class="btn-wrap" *ngIf="showNextButton">
+      <app-kexy-button
+        (click)="handleClickRightSecondBtn()"
+        [label]="isWaitingFlag ? 'Please wait...' : rightSecondBtnLabel "
+        [disabled]="isWaitingFlag"
+        [iconLeft]="isWaitingFlag ? 'fa-refresh fa-spin' : ''"
+      ></app-kexy-button>
+    </div>
+  </div>
+</section>

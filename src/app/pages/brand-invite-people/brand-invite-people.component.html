@@ -1,0 +1,201 @@
+<brand-layout>
+  <div
+    *ngIf="isWaitingFlag"
+    style="background: rgba(0, 0, 0, 0.5); width: 100%; height: 100%; position: absolute; z-index: 999; left: 0; top: 0"
+  >
+    <i
+      class="fa fa-spinner fa-spin"
+      aria-hidden="true"
+      style="color: #fff; position: absolute; left: 50%; top: 12%; font-size: 40px"
+    ></i>
+  </div>
+  <p class="title-text mb-3 pb-0">Users</p>
+
+  <table datatable class="row-border hover datatable mt-2">
+    <thead>
+    <tr>
+      <th>Email</th>
+      <th>Role</th>
+      <th>Action</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr *ngIf="isLoadingListFlag">
+      <td colspan="7" style="text-align: center">
+        <i class="fa fa-spinner fa-spin" aria-hidden="true"></i>
+      </td>
+    </tr>
+    <tr *ngIf="cleanUserList.length === 0 && !isLoadingListFlag">
+      <td colspan="7" style="text-align: center">0 users are invited yet.</td>
+    </tr>
+
+    <tr *ngFor="let user of cleanUserList; let i = index">
+      <td>{{ !user.user ? user.email : user.user.email }}</td>
+      <td style="max-width: 350px; text-transform: capitalize">
+        <span style="width: 60px; display: inline-block">{{ user.role.toLowerCase() !== constants.REP ? user.role : 'Basic User' }}</span>
+        <span *ngIf="(isAdmin && user.user && user.user.email !== userData.email) || (isAdmin && user.action)">
+          <i
+            class="fa fa-pencil"
+            aria-hidden="true"
+            style="margin-left: 20px"
+            (click)="changeEmployeeRole(user, employeeRoleChangeModal)"
+          ></i>
+        </span>
+      </td>
+      <td>
+          <span
+            style="color: #007bff"
+            class="action-label"
+            *ngIf="!user.user && user.action == 'idle'"
+            href="javascript: void(0);"
+            (click)="resendInvitation(user, i)"
+          >Resend</span
+          >
+        <span
+          style="color: #007bff"
+          class="action-label"
+          *ngIf="user.user && user.status == 'deleted'"
+          href="javascript: void(0);"
+          (click)="resendInvitation(user, i)"
+        >
+            Resend
+          </span>
+        <span class="action-label" *ngIf="user.user && user.status == 'active'"> Accepted </span>
+        <span class="action-label" *ngIf="!user.user && user.action == 'sent'">Sent</span>
+        <i
+          *ngIf="user.user_id !== userData.id && isAdmin"
+          style="margin-left: 35px"
+          class="fa fa-trash"
+          (click)="deleteInvitedUser(i, user, userDeleteModal)"
+        ></i>
+      </td>
+    </tr>
+    </tbody>
+  </table>
+
+  <ng-container *ngIf="isAdmin">
+    <p class="title-text mb-3 mt-5 pb-0">Invite People to Join KEXY</p>
+    <form [formGroup]="primaryForm" (ngSubmit)="primaryFormSubmitted()">
+      <div formArrayName="peoplesList">
+        <div class="row" *ngFor="let people of peoplesList().controls; let i = index" [formGroupName]="i">
+          <div class="col-md-5">
+            <div class="form-group">
+              <input
+                [class.error]="
+                  (submitted || primaryForm.get('peoplesList')['controls'][i].controls.userEmail.dirty) &&
+                  primaryForm.get('peoplesList')['controls'][i].controls.userEmail.invalid
+                "
+                type="text"
+                formControlName="userEmail"
+                class="form-control"
+                placeholder="name@example.com"
+              />
+              <div
+                *ngIf="
+                  (submitted || primaryForm.get('peoplesList')['controls'][i].controls.userEmail.dirty) &&
+                  primaryForm.get('peoplesList')['controls'][i].controls.userEmail.invalid
+                "
+              >
+                <span class="text-danger">Email is required</span>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-5">
+            <div class="form-group">
+              <select
+                [class.error]="
+                  (submitted || primaryForm.get('peoplesList')['controls'][i].controls.userRole.dirty) &&
+                  primaryForm.get('peoplesList')['controls'][i].controls.userRole.invalid
+                "
+                formControlName="userRole"
+                name="userRole"
+                class="form-control"
+              >
+                <option value="" selected>Select Role</option>
+                <option value="Rep">Basic User</option>
+                <option value="Admin">Admin</option>
+              </select>
+              <div
+                *ngIf="
+                  (submitted || primaryForm.get('peoplesList')['controls'][i].controls.userRole.dirty) &&
+                  primaryForm.get('peoplesList')['controls'][i].controls.userRole.invalid
+                "
+              >
+                <span class="text-danger">Selection is required</span>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-2" *ngIf="i != 0">
+            <i class="fa fa-trash" (click)="removePeople(i)" aria-hidden="true"></i>
+          </div>
+        </div>
+      </div>
+
+      <div class="row" class="addNewPeople" formArrayName="peoplesList">
+        <div class="col-md-12" style="margin-bottom: 20px">
+          <a href="javascript: void(0);" class="add-another-invitation-link" (click)="addPeopleRow()"
+          >+ Add another invitation</a
+          >
+        </div>
+      </div>
+
+      <div class="form-group">
+        <app-kexy-button
+          type="submit"
+          [label]="isSubmitFlag ? 'Please wait...' : 'Send Invitation(s)' "
+          [disabled]="isSubmitFlag"
+          [iconLeft]="isSubmitFlag ? 'fa-refresh fa-spin' : 'fa-paper-plane-o'"
+        ></app-kexy-button>
+      </div>
+    </form>
+  </ng-container>
+
+  <ng-template #employeeRoleChangeModal let-c="close" let-d="dismiss">
+    <div class="role-change-modal p-3">
+      <div class="text-right">
+        <img src="/assets/images/close.png" (click)="closeRoleChangeModal()" />
+      </div>
+      <p class="pt-2 mb-0">User Role:</p>
+
+      <div class="pt-3">
+        <select
+          class="form-control"
+          (change)="onEmployeeRoleChange($any($event.target).value)"
+          [(ngModel)]="changedRoleOfEmployee"
+        >
+          <option value="admin">Admin</option>
+          <option value="rep">Basic User</option>
+        </select>
+      </div>
+      <button class="kexy-button mt-3" style="padding: 10px 30px; width: auto" (click)="handleRoleChangeFromModal()">
+        <i *ngIf="isWaitingFlag" class="fa fa-spinner fa-spin" aria-hidden="true"></i>
+        Save
+      </button>
+    </div>
+  </ng-template>
+  <ng-template #userDeleteModal let-c="close" let-d="dismiss">
+    <div class="user-delete-modal p-3">
+      <div class="text-right">
+        <img src="/assets/images/close.png" (click)="closeUserDeleteModal()" />
+      </div>
+      <p class="pt-2 mb-0">
+        Select the user you want to transfer the user's data to (for example, an active Admin user).
+      </p>
+
+      <div class="pt-3">
+        <select class="form-control" [(ngModel)]="selectedUserAccount">
+          <option value="">Please select an user account</option>
+          <option *ngFor="let employee of filteredSupplierEmployees" [value]="employee.user.id">
+            {{ employee.user.first_name }}
+            {{ employee.user.last_name }}<{{ employee.user.email }}>
+          </option>
+        </select>
+      </div>
+      <p *ngIf="errorMessage" class="text-danger">{{ errorMessage }}</p>
+      <button class="kexy-button mt-3" style="padding: 10px 30px; width: auto" (click)="handleDeleteUserFromModal()">
+        <i *ngIf="isWaitingFlag" class="fa fa-spinner fa-spin" aria-hidden="true"></i>
+        Delete
+      </button>
+    </div>
+  </ng-template>
+</brand-layout>

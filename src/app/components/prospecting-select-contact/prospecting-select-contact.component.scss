@@ -1,0 +1,11 @@
+.prospect-select {
+  height: calc(100vh - 245px);
+  overflow: hidden;
+  margin: 18px 24px;
+
+  .content-area {
+    overflow-x: scroll;
+    height: calc(100vh - 225px);
+    background: #e7f6fe;
+  }
+}

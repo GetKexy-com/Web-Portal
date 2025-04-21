@@ -1,0 +1,120 @@
+.canvas-content-wrap {
+  position: relative;
+  overflow: auto;
+  height: 100vh;
+  .head-area {
+    display: flex;
+    justify-content: space-between;
+    padding: 24px;
+    border-bottom: 1px solid #e8e8e8;
+    p {
+      margin-bottom: 0;
+      font-weight: 600;
+      font-size: 20px;
+      line-height: 20px;
+      color: #181818;
+    }
+    img {
+      align-self: center;
+      cursor: pointer;
+    }
+  }
+  .add-delete-rep-button-area {
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px solid #e8e8e8;
+    padding: 10px;
+  }
+  .canvas-body {
+    padding: 10px 20px;
+    .input-wrap {
+      margin-top: 20px;
+      .label-and-input {
+        textarea {
+          height: 60px;
+          overflow-y: auto;
+        }
+        .form-control {
+          font-size: 14px;
+          padding: 8px;
+        }
+        p {
+          margin-bottom: 10px;
+          font-weight: 700;
+          font-size: 13px;
+          line-height: 15px;
+          letter-spacing: -0.01em;
+          text-transform: uppercase;
+          color: #202020;
+        }
+        select.form-control {
+          padding: 12px;
+        }
+      }
+    }
+    .canvas-headline {
+      color: #274acb;
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 20px;
+    }
+    .establishment-type {
+      overflow: hidden;
+      clear: both;
+      margin-bottom: 10px;
+    }
+    .buttons {
+      display: flex;
+      button {
+        border-radius: 15px;
+        padding: 10px 0;
+      }
+      .blue-border-white-bg-button {
+        border: 2px solid #d9d9d9;
+        color: #010101;
+      }
+    }
+    .colors-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      .color-item {
+        width: 109px;
+        height: 50px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-radius: 10px;
+        cursor: pointer;
+        i {
+          color: white;
+        }
+      }
+    }
+  }
+}
+
+@media (min-width: 992px) and (max-width: 1599px) {
+  .canvas-content-wrap {
+    .canvas-body {
+      //padding: 15px 0 15px 20px;
+      .canvas-headline {
+        font-size: 20px;
+        margin-bottom: 8px;
+      }
+      .establishment-type {
+        label {
+          font-size: 12px;
+        }
+      }
+      .input-wrap {
+        .label-and-input {
+          p {
+            font-size: 11px;
+            line-height: 13px;
+          }
+        }
+      }
+    }
+  }
+}

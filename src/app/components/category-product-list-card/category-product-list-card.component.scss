@@ -1,0 +1,206 @@
+.product-card {
+  background: white;
+  // cursor: pointer;
+  margin-bottom: 20px;
+  border-radius: 12px;
+  box-shadow: 0 1px 5px 0 #d6d6d6;
+  .card-header {
+    display: flex;
+    justify-content: flex-end;
+    .card-category {
+      padding: 10px;
+      min-width: 200px;
+    }
+    .card-add-new {
+      border-left: 1px solid #edf8fe;
+      padding: 10px;
+    }
+  }
+  .list-table {
+    .head-area {
+      display: flex;
+      background: #0047cc;
+      box-shadow: 0px 2px 5px 0px #a7acb033;
+      font-size: 9px;
+      font-weight: 700;
+      line-height: 16px;
+      letter-spacing: 0em;
+      color: white;
+      padding: 10px 20px;
+
+      p {
+        margin-bottom: 0;
+      }
+      .number-cell {
+        width: 6%;
+        font-size: 12px;
+      }
+      .category-type-cell {
+        width: 24%;
+        font-size: 12px;
+      }
+      .product-name-cell {
+        width: 50%;
+        font-size: 12px;
+      }
+      .icons-cell {
+        width: 30%;
+      }
+    }
+    .body-area {
+      .table-row-wrap {
+        border-bottom: 1px solid #e7f6fe;
+      }
+      .product-desc {
+        margin: 10px 16px;
+        textarea {
+          height: 150px;
+          font-size: 14px;
+        }
+      }
+      .bottom-btn-wrap {
+        width: 200px;
+        margin: 0 0 16px 16px;
+      }
+      .table-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 20px;
+      }
+      p {
+        margin-bottom: 0;
+      }
+      .number {
+        //width: 6%;
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 16px;
+        letter-spacing: 0em;
+        color: #a0a0a0;
+        width: 45px;
+      }
+      .category-product-name-typography {
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 16px;
+        letter-spacing: 0em;
+        color: black;
+      }
+      .product-name {
+        //width: 50%;
+
+        input {
+          width: 100%;
+          padding: 4px 8px;
+          border-radius: 6px;
+          font-size: 14px;
+        }
+      }
+      .icons-wrap {
+        width: 30%;
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        i {
+          margin-left: 20px;
+          color: #a0a0a0;
+          cursor: pointer;
+        }
+        .toggle-icon-wrap {
+          width: 20px;
+          height: 20px;
+          border-radius: 50%;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          background-color: rgb(231, 246, 254);
+          margin-left: 35px;
+          cursor: pointer;
+          i {
+            margin-left: 0;
+            color: #12a5f4;
+          }
+        }
+        .active {
+          background: #12a5f4;
+          i {
+            color: white;
+          }
+        }
+      }
+    }
+  }
+}
+
+.delete-icon {
+  font-size: 20px;
+  &:hover {
+    color: red;
+  }
+}
+.description-label {
+  font-size: 10px;
+  line-height: 12px;
+  letter-spacing: 0.5px;
+}
+
+@media (min-width: 320px) and (max-width: 559px) {
+  .product-card {
+    .list-table {
+      .head-area {
+        padding: 10px;
+
+        .number-cell {
+          width: 25px;
+          font-size: 10px;
+        }
+        .category-type-cell {
+          width: 90px;
+          margin-right: 5px;
+          font-size: 10px;
+        }
+        .product-name-cell {
+          // width: 70px;
+          font-size: 10px;
+        }
+        .icons-cell {
+          width: 50px;
+        }
+      }
+      .body-area {
+        .number {
+          width: 25px;
+          font-size: 10px;
+          line-height: 14px;
+        }
+        .category-name {
+          width: 90px;
+          margin-right: 5px;
+          font-size: 10px;
+          line-height: 14px;
+        }
+        .product-name {
+          // width: 70px;
+          font-size: 10px;
+          line-height: 14px;
+        }
+        .icons-wrap {
+          width: 50px;
+          .edit-delete-icon-wrap {
+            display: flex;
+          }
+          i {
+            font-size: 10px;
+            margin-left: 10px;
+          }
+          .toggle-icon-wrap {
+            min-width: 15px;
+            min-height: 15px;
+            margin-left: 10px;
+          }
+        }
+      }
+    }
+  }
+}

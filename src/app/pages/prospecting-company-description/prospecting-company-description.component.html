@@ -1,0 +1,33 @@
+<!--<brand-layout layoutPaddingNone="true" headerBgWhite="true">-->
+<!--  <div class="company-description-page">-->
+<!--    <div class="card-area-wrap">-->
+<!--      <prospecting-common-card-->
+<!--        cardTitle="Company Description"-->
+<!--        [description]="companyDescription"-->
+<!--        cardTitleLogo="/assets/icon/blue-company-icon.svg"-->
+<!--        cardDetails="This is the information about your company that KEXY uses to write cold emails with. The more elaborate and accurate-->
+<!--      the information here is, the better the emails will be."-->
+<!--        textAreaLabel="Description"-->
+<!--        bottomBtnLabel="Save changes"-->
+<!--        [handleBottomBtnClick]="saveCompanyDescription"-->
+<!--      ></prospecting-common-card>-->
+<!--    </div>-->
+<!--  </div>-->
+<!--</brand-layout>-->
+
+<brand-layout layoutPaddingNone="true" headerBgWhite="true">
+  <div class="company-description-page">
+    <div class="card-area-wrap">
+      <prospecting-common-card
+        cardTitle="Company Description"
+        [description]="companyDescription()"
+        cardTitleLogo="/assets/icon/blue-company-icon.svg"
+        cardDetails="This is the information about your company that KEXY uses to write cold emails with. The more elaborate and accurate
+      the information here is, the better the emails will be."
+        textAreaLabel="Description"
+        bottomBtnLabel="Save changes"
+        [handleBottomBtnClick]="saveCompanyDescription"
+      />
+    </div>
+  </div>
+</brand-layout>

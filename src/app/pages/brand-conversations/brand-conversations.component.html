@@ -1,0 +1,254 @@
+<brand-layout layoutPaddingNone="true" headerBgWhite="true" [fullPageScroll]="false">
+  <div class="brand-conversations-page">
+    <div class="conv-main d-flex">
+
+      <div class="conv-top-left">
+        <div class="search-section d-flex align-items-center justify-content-between">
+          <div class="search-input d-flex align-items-center">
+            <form (ngSubmit)="filterConversation()">
+              <i class="fa fa-search" aria-hidden="true"></i>
+              <input type="text" placeholder="Search conversations" name="search" [(ngModel)]="convSearchText"
+                     (input)="handleConvSearchInputChange($event)" />
+            </form>
+          </div>
+          <i *ngIf="searchLoading" class="fa fa-spinner fa-spin ms-2" aria-hidden="true"></i>
+
+          <div class="filter">
+            <app-kexy-button
+              *ngIf="selectedContacts.length"
+              [disabled]="isLoading"
+              (click)="deleteConversations()"
+              style="margin-right: 10px"
+              label=""
+              iconLeft="fa-trash"
+              bgColor="#e7f6fe"
+              textColor="#2847cc"
+              radius="8px"
+              tooltip="Delete Conversation(s)"
+            ></app-kexy-button>
+          </div>
+        </div>
+
+        <div class="conv-list" *ngIf="!isLoading && filteredConversations.length > 0">
+          <div *ngIf="!convSearchText" class="conv-pagination-wrap">
+            <div class="conv-pagination">
+              <div class="select-all-checkbox">
+                <p class="d-flex align-items-center gap-2" (click)="handleSelectAllClick()">
+                  <span>
+                    <i
+                      aria-hidden="true"
+                      class="fa checkbox-icon"
+                      [class.fa-square-o]="!isAllContactSelected()"
+                      [class.fa-check-square]="isAllContactSelected()"
+                      [class.selected]="isAllContactSelected()"
+                    ></i>
+                  </span>
+                  Select All
+                </p>
+              </div>
+              <div class="d-flex align-items-center">
+                <p>
+                  <span *ngIf="!isPaginationLoading">{{ calculateDisplayedConvRangeNumber() }}</span>
+                  <span *ngIf="isPaginationLoading"><i class="fa fa-spinner fa-spin" aria-hidden="true"></i></span>
+                  of {{ totalConversationCount }}
+                </p>
+                <div>
+                  <span
+                    class="pagination-arrow"
+                    [class.disabled]="isPaginationLoading"
+                    (click)="previousBtnClick()">
+                    <i class="fa fa-angle-left" aria-hidden="true"></i>
+                  </span>
+                  <span
+                    class="pagination-arrow"
+                    [class.disabled]="isPaginationLoading"
+                    (click)="nextBtnClick()">
+                    <i class="fa fa-angle-right" aria-hidden="true"></i>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <ng-container *ngFor="let c of filteredConversations">
+            <div class="d-flex align-items-center">
+              <span (click)="onSelectContact(c)">
+                  <i
+                    aria-hidden="true"
+                    class="fa checkbox-icon ms-2"
+                    [class.fa-square-o]="!isContactSelected(c)"
+                    [class.fa-check-square]="isContactSelected(c)"
+                    [class.selected]="isContactSelected(c)"
+                  ></i>
+                </span>
+              <brand-convo-card
+                class="flex-grow-1"
+                [conversation]="c"
+                [selected]="c.id === selectedConversation.id"
+                (click)="conversationTapped(c)"
+              >
+              </brand-convo-card>
+            </div>
+          </ng-container>
+        </div>
+        <div class="conv-list" *ngIf="isLoading || filteredConversations.length === 0">
+          <div class="empty-user-info">
+            <div class="empty-avatar"></div>
+            <div class="empty-user-content">
+              <div class="top"></div>
+              <div class="bottom"></div>
+            </div>
+          </div>
+          <div class="empty-user-info">
+            <div class="empty-avatar"></div>
+            <div class="empty-user-content">
+              <div class="top"></div>
+              <div class="bottom"></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="conv-top-right" *ngIf="selectedConversation">
+        <div class="user-info-section d-flex justify-content-between align-items-center position-relative">
+          <div class="user-info d-flex align-items-center">
+            <div class="m-2">
+              <brand-convo-avatar
+                [text]="getNameInitials(selectedConversation.receiver_details)"
+                [color]="'blue'"
+              ></brand-convo-avatar>
+            </div>
+            <span>
+              {{ selectedConversation.receiver_details.first_name }}
+              {{ selectedConversation.receiver_details.last_name }}
+              <span class="unsubscribe-link" (click)="unsubscribeBtnClick()">Unsubscribe</span>
+              <br>
+              <span style="font-weight: normal">
+                    {{ selectedConversation.receiver_details.jobTitle }}
+                {{ (selectedConversation.receiver_details.jobTitle && selectedConversation.receiver_details.companyName) ? 'at' : '' }}
+                <a
+                  *ngIf="selectedConversation.receiver_details.companyWebsite"
+                  [href]="selectedConversation.receiver_details.companyWebsite"
+                  target="_blank"
+                  class="company-name"
+                >
+                  {{ selectedConversation.receiver_details.companyName }}
+                </a>
+                <span
+                  *ngIf="selectedConversation.receiver_details.companyName"
+                >
+                  {{ selectedConversation.receiver_details.companyName }}
+                </span>
+              </span>
+            </span>
+          </div>
+          <div class="convo-actions d-flex" *ngIf="selectedConversation">
+            <app-kexy-button
+              class="me-2"
+              label="Send next email"
+              (click)="sendNextEmailTapped(sendEmailModal)"
+              bgColor="#e7f6fe"
+              textColor="#2847cc"
+              radius="8px"
+            ></app-kexy-button>
+          </div>
+          <ng-container *ngIf="unsubscribed && !isLoading && filteredConversations.length > 0">
+            <div class="unsubscribed">
+              <p class="m-0">Prospect has unsubscribed</p>
+            </div>
+          </ng-container>
+        </div>
+        <div class="user-extra-info d-flex">
+          <p class="me-2" *ngIf="selectedConversation.receiver_details.companyPhone">
+            <img src="/assets/icon/phone-icon.svg" alt="Phone Icon">
+            {{ selectedConversation.receiver_details.companyPhone }}
+          </p>
+          <p>
+            <img src="/assets/icon/envelope-icon.svg" alt="Envelope Icon"> {{ selectedConversation.receiver_email }}
+          </p>
+        </div>
+        <!--        #conversationView-->
+        <!--        (scroll)="onScroll()"-->
+        <div class="conv-view" *ngIf="selectedConversation">
+          <ng-container *ngFor="let email of selectedConversation['prospecting_conversations_messages']">
+            <brand-convo-email [email]="email"></brand-convo-email>
+          </ng-container>
+        </div>
+      </div>
+
+      <div class="no-data-found" *ngIf="!selectedConversation">
+        <div class="no-data-found-content" *ngIf="!isLoading && !totalConversationCount">
+          <div class="content-wrap">
+            <div class="top-circle-with-icon">
+              <img src="/assets/icon/double-envelop.svg" alt="envelop-icon" />
+            </div>
+            <div class="content">
+              <p class="sorry-text">Sorry! No data found</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <ng-template #sendEmailModal let-c="close" let-d="dismiss">
+    <div class="send-email-modal-content">
+      <div class="title-and-close-btn">
+        <p class="modal-of-title">Send an email to {{ selectedConversation.receiver_details.first_name }}
+          {{ selectedConversation.receiver_details.last_name }}</p>
+        <div class="close-icon-wrap" (click)="c()">
+          <img src="/assets/images/close-icon.png" alt="close-icon" />
+        </div>
+      </div>
+      <div class="send-email-modal-body">
+        <div class="top-area">
+
+          <div class="text-content">
+            <div class="user-info d-flex align-items-center" *ngIf="selectedConversation">
+              <brand-convo-avatar
+                [text]="getNameInitials(selectedConversation.receiver_details)"
+                [color]="'blue'"
+              ></brand-convo-avatar>
+              <span class="m-2">
+                <strong>
+                  {{ selectedConversation.receiver_details.first_name }}
+                  {{ selectedConversation.receiver_details.last_name }}
+                </strong>
+                <br>
+                <span style="font-size: 14px">
+                  {{ selectedConversation.receiver_details.jobTitle }} at
+                  <a
+                    [href]="selectedConversation.receiver_details.companyWebsite"
+                    target="_blank"
+                    class="company-name">
+                    {{ selectedConversation.receiver_details.companyName }}
+                  </a>
+                </span>
+              </span>
+            </div>
+          </div>
+        </div>
+        <div class="text-area">
+          <div class="textarea-wrap">
+            <kexy-rich-editor
+              [content]="emailContent"
+              [onContentUpdate]="onEmailContentChange">
+            </kexy-rich-editor>
+          </div>
+          <ng-container *ngIf="!(emailContent || updatedEmailContent) && sendBtnClicked">
+            <span style="color: red; font-size: 12px">Email content is required.</span>
+          </ng-container>
+        </div>
+        <div class="bottom-btn-area float-end">
+          <div class="btn-wrap">
+            <app-kexy-button
+              (click)="addMessageToConversation()"
+              [disabled]="isLoading"
+              [label]="isLoading ? 'Please wait...' : 'Send email' "
+              [iconLeft]="isLoading ? 'fa-refresh fa-spin' : 'fa-paper-plane-o'"
+            ></app-kexy-button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ng-template>
+</brand-layout>

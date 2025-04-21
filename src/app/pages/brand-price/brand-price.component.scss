@@ -1,0 +1,197 @@
+.brand-price-page {
+  padding: 18px 24px;
+  .pricing-for-brands-card {
+    background: white;
+    border-radius: 10px;
+    padding: 30px;
+    text-align: center;
+    .pricing-for-brand-text {
+      font-size: 16px;
+      font-weight: 600;
+      line-height: 26px;
+      color: black;
+      margin-bottom: 5px;
+    }
+    .start-crushing-text {
+      font-size: 14px;
+      font-weight: 500;
+      line-height: 22px;
+      color: #000000C4;
+      margin-bottom: 10px;
+    }
+    .kexy-toogle {
+      margin-bottom: 16px;
+    }
+    .schedule-call-btn-area {
+      display: flex;
+      justify-content: center;
+      .button-wrap {
+        width: 160px;
+      }
+    }
+  }
+  .number-of-users-area {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    margin-top: 20px;
+    p {
+      margin-bottom: 0;
+      font-size: 14px;
+    }
+    button {
+      margin-left: 10px;
+      background: white;
+      border: 1px solid grey;
+      font-size: 10px;
+      width: 25px;
+      height: 25px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: 3px;
+    }
+    input {
+      width: 60px;
+      margin-left: 10px;
+      text-align: center;
+    }
+  }
+  .subscription-card {
+    background: white;
+    border-radius: 10px;
+    padding: 15px;
+    margin-top: 10px;
+    display: flex;
+    margin-bottom: 100px;
+    .subscription-features-text {
+      //width: 36%;
+      width: 42%;
+      .subscription-title-text {
+        font-size: 17px;
+        font-weight: 500;
+        line-height: 20px;
+        color: #0047CC;
+        margin-bottom: 20px;
+      }
+      .features-list {
+        p {
+          font-size: 13px;
+          font-weight: 400;
+          line-height: 21px;
+          margin-bottom: 0;
+          padding: 14px 0;
+        }
+      }
+    }
+    .subscription-type-card-wrap {
+      //width: 16%;
+      width: 18%;
+      margin-left: 10px;
+    }
+  }
+}
+.subscription-price-summary-area {
+  background: white;
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  padding: 18px 24px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.switch-item {
+  font-size: 13px;
+  line-height: 16px;
+}
+.switch-item-active {
+  font-size: 13px;
+  line-height: 16px;
+  color: #0047cc;
+}
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 23px;
+  margin: 0 10px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #F1F5F7;
+  border: 1px solid #C4CBCF;
+  -webkit-transition: 0.4s;
+  transition: 0.4s;
+
+}
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 12px;
+  width: 12px;
+  left: 4px;
+  bottom: 4px;
+  background-color: #C4CBCF;
+  -webkit-transition: 0.4s;
+  transition: 0.4s;
+}
+
+.slider.active {
+  border: 1px solid #12A5F4;
+}
+.slider.active:before {
+  background-color: #12A5F4;
+}
+
+input:checked + .slider:before {
+  -webkit-transform: translateX(17px);
+  -ms-transform: translateX(17px);
+  transform: translateX(17px);
+}
+
+/* Rounded sliders */
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+
+/* Chrome, Safari, Edge, Opera */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+input[type=number] {
+  -moz-appearance: textfield;
+}
+
+@media (min-width: 992px) and (max-width: 1199px) {
+  .brand-price-page {
+    .subscription-card {
+      .subscription-features-text {
+        width: 30%;
+      }
+      .subscription-type-card-wrap {
+        width: 22%;
+        //width: 19%;
+      }
+    }
+  }
+}

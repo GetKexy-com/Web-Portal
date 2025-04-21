@@ -1,0 +1,125 @@
+<!--<brand-layout layoutPaddingNone="true" headerBgWhite="true">-->
+<!--  <div class="suppression-list-page">-->
+<!--    <div class="top-btns">-->
+<!--      <div class="d-flex">-->
+<!--        <app-kexy-button-->
+<!--          *ngIf="selectedContacts.length"-->
+<!--          style="margin-right: 10px"-->
+<!--          label="Delete"-->
+<!--          iconLeft="fa-trash"-->
+<!--          bgColor="#e7f6fe"-->
+<!--          textColor="#2847cc"-->
+<!--          radius="8px"-->
+<!--          (click)="deleteClick()"-->
+<!--        ></app-kexy-button>-->
+
+<!--        <app-kexy-button-->
+<!--          style="margin-right: 10px"-->
+<!--          label="Add User to Suppression List"-->
+<!--          iconLeft="fa-plus"-->
+<!--          bgColor="#e7f6fe"-->
+<!--          textColor="#2847cc"-->
+<!--          radius="8px"-->
+<!--          (click)="addNewRepClick()"-->
+<!--        ></app-kexy-button>-->
+
+<!--        <app-kexy-button-->
+<!--          label="Import"-->
+<!--          iconLeft="fa-cloud-upload"-->
+<!--          (click)="importBtnClick(uploadVendors)"-->
+<!--          bgColor="#e7f6fe"-->
+<!--          textColor="#2847cc"-->
+<!--          radius="8px"-->
+<!--        ></app-kexy-button>-->
+<!--      </div>-->
+<!--    </div>-->
+
+<!--    <div class="content-area">-->
+<!--      <suppression-list-card-->
+<!--        tableHeaderBg="#0047CC"-->
+<!--        tableHeaderColor="#FFFFFF"-->
+<!--        [checkboxClicked]="handleContactSelect"-->
+<!--        [cardData]="suppressionList"-->
+<!--        [selectedContacts]="selectedContacts"-->
+<!--        [totalRecordsCount]="totalContactsCount"-->
+<!--        [totalPage]="totalPage"-->
+<!--        [currentPage]="page"-->
+<!--        [limit]="limit"-->
+<!--        (selectedLimit)="receivedLimitNumber($event)"-->
+<!--        [paginationLeftArrowClick]="paginationLeftArrowClick"-->
+<!--        [paginationRightArrowClick]="paginationRightArrowClick"-->
+<!--        [isWaitingFlag]="isWaitingFlag"-->
+<!--        [isLoading]="isLoading"-->
+<!--        [selectAllContacts]="selectAllContacts"-->
+<!--        [toggleSelectAllSelection]="toggleSelectAllContactSelection"-->
+<!--      ></suppression-list-card>-->
+<!--    </div>-->
+<!--  </div>-->
+<!--  <ng-template #uploadVendors let-c="close" let-d="dismiss">-->
+<!--    <upload-vendors-modal-content [closeModal]="closeModal"></upload-vendors-modal-content>-->
+<!--  </ng-template>-->
+<!--</brand-layout>-->
+
+<brand-layout layoutPaddingNone="true" headerBgWhite="true">
+  <div class="suppression-list-page">
+    <div class="top-btns">
+      <div class="d-flex">
+        @if (selectedContacts().length) {
+          <app-kexy-button
+            style="margin-right: 10px"
+            label="Delete"
+            iconLeft="fa-trash"
+            bgColor="#e7f6fe"
+            textColor="#2847cc"
+            radius="8px"
+            (click)="deleteClick()"
+          />
+        }
+
+        <app-kexy-button
+          style="margin-right: 10px"
+          label="Add User to Suppression List"
+          iconLeft="fa-plus"
+          bgColor="#e7f6fe"
+          textColor="#2847cc"
+          radius="8px"
+          (click)="addNewRepClick()"
+        />
+
+        <app-kexy-button
+          label="Import"
+          iconLeft="fa-cloud-upload"
+          (click)="importBtnClick(uploadVendors)"
+          bgColor="#e7f6fe"
+          textColor="#2847cc"
+          radius="8px"
+        />
+      </div>
+    </div>
+
+    <div class="content-area">
+      <suppression-list-card
+        tableHeaderBg="#0047CC"
+        tableHeaderColor="#FFFFFF"
+        [checkboxClicked]="handleContactSelect"
+        [cardData]="suppressionList()"
+        [selectedContacts]="selectedContacts()"
+        [totalRecordsCount]="totalContactsCount()"
+        [totalPage]="totalPage()"
+        [currentPage]="page()"
+        [limit]="limit()"
+        (selectedLimit)="receivedLimitNumber($event)"
+        [paginationLeftArrowClick]="paginationLeftArrowClick"
+        [paginationRightArrowClick]="paginationRightArrowClick"
+        [isWaitingFlag]="isWaitingFlag()"
+        [isLoading]="isLoading()"
+        [selectAllContacts]="selectAllContacts()"
+        [toggleSelectAllSelection]="toggleSelectAllContactSelection"
+      />
+    </div>
+  </div>
+
+  <ng-template #uploadVendors let-c="close" let-d="dismiss">
+    <upload-vendors-modal-content [closeModal]="closeModal" />
+  </ng-template>
+</brand-layout>

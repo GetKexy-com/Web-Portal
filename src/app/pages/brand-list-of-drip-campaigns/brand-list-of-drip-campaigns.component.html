@@ -1,0 +1,168 @@
+<!--<brand-layout layoutPaddingNone="true" headerBgWhite="true" mainBgColor="#e7f6fe">-->
+<!--  <div class="brand-list-of-drip-campaign-page">-->
+<!--    <div class="top-btns">-->
+<!--      <div class="d-flex">-->
+<!--        <app-kexy-button-->
+<!--          *ngIf="selectedDripCampaigns.length === 1 && selectedDripCampaigns[0]?.status === constants.ACTIVE"-->
+<!--          (click)="addContactBtnClick()"-->
+<!--          style="margin-right: 10px"-->
+<!--          label="Add Contact(s)"-->
+<!--          iconLeft="fa-plus"-->
+<!--          bgColor="#e7f6fe"-->
+<!--          textColor="#2847cc"-->
+<!--          radius="8px"-->
+<!--        ></app-kexy-button>-->
+<!--        <app-kexy-button-->
+<!--          *ngIf="selectedDripCampaigns.length"-->
+<!--          (click)="deleteDripCampaigns()"-->
+<!--          style="margin-right: 10px"-->
+<!--          label="Delete"-->
+<!--          iconLeft="fa-trash"-->
+<!--          bgColor="#e7f6fe"-->
+<!--          textColor="#2847cc"-->
+<!--          radius="8px"-->
+<!--        ></app-kexy-button>-->
+<!--        <app-kexy-button-->
+<!--          *ngIf="selectedDripCampaigns.length === 1"-->
+<!--          (click)="redirectToEditPage(true)"-->
+<!--          style="margin-right: 10px"-->
+<!--          label="Duplicate"-->
+<!--          iconLeft="fa-pencil-square-o"-->
+<!--          bgColor="#e7f6fe"-->
+<!--          textColor="#2847cc"-->
+<!--          radius="8px"-->
+<!--        ></app-kexy-button>-->
+<!--        <app-kexy-button-->
+<!--          *ngIf="selectedDripCampaigns.length === 1"-->
+<!--          (click)="redirectToEditPage()"-->
+<!--          style="margin-right: 10px"-->
+<!--          label="Edit"-->
+<!--          iconLeft="fa-pencil-square-o"-->
+<!--          bgColor="#e7f6fe"-->
+<!--          textColor="#2847cc"-->
+<!--          radius="8px"-->
+<!--        ></app-kexy-button>-->
+<!--        <app-kexy-button-->
+<!--          *ngIf="selectedDripCampaigns.length === 1 && (selectedDripCampaigns[0]?.status === constants.ACTIVE || selectedDripCampaigns[0]?.status === constants.PAUSE)"-->
+<!--          (click)="pauseOrResumeOrDeleteDripCampaign()"-->
+<!--          [label]="setBtnLabelBasedOnCampaignStatus()"-->
+<!--          [iconLeft]="setBtnIconBasedOnCampaignStatus()"-->
+<!--          bgColor="#e7f6fe"-->
+<!--          textColor="#2847cc"-->
+<!--          radius="8px"-->
+<!--        ></app-kexy-button>-->
+<!--      </div>-->
+<!--    </div>-->
+
+<!--    <div class="content-area">-->
+<!--      <list-of-drip-campaign-table-->
+<!--        tableHeaderBg="#0047CC"-->
+<!--        tableHeaderColor="#FFFFFF"-->
+<!--        [checkboxClicked]="handleContactSelect"-->
+<!--        [cardData]="dripCampaignList"-->
+<!--        [dripCampaignTitles]="dripCampaignTitles"-->
+<!--        [selectedDripCampaigns]="selectedDripCampaigns"-->
+<!--        [totalRecordsCount]="totalRecordsCount"-->
+<!--        [totalPage]="totalPageCounts"-->
+<!--        [currentPage]="page"-->
+<!--        [limit]="limit"-->
+<!--        (selectedLimit)="receivedLimitNumber($event)"-->
+<!--        [paginationLeftArrowClick]="paginationLeftArrowClick"-->
+<!--        [paginationRightArrowClick]="paginationRightArrowClick"-->
+<!--        [isWaitingFlag]="isWaitingFlag"-->
+<!--        [isLoading]="isLoading"-->
+<!--        [selectedAllDripCampaigns]="selectedAllDripCampaigns"-->
+<!--        [toggleSelectAllSelection]="toggleSelectAllSelection"-->
+<!--      ></list-of-drip-campaign-table>-->
+<!--    </div>-->
+<!--  </div>-->
+<!--</brand-layout>-->
+
+<brand-layout layoutPaddingNone="true" headerBgWhite="true" mainBgColor="#e7f6fe">
+  <div class="brand-list-of-drip-campaign-page">
+    <div class="top-btns">
+      <div class="d-flex">
+        @if (selectedDripCampaigns().length === 1 && selectedDripCampaigns()[0]?.status === constants.ACTIVE) {
+          <app-kexy-button
+            (click)="addContactBtnClick()"
+            style="margin-right: 10px"
+            label="Add Contact(s)"
+            iconLeft="fa-plus"
+            bgColor="#e7f6fe"
+            textColor="#2847cc"
+            radius="8px"
+          />
+        }
+
+        @if (selectedDripCampaigns().length) {
+          <app-kexy-button
+            (click)="deleteDripCampaigns()"
+            style="margin-right: 10px"
+            label="Delete"
+            iconLeft="fa-trash"
+            bgColor="#e7f6fe"
+            textColor="#2847cc"
+            radius="8px"
+          />
+        }
+
+        @if (selectedDripCampaigns().length === 1) {
+          <app-kexy-button
+            (click)="redirectToEditPage(true)"
+            style="margin-right: 10px"
+            label="Duplicate"
+            iconLeft="fa-pencil-square-o"
+            bgColor="#e7f6fe"
+            textColor="#2847cc"
+            radius="8px"
+          />
+
+          <app-kexy-button
+            (click)="redirectToEditPage()"
+            style="margin-right: 10px"
+            label="Edit"
+            iconLeft="fa-pencil-square-o"
+            bgColor="#e7f6fe"
+            textColor="#2847cc"
+            radius="8px"
+          />
+        }
+
+        @if (selectedDripCampaigns().length === 1 &&
+        (selectedDripCampaigns()[0]?.status === constants.ACTIVE ||
+          selectedDripCampaigns()[0]?.status === constants.PAUSE)) {
+          <app-kexy-button
+            (click)="pauseOrResumeOrDeleteDripCampaign()"
+            [label]="setBtnLabelBasedOnCampaignStatus()"
+            [iconLeft]="setBtnIconBasedOnCampaignStatus()"
+            bgColor="#e7f6fe"
+            textColor="#2847cc"
+            radius="8px"
+          />
+        }
+      </div>
+    </div>
+
+    <div class="content-area">
+      <list-of-drip-campaign-table
+        tableHeaderBg="#0047CC"
+        tableHeaderColor="#FFFFFF"
+        [checkboxClicked]="handleContactSelect"
+        [cardData]="dripCampaignList()"
+        [dripCampaignTitles]="dripCampaignTitles()"
+        [selectedDripCampaigns]="selectedDripCampaigns()"
+        [totalRecordsCount]="totalRecordsCount()"
+        [totalPage]="totalPageCounts()"
+        [currentPage]="page()"
+        [limit]="limit()"
+        (selectedLimit)="receivedLimitNumber($event)"
+        [paginationLeftArrowClick]="paginationLeftArrowClick"
+        [paginationRightArrowClick]="paginationRightArrowClick"
+        [isWaitingFlag]="isWaitingFlag()"
+        [isLoading]="isLoading()"
+        [selectedAllDripCampaigns]="selectedAllDripCampaigns()"
+        [toggleSelectAllSelection]="toggleSelectAllSelection"
+      />
+    </div>
+  </div>
+</brand-layout>

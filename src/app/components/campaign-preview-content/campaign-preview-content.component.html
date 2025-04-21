@@ -1,0 +1,23 @@
+<section *ngIf="!isWaiting" class="preview-content">
+  <div class="head-area">
+    <label class="input-label-text">Preview {{ constants.LANDING_PAGE }}</label>
+  </div>
+
+  <div class="desktop-or-mobile-preview-wrap">
+    <desktop-preview
+      *ngIf="showDesktopMode"
+      [campaignTitleText]="campaignTitleText"
+      [campaignDetailsText]="campaignDetailsText"
+      [productText]="productText"
+    ></desktop-preview>
+  </div>
+</section>
+
+<campaign-layout-bottm-btns
+  *ngIf="!isWaiting"
+  [leftSideFirstBtnClick]="saveSaveBtnClick"
+  [rightFirstBtnClick]="handleClickBackButton"
+  [rightSecondBtnClick]="handleClickNextButton"
+  [showLeftSideBtn]="true"
+  rightSecondBtnLabel="Submit"
+></campaign-layout-bottm-btns>

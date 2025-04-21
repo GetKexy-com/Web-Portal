@@ -1,0 +1,112 @@
+.content {
+  padding: 15px;
+  .head-area {
+    display: flex;
+    justify-content: space-between;
+    padding-left: 15px;
+    p {
+      margin-bottom: 0;
+      margin-top: 6px;
+      font-weight: 600;
+      font-size: 18px;
+      line-height: 22px;
+      color: #000000;
+    }
+    img {
+      align-self: center;
+      cursor: pointer;
+    }
+  }
+  .bypass {
+    background: #f3c494;
+    padding: 10px 20px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    font-size: 15px;
+    p {
+      margin: 0;
+    }
+  }
+  .drag-drop-area {
+    padding: 0 15px;
+    margin-top: 24px;
+
+    .show-selected-file {
+      background: #e7f6fe;
+      border: 1px dashed rgba(0, 71, 204, 0.3);
+      border-radius: 10px;
+      margin-top: 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px;
+      .icon-and-file-name {
+        display: flex;
+        align-items: center;
+        .icon-wrap {
+          width: 40px;
+          height: 40px;
+          border-radius: 10px;
+          background: white;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          i {
+            color: #0047cc;
+          }
+        }
+        p {
+          margin-bottom: 0;
+          margin-left: 10px;
+          font-size: 14px;
+          font-weight: 500;
+          line-height: 18px;
+          letter-spacing: -0.01em;
+        }
+      }
+      .close-btn-wrap {
+        margin-left: 20px;
+      }
+    }
+  }
+  .btns-area {
+    display: flex;
+    gap: 15px;
+    padding: 0 15px;
+    margin-top: 24px;
+    .btn-wrap {
+      width: 50%;
+    }
+  }
+  .additional-file-text {
+    padding: 24px 15px 0;
+    p {
+      margin-bottom: 0;
+      font-size: 13px;
+      line-height: 20px;
+      text-align: center;
+    }
+  }
+  .bottom-area {
+    padding: 0 15px;
+    margin-top: 60px;
+    text-align: center;
+    .need-help-text {
+      margin-bottom: 2px;
+      font-size: 13px;
+      line-height: 20px;
+      text-align: center;
+      color: #000000;
+    }
+    .download-spreadsheet-link {
+      font-weight: 700;
+      font-size: 14px;
+      line-height: 17px;
+      text-align: center;
+      color: #12a5f4;
+      img {
+        margin-bottom: 10px;
+      }
+    }
+  }
+}

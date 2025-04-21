@@ -1,0 +1,433 @@
+<section class="campaign-details-form-content">
+  <p class="title">{{ constants.LANDING_PAGE }} Details</p>
+  <form
+    (keydown.enter)="$event.preventDefault()"
+    [formGroup]="primaryForm"
+    (ngSubmit)="primaryFormSubmitted()"
+    *ngIf="primaryForm"
+  >
+    <div class="row">
+      <!-- Type of campaign -->
+      <div class="col-12 col-md-6 mb-3 mb-sm-0">
+        <label class="input-label-text">Type of {{ constants.LANDING_PAGE }} <i class="fa fa-asterisk"
+                                                                                aria-hidden="true"></i></label>
+        <div class="input-which-icon-in-left">
+          <select class="form-control" formControlName="typeOfCampaign" (change)="handleCampaignChange()">
+            <option
+              *ngFor="let campaign of campaignTypes"
+              value="{{ campaign.key }}"
+              style="text-transform: capitalize"
+            >
+              {{ campaign.value }}
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Campaign Image -->
+      <div class="col-12 mt-4">
+        <label class="input-label-text"
+        >Please upload the image you would like to use<i class="fa fa-asterisk" aria-hidden="true"></i
+        ></label>
+        <div class="drag-drop-file-selection-wrap">
+          <ngx-file-drop
+            dropZoneLabel="Drop files here"
+            (onFileDrop)="productImageDrop($event)"
+            dropZoneClassName="drag-drop-input"
+            contentClassName="drag-drop-input-content"
+          >
+            <ng-template ngx-file-drop-content-tmp let-openFileSelector="openFileSelector">
+              <span class="drag-drop-text"
+              ><span class="left-img-wrap"> <img src="/assets/images/file-select-img.png" /> </span
+              ><span>Drop files here to attach or</span>
+                <button type="button" (click)="openFileSelector()">Choose file</button></span
+              >
+            </ng-template>
+          </ngx-file-drop>
+        </div>
+
+        <div *ngIf="formValidationErrorCheck('productPhoto')">
+          <error-message-card message="Please select image."></error-message-card>
+        </div>
+      </div>
+
+      <!-- Campaign Image Preview -->
+      <div *ngIf="primaryForm.controls['productPhoto'].value" class="col-12">
+        <div class="campaign-image">
+          <img [src]="primaryForm.controls['productPhoto'].value" />
+          <div class="close-icon-in-image-or-video" (click)="handleCloseIconInImage()">
+            <i class="fa fa-trash" aria-hidden="true"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- Add video -->
+      <div class="col-12 mt-4">
+        <kexy-select-dropdown
+          label="ADD VIDEO"
+          shortNoteBesideLabel="optional"
+          [selectAllBtn]="false"
+          [required]="false"
+          [options]="campaignVideoUrlDropdownOptions"
+          [addNewBtn]="true"
+          [onAddNewClick]="openCreateCampaignVideoUrlCanvas"
+          [selectedOption]="selectedCampaignVideoUrl"
+          [onSelectSingleItem]="onCampaignVideoUrlSelect"
+          [rowIndex]="1"
+          [editIcon]="true"
+          [deleteIcon]="true"
+          [onDeleteClick]="handleDeleteCampaignVideoUrl"
+          [onEditClick]="handleClickEditIconInVideoUrl"
+          optionStyle="button"
+          backgroundColor="white"
+          placeholder="Please Select"
+        ></kexy-select-dropdown>
+      </div>
+
+      <!-- product -->
+      <div class="col-md-12 mt-4 position-relative">
+        <kexy-select-dropdown
+          [label]="selectedCampaignType === constants.LISTING_OF_PRODUCT ? 'Service name' : 'Product name'"
+          shortNoteBesideLabel=""
+          [selectAllBtn]="false"
+          [required]="true"
+          [options]="products"
+          [addNewBtn]="true"
+          [onAddNewClick]="openCreateProductCanvas"
+          [selectedOption]="selectProductNameKey"
+          [onSelectSingleItem]="onProductNameSelect"
+          [rowIndex]="1"
+          [editIcon]="true"
+          [deleteIcon]="true"
+          [onDeleteClick]="handleDeleteProduct"
+          [onEditClick]="handleClickEditIconInProduct"
+          optionStyle="button"
+          backgroundColor="white"
+          placeholder="Ex: KEXY Gin"
+        ></kexy-select-dropdown>
+        <div *ngIf="formValidationErrorCheck('product')">
+          <error-message-card message="Please enter valid data."></error-message-card>
+        </div>
+      </div>
+
+      <!-- product description/knowledge -->
+      <div *ngIf="primaryForm.get('product').value" class="col-md-12 mt-4 position-relative">
+        <kexy-select-dropdown
+          [label]="selectedCampaignType === constants.LISTING_OF_PRODUCT ? 'Service description' : 'Product description'"
+          shortNoteBesideLabel=""
+          [selectAllBtn]="false"
+          [required]="true"
+          [options]="productDescription"
+          [addNewBtn]="true"
+          [onAddNewClick]="openAddProductDescCanvas"
+          [selectedOption]="selectedProductDescriptionKey"
+          [onSelectSingleItem]="onProductDescriptionSelect"
+          [rowIndex]="1"
+          [editIcon]="true"
+          [deleteIcon]="true"
+          [onDeleteClick]="handleDeleteProductDescription"
+          [onEditClick]="handleClickEditIconInProductDescription"
+          optionStyle="button"
+          backgroundColor="white"
+          placeholder="Ex: KEXY Gin is a premium Scottish gin that stands out for its distinctive flavor profile and unique production process. Crafted in small batches in Girvan, Scotland, KEXY Gin is renowned for its infusion of unusual botanicals, creating a flavor that is both refreshing and complex."
+        ></kexy-select-dropdown>
+        <div *ngIf="formValidationErrorCheck('productKnowledge')">
+          <error-message-card message="Please enter valid data."></error-message-card>
+        </div>
+      </div>
+
+      <!-- Title of the Campaign -->
+      <div class="col-md-12 mt-4 position-relative">
+        <kexy-select-dropdown
+          [label]="'Title of the ' + constants.LANDING_PAGE"
+          shortNoteBesideLabel=""
+          [selectAllBtn]="false"
+          [required]="true"
+          [options]="campaignTitlesDropdownOptions"
+          [addNewBtn]="true"
+          [onAddNewClick]="openCreateCampaignTitleCanvas"
+          [selectedOption]="selectedCampaignTitle"
+          [onSelectSingleItem]="onCampaignTitleSelect"
+          [rowIndex]="1"
+          [editIcon]="true"
+          [deleteIcon]="true"
+          [onDeleteClick]="handleDeleteCampaignTitle"
+          [onEditClick]="handleClickEditIconInTitleOfCampaign"
+          optionStyle="button"
+          backgroundColor="white"
+          placeholder="Ex: Give your patrons a flavorful gin at an affordable price!"
+        ></kexy-select-dropdown>
+        <div *ngIf="formValidationErrorCheck('campaignTitle')">
+          <error-message-card message="Please enter valid data."></error-message-card>
+        </div>
+      </div>
+
+      <!-- Details of the Campaign -->
+      <div class="col-md-12 mt-4 position-relative">
+        <kexy-select-dropdown
+          [label]="'Details of the ' + constants.LANDING_PAGE"
+          shortNoteBesideLabel=""
+          [selectAllBtn]="false"
+          [required]="false"
+          [options]="campaignInnerDetailsDropdownOptions"
+          [addNewBtn]="true"
+          [onAddNewClick]="openCreateCampaignInnerDetailsCanvas"
+          [selectedOption]="selectedCampaignInnerDetails"
+          [onSelectSingleItem]="onCampaignInnerDetailsSelect"
+          [rowIndex]="1"
+          [editIcon]="true"
+          [deleteIcon]="true"
+          [onDeleteClick]="handleDeleteCampaignDetails"
+          [onEditClick]="handleClickEditIconInDetailOfCampaign"
+          actionBtnText="Test"
+          optionStyle="button"
+          backgroundColor="white"
+          placeholder="Ex: Buy 4 cases at retail price and get up to 6 more additional cases at 50% each case.  We are offering our exclusive cucumber and rose infused KEXY Gin, which is known for its infusion of traditional gin botanicals, such as juniper, coriander, and citrus peel, alongside more unconventional elements like cucumber and Bulgarian rose petals."
+        ></kexy-select-dropdown>
+      </div>
+
+      <!-- Size -->
+      <div [className]="selectedCampaignType !== constants.FEATURED_PRODUCT ? 'col-md-4 mt-4' : 'col-md-6 mt-4'">
+        <label class="input-label-text">UNIT OF MEASURE</label>
+        <input type="text" class="form-control" formControlName="size" placeholder="Unit of measure" maxlength="50" />
+      </div>
+
+      <!-- Price -->
+      <div [className]="selectedCampaignType !== constants.FEATURED_PRODUCT ? 'col-md-4 mt-4' : 'col-md-6 mt-4'">
+        <label class="input-label-text"
+        >Price<i
+          *ngIf="selectedCampaignType === constants.DEAL_WITH_PRICE"
+          class="fa fa-asterisk"
+          aria-hidden="true"
+        ></i
+        ></label>
+        <div class="input-which-icon-in-left">
+          <!--          <span class="icon-in-input-left">$</span>-->
+          <input
+            type="text"
+            class="form-control"
+            formControlName="price"
+            placeholder="Enter price"
+          />
+          <div
+            *ngIf="
+              selectedCampaignType !== constants.LISTING_OF_PRODUCT &&
+              selectedCampaignType !== constants.FEATURED_PRODUCT &&
+              formValidationErrorCheck('price')
+            "
+          >
+            <error-message-card message="Please enter valid data."></error-message-card>
+          </div>
+        </div>
+      </div>
+
+      <!-- Estimated Savings -->
+      <div
+        [className]="selectedCampaignType !== constants.FEATURED_PRODUCT ? 'col-md-4 mt-4' : 'col-md-6 mt-4'"
+        *ngIf="selectedCampaignType !== constants.FEATURED_PRODUCT"
+      >
+        <label class="input-label-text"
+        >Estimated Savings<i
+          *ngIf="selectedCampaignType === constants.DEAL_WITH_PRICE"
+          class="fa fa-asterisk"
+          aria-hidden="true"
+        ></i
+        ></label>
+        <div class="input-which-icon-in-left">
+          <!--          <span class="icon-in-input-left" id="basic-addon1">$</span>-->
+          <input
+            type="text"
+            class="form-control"
+            formControlName="estimatedSavings"
+            placeholder="Enter savings"
+          />
+          <div
+            *ngIf="
+              selectedCampaignType !== constants.LISTING_OF_PRODUCT && formValidationErrorCheck('estimatedSavings')
+            "
+          >
+            <error-message-card message="Please enter valid data."></error-message-card>
+          </div>
+        </div>
+      </div>
+
+      <!-- Additional info -->
+      <div class="col-12 mt-4">
+        <label class="input-label-text">Additional info</label>
+        <textarea
+          type="text"
+          class="form-control"
+          formControlName="additionalInfo"
+          placeholder="Enter Additional info"
+          maxlength="1000"
+        ></textarea>
+        <div class="text-end">
+          <span style="font-size: 13px; color: grey">{{ primaryForm.get('additionalInfo').value.length }}/1000</span>
+        </div>
+        <div *ngIf="formValidationErrorCheck('additionalInfo')">
+          <error-message-card message="Please enter valid data."></error-message-card>
+        </div>
+      </div>
+
+      <div class="col-12 mt-4">
+        <label class="input-label-text">Include options for the following buttons to show</label>
+        <small class="website-hint"> - Note: URL must start with "https://" or "http://"</small>
+        <!-- Campaign purchase input -->
+        <div class="d-flex align-items-center checkbox-with-input-wrap mt-1">
+          <div class="form-check checkbox-and-label">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              value=""
+              [checked]="isCheckedPurchaseCheckbox"
+              (change)="handleCheckboxClick(constants.PURCHASE)"
+              id="purchase"
+            />
+            <label class="form-check-label purchase-info-label" for="purchase">
+              Purchase Url
+              <img
+                class="info-img tooltip-question tooltip-btn ms-1"
+                ngbTooltip="By using the purchase button feature on the KEXY platform, you acknowledge that KEXY is merely providing a conduit for redirecting prospects to purchase your products or services and agree to hold KEXY harmless for any and all actions resulting from the use of this feature. Additionally, you affirm that your use of the purchase button complies with all applicable rules, regulations, and laws pertinent to your industry."
+                tooltipClass="custom-tooltip-class"
+                src="/assets/icon/grey-circle-info-icon.svg"
+              />
+            </label>
+          </div>
+          <input
+            *ngIf="isCheckedPurchaseCheckbox"
+            class="form-control w-auto flex-grow-1 ms-3"
+            placeholder="Please enter purchase url"
+            [(ngModel)]="purchaseUrl"
+            [ngModelOptions]="{ standalone: true }"
+          />
+        </div>
+        <div
+          *ngIf="(purchaseUrl && !validateUrl(constants.PURCHASE)) || (submitted && isCheckedPurchaseCheckbox && !purchaseUrl)">
+          <error-message-card message="Please enter valid url."></error-message-card>
+        </div>
+
+        <!-- Visit website -->
+        <div class="d-flex align-items-center checkbox-with-input-wrap mt-2">
+          <div class="form-check checkbox-and-label">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              value=""
+              [checked]="isCheckedVisitWebsiteCheckbox"
+              (change)="handleCheckboxClick(constants.VISIT_WEBSITE)"
+              id="visitWebsite"
+            />
+            <label class="form-check-label purchase-info-label" for="visitWebsite"> Visit Website </label>
+          </div>
+          <input
+            *ngIf="isCheckedVisitWebsiteCheckbox"
+            class="form-control w-auto flex-grow-1 ms-3"
+            placeholder="Please enter website url"
+            [(ngModel)]="visitWebsite"
+            [ngModelOptions]="{ standalone: true }"
+          />
+        </div>
+        <div
+          *ngIf="(visitWebsite && !validateUrl(constants.VISIT_WEBSITE)) || (submitted && isCheckedVisitWebsiteCheckbox && !visitWebsite)">
+          <error-message-card message="Please enter valid url."></error-message-card>
+        </div>
+
+        <!-- Custom Button Input -->
+        <div class="d-flex align-items-center checkbox-with-input-wrap mt-2">
+          <div class="form-check checkbox-and-label">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              value=""
+              [checked]="isCheckedCustomBtnCheckbox"
+              (change)="handleCheckboxClick(constants.CUSTOM_BTN)"
+              id="custom"
+            />
+            <label class="form-check-label purchase-info-label" for="custom"> Custom Button </label>
+          </div>
+          <input
+            *ngIf="isCheckedCustomBtnCheckbox"
+            class="form-control w-auto ms-3"
+            placeholder="Please enter button label"
+            [(ngModel)]="customButtonLabel"
+            [ngModelOptions]="{ standalone: true }"
+          />
+          <input
+            *ngIf="isCheckedCustomBtnCheckbox"
+            class="form-control w-auto flex-grow-1 ms-3"
+            placeholder="Please enter button url"
+            [(ngModel)]="customButtonUrl"
+            [ngModelOptions]="{ standalone: true }"
+          />
+        </div>
+        <div
+          *ngIf="(customButtonUrl && !validateUrl(constants.CUSTOM_BTN)) || (submitted && isCheckedCustomBtnCheckbox && !customButtonUrl)">
+          <error-message-card message="Please enter valid url."></error-message-card>
+        </div>
+      </div>
+
+      <!--validation for checkboxes-->
+      <div
+        *ngIf="submitted && ((!this.isCheckedPurchaseCheckbox && !this.isCheckedVisitWebsiteCheckbox && !this.isCheckedCustomBtnCheckbox) || (!this.purchaseUrl && !this.visitWebsite && !this.customButtonUrl))">
+        <error-message-card message="Please select one or more checkboxes"></error-message-card>
+      </div>
+
+      <!-- Sell sheet -->
+      <div class="col-12 mt-4">
+        <label class="input-label-text">SELL/INFORMATION SHEET</label>
+        <div class="drag-drop-file-selection-wrap">
+          <ngx-file-drop
+            dropZoneLabel="Drop files here"
+            (onFileDrop)="sellSheetFileDrop($event)"
+            dropZoneClassName="drag-drop-input"
+            contentClassName="drag-drop-input-content"
+          >
+            <ng-template ngx-file-drop-content-tmp let-openFileSelector="openFileSelector">
+              <!--File select Box-->
+              <span *ngIf="!primaryForm.get('sellSheet').value" class="drag-drop-text" style="height: 70px">
+                <span class="left-img-wrap">
+                  <img src="/assets/images/file-select-img.png" />
+                </span>
+                <span class="right-content-wrap">
+                  <span>Drop files here to attach or</span>
+                  <button type="button" (click)="openFileSelector()">Choose file</button> <br />
+                  <span class="format-name">Format: PDF, Image</span>
+                </span>
+              </span>
+              <!--Selected file show box-->
+              <span *ngIf="primaryForm.get('sellSheet').value" class="selected-pdf-view">
+                <span class="d-flex align-items-center">
+                  <span class="pdf-icon-wrap">
+                    <img src="/assets/icon/pdf-icon.svg" />
+                  </span>
+                  <span class="pdf-name" *ngIf="sellSheetFileName">{{ sellSheetFileName }}</span>
+                  <!--sellsheet for edit or duplicate-->
+                  <span class="pdf-name" *ngIf="!sellSheetFileName && campaignId">
+                    <a [href]="environment.imageUrl + primaryForm.get('sellSheet').value" target="_blank"
+                    >View Sell Sheet</a
+                    >
+                  </span>
+                  <!--sellsheet for back-->
+                  <span class="pdf-name" *ngIf="!sellSheetFileName && !campaignId">
+                    <a [href]="primaryForm.get('sellSheet').value" target="_blank">View Sell Sheet</a>
+                  </span>
+                </span>
+                <span class="delete-btn-wrap">
+                  <button (click)="deleteShellSheetBtnClick()">
+                    <i class="fa fa-trash-o" aria-hidden="true"></i> Delete
+                  </button>
+                </span>
+              </span>
+            </ng-template>
+          </ngx-file-drop>
+        </div>
+      </div>
+    </div>
+  </form>
+</section>
+
+<campaign-layout-bottm-btns
+  *ngIf="primaryForm"
+  [showRightSideFirstBtn]="false"
+  [rightSecondBtnClick]="handleClickNextButton"
+></campaign-layout-bottm-btns>

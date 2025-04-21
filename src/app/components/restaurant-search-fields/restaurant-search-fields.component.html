@@ -1,0 +1,62 @@
+<form (ngSubmit)="submitBtnClick()">
+  <div class="restaurant-search-fields">
+    <div class="input-wrap">
+      <label *ngIf="selectedRestaurantSearchType === constants.CITY">Enter CITIES</label>
+      <label *ngIf="selectedRestaurantSearchType === constants.STATE_PROVINCE">Enter STATES/PROVINCES</label>
+      <label *ngIf="selectedRestaurantSearchType === constants.ZIP_POSTAL_CODE">Enter ZIP/POSTAL CODE</label>
+      <div class="custom-input-and-tag">
+        <div *ngIf="selectedRestaurantSearchType === constants.CITY" class="d-flex flex-wrap">
+          <div *ngFor="let city of cityList">
+            <span class="searched-tag"
+            >{{ stringCapitalize(city.val) }}
+              <span style="margin-left: 6px" (click)="removeCityOrZipcode(city)"
+              ><img style="width: 19px" src="/assets/icon/blue-close-icon-with-white-bg.svg"
+              /></span>
+            </span>
+          </div>
+        </div>
+        <div *ngIf="selectedRestaurantSearchType === constants.ZIP_POSTAL_CODE" class="d-flex flex-wrap">
+          <div *ngFor="let zipCode of zipCodeList">
+            <span class="searched-tag"
+            >{{ stringCapitalize(zipCode.val) }}
+              <span style="margin-left: 6px" (click)="removeCityOrZipcode(zipCode)"
+              ><img style="width: 19px" src="/assets/icon/blue-close-icon-with-white-bg.svg"
+              /></span>
+            </span>
+          </div>
+        </div>
+        <div *ngIf="selectedRestaurantSearchType === constants.STATE_PROVINCE" class="d-flex flex-wrap">
+          <div *ngFor="let state of stateList">
+            <span class="searched-tag"
+            >{{ stringCapitalize(state.val) }}
+              <span style="margin-left: 6px" (click)="removeCityOrZipcode(state)"
+              ><img style="width: 19px" src="/assets/icon/blue-close-icon-with-white-bg.svg"
+              /></span>
+            </span>
+          </div>
+        </div>
+        <input
+          *ngIf="selectedRestaurantSearchType !== constants.STATE_PROVINCE"
+          type="text"
+          name="cityOrZipcode"
+          [placeholder]="getPlaceholder()"
+          [(ngModel)]="cityOrZipcode"
+          (input)="handleInputChange($event)"
+          (keydown)="handleKeydownPress($event)"
+        />
+        <input
+          *ngIf="selectedRestaurantSearchType === constants.STATE_PROVINCE"
+          [readonly]="true"
+          placeholder="Please enter here"
+          (click)="handleStateProvinceInputClick()"
+        />
+      </div>
+    </div>
+    <div class="submit-btn-wrap">
+      <button type="submit" [disabled]="loading">
+        <i *ngIf="loading" class="fa fa-refresh fa-spin me-2"></i>
+        {{loading ? "Please wait..." : "Search"}}
+      </button>
+    </div>
+  </div>
+</form>

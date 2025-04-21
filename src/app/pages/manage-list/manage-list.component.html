@@ -1,0 +1,74 @@
+<brand-layout layoutPaddingNone="true" headerBgWhite="true">
+  <div class="manage-list-page">
+    <div class="top-btns">
+      <div class="d-flex">
+        <app-kexy-button
+          *ngIf="selectedLabels.length"
+          (click)="deleteLabels()"
+          style="margin-right: 10px"
+          label="Delete"
+          iconLeft="fa-trash"
+          bgColor="#e7f6fe"
+          textColor="#2847cc"
+          radius="8px"
+        ></app-kexy-button>
+        <app-kexy-button
+          *ngIf="selectedLabels.length === 1"
+          (click)="duplicateLabel()"
+          style="margin-right: 10px"
+          label="Duplicate"
+          iconLeft="fa-trash"
+          bgColor="#e7f6fe"
+          textColor="#2847cc"
+          radius="8px"
+        ></app-kexy-button>
+        <app-kexy-button
+          *ngIf="selectedLabels.length === 1"
+          (click)="editLabel()"
+          style="margin-right: 10px"
+          label="Edit"
+          iconLeft="fa-pencil"
+          bgColor="#e7f6fe"
+          textColor="#2847cc"
+          radius="8px"
+        ></app-kexy-button>
+        <app-kexy-button
+          (click)="addLabelBtnClick()"
+          label="Add List"
+          iconLeft="fa-plus"
+          bgColor="#e7f6fe"
+          textColor="#2847cc"
+          radius="8px"
+        ></app-kexy-button>
+        <app-kexy-button
+          *ngIf="selectedLabels.length"
+          style="margin-left: 10px"
+          (click)="exportCSV()"
+          [disabled]="exportBtnLoading"
+          [label]="exportBtnLoading ? 'Please wait...' : 'Export' "
+          [iconLeft]="exportBtnLoading ? 'fa-refresh fa-spin' : 'fa-cloud-download'"
+          bgColor="#e7f6fe"
+          textColor="#2847cc"
+          radius="8px"
+        ></app-kexy-button>
+      </div>
+    </div>
+
+    <div class="content-area">
+      <label-list-card
+        tableHeaderBg="#0047CC"
+        tableHeaderColor="#FFFFFF"
+        [checkboxClicked]="handleContactSelect"
+        [cardData]="labelOptions"
+        [totalPage]="totalPage"
+        [currentPage]="page"
+        [limit]="limit"
+        (selectedLimit)="receivedLimitNumber($event)"
+        [paginationLeftArrowClick]="paginationLeftArrowClick"
+        [paginationRightArrowClick]="paginationRightArrowClick"
+        [isWaitingFlag]="isWaitingFlag"
+        [isLoading]="isLoading"
+      ></label-list-card>
+    </div>
+  </div>
+</brand-layout>
