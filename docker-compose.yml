@@ -1,0 +1,11 @@
+services:
+  kexy-web-portal:
+    build: .
+    ports:
+      - "4200:4200"
+    volumes:
+      - .:/app
+      - /app/node_modules  # Prevent host/node_modules from overriding container's
+    env_file: .env
+    command: npm start
+
