@@ -1,5 +1,7 @@
+name: kexy-web
+
 services:
-  kexy-web-portal:
+  portal:
     build: .
     ports:
       - "4200:4200"

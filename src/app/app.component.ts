@@ -13,5 +13,5 @@ Gleap.initialize(environment.GLEAP_KEY);
   styleUrl: './app.component.scss'
 })
 export class AppComponent {
-  title = 'kexy-webportal';
+  title = 'KEXY - Webportal';
 }
