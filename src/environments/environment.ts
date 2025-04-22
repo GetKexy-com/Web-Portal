@@ -1,6 +1,7 @@
 export const environment = {
   production: false,
   baseUrl: "https://devapi.getkexy.com/devkexyapi/v1/",
+  secondaryBaseUrl: "http://192.168.0.122:3000/v2",
   imageUrl: "https://d2m1cdle9kqn71.cloudfront.net/",
   externalAssetUrl: "https://d2m1cdle9kqn71.cloudfront.net/KEXY_Connect_assets/",
   siteUrl: "https://devclient.getkexy.com",
