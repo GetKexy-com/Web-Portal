@@ -563,12 +563,12 @@ export class EmailTimeSettingsContentComponent {
   isEmptyEnrollList = false;
   handleSubmitEnrollmentTriggers = async () => {
     this.submitted = true;
-    const enrollListIds = this.enrollmentLabelOptions.filter(i => i.isSelected).map(i => i.id);
-    if (!enrollListIds.length && !this.enrollList.length) {
-      this.isEmptyEnrollList = true;
-      return;
-    }
-    this.isEmptyEnrollList = false;
+    // const enrollListIds = this.enrollmentLabelOptions.filter(i => i.isSelected).map(i => i.id);
+    // if (!enrollListIds.length && !this.enrollList.length) {
+    //   this.isEmptyEnrollList = true;
+    //   return;
+    // }
+    // this.isEmptyEnrollList = false;
 
     const newEnrollListIds = this.enrollmentLabelOptions.filter(i => i.isSelected).map(i => i.id);
     const previousEnrollListIds = this.enrollList.map(i => i.kexy_label_id);
