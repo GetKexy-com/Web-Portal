@@ -214,7 +214,7 @@
 
 
 import { Component, OnInit, signal } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { HttpService } from '../../services/http.service';
@@ -259,19 +259,19 @@ export class RegisterComponent implements OnInit {
     private fb: FormBuilder,
   ) {
     this.registerForm = this.fb.group({
-      first_name: ['', [
+      firstName: ['', [
         Validators.required,
         Validators.minLength(0),
         Validators.maxLength(64),
         Validators.pattern("^[a-zA-Z- ]+$")
       ]],
-      last_name: ['', [
+      lastName: ['', [
         Validators.required,
         Validators.minLength(0),
         Validators.maxLength(64),
         Validators.pattern("^[a-zA-Z- ]+$")
       ]],
-      job_title: ['', [
+      jobTitle: ['', [
         Validators.required,
         Validators.minLength(0),
         Validators.maxLength(64),
@@ -316,9 +316,9 @@ export class RegisterComponent implements OnInit {
 
     // Set initial form values
     this.registerForm.patchValue({
-      first_name: this.first_name(),
-      last_name: this.last_name(),
-      job_title: this.job_title()
+      firstName: this.first_name(),
+      lastName: this.last_name(),
+      jobTitle: this.job_title()
     });
   }
 
@@ -335,19 +335,17 @@ export class RegisterComponent implements OnInit {
 
     this.isWaitingFlag.set(true);
     const data = this.registerForm.getRawValue();
-    data.phone_country_code = this.phoneCode();
-    data.status = constants.ACTIVE;
-    data.type = this.accountType();
+    data.phoneCountryCode = this.phoneCode();
 
     const registerData = {
       email: this.email(),
-      profile_photo: this.imageUrl()
+      profilePhoto: this.imageUrl()
     };
 
     Object.assign(data, registerData);
 
     if (this.checkInvitation() === "sent") {
-      data.job_title = localStorage.getItem("role");
+      data.jobTitle = localStorage.getItem("role");
     }
 
     const loginData = {
@@ -355,36 +353,39 @@ export class RegisterComponent implements OnInit {
       password: data.password
     };
 
+    const jobTitle = data.jobTitle;
+    delete data.jobTitle;
+
     try {
-      const response = await this.httpService.post("user/register", data).toPromise();
+      const response = await this.httpService.post("auth/register", data).toPromise();
 
       if (response?.success) {
         this.isWaitingFlag.set(false);
 
-        const hubspotFormData = {
-          formGuid: constants.HUBSPOT_USER_REGISTER_FORMID,
-          fields: [
-            {
-              name: "email",
-              value: data.email
-            }
-          ],
-          context: {
-            pageUri: location.href,
-            pageName: document.title
-          }
-        };
+        // const hubspotFormData = {
+        //   formGuid: constants.HUBSPOT_USER_REGISTER_FORMID,
+        //   fields: [
+        //     {
+        //       name: "email",
+        //       value: data.email
+        //     }
+        //   ],
+        //   context: {
+        //     pageUri: location.href,
+        //     pageName: document.title
+        //   }
+        // };
+        //
+        // this.httpService.post("user/formSubmitInHubspot", hubspotFormData).subscribe();
 
-        this.httpService.post("user/formSubmitInHubspot", hubspotFormData).subscribe();
-
-        const res = await this.httpService.post("user/login", loginData).toPromise();
+        const res = await this.httpService.post("auth/login", loginData).toPromise();
         if (!res?.success) {
           return;
         }
 
         localStorage.setItem("registerToken", res.data.token);
         localStorage.setItem("registerPassword", data.password);
-        localStorage.setItem("jobTitle", data.job_title);
+        localStorage.setItem("jobTitle", jobTitle);
 
         this.isWaitingFlag.set(false);
 

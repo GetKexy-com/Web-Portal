@@ -9,7 +9,7 @@ import { environment } from '../../environments/environment';
 @Injectable({ providedIn: "root" })
 export class HttpService {
   public apiUrl = `${environment.baseUrl}`;
-  //public apiUrl = '';
+
   constructor(private _http: HttpClient) {}
 
   get(url: string, baseUrl = this.apiUrl): Observable<any> {

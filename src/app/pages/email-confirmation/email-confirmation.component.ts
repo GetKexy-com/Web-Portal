@@ -300,24 +300,28 @@ export class EmailConfirmationComponent {
       localStorage.setItem(constants.ACCOUNT_TYPE, this.accountType.value);
     }
 
-    this.httpService.post('user/sendConfirmationCode', data).subscribe({
-      next: (response) => {
-        this.isWaitingFlag.set(false);
+    this.handleSuccessResponse(data);
 
-        if (response.success) {
-          this.handleSuccessResponse(data);
-        } else {
-          this.handleErrorResponse(response);
-        }
-      },
-      error: (err) => {
-        this.isWaitingFlag.set(false);
-        this.error.set(err.message || 'An error occurred');
-      }
-    });
+    this.isWaitingFlag.set(false);
+
+    // this.httpService.post('user/sendConfirmationCode', data).subscribe({
+    //   next: (response) => {
+    //     this.isWaitingFlag.set(false);
+    //
+    //     if (response.success) {
+    //       this.handleSuccessResponse(data);
+    //     } else {
+    //       this.handleErrorResponse(response);
+    //     }
+    //   },
+    //   error: (err) => {
+    //     this.isWaitingFlag.set(false);
+    //     this.error.set(err.message || 'An error occurred');
+    //   }
+    // });
   }
 
-  private handleSuccessResponse(data: any) {
+  private async handleSuccessResponse(data: any) {
     localStorage.setItem('firstName', data.first_name);
     localStorage.setItem('lastName', data.last_name);
     localStorage.setItem(constants.INDUSTRY, data.industry);
@@ -328,32 +332,36 @@ export class EmailConfirmationComponent {
       localStorage.setItem('companyName', companyName);
     }
 
-    const hubspotFormData = {
-      formGuid: constants.HUBSPOT_EMAIL_CONFIRMATION_FORMID,
-      fields: [
-        { name: 'email', value: data.email },
-        { name: 'firstname', value: data.first_name },
-        { name: 'lastname', value: data.last_name }
-      ],
-      context: {
-        pageUri: location.href,
-        pageName: document.title
-      }
-    };
-
-    this.httpService.post('user/formSubmitInHubspot', hubspotFormData).subscribe({
-      next: async () => {
-        await this.router.navigate([routeConstants.REGISTER], {
-          queryParams: { email: data.email }
-        });
-      },
-      error: (err) => {
-        console.error('Hubspot submission failed:', err);
-        this.router.navigate([routeConstants.REGISTER], {
-          queryParams: { email: data.email }
-        });
-      }
+    await this.router.navigate([routeConstants.REGISTER], {
+      queryParams: { email: data.email }
     });
+
+    // const hubspotFormData = {
+    //   formGuid: constants.HUBSPOT_EMAIL_CONFIRMATION_FORMID,
+    //   fields: [
+    //     { name: 'email', value: data.email },
+    //     { name: 'firstname', value: data.first_name },
+    //     { name: 'lastname', value: data.last_name }
+    //   ],
+    //   context: {
+    //     pageUri: location.href,
+    //     pageName: document.title
+    //   }
+    // };
+
+    // this.httpService.post('user/formSubmitInHubspot', hubspotFormData).subscribe({
+    //   next: async () => {
+    //     await this.router.navigate([routeConstants.REGISTER], {
+    //       queryParams: { email: data.email }
+    //     });
+    //   },
+    //   error: (err) => {
+    //     console.error('Hubspot submission failed:', err);
+    //     this.router.navigate([routeConstants.REGISTER], {
+    //       queryParams: { email: data.email }
+    //     });
+    //   }
+    // });
   }
 
   private handleErrorResponse(response: any) {

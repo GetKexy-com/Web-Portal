@@ -169,44 +169,44 @@
         <div class="form-group">
           <input
             [class.error]="
-              (submitted() || registerForm.controls['first_name'].dirty) && registerForm.controls['first_name'].invalid
+              (submitted() || registerForm.controls['firstName'].dirty) && registerForm.controls['firstName'].invalid
             "
             type="text"
-            formControlName="first_name"
+            formControlName="firstName"
             class="form-control"
             [value]="first_name()"
             placeholder="First Name"
           />
-          @if (registerForm.controls['first_name'].invalid && (submitted() || registerForm.controls['first_name'].dirty)) {
+          @if (registerForm.controls['firstName'].invalid && (submitted() || registerForm.controls['firstName'].dirty)) {
             <span class="text-danger">Please enter a valid First Name.</span>
           }
         </div>
         <div class="form-group">
           <input
             [class.error]="
-              (submitted() || registerForm.controls['last_name'].dirty) && registerForm.controls['last_name'].invalid
+              (submitted() || registerForm.controls['lastName'].dirty) && registerForm.controls['lastName'].invalid
             "
             type="text"
-            formControlName="last_name"
+            formControlName="lastName"
             class="form-control"
             [value]="last_name()"
             placeholder="Last Name"
           />
-          @if (registerForm.controls['last_name'].invalid && (submitted() || registerForm.controls['last_name'].dirty)) {
+          @if (registerForm.controls['lastName'].invalid && (submitted() || registerForm.controls['lastName'].dirty)) {
             <span class="text-danger">Please enter a valid Last Name.</span>
           }
         </div>
         <div class="form-group">
           <input
             [class.error]="
-              (submitted() || registerForm.controls['job_title'].dirty) && registerForm.controls['job_title'].invalid
+              (submitted() || registerForm.controls['jobTitle'].dirty) && registerForm.controls['jobTitle'].invalid
             "
             type="text"
-            formControlName="job_title"
+            formControlName="jobTitle"
             class="form-control"
             placeholder="Job Title"
           />
-          @if (registerForm.controls['job_title'].invalid && (submitted() || registerForm.controls['job_title'].dirty)) {
+          @if (registerForm.controls['jobTitle'].invalid && (submitted() || registerForm.controls['jobTitle'].dirty)) {
             <span class="text-danger">Please enter a valid Job Title.</span>
           }
         </div>

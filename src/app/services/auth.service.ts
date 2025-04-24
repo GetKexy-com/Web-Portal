@@ -38,6 +38,18 @@ export class AuthService {
     return localStorage.getItem("registerToken");
   }
 
+  secondarylogin(email: string, password: string, presale = false) {
+    let apiUrl = `${environment.secondaryBaseUrl}`;
+    let headers = this._getHeaders();
+
+    return this.http.post<any>(`${apiUrl}user/login`, { email, password }, { headers: headers }).pipe(
+      map((user) => {
+        console.log("user", user);
+        return user;
+      }),
+    );
+  }
+
   login(email: string, password: string, presale = false) {
     this.userEmail = email;
     this.userPassword = password;
@@ -45,11 +57,11 @@ export class AuthService {
 
     let headers = this._getHeaders();
 
-    return this.http.post<any>(`${apiUrl}user/login`, { email, password }, { headers: headers }).pipe(
+    return this.http.post(`${apiUrl}auth/login`, { email, password }, { headers: headers }).pipe(
       map((user) => {
         console.log("user", user);
         if (user["success"] && user["data"]) {
-          this.storeUserToken(user["data"], presale).then(() => {
+          this.saveUserToken(user["data"]).then(() => {
           });
         }
         return user;
@@ -73,6 +85,21 @@ export class AuthService {
     }
     try {
       const response = await this.httpService.post("user/getUserOrganizations", {}).toPromise();
+      if (response.success) {
+        this.userOrganisationData = response;
+      }
+      return this.userOrganisationData;
+    } catch (ex) {
+      console.log(ex);
+    }
+  };
+
+  userCompaniesApiCall = async (overwrite = false) => {
+    if (this.userOrganisationData && !overwrite) {
+      return this.userOrganisationData;
+    }
+    try {
+      const response = await this.httpService.get("company/getUserCompanies").toPromise();
       if (response.success) {
         this.userOrganisationData = response;
       }
@@ -132,6 +159,44 @@ export class AuthService {
       }
     }
   };
+
+  async saveUserToken(data: any) {
+    let userData = data.user;
+    userData.token = data.token;
+
+    localStorage.setItem("userToken", JSON.stringify(userData));
+    this.userTokenSubject.next(userData);
+
+    const response = await this.userCompaniesApiCall(true);
+    if (response.success) {
+
+      let createUrl;
+      let organizationListUrl;
+      let company;
+
+      // If user is a supplier then redirect to supplier portal
+      company = response.data[0];
+      if (!company) {
+        createUrl = routeConstants.BRAND.CREATE;
+      }
+      organizationListUrl = routeConstants.BRAND.ORGANIZATION_LIST;
+
+      // Removed any draft data for campaign before user goes to the dashboard.
+      localStorage.removeItem(constants.DRAFT_DEAL);
+
+      if (response.data.length === 0) {
+        createUrl = routeConstants.BRAND.CREATE;
+      }
+
+      if (createUrl) {
+        await this.router.navigate([createUrl]);
+        return;
+      }
+
+      console.log("Is it here?");
+      await this.router.navigate([organizationListUrl, { fromPage: "login" }]);
+    }
+  }
 
   async storeUserToken(data: any, presale = false) {
     let userData = data.user;

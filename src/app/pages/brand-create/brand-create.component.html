@@ -222,15 +222,15 @@
         <div class="form-group">
           <input
             [class.error]="
-              (submitted() || primaryForm.controls['zip_code_list'].dirty) &&
-              primaryForm.controls['zip_code_list'].invalid
+              (submitted() || primaryForm.controls['zipCodeList'].dirty) &&
+              primaryForm.controls['zipCodeList'].invalid
             "
             type="text"
-            formControlName="zip_code_list"
+            formControlName="zipCodeList"
             class="form-control"
             [placeholder]="zipCodePlaceholder()"
           />
-          @if (primaryForm.controls['zip_code_list'].invalid && (submitted() || primaryForm.controls['zip_code_list'].dirty)) {
+          @if (primaryForm.controls['zipCodeList'].invalid && (submitted() || primaryForm.controls['zipCodeList'].dirty)) {
             <span class="text-danger">{{ zipCodeLabel() }}</span>
           }
         </div>
