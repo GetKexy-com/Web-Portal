@@ -67,7 +67,7 @@ export class BrandCampaignsComponent {
     }
 
     [this.campaignTitles, this.campaignDetails, this.products] = await Promise.all([
-      this.campaignService.getAllCampaignTitle({ supplier_id: this.userData.supplier_id }),
+      this.campaignService.getAllCampaignTitle(),
       this.campaignService.getAllCampaignInnerDetail({ supplier_id: this.userData.supplier_id }),
       this.prospectingService.getProducts({
         supplier_id: this.userData.supplier_id,

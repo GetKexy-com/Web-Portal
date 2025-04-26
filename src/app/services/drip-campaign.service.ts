@@ -68,7 +68,7 @@ export class DripCampaignService {
   getCampaign = async (postData) => {
     this._loading.next(true);
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("drip-campaigns/get", postData).subscribe((res) => {
+      this.httpService.get(`drip-campaigns/get/${postData.drip_campaign_id}`).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             this._loading.next(false);
@@ -191,7 +191,7 @@ export class DripCampaignService {
   addDripCampaignTitle = async (postData) => {
     let campaignTitles = [...this._dripCampaignTitles.getValue()];
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("drip-campaigns/addTitle", postData).subscribe((res) => {
+      this.httpService.post("titles", postData).subscribe((res) => {
         console.log("res", res);
         if (!res.success) {
           if (res.error) {
@@ -209,14 +209,16 @@ export class DripCampaignService {
 
   editDripCampaignTitle = async (postData) => {
     let campaignTitles = [...this._dripCampaignTitles.getValue()];
+    let title_id = postData.title_id;
+    delete postData.title_id;
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("drip-campaigns/editTitle", postData).subscribe((res) => {
+      this.httpService.patch(`titles/${title_id}`, postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
           }
         } else {
-          let editedItemIndex = campaignTitles.findIndex(i => i.id === postData.title_id);
+          let editedItemIndex = campaignTitles.findIndex(i => i.id === title_id);
           campaignTitles[editedItemIndex].title = postData.title;
           resolve(true);
           this._dripCampaignTitles.next(campaignTitles);
@@ -227,7 +229,7 @@ export class DripCampaignService {
 
   deleteDripCampaignTitle = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("drip-campaigns/deleteTitle", postData).subscribe((res) => {
+      this.httpService.delete(`/titles/${postData.title_id}`).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -253,7 +255,7 @@ export class DripCampaignService {
       return null;
     }
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("drip-campaigns/getAllTitle", postData).subscribe((res) => {
+      this.httpService.get("titles").subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);

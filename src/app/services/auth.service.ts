@@ -38,6 +38,18 @@ export class AuthService {
     return localStorage.getItem("registerToken");
   }
 
+  secondarylogin(email: string, password: string, presale = false) {
+    let apiUrl = `${environment.secondaryBaseUrl}`;
+    let headers = this._getHeaders();
+
+    return this.http.post<any>(`${apiUrl}user/login`, { email, password }, { headers: headers }).pipe(
+      map((user) => {
+        console.log("user", user);
+        return user;
+      }),
+    );
+  }
+
   login(email: string, password: string, presale = false) {
     this.userEmail = email;
     this.userPassword = password;
@@ -45,11 +57,11 @@ export class AuthService {
 
     let headers = this._getHeaders();
 
-    return this.http.post<any>(`${apiUrl}user/login`, { email, password }, { headers: headers }).pipe(
+    return this.http.post(`${apiUrl}auth/login`, { email, password }, { headers: headers }).pipe(
       map((user) => {
         console.log("user", user);
         if (user["success"] && user["data"]) {
-          this.storeUserToken(user["data"], presale).then(() => {
+          this.saveUserToken(user["data"]).then(() => {
           });
         }
         return user;
@@ -82,19 +94,38 @@ export class AuthService {
     }
   };
 
+  userCompaniesApiCall = async (overwrite = false) => {
+    if (this.userOrganisationData && !overwrite) {
+      return this.userOrganisationData;
+    }
+    try {
+      const response = await this.httpService.get("company/getUserCompanies").toPromise();
+      if (response.success) {
+        this.userOrganisationData = response;
+      }
+      return this.userOrganisationData;
+    } catch (ex) {
+      console.log(ex);
+    }
+  };
+
   getSubscriptionData = async (overwrite = false) => {
-    const response = await this.userOrganisationApiCall(overwrite);
+    // const response = await this.userOrganisationApiCall(overwrite);
+    const response = await this.userCompaniesApiCall(overwrite);
     if (response.success) {
+      console.log('response for subscription', response);
       const userData = this.userTokenValue;
-      const supplierId = userData.supplier_id;
       const userId = userData.id;
-      const supplier = response.data.supplier_list.find(s => s.supplier_id === supplierId);
-      if (supplier.subscription) {
-        supplier.subscription.subscription_payments = supplier.subscription.subscription_payments.filter(p => {
+      const brand = response.data[0];
+      const company = brand.company;
+
+      if (company.subscriptions) {
+        const subscription = company.subscriptions[0];
+        subscription.subscription_payments = subscription.payments.filter(p => {
           return p.success === true && p.reccuring !== "day";
         });
-        const paymentsLength = supplier.subscription.subscription_payments.length - 1;
-        let productDetails = supplier.subscription.subscription_payments[paymentsLength].subscription_product;
+        const paymentsLength = subscription.subscription_payments.length - 1;
+        let productDetails = subscription.subscription_payments[paymentsLength].subscriptionProduct;
         if (!productDetails) {
           productDetails = {
             name: constants.NOVICE,
@@ -103,35 +134,72 @@ export class AuthService {
             allowed_credit_limit: 25,
           };
         }
-        supplier.subscription["subscription_product"] = productDetails;
+        subscription["subscription_product"] = productDetails;
 
-        const creditsInfo = supplier.subscription.subscription_credits;
+        const creditsInfo = subscription.credits[0];
         if (creditsInfo) {
-          const currentUserCredits = creditsInfo.findLast(c => c.user_id === userId);
-          currentUserCredits["total_credits"] = currentUserCredits.allowed_credit_limit;
-          currentUserCredits["used_credits"] = currentUserCredits.allowed_credit_limit - currentUserCredits.current_credits;
-          supplier.subscription.subscription_credits = [currentUserCredits];
+          // const currentUserCredits = creditsInfo.findLast(c => c.user_id === userId);
+          creditsInfo["total_credits"] = creditsInfo.allowedCreditLimit;
+          creditsInfo["used_credits"] = creditsInfo.allowedCreditLimit - creditsInfo.currentCredits;
+          subscription.subscription_credits = [creditsInfo];
         }
-        const additionalCreditsInfo = supplier.subscription.subscription_additional_credits;
+        const additionalCreditsInfo = subscription.additionalCredits;
         if (additionalCreditsInfo) {
-          const currentUserAdditionalCredits = additionalCreditsInfo.filter(c => c.user_id === userId);
           let totalCredits = 0;
           let totalAdditionalCredits = 0;
-          if (currentUserAdditionalCredits) {
-            currentUserAdditionalCredits.forEach(credit => {
-              totalCredits += credit.aditional_credit_limit;
-              totalAdditionalCredits += credit.current_credits;
+          if (additionalCreditsInfo) {
+            additionalCreditsInfo.forEach(credit => {
+              totalCredits += credit.additionalCreditLimit;
+              totalAdditionalCredits += credit.currentCredits;
             });
-            currentUserAdditionalCredits["total_credits"] = totalCredits;
-            currentUserAdditionalCredits["used_credits"] = totalCredits - totalAdditionalCredits;
+            additionalCreditsInfo["total_credits"] = totalCredits;
+            additionalCreditsInfo["used_credits"] = totalCredits - totalAdditionalCredits;
 
-            supplier.subscription.subscription_additional_credits = currentUserAdditionalCredits;
+            subscription.subscription_additional_credits = additionalCreditsInfo;
           }
         }
-        return supplier.subscription;
+        return subscription;
       }
     }
   };
+
+  async saveUserToken(data: any) {
+    let userData = data.user;
+    userData.token = data.token;
+
+    localStorage.setItem("userToken", JSON.stringify(userData));
+    this.userTokenSubject.next(userData);
+
+    const response = await this.userCompaniesApiCall(true);
+    if (response.success) {
+
+      let createUrl;
+      let organizationListUrl;
+      let company;
+
+      // If user is a supplier then redirect to supplier portal
+      company = response.data[0];
+      if (!company) {
+        createUrl = routeConstants.BRAND.CREATE;
+      }
+      organizationListUrl = routeConstants.BRAND.ORGANIZATION_LIST;
+
+      // Removed any draft data for campaign before user goes to the dashboard.
+      localStorage.removeItem(constants.DRAFT_DEAL);
+
+      if (response.data.length === 0) {
+        createUrl = routeConstants.BRAND.CREATE;
+      }
+
+      if (createUrl) {
+        await this.router.navigate([createUrl]);
+        return;
+      }
+
+      console.log("Is it here?");
+      await this.router.navigate([organizationListUrl, { fromPage: "login" }]);
+    }
+  }
 
   async storeUserToken(data: any, presale = false) {
     let userData = data.user;
@@ -181,7 +249,7 @@ export class AuthService {
         email: this.userTokenValue.email,
         name: `${this.userTokenValue.first_name} ${this.userTokenValue.last_name}`,
         address: `${this.userTokenValue["supplier_street_address"]},${this.userTokenValue["supplier_city"]},${this.userTokenValue["supplier_state"]}`,
-        subscription: subscription.subscription_product.name,
+        subscription: subscription?.subscription_product?.name,
       };
       await this.httpService.post("supplier/postToSlack", slackData).toPromise();
     }

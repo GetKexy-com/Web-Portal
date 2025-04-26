@@ -1,7 +1,7 @@
 export class User {
   id!: number;
-  first_name!: string;
-  last_name!: string;
+  firstName!: string;
+  lastName!: string;
   email!: string;
   created_at?: string;
   is_claimed?: boolean;

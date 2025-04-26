@@ -171,7 +171,7 @@ export class BrandListComponent implements OnInit {
   private userTokenSubject: BehaviorSubject<User>;
   companyList = signal<Organization[]>([]);
   private isFirstTime = true;
-  baseImageUrl = signal<string>('');
+  baseImageUrl = signal<string>(environment.imageUrl);
   screenWidth = signal<number>(0);
   screenHeight = signal<number>(0);
   mobileScreenSize = signal<number>(992);
@@ -200,7 +200,6 @@ export class BrandListComponent implements OnInit {
       localStorage.setItem("showResponsiveMessage", "true");
     }
 
-    this.baseImageUrl.set(environment.imageUrl);
     this.route.params.subscribe((params) => {
       this.params = params;
     });
@@ -208,12 +207,13 @@ export class BrandListComponent implements OnInit {
   }
 
   private getOrganizationData(blockUi = true) {
-    this.httpService.post("user/getUserOrganizations", {}).subscribe({
+    this.httpService.get("company/getUserCompanies").subscribe({
       next: (res) => {
         if (!res.success) {
           return;
         }
-        this.companyList.set(res.data.supplier_list);
+        this.companyList.set(res.data);
+        console.log('companyList', this.companyList());
 
         if (this.params?.["fromPage"] === "login" && this.companyList().length === 1) {
           this.selectCompany(this.companyList()[0]);
@@ -225,56 +225,56 @@ export class BrandListComponent implements OnInit {
     });
   }
 
-  async selectCompany(company: Organization) {
-    // const userData = JSON.parse(localStorage.getItem("userToken") ?? {});
+  async selectCompany(data: Organization) {
+    console.log('company', data);
+    const company = data["company"];
     const userData = JSON.parse(localStorage.getItem("userToken") || '{}');
     localStorage.setItem("tutorialVideo", "false");
-    localStorage.setItem(constants.PROSPECTING_CALENDLY_LINKS, company.calendly_links ?? '');
+    localStorage.setItem(constants.PROSPECTING_CALENDLY_LINKS, company.calendlyLinks ?? '');
     localStorage.setItem(constants.PROSPECTING_WEBSITE, company.websites ?? '');
+
+    let subscription;
+    if (company.subscription?.length) {
+      subscription = company.subscription[company.subscription.length - 1];
+    }
 
     // Update user data
     const updatedUserData = {
       ...userData,
-      supplier_id: company.supplier_id,
+      supplier_id: company.id,
       zip_code: company.zip_code_list?.[0]?.zip_code ?? '',
-      job_title: company.job_title ?? '',
-      role: company.role ?? '',
-      isAdmin: company.role === constants.ADMIN,
-      slack_notification_sent: company?.slack_notification_sent,
+      job_title: data["jobTitle"] ?? '',
+      role: data.role ?? '',
+      isAdmin: data.role === constants.ADMIN,
+      slack_notification_sent: company?.slackNotificationSent,
       industry: company?.industry ?? '',
       supplier_name: company.name ?? '',
       supplier_phone: company.phone ?? '',
       supplier_country: company.country ?? '',
       supplier_city: company.city ?? '',
       supplier_state: company.state ?? '',
-      supplier_street_address: company.street_address ?? '',
-      supplier_logo: company.logo_image_url ?? '',
+      supplier_street_address: company.streetAddress ?? '',
+      supplier_logo: company.logoImage?.name ?? '',
       websites: company.websites ?? '',
-      calendly_links: company.calendly_links ?? '',
-      company_description: company.company_description ?? '',
-      is_subscription: company.subscription?.["id"] ? 1 : 0,
-      subscription: company.subscription ? JSON.stringify(company.subscription) : null,
-      side: company.side ?? ''
+      calendly_links: company.calendlyLinks ?? '',
+      company_description: company.companyDescription ?? '',
+      is_subscription: subscription?.["id"] ? 1 : 0,
+      subscription: subscription ? JSON.stringify(subscription) : null,
     };
 
-    if (company.subscription?.["id"]) {
-      localStorage.setItem(constants.PAYMENT_STATUS, company.subscription["payment_status"] ?? '');
+    if (subscription?.["id"]) {
+      localStorage.setItem(constants.PAYMENT_STATUS, subscription["paymentStatus"] ?? '');
     } else {
       localStorage.removeItem(constants.PAYMENT_STATUS);
     }
 
-    localStorage.setItem("fake_distributor", JSON.stringify(company.fake_distributor ?? false));
     localStorage.setItem("userToken", JSON.stringify(updatedUserData));
     this.userTokenSubject.next(updatedUserData);
 
     try {
-      const userSide = company.side;
-      // const localSupplierId = parseInt(localStorage.getItem("supplierId") ?? 0);
       const localSupplierId = parseInt(localStorage.getItem("supplierId") || '0', 10);
 
-
       if (!localSupplierId || updatedUserData.supplier_id !== localSupplierId) {
-        localStorage.setItem("side", userSide === "BOTH" ? "FOH" : userSide);
         localStorage.setItem("supplierId", updatedUserData.supplier_id.toString());
       }
     } catch (ex) {

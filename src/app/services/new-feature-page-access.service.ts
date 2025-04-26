@@ -31,7 +31,7 @@ export class NewFeaturePageAccessService {
 
   constructor(private httpService: HttpService) {}
 
-  public async setPageAccessDataForUser(user_id, from) {
+  public async setPageAccessDataForUser(from) {
     if (from === routeConstants.BRAND.CREATE_DRIP_CAMPAIGN) {
       // this.dripCampaignPage.next(true);
       this.businessOperationPage.next(true);
@@ -40,23 +40,22 @@ export class NewFeaturePageAccessService {
       this.promotionPage.next(true);
     }
     const postData = {
-      user_id,
       reports: this.reportsPage.getValue(),
-      menu_performance: this.menuPerformancePage.getValue(),
-      purchase_orders: this.purchaseOrderPage.getValue(),
-      business_operations: this.businessOperationPage.getValue(),
-      drip_campaign: this.dripCampaignPage.getValue(),
+      menuPerformance: this.menuPerformancePage.getValue(),
+      purchaseOrders: this.purchaseOrderPage.getValue(),
+      businessOperations: this.businessOperationPage.getValue() ? 1 : 0,
+      dripCampaign: this.dripCampaignPage.getValue(),
       promotions: this.promotionPage.getValue(),
     };
 
     return new Promise( (resolve, reject) => {
-      this.httpService.post("user/setNewFeaturePageAccessData", postData).subscribe((response) => {
+      this.httpService.post("users/setNewFeaturePageAccessData", postData).subscribe((response) => {
         let data = response.data;
         this.reportsPage.next(data.reports);
-        this.menuPerformancePage.next(data.menu_performance);
-        this.businessOperationPage.next(data.business_operations);
-        this.purchaseOrderPage.next(data.purchase_orders);
-        this.dripCampaignPage.next(data.drip_campaign);
+        this.menuPerformancePage.next(data.menuPerformance);
+        this.businessOperationPage.next(data.businessOperations);
+        this.purchaseOrderPage.next(data.purchaseOrders);
+        this.dripCampaignPage.next(data.dripCampaign);
         this.promotionPage.next(data.promotions);
         this.apiCalled = true;
         resolve(true);
@@ -67,20 +66,18 @@ export class NewFeaturePageAccessService {
   public async getPageAccessDataForUser(user_id) {
     if (!this.apiCalled) {
       return new Promise( (resolve, reject) => {
-        let payload = { user_id };
-        this.httpService.post("user/getNewFeaturePageAccessData", payload).subscribe(async (response) => {
+        this.httpService.get("users/getNewFeaturePageAccessData").subscribe(async (response) => {
           let data = response.data;
           if (!data) {
-            await this.setPageAccessDataForUser(user_id, null);
+            await this.setPageAccessDataForUser(null);
             resolve(true);
             return;
           }
-
           this.reportsPage.next(data.reports);
-          this.menuPerformancePage.next(data.menu_performance);
-          this.businessOperationPage.next(data.business_operations);
-          this.purchaseOrderPage.next(data.purchase_orders);
-          this.dripCampaignPage.next(data.drip_campaign);
+          this.menuPerformancePage.next(data.menuPerformance);
+          this.businessOperationPage.next(data.businessOperations);
+          this.purchaseOrderPage.next(data.purchaseOrders);
+          this.dripCampaignPage.next(data.dripCampaign);
           this.promotionPage.next(data.promotions);
 
           this.apiCalled = true;

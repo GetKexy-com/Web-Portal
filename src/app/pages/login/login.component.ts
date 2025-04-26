@@ -122,6 +122,7 @@ import { LoginLayoutComponent } from '../../layouts/login-layout/login-layout.co
 import { AuthService } from '../../services/auth.service';
 import { routeConstants } from '../../helpers/routeConstants';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
+import {constants} from '../../helpers/constants';
 
 @Component({
   selector: 'app-login',
@@ -186,9 +187,20 @@ export class LoginComponent implements OnInit {
       next: (data) => this.handleResponse(data),
       error: (err) => {
         this.isLoading.set(false);
-        this.error.set(err?.message || 'An error occurred');
+        console.log('error', err);
+        this.error.set(err?.error || 'An error occurred');
       },
     });
+
+    // Secondary login for old api calls
+    // this.authService.secondarylogin(email, password).subscribe({
+    //   next: (response) => {
+    //     console.log('old data', response);
+    //     if (response.success) {
+    //       localStorage.setItem(constants.OLD_USER_TOKEN, response.data.token);
+    //     }
+    //   }
+    // })
   }
 
   handleResponse(data: any) {

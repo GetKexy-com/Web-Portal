@@ -277,7 +277,6 @@ import { HttpService } from '../../services/http.service';
 import { routeConstants } from '../../helpers/routeConstants';
 import Swal from 'sweetalert2';
 import { LoginLayoutComponent } from '../../layouts/login-layout/login-layout.component';
-import { NgClass } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PricePageSubscriptionTypeCardComponent } from '../../components/price-page-subscription-type-card/price-page-subscription-type-card.component';
 import { KexyButtonComponent } from '../../components/kexy-button/kexy-button.component';
@@ -412,14 +411,14 @@ export class BrandSubscriptionSelectionComponent implements OnInit {
 
     const postData = {
       type: selectedData.subscriptionType,
-      supplier_id: this.supplier_id(),
-      is_lifetime: selectedData.title === constants.LIFETIME_DEAL ? "true" : undefined,
-      reccuring: this.isMonthlySelected() ? constants.MONTH : constants.YEAR,
-      payment_for: selectedData.title === constants.LIFETIME_DEAL ? constants.ONETIME : constants.SUBSCRIPTION,
-      promotion_code: this.couponCode(),
+      companyId: this.supplier_id(),
+      isLifetime: selectedData.title === constants.LIFETIME_DEAL ? "true" : undefined,
+      recuring: this.isMonthlySelected() ? constants.MONTH : constants.YEAR,
+      paymentFor: selectedData.title === constants.LIFETIME_DEAL ? constants.ONETIME : constants.SUBSCRIPTION,
+      promotionCode: this.couponCode(),
       seats: this.usersCount(),
-      success_url: environment.siteUrl + routeConstants.BASE_URL + routeConstants.BRAND.WELCOME,
-      cancel_url: environment.siteUrl + routeConstants.BASE_URL + routeConstants.BRAND.SUBSCRIPTION_SELECTION,
+      successUrl: environment.siteUrl + routeConstants.BASE_URL + routeConstants.BRAND.WELCOME,
+      cancelUrl: environment.siteUrl + routeConstants.BASE_URL + routeConstants.BRAND.SUBSCRIPTION_SELECTION,
     };
 
     await this.makePaymentForSubscriptionApi(postData);
@@ -427,10 +426,11 @@ export class BrandSubscriptionSelectionComponent implements OnInit {
 
   makePaymentForSubscriptionApi = async (postData: any) => {
     this.proratedPriceInfoComponentLoading.set(true);
-    this.httpService.post("payment/makePaymentForSubscription", postData).subscribe({
+    this.httpService.post("subscriptions/checkout", postData).subscribe({
       next: (res) => {
+        console.log('payment response', res);
         if (res.success) {
-          window.location.href = res.data;
+          window.location.href = res.data.session.url;
         } else {
           Swal.fire("Failed!", res.error.message, "error");
         }
@@ -446,7 +446,7 @@ export class BrandSubscriptionSelectionComponent implements OnInit {
 
   addNoviceSubscriptionApi = async () => {
     this.proratedPriceInfoComponentLoading.set(true);
-    this.httpService.post("supplier/addNoviceSubscription", { supplier_id: this.supplier_id() }).subscribe({
+    this.httpService.post("subscriptions/novice", { companyId: this.supplier_id() }).subscribe({
       next: (res) => {
         if (res.success) {
           this.router.navigate([routeConstants.BRAND.WELCOME]);

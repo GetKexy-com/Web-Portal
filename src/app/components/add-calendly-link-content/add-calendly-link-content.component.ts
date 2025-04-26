@@ -168,12 +168,11 @@ export class AddCalendlyLinkContentComponent implements OnInit {
     this.previousLinks.update(links => [...links, formData.calendly_link]);
 
     const payload = {
-      supplier_id: this.supplierId,
-      calendly_links: JSON.stringify(this.previousLinks())
+      calendlyLinks: JSON.stringify(this.previousLinks())
     };
 
     try {
-      const res = await this.httpService.post("supplier/edit", payload).toPromise();
+      const res = await this.httpService.patch(`company/${this.supplierId}`, payload).toPromise();
       if (res.success) {
         this.prospectingService.updateCalendlyLinks(this.previousLinks());
       }

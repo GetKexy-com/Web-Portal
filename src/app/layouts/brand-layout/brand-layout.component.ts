@@ -50,7 +50,7 @@ import {CommonModule} from '@angular/common';
   templateUrl: './brand-layout.component.html',
   styleUrl: './brand-layout.component.scss'
 })
-export class BrandLayoutComponent {
+export class BrandLayoutComponent implements OnInit {
   @Input() layoutPaddingNone;
   @Input() fullPageScroll = true;
   @Input() headerBgWhite;
@@ -87,7 +87,6 @@ export class BrandLayoutComponent {
 
   constructor(
     private _authService: AuthService,
-    private httpService: HttpService,
     private router: Router,
     private modal: NgbModal,
     private pageUiService: PageUiService,
@@ -99,7 +98,7 @@ export class BrandLayoutComponent {
   }
 
   get username(): string {
-    return this.userData ? this.userData.first_name + " " + this.userData.last_name : "";
+    return this.userData ? this.userData.firstName + " " + this.userData.lastName : "";
   }
 
   async ngOnInit() {
@@ -137,18 +136,7 @@ export class BrandLayoutComponent {
         localStorage.removeItem(constants.SALES_LEAD_SEARCH_JOB_TITLES_PAYLOAD);
       }
     }
-
-    this.restaurant_id = this.userData.company_id;
     this.externalAssets = environment.externalAssetUrl + constants.SAMPLE_INVENTORY_SHEET;
-
-    try {
-      this.isFoh = localStorage.getItem("side") === "FOH";
-
-      await this.setInactiveDate();
-    } catch (ex) {
-      ("pass");
-    }
-
     this.pageUiService.updateGleapIcon(false);
   }
 
@@ -185,13 +173,6 @@ export class BrandLayoutComponent {
     }
   };
 
-  async setInactiveDate() {
-    const postData = {};
-
-    this.httpService.post("user/addOrUpdateInactiveDate", postData).subscribe((response) => {
-    });
-  }
-
   handleLogout() {
     this._authService.logout();
     this.modal.dismissAll();
@@ -215,7 +196,7 @@ export class BrandLayoutComponent {
   support = () => {
     this.userToken.subscribe(user => {
       Gleap.identify(user.id.toString(), {
-        name: user.first_name + " " + user.last_name,
+        name: user.firstName + " " + user.lastName,
         email: user.email,
         customData: {
           supplier_name: user.supplier_name,

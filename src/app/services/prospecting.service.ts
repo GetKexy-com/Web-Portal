@@ -358,6 +358,7 @@ export class ProspectingService {
 
   getCalendlyLinks = () => {
     let calendlyLinksData: any = localStorage.getItem(constants.PROSPECTING_CALENDLY_LINKS);
+    console.log(calendlyLinksData);
 
     if (!calendlyLinksData) {
       this._calendlyLinks.next([]);
@@ -406,11 +407,10 @@ export class ProspectingService {
 
     calendlyLinks.splice(index, 1);
     const payload = {
-      supplier_id: supplierId,
-      calendly_links: JSON.stringify(calendlyLinks),
+      calendlyLinks: JSON.stringify(calendlyLinks),
     };
 
-    let res = await this.httpService.post("supplier/edit", payload).toPromise();
+    let res = await this.httpService.patch(`company/${supplierId}`, payload).toPromise();
     if (res.success) {
       this.updateCalendlyLinks(calendlyLinks);
     }
@@ -423,11 +423,10 @@ export class ProspectingService {
 
     websites.splice(index, 1);
     const payload = {
-      supplier_id: supplierId,
       websites: JSON.stringify(websites),
     };
 
-    let res = await this.httpService.post("supplier/edit", payload).toPromise();
+    let res = await this.httpService.patch(`company/${supplierId}`, payload).toPromise();
     if (res.success) {
       this.updateWebsites(websites);
     }

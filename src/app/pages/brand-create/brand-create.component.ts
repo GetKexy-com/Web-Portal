@@ -327,8 +327,6 @@ export class BrandCreateComponent implements OnInit {
 
   constructor() {
     this.primaryForm = this.fb.group({
-      side: ['BOH', [Validators.required]],
-      accountType: [''],
       name: [
         this.companyName(),
         [Validators.required, Validators.minLength(0), Validators.maxLength(64)]
@@ -346,11 +344,10 @@ export class BrandCreateComponent implements OnInit {
           Validators.pattern(/^\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$/)
         ]
       ],
-      street_address: [''],
       country: [constants.US],
       city: [''],
       state: [''],
-      zip_code_list: [
+      zipCodeList: [
         '',
         [
           Validators.required,
@@ -408,46 +405,46 @@ export class BrandCreateComponent implements OnInit {
     this.submitted.set(true);
 
     if (!this.primaryForm.valid) {
-      console.log(this.primaryForm.value);
+      console.log(this.primaryForm);
       return;
     }
 
     this.isWaitingFlag.set(true);
 
     const data = {
-      logo_image: this.imageUrl(),
-      job_title: this.job_title() || 'Admin',
-      phone_country_code: this.phoneCode(),
+      logoImage: this.imageUrl(),
+      jobTitle: this.job_title() || 'Admin',
+      phoneCountryCode: this.phoneCode(),
       industry: localStorage.getItem(constants.INDUSTRY),
-      zip_code_list: [{}],
+      zipCodeList: [{}],
       ...this.primaryForm.getRawValue()
     };
 
-    data.zip_code_list = [{ zip_code: data.zip_code_list }];
+    data.zipCodeList = [{ zip_code: data.zipCodeList }];
 
     try {
-      const response = await this.httpService.post('supplier/create', data).toPromise();
-
+      const response = await this.httpService.post('company', data).toPromise();
+      console.log('response from company created', response);
       if (response?.success) {
-        localStorage.setItem('supplierId', response.data.supplier_id);
+        localStorage.setItem('supplierId', response.data.company_id);
         this.isWaitingFlag.set(false);
         localStorage.removeItem(constants.INDUSTRY);
 
-        const hubspotFormData = {
-          formGuid: constants.HUBSPOT_RESTAURANT_CREATE_FORMID,
-          fields: [
-            {
-              name: 'email',
-              value: localStorage.getItem('registerEmail')
-            }
-          ],
-          context: {
-            pageUri: location.href,
-            pageName: document.title
-          }
-        };
+        // const hubspotFormData = {
+        //   formGuid: constants.HUBSPOT_RESTAURANT_CREATE_FORMID,
+        //   fields: [
+        //     {
+        //       name: 'email',
+        //       value: localStorage.getItem('registerEmail')
+        //     }
+        //   ],
+        //   context: {
+        //     pageUri: location.href,
+        //     pageName: document.title
+        //   }
+        // };
 
-        this.httpService.post('user/formSubmitInHubspot', hubspotFormData).subscribe();
+        // this.httpService.post('user/formSubmitInHubspot', hubspotFormData).subscribe();
 
         await this.router.navigate([routeConstants.BRAND.SUBSCRIPTION_SELECTION]);
       } else {
@@ -501,11 +498,11 @@ export class BrandCreateComponent implements OnInit {
     const zipCodeValidation = COUNTRY_ADDRESS_POSTALS.find(c => c.abbrev === country);
     if (zipCodeValidation?.postal) {
       this.primaryForm.setControl(
-        'zip_code_list',
+        'zipCodeList',
         this.fb.control('', [Validators.required, Validators.pattern(zipCodeValidation.postal)])
       );
     } else {
-      this.primaryForm.setControl('zip_code_list', this.fb.control('', []));
+      this.primaryForm.setControl('zipCodeList', this.fb.control('', []));
     }
   }
 

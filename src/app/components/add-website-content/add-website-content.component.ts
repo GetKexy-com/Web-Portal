@@ -170,11 +170,10 @@ export class AddWebsiteContentComponent implements OnInit {
       const updatedWebsites = [...this.previousWebsites(), formData.website];
 
       const payload = {
-        supplier_id: this.supplierId,
         websites: JSON.stringify(updatedWebsites)
       };
 
-      const res = await this.httpService.post("supplier/edit", payload).toPromise();
+      const res = await this.httpService.patch(`company/${this.supplierId}`, payload).toPromise();
 
       if (res?.success) {
         this.previousWebsites.set(updatedWebsites);

@@ -1746,4 +1746,5 @@ export const constants = {
   SPECIFIC_TIME: "specific_time",
   SMTP: "smtp",
   GMAIL: "gmail",
+  OLD_USER_TOKEN: "oldUserToken",
 };

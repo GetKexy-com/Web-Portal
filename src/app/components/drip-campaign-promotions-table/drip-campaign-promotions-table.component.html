@@ -154,9 +154,6 @@
                         : 'n-cell ' + getCellClasses(column)
                     "
                   >
-<!--                    @if (column.key !== 'action' && column.key !== 'promotion_type' && column.key !== 'date_created') {-->
-<!--                      <span>{{ getCellValueToDisplay(row, column) }}</span>-->
-<!--                    }-->
 
                     @if (column.key === 'action' && column.key !== 'promotion_type') {
                       <span class="text-center d-inline-block w-100">
