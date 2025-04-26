@@ -159,17 +159,16 @@ export class DripCampaignContentComponent implements OnInit {
     let data = await this.campaignService.getListOfCampaigns(postData);
     if (!data["promotions"] || !data["promotions"].length) return;
 
-    this.promotionTitles = await this.campaignService.getAllCampaignTitle({ supplier_id: this.userData.supplier_id });
+    this.promotionTitles = await this.campaignService.getAllCampaignTitle();
 
     this.totalPageCounts = data["totalPageCounts"];
     this.calculatePages();
-
     data["promotions"].map(item => {
       const obj = {
         id: item.id,
-        title_of_campaign: this.getCampaignTitle(item.campaign_title_text),
-        promotion_type: item.campaign.campaign_detail.campaign_type,
-        date_created: item.campaign.created_at,
+        title_of_campaign: item.campaign_title_text,
+        promotion_type: item.type_of_campaign,
+        date_created: item.campaign.createdAt,
         // date_created: this.datePipe.transform(item.campaign.created_at, "MMM d, y"),
         promotion_data: item,
       };
@@ -209,7 +208,11 @@ export class DripCampaignContentComponent implements OnInit {
 
   getAndSetDripCampaignTitleSubscription = async () => {
     // Get dripCampaignTitles api call
-    await this.dripCampaignService.getAllDripCampaignTitle({ supplier_id: this.userData.supplier_id });
+    const postData = {
+      companyId: this.userData.supplier_id,
+      titleType: "drip"
+    }
+    await this.dripCampaignService.getAllDripCampaignTitle(postData);
 
     // Set campaignTitle subscription
     this.dripCampaignTitlesSubscription = this.dripCampaignService.dripCampaignTitles.subscribe((campaignTitles) => {

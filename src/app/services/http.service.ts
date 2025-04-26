@@ -12,11 +12,11 @@ export class HttpService {
 
   constructor(private _http: HttpClient) {}
 
-  get(url: string, baseUrl = this.apiUrl): Observable<any> {
+  get(url: string, baseUrl = this.apiUrl, params?: any): Observable<any> {
     const urlStr = baseUrl + url;
     let headers = this._getHeaders();
     return this._http
-      .get(urlStr, { headers })
+      .get(urlStr, { headers, params })
       .pipe(map((response) => response));
   }
 
@@ -39,6 +39,14 @@ export class HttpService {
     let headers = this._getHeaders();
     return this._http
       .put(urlStr, body, { headers: headers })
+      .pipe(map((response) => response));
+  }
+
+  patch(url: string, body): Observable<any> {
+    const urlStr = this.apiUrl + url;
+    let headers = this._getHeaders();
+    return this._http
+      .patch(urlStr, body, { headers: headers })
       .pipe(map((response) => response));
   }
 

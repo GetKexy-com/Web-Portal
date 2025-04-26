@@ -86,7 +86,7 @@
 //   };
 // }
 
-import { Component, inject } from '@angular/core';
+import {Component, inject, OnInit} from '@angular/core';
 import { NgbActiveOffcanvas } from "@ng-bootstrap/ng-bootstrap";
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
 import { AuthService } from "src/app/services/auth.service";
@@ -104,7 +104,7 @@ import { NgIf } from '@angular/common';
   templateUrl: './create-drip-campaign-title.component.html',
   styleUrl: './create-drip-campaign-title.component.scss'
 })
-export class CreateDripCampaignTitleComponent {
+export class CreateDripCampaignTitleComponent implements OnInit {
   private _authService = inject(AuthService);
   private dripCampaignService = inject(DripCampaignService);
   private fb = inject(FormBuilder);
@@ -156,8 +156,9 @@ export class CreateDripCampaignTitleComponent {
 
     const formData = this.primaryForm.getRawValue();
     const payload = {
-      supplier_id: this.supplierId,
-      title: formData.campaign_title
+      companyId: this.supplierId,
+      title: formData.campaign_title,
+      titleType: 'drip'
     };
 
     try {

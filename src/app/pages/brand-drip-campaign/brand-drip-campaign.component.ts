@@ -108,7 +108,7 @@ export class BrandDripCampaignComponent implements OnInit, OnDestroy {
       }
     });
 
-    this._authService.sendSlackNotification();
+    // this._authService.sendSlackNotification();
   }
 
   ngOnDestroy(): void {

@@ -110,18 +110,22 @@ export class AuthService {
   };
 
   getSubscriptionData = async (overwrite = false) => {
-    const response = await this.userOrganisationApiCall(overwrite);
+    // const response = await this.userOrganisationApiCall(overwrite);
+    const response = await this.userCompaniesApiCall(overwrite);
     if (response.success) {
+      console.log('response for subscription', response);
       const userData = this.userTokenValue;
-      const supplierId = userData.supplier_id;
       const userId = userData.id;
-      const supplier = response.data.supplier_list.find(s => s.supplier_id === supplierId);
-      if (supplier.subscription) {
-        supplier.subscription.subscription_payments = supplier.subscription.subscription_payments.filter(p => {
+      const brand = response.data[0];
+      const company = brand.company;
+
+      if (company.subscriptions) {
+        const subscription = company.subscriptions[0];
+        subscription.subscription_payments = subscription.payments.filter(p => {
           return p.success === true && p.reccuring !== "day";
         });
-        const paymentsLength = supplier.subscription.subscription_payments.length - 1;
-        let productDetails = supplier.subscription.subscription_payments[paymentsLength].subscription_product;
+        const paymentsLength = subscription.subscription_payments.length - 1;
+        let productDetails = subscription.subscription_payments[paymentsLength].subscriptionProduct;
         if (!productDetails) {
           productDetails = {
             name: constants.NOVICE,
@@ -130,32 +134,31 @@ export class AuthService {
             allowed_credit_limit: 25,
           };
         }
-        supplier.subscription["subscription_product"] = productDetails;
+        subscription["subscription_product"] = productDetails;
 
-        const creditsInfo = supplier.subscription.subscription_credits;
+        const creditsInfo = subscription.credits[0];
         if (creditsInfo) {
-          const currentUserCredits = creditsInfo.findLast(c => c.user_id === userId);
-          currentUserCredits["total_credits"] = currentUserCredits.allowed_credit_limit;
-          currentUserCredits["used_credits"] = currentUserCredits.allowed_credit_limit - currentUserCredits.current_credits;
-          supplier.subscription.subscription_credits = [currentUserCredits];
+          // const currentUserCredits = creditsInfo.findLast(c => c.user_id === userId);
+          creditsInfo["total_credits"] = creditsInfo.allowedCreditLimit;
+          creditsInfo["used_credits"] = creditsInfo.allowedCreditLimit - creditsInfo.currentCredits;
+          subscription.subscription_credits = [creditsInfo];
         }
-        const additionalCreditsInfo = supplier.subscription.subscription_additional_credits;
+        const additionalCreditsInfo = subscription.additionalCredits;
         if (additionalCreditsInfo) {
-          const currentUserAdditionalCredits = additionalCreditsInfo.filter(c => c.user_id === userId);
           let totalCredits = 0;
           let totalAdditionalCredits = 0;
-          if (currentUserAdditionalCredits) {
-            currentUserAdditionalCredits.forEach(credit => {
-              totalCredits += credit.aditional_credit_limit;
-              totalAdditionalCredits += credit.current_credits;
+          if (additionalCreditsInfo) {
+            additionalCreditsInfo.forEach(credit => {
+              totalCredits += credit.additionalCreditLimit;
+              totalAdditionalCredits += credit.currentCredits;
             });
-            currentUserAdditionalCredits["total_credits"] = totalCredits;
-            currentUserAdditionalCredits["used_credits"] = totalCredits - totalAdditionalCredits;
+            additionalCreditsInfo["total_credits"] = totalCredits;
+            additionalCreditsInfo["used_credits"] = totalCredits - totalAdditionalCredits;
 
-            supplier.subscription.subscription_additional_credits = currentUserAdditionalCredits;
+            subscription.subscription_additional_credits = additionalCreditsInfo;
           }
         }
-        return supplier.subscription;
+        return subscription;
       }
     }
   };
@@ -246,7 +249,7 @@ export class AuthService {
         email: this.userTokenValue.email,
         name: `${this.userTokenValue.first_name} ${this.userTokenValue.last_name}`,
         address: `${this.userTokenValue["supplier_street_address"]},${this.userTokenValue["supplier_city"]},${this.userTokenValue["supplier_state"]}`,
-        subscription: subscription.subscription_product.name,
+        subscription: subscription?.subscription_product?.name,
       };
       await this.httpService.post("supplier/postToSlack", slackData).toPromise();
     }

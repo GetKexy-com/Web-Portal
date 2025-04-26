@@ -20,7 +20,7 @@ export class OrgInfoComponent {
   }
 
   get username(): string {
-    return this.userData ? this.userData.first_name + " " + this.userData.last_name : "";
+    return this.userData ? this.userData.firstName + " " + this.userData.lastName : "";
   }
 
   get orgName(): string {

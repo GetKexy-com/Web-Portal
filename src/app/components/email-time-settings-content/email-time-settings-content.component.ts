@@ -20,7 +20,6 @@ import {CommonModule} from '@angular/common';
     KexyTabComponent,
     FormsModule,
     KexySelectDropdownComponent,
-    ErrorMessageCardComponent,
     KexyToggleSwitchComponent,
     CommonModule,
   ],

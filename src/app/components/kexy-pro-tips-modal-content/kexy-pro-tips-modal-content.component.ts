@@ -201,7 +201,7 @@ export class KexyProTipsModalContentComponent implements OnDestroy {
   }
 
   dontShowModalApiCall(from: string) {
-    this._newFeaturePageAccessService.setPageAccessDataForUser(this.userId()!, from);
+    this._newFeaturePageAccessService.setPageAccessDataForUser(from);
   }
 
   toggleDontShowCheckbox(event: Event) {

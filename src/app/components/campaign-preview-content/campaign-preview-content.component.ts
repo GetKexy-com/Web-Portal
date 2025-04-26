@@ -96,7 +96,7 @@ export class CampaignPreviewContentComponent {
 
   getAllCampaignTitles = async () => {
     // Get campaignTitles api call
-    return this.campaignService.getAllCampaignTitle({ supplier_id: this.userData.supplier_id });
+    return this.campaignService.getAllCampaignTitle();
   };
 
   getAllCampaignInnerDetails = async () => {

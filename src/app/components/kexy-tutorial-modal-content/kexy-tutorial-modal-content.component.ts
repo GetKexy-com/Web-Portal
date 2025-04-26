@@ -228,7 +228,7 @@ export class KexyTutorialModalContentComponent implements OnInit, OnDestroy {
   dontShowModalApiCall(from: string) {
     const userId = this.userId();
     if (userId) {
-      this._newFeaturePageAccessService.setPageAccessDataForUser(userId, from);
+      this._newFeaturePageAccessService.setPageAccessDataForUser(from);
     }
   }
 
