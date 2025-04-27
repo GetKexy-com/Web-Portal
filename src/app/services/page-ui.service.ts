@@ -3,6 +3,8 @@ import { Router } from "@angular/router";
 import { ProspectContact } from "../models/ProspectContact";
 import { AbstractControl, ValidatorFn } from "@angular/forms";
 import Swal from "sweetalert2";
+import {BehaviorSubject} from 'rxjs';
+import {environment} from '../../environments/environment';
 
 @Injectable({
   providedIn: "root",
@@ -12,7 +14,18 @@ export class PageUiService {
   private selectedProspectingConv: ProspectContact;
   private prospectingSalesLeadCurrentStep: number = 1;
 
+  private _apiBaseUrl = new BehaviorSubject(environment.baseUrl);
+  apiBaseUrl = this._apiBaseUrl.asObservable();
+
   constructor(private router: Router) {
+  }
+
+  changeToOldApiBaseUrl = () => {
+    this._apiBaseUrl.next(environment.secondaryBaseUrl);
+  }
+
+  changeToNewApiBaseUrl = () => {
+    this._apiBaseUrl.next(environment.baseUrl);
   }
 
   getCurrentPageUrl = () => {

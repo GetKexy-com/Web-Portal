@@ -322,7 +322,7 @@
 //   protected readonly constants = constants;
 // }
 
-import { Component, inject, signal, DestroyRef } from '@angular/core';
+import {Component, inject, signal, DestroyRef, OnInit} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
@@ -351,7 +351,7 @@ import {ListOfDripCampaignTableComponent} from '../../components/list-of-drip-ca
   templateUrl: './brand-list-of-drip-campaigns.component.html',
   styleUrl: './brand-list-of-drip-campaigns.component.scss'
 })
-export class BrandListOfDripCampaignsComponent {
+export class BrandListOfDripCampaignsComponent implements OnInit {
   // Services
   private authService = inject(AuthService);
   private router = inject(Router);
@@ -380,6 +380,7 @@ export class BrandListOfDripCampaignsComponent {
 
   async ngOnInit() {
     document.title = "List of Drip Campaign - KEXY Brand Portal";
+    this.pageUiService.changeToOldApiBaseUrl();
     this.isWaitingFlag.set(true);
     this.userData.set(this.authService.userTokenValue);
 

@@ -193,14 +193,14 @@ export class LoginComponent implements OnInit {
     });
 
     // Secondary login for old api calls
-    // this.authService.secondarylogin(email, password).subscribe({
-    //   next: (response) => {
-    //     console.log('old data', response);
-    //     if (response.success) {
-    //       localStorage.setItem(constants.OLD_USER_TOKEN, response.data.token);
-    //     }
-    //   }
-    // })
+    this.authService.secondarylogin(email, password).subscribe({
+      next: (response) => {
+        console.log('old data', response);
+        if (response.success) {
+          localStorage.setItem(constants.OLD_USER_TOKEN, response.data.token);
+        }
+      }
+    })
   }
 
   handleResponse(data: any) {

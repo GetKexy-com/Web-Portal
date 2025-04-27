@@ -5,12 +5,17 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 import { environment } from '../../environments/environment';
+import {PageUiService} from './page-ui.service';
 
 @Injectable({ providedIn: "root" })
 export class HttpService {
   public apiUrl = `${environment.baseUrl}`;
 
-  constructor(private _http: HttpClient) {}
+  constructor(private _http: HttpClient, private pageUiService: PageUiService) {
+    this.pageUiService.apiBaseUrl.subscribe(baseUrl => {
+      this.apiUrl = baseUrl;
+    })
+  }
 
   get(url: string, baseUrl = this.apiUrl, params?: any): Observable<any> {
     const urlStr = baseUrl + url;
