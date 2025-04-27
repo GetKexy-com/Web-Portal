@@ -441,26 +441,23 @@ export class DripCampaignContentComponent implements OnInit {
     }
 
     const payload = {
-      drip_campaign_id: this.dripCampaignId || "",
-      supplier_id: this.userData.supplier_id,
-      allowed_credit_limit: 1,
-      drip_campaign_title_id: this.selectedTitleId,
-      number_of_emails: this.numberOfEmail,
-      email_tone: this.selectedEmailToneKey,
-      email_length: this.selectedEmailLength.value,
-      website_url: this.selectedWebsiteKey,
-      calendly_link: this.selectedCalendlyLinkKey,
-      campaign_id: this.promotionId || "",
-      supplier_side: this.userData.side,
-      status: "",
-      establishment_search_type: "",
-      establishment_search_value: "",
-      target_audience: this.targetAudience,
-      email_about: this.whatDoYouCover,
-      audience_type: this.selectedDripCampaignType,
+      dripCampaignId: this.dripCampaignId || "",
+      companyId: this.userData.supplier_id,
+      dripCampaignTitleId: this.selectedTitleId,
+      numberOfEmails: this.numberOfEmail,
+      emailTone: this.selectedEmailToneKey,
+      emailLength: this.selectedEmailLength.value,
+      websiteUrl: this.selectedWebsiteKey,
+      campaignId: this.promotionId || "",
+      targetAudience: this.targetAudience,
+      emailAbout: this.whatDoYouCover,
+      audienceType: this.selectedDripCampaignType,
     };
     if (this.dripCampaignDuplicate) {
-      payload["drip_campaign_duplicate"] = true;
+      payload["dripCampaignDuplicate"] = true;
+    }
+    if (this.selectedCalendlyLinkKey) {
+      payload["calendlyLink"] = this.selectedCalendlyLinkKey;
     }
     console.log({ payload });
     const dripCampaign = await this.dripCampaignService.createOrUpdateDripCampaign(payload);
