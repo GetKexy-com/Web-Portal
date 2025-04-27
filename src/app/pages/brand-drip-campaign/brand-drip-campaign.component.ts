@@ -22,6 +22,7 @@ import {
 import {DripCampaignContentComponent} from '../../components/drip-campaign-content/drip-campaign-content.component';
 import {GenerateDripCampaignComponent} from '../../components/generate-drip-campaign/generate-drip-campaign.component';
 import {CommonModule} from '@angular/common';
+import {PageUiService} from '../../services/page-ui.service';
 
 @Component({
   selector: 'brand-drip-campaign',
@@ -66,6 +67,7 @@ export class BrandDripCampaignComponent implements OnInit, OnDestroy {
     private _authService: AuthService,
     private modal: NgbModal,
     private route: ActivatedRoute,
+    private pageUiService: PageUiService,
   ) {
     this.router.routeReuseStrategy.shouldReuseRoute = this.resetDripCampaignData.bind(this);
   }
@@ -126,6 +128,8 @@ export class BrandDripCampaignComponent implements OnInit, OnDestroy {
   }
 
   getCampaign = async () => {
+    this.pageUiService.changeToOldApiBaseUrl();
+
     if (!this.dripCampaignId) {
       return false;
     }

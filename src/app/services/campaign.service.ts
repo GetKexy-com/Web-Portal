@@ -646,11 +646,56 @@ export class CampaignService {
     this.contactInfoPageData = {};
   };
 
+  // getListOfCampaigns = async (postData) => {
+  //   let tempDealList = [];
+  //
+  //   return new Promise(async (resolve, reject) => {
+  //     this.httpService.get("landing-pages").subscribe((res) => {
+  //       if (!res.success) {
+  //         if (res.error) {
+  //           reject(res.error);
+  //         }
+  //       } else {
+  //
+  //         let totalPageCounts = Math.ceil(res.data.total / postData.limit);
+  //
+  //         res.data.landingPages.forEach((campaign) => {
+  //           const details = campaign.detail;
+  //           let dealSingletem = {
+  //             id: campaign.id,
+  //             campaign_title_text: details.title.title,
+  //             campaign_details_text: details.innerDetail?.innerDetail,
+  //             product_name: details.prospectingProduct.name,
+  //             deal_image: environment.imageUrl + details.image,
+  //             deal_price: details.price,
+  //             type_of_campaign: details.landingPageType,
+  //             status: campaign.status,
+  //             token: campaign.token,
+  //             action: "",
+  //             campaign,
+  //           };
+  //
+  //           tempDealList.push(dealSingletem);
+  //         });
+  //
+  //         tempDealList.sort(function(a, b) {
+  //           const a1 = a.id,
+  //             b1 = b.id;
+  //           if (a1 == b1) return 0;
+  //           return a1 < b1 ? 1 : -1;
+  //         });
+  //
+  //         resolve({ promotions: tempDealList, totalPageCounts });
+  //       }
+  //     });
+  //   });
+  // };
+
   getListOfCampaigns = async (postData) => {
     let tempDealList = [];
 
     return new Promise(async (resolve, reject) => {
-      this.httpService.get("landing-pages").subscribe((res) => {
+      this.httpService.post("campaigns/getAll", postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -659,18 +704,28 @@ export class CampaignService {
 
           let totalPageCounts = Math.ceil(res.data.total / postData.limit);
 
-          res.data.landingPages.forEach((campaign) => {
-            const details = campaign.detail;
+          res.data.campaigns.forEach((campaign) => {
+            const details = campaign.campaign_detail;
+            let dealEndDateTime = new Date(details.end_date).getTime();
+
             let dealSingletem = {
               id: campaign.id,
-              campaign_title_text: details.title.title,
-              campaign_details_text: details.innerDetail?.innerDetail,
-              product_name: details.prospectingProduct.name,
-              deal_image: environment.imageUrl + details.image,
+              deal_title: details.campaign_title,
+              campaign_title_text: details.campaign_title,
+              campaign_details_text: details.campaign_details,
+              product_name: details.prospecting_product_id,
+              deal_image: environment.imageUrl + details.campaign_image,
+              deal_category: details.category_id,
               deal_price: details.price,
-              type_of_campaign: details.landingPageType,
+              type_of_campaign: details.campaign_type,
+              end_at: dealEndDateTime,
               status: campaign.status,
               token: campaign.token,
+              analytics: {
+                impressions: "0",
+                clicks: "0",
+                ctr: "0%",
+              },
               action: "",
               campaign,
             };

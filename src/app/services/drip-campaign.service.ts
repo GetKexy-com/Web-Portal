@@ -65,10 +65,42 @@ export class DripCampaignService {
     }
   };
 
+  // getCampaign = async (postData) => {
+  //   this._loading.next(true);
+  //   return new Promise(async (resolve, reject) => {
+  //     this.httpService.get(`drip-campaigns/${postData.drip_campaign_id}`).subscribe((res) => {
+  //       if (!res.success) {
+  //         if (res.error) {
+  //           this._loading.next(false);
+  //           reject(res.error);
+  //         }
+  //       } else {
+  //         if (res.data) {
+  //           // Set page data
+  //           console.log('res data', res.data);
+  //           let campaign = res.data;
+  //           this.setPagesData(campaign);
+  //           this._dripCampaignStatus.next(campaign.status);
+  //           const emails = campaign.drip_campaign_emails;
+  //           emails.forEach(email => {
+  //             email.delay_between_previous_email = JSON.parse(email.delay_between_previous_email);
+  //           });
+  //           this.sseService.addToDripBulkEmails(emails);
+  //           this._loading.next(false);
+  //           resolve(campaign);
+  //         } else {
+  //           this._loading.next(false);
+  //           reject(false);
+  //         }
+  //       }
+  //     });
+  //   });
+  // };
+
   getCampaign = async (postData) => {
     this._loading.next(true);
     return new Promise(async (resolve, reject) => {
-      this.httpService.get(`drip-campaigns/${postData.drip_campaign_id}`).subscribe((res) => {
+      this.httpService.post("drip-campaigns/get", postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             this._loading.next(false);
@@ -77,7 +109,6 @@ export class DripCampaignService {
         } else {
           if (res.data) {
             // Set page data
-            console.log('res data', res.data);
             let campaign = res.data;
             this.setPagesData(campaign);
             this._dripCampaignStatus.next(campaign.status);
@@ -253,9 +284,30 @@ export class DripCampaignService {
     });
   };
 
+  // deleteDripCampaignTitle = async (postData) => {
+  //   return new Promise(async (resolve, reject) => {
+  //     this.httpService.delete(`/titles/${postData.title_id}`).subscribe((res) => {
+  //       if (!res.success) {
+  //         if (res.error) {
+  //           reject(res.error);
+  //         }
+  //       } else {
+  //         // remove deleted item from service
+  //         let titleId = postData.title_id;
+  //         let campaignTitles = [...this._dripCampaignTitles.getValue()];
+  //         let index = campaignTitles.findIndex(i => i.id === titleId);
+  //         campaignTitles.splice(index, 1);
+  //
+  //         resolve(true);
+  //         this._dripCampaignTitles.next(campaignTitles);
+  //       }
+  //     });
+  //   });
+  // };
+
   deleteDripCampaignTitle = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.delete(`/titles/${postData.title_id}`).subscribe((res) => {
+      this.httpService.post("drip-campaigns/deleteTitle", postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);

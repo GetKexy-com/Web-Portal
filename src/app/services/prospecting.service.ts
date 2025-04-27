@@ -400,6 +400,22 @@ export class ProspectingService {
     return c1 + c2;
   };
 
+  // deleteSpecificCalendlyLink = async (link, supplierId) => {
+  //   let calendlyLinks = this._calendlyLinks.getValue();
+  //   let index = calendlyLinks.indexOf(link);
+  //   if (index == -1) return;
+  //
+  //   calendlyLinks.splice(index, 1);
+  //   const payload = {
+  //     calendlyLinks: JSON.stringify(calendlyLinks),
+  //   };
+  //
+  //   let res = await this.httpService.patch(`company/${supplierId}`, payload).toPromise();
+  //   if (res.success) {
+  //     this.updateCalendlyLinks(calendlyLinks);
+  //   }
+  // };
+
   deleteSpecificCalendlyLink = async (link, supplierId) => {
     let calendlyLinks = this._calendlyLinks.getValue();
     let index = calendlyLinks.indexOf(link);
@@ -407,14 +423,31 @@ export class ProspectingService {
 
     calendlyLinks.splice(index, 1);
     const payload = {
-      calendlyLinks: JSON.stringify(calendlyLinks),
+      supplier_id: supplierId,
+      calendly_links: JSON.stringify(calendlyLinks),
     };
 
-    let res = await this.httpService.patch(`company/${supplierId}`, payload).toPromise();
+    let res = await this.httpService.post("supplier/edit", payload).toPromise();
     if (res.success) {
       this.updateCalendlyLinks(calendlyLinks);
     }
   };
+
+  // deleteSpecificWebsite = async (website, supplierId) => {
+  //   let websites = this._websites.getValue();
+  //   let index = websites.indexOf(website);
+  //   if (index == -1) return;
+  //
+  //   websites.splice(index, 1);
+  //   const payload = {
+  //     websites: JSON.stringify(websites),
+  //   };
+  //
+  //   let res = await this.httpService.patch(`company/${supplierId}`, payload).toPromise();
+  //   if (res.success) {
+  //     this.updateWebsites(websites);
+  //   }
+  // };
 
   deleteSpecificWebsite = async (website, supplierId) => {
     let websites = this._websites.getValue();
@@ -423,10 +456,11 @@ export class ProspectingService {
 
     websites.splice(index, 1);
     const payload = {
+      supplier_id: supplierId,
       websites: JSON.stringify(websites),
     };
 
-    let res = await this.httpService.patch(`company/${supplierId}`, payload).toPromise();
+    let res = await this.httpService.post("supplier/edit", payload).toPromise();
     if (res.success) {
       this.updateWebsites(websites);
     }
