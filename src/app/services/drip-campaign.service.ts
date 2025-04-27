@@ -56,7 +56,7 @@ export class DripCampaignService {
   };
 
   setPagesData = (dripCampaign) => {
-    const dripCampaignContent = dripCampaign.drip_campaign_detail;
+    const dripCampaignContent = dripCampaign.details;
     if (Object.keys(dripCampaignContent).length > 0) {
       this.dripCampaignContentPageData = dripCampaign;
       if (dripCampaign.establishment_search_type && dripCampaign.establishment_search_value) {
@@ -68,7 +68,7 @@ export class DripCampaignService {
   getCampaign = async (postData) => {
     this._loading.next(true);
     return new Promise(async (resolve, reject) => {
-      this.httpService.get(`drip-campaigns/get/${postData.drip_campaign_id}`).subscribe((res) => {
+      this.httpService.get(`drip-campaigns/${postData.drip_campaign_id}`).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             this._loading.next(false);
@@ -77,6 +77,7 @@ export class DripCampaignService {
         } else {
           if (res.data) {
             // Set page data
+            console.log('res data', res.data);
             let campaign = res.data;
             this.setPagesData(campaign);
             this._dripCampaignStatus.next(campaign.status);
@@ -114,8 +115,17 @@ export class DripCampaignService {
 
   createOrUpdateDripCampaign = async (postData) => {
     this._loading.next(true);
+    if (!postData.dripCampaignId) {
+      return this.createDripCampaign(postData);
+    } else {
+      return this.updateDripCampaign(postData);
+    }
+  };
+
+  createDripCampaign = (postData) => {
+    delete postData.dripCampaignId;
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("drip-campaigns/createOrUpdate", postData).subscribe((res) => {
+      this.httpService.post("drip-campaigns", postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             this._loading.next(false);
@@ -123,12 +133,28 @@ export class DripCampaignService {
           }
         } else {
           this._loading.next(false);
-          // this.dripCampaignContentPageData = postData;
           resolve(res.data);
         }
       });
     });
-  };
+  }
+
+  updateDripCampaign = (postData) => {
+    return new Promise(async (resolve, reject) => {
+      this.httpService.patch(`drip-campaigns/${postData.dripCampaignId}`, postData).subscribe((res) => {
+        if (!res.success) {
+          if (res.error) {
+            this._loading.next(false);
+            reject(res.error);
+          }
+        } else {
+          this._loading.next(false);
+          resolve(res.data);
+        }
+      });
+    });
+  }
+
   updateDripCampaignEmail = async (postData) => {
     return new Promise(async (resolve, reject) => {
       this.httpService.post("drip-campaigns/updateEmail", postData).subscribe((res) => {
