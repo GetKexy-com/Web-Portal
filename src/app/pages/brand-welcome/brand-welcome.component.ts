@@ -6,6 +6,7 @@ import { NgbModal } from "@ng-bootstrap/ng-bootstrap";
 import { environment } from "src/environments/environment";
 import {LoginLayoutComponent} from '../../layouts/login-layout/login-layout.component';
 import {DownloadModalContentComponent} from '../../components/download-modal-content/download-modal-content.component';
+import {constants} from '../../helpers/constants';
 
 @Component({
   selector: 'app-brand-welcome',
@@ -33,6 +34,15 @@ export class BrandWelcomeComponent {
       password: localStorage.getItem("registerPassword"),
     };
     this._authService.login(data.email, data.password).subscribe((data) => this.handleResponse(data));
+
+    this._authService.secondarylogin(data.email, data.password).subscribe({
+      next: (response) => {
+        console.log('old data', response);
+        if (response.success) {
+          localStorage.setItem(constants.OLD_USER_TOKEN, response.data.token);
+        }
+      }
+    })
   }
 
   async handleResponse(data) {

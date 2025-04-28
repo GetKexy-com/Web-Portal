@@ -155,36 +155,60 @@ export class AddWebsiteContentComponent implements OnInit {
     return control ? control.invalid && (this.submitted() || control.dirty) : false;
   }
 
-  async onSubmit(): Promise<void> {
+  // async onSubmit(): Promise<void> {
+  //   this.submitted.set(true);
+  //
+  //   if (!this.primaryForm.valid) {
+  //     console.warn("Form is invalid", this.primaryForm);
+  //     return;
+  //   }
+  //
+  //   this.isLoading.set(true);
+  //
+  //   try {
+  //     const formData = this.primaryForm.getRawValue();
+  //     const updatedWebsites = [...this.previousWebsites(), formData.website];
+  //
+  //     const payload = {
+  //       websites: JSON.stringify(updatedWebsites)
+  //     };
+  //
+  //     const res = await this.httpService.patch(`company/${this.supplierId}`, payload).toPromise();
+  //
+  //     if (res?.success) {
+  //       this.previousWebsites.set(updatedWebsites);
+  //       this.prospectingService.updateWebsites(updatedWebsites);
+  //     }
+  //
+  //     this.activeCanvas.dismiss("Cross click");
+  //   } catch (error) {
+  //     console.error("Error submitting website", error);
+  //   } finally {
+  //     this.isLoading.set(false);
+  //   }
+  // }
+
+  onSubmit = async () => {
     this.submitted.set(true);
-
     if (!this.primaryForm.valid) {
-      console.warn("Form is invalid", this.primaryForm);
-      return;
+      console.log("primaryForm", this.primaryForm);
+      return false;
     }
-
     this.isLoading.set(true);
+    let data = this.primaryForm.getRawValue();
+    this.previousWebsites.update(websites => [...websites, data.website]);
 
-    try {
-      const formData = this.primaryForm.getRawValue();
-      const updatedWebsites = [...this.previousWebsites(), formData.website];
+    const payload = {
+      supplier_id: this.supplierId,
+      websites: JSON.stringify(this.previousWebsites()),
+    };
+    console.log("data", payload);
 
-      const payload = {
-        websites: JSON.stringify(updatedWebsites)
-      };
-
-      const res = await this.httpService.patch(`company/${this.supplierId}`, payload).toPromise();
-
-      if (res?.success) {
-        this.previousWebsites.set(updatedWebsites);
-        this.prospectingService.updateWebsites(updatedWebsites);
-      }
-
-      this.activeCanvas.dismiss("Cross click");
-    } catch (error) {
-      console.error("Error submitting website", error);
-    } finally {
-      this.isLoading.set(false);
+    let res = await this.httpService.post("supplier/edit", payload).toPromise();
+    if (res.success) {
+      this.prospectingService.updateWebsites(this.previousWebsites());
     }
-  }
+    this.activeCanvas.dismiss("Cross click");
+    this.isLoading.set(false);
+  };
 }

@@ -147,20 +147,48 @@ export class CreateDripCampaignTitleComponent implements OnInit {
     return control ? control.invalid && (this.submitted || control.dirty) : false;
   }
 
-  async handleSubmit() {
+  // async handleSubmit() {
+  //   this.submitted = true;
+  //   if (!this.primaryForm.valid) {
+  //     return false;
+  //   }
+  //   this.isLoading = true;
+  //
+  //   const formData = this.primaryForm.getRawValue();
+  //   const payload = {
+  //     companyId: this.supplierId,
+  //     title: formData.campaign_title,
+  //     titleType: 'drip'
+  //   };
+  //
+  //   try {
+  //     if (this.editData?.title) {
+  //       payload['title_id'] = this.editData.id;
+  //       await this.dripCampaignService.editDripCampaignTitle(payload);
+  //     } else {
+  //       await this.dripCampaignService.addDripCampaignTitle(payload);
+  //     }
+  //     this.activeCanvas.dismiss("Cross click");
+  //   } catch (e) {
+  //     console.error(e);
+  //   } finally {
+  //     this.isLoading = false;
+  //   }
+  // }
+
+  handleSubmit = async () => {
     this.submitted = true;
     if (!this.primaryForm.valid) {
+      console.log("primaryForm", this.primaryForm);
       return false;
     }
     this.isLoading = true;
 
     const formData = this.primaryForm.getRawValue();
     const payload = {
-      companyId: this.supplierId,
-      title: formData.campaign_title,
-      titleType: 'drip'
+      supplier_id: this.supplierId,
+      title: formData.campaign_title
     };
-
     try {
       if (this.editData?.title) {
         payload['title_id'] = this.editData.id;
@@ -169,10 +197,9 @@ export class CreateDripCampaignTitleComponent implements OnInit {
         await this.dripCampaignService.addDripCampaignTitle(payload);
       }
       this.activeCanvas.dismiss("Cross click");
-    } catch (e) {
-      console.error(e);
-    } finally {
       this.isLoading = false;
+    } catch (e) {
+      console.log(e);
     }
-  }
+  };
 }

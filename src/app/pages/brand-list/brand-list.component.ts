@@ -225,7 +225,8 @@ export class BrandListComponent implements OnInit {
     });
   }
 
-  async selectCompany(data: Organization) {
+  // Organization it was model which was like data: Organization
+  async selectCompany(data) {
     console.log('company', data);
     const company = data["company"];
     const userData = JSON.parse(localStorage.getItem("userToken") || '{}');
@@ -241,6 +242,8 @@ export class BrandListComponent implements OnInit {
     // Update user data
     const updatedUserData = {
       ...userData,
+      first_name: company.first_name,
+      last_name: company.last_name,
       supplier_id: company.id,
       zip_code: company.zip_code_list?.[0]?.zip_code ?? '',
       job_title: data["jobTitle"] ?? '',

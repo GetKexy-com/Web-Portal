@@ -193,13 +193,13 @@ export class BrandPriceComponent {
   getPricePerMonthForAUser = (productDetails) => {
     console.log(productDetails);
     if(
-      productDetails.subscription_product.type === constants.BRAND_NOVICE ||
-      productDetails.subscription_product.type === constants.BRAND_299_MONTH_PER_USER ||
-      productDetails.subscription_product.type === constants.BRAND_PRESALE_LIFETIME
+      productDetails.subscriptionProduct.type === constants.BRAND_NOVICE ||
+      productDetails.subscriptionProduct.type === constants.BRAND_299_MONTH_PER_USER ||
+      productDetails.subscriptionProduct.type === constants.BRAND_PRESALE_LIFETIME
     ) {
       return "0";
     }
-    const stripeDetails = JSON.parse(productDetails.stripe_details);
+    const stripeDetails = JSON.parse(productDetails.stripeDetails);
     console.log({ stripeDetails });
     let price, total;
     if (stripeDetails && stripeDetails.length > 1) {

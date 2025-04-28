@@ -55,8 +55,18 @@ export class DripCampaignService {
     this.campaignService.setSearchEstablishmentPageData({});
   };
 
+  // setPagesData = (dripCampaign) => {
+  //   const dripCampaignContent = dripCampaign.details;
+  //   if (Object.keys(dripCampaignContent).length > 0) {
+  //     this.dripCampaignContentPageData = dripCampaign;
+  //     if (dripCampaign.establishment_search_type && dripCampaign.establishment_search_value) {
+  //       this.campaignService.makeDataStructureAndSetSearchEstablishmentpageData(dripCampaign);
+  //     }
+  //   }
+  // };
+
   setPagesData = (dripCampaign) => {
-    const dripCampaignContent = dripCampaign.details;
+    const dripCampaignContent = dripCampaign.drip_campaign_detail;
     if (Object.keys(dripCampaignContent).length > 0) {
       this.dripCampaignContentPageData = dripCampaign;
       if (dripCampaign.establishment_search_type && dripCampaign.establishment_search_value) {
@@ -144,13 +154,31 @@ export class DripCampaignService {
     return this.hasPromotion;
   };
 
+  // createOrUpdateDripCampaign = async (postData) => {
+  //   this._loading.next(true);
+  //   if (!postData.dripCampaignId) {
+  //     return this.createDripCampaign(postData);
+  //   } else {
+  //     return this.updateDripCampaign(postData);
+  //   }
+  // };
+
   createOrUpdateDripCampaign = async (postData) => {
     this._loading.next(true);
-    if (!postData.dripCampaignId) {
-      return this.createDripCampaign(postData);
-    } else {
-      return this.updateDripCampaign(postData);
-    }
+    return new Promise(async (resolve, reject) => {
+      this.httpService.post("drip-campaigns/createOrUpdate", postData).subscribe((res) => {
+        if (!res.success) {
+          if (res.error) {
+            this._loading.next(false);
+            reject(res.error);
+          }
+        } else {
+          this._loading.next(false);
+          // this.dripCampaignContentPageData = postData;
+          resolve(res.data);
+        }
+      });
+    });
   };
 
   createDripCampaign = (postData) => {
@@ -245,10 +273,29 @@ export class DripCampaignService {
   };
 
 
+  // addDripCampaignTitle = async (postData) => {
+  //   let campaignTitles = [...this._dripCampaignTitles.getValue()];
+  //   return new Promise(async (resolve, reject) => {
+  //     this.httpService.post("titles", postData).subscribe((res) => {
+  //       console.log("res", res);
+  //       if (!res.success) {
+  //         if (res.error) {
+  //           reject(res.error);
+  //         }
+  //       } else {
+  //         let item = { ...res.data };
+  //         campaignTitles.push(item);
+  //         resolve(true);
+  //         this._dripCampaignTitles.next(campaignTitles);
+  //       }
+  //     });
+  //   });
+  // };
+
   addDripCampaignTitle = async (postData) => {
     let campaignTitles = [...this._dripCampaignTitles.getValue()];
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("titles", postData).subscribe((res) => {
+      this.httpService.post("drip-campaigns/addTitle", postData).subscribe((res) => {
         console.log("res", res);
         if (!res.success) {
           if (res.error) {
@@ -264,18 +311,36 @@ export class DripCampaignService {
     });
   };
 
+  // editDripCampaignTitle = async (postData) => {
+  //   let campaignTitles = [...this._dripCampaignTitles.getValue()];
+  //   let title_id = postData.title_id;
+  //   delete postData.title_id;
+  //   return new Promise(async (resolve, reject) => {
+  //     this.httpService.patch(`titles/${title_id}`, postData).subscribe((res) => {
+  //       if (!res.success) {
+  //         if (res.error) {
+  //           reject(res.error);
+  //         }
+  //       } else {
+  //         let editedItemIndex = campaignTitles.findIndex(i => i.id === title_id);
+  //         campaignTitles[editedItemIndex].title = postData.title;
+  //         resolve(true);
+  //         this._dripCampaignTitles.next(campaignTitles);
+  //       }
+  //     });
+  //   });
+  // };
+
   editDripCampaignTitle = async (postData) => {
     let campaignTitles = [...this._dripCampaignTitles.getValue()];
-    let title_id = postData.title_id;
-    delete postData.title_id;
     return new Promise(async (resolve, reject) => {
-      this.httpService.patch(`titles/${title_id}`, postData).subscribe((res) => {
+      this.httpService.post("drip-campaigns/editTitle", postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
           }
         } else {
-          let editedItemIndex = campaignTitles.findIndex(i => i.id === title_id);
+          let editedItemIndex = campaignTitles.findIndex(i => i.id === postData.title_id);
           campaignTitles[editedItemIndex].title = postData.title;
           resolve(true);
           this._dripCampaignTitles.next(campaignTitles);
@@ -326,14 +391,35 @@ export class DripCampaignService {
     });
   };
 
+  // getAllDripCampaignTitle = async (postData, overwrite = true) => {
+  //   let campaignTitles = [...this._dripCampaignTitles.getValue()];
+  //   if (!overwrite && campaignTitles.length) {
+  //     this._dripCampaignTitles.next(campaignTitles);
+  //     return null;
+  //   }
+  //   return new Promise(async (resolve, reject) => {
+  //     this.httpService.get("titles").subscribe((res) => {
+  //       if (!res.success) {
+  //         if (res.error) {
+  //           reject(res.error);
+  //         }
+  //       } else {
+  //         let campaignTitles = res.data;
+  //         resolve(campaignTitles);
+  //         this._dripCampaignTitles.next(campaignTitles);
+  //       }
+  //     });
+  //   });
+  // };
+
   getAllDripCampaignTitle = async (postData, overwrite = true) => {
     let campaignTitles = [...this._dripCampaignTitles.getValue()];
     if (!overwrite && campaignTitles.length) {
       this._dripCampaignTitles.next(campaignTitles);
-      return null;
+      return;
     }
     return new Promise(async (resolve, reject) => {
-      this.httpService.get("titles").subscribe((res) => {
+      this.httpService.post("drip-campaigns/getAllTitle", postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);

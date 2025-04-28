@@ -162,7 +162,7 @@ export class CampaignDetailsFormContentComponent {
 
   getAndSetCampaignTitleSubscription = async () => {
     // Get campaignTitles api call
-    await this.campaignService.getAllCampaignTitle();
+    await this.campaignService.getAllCampaignTitle({ supplier_id: this.userData.supplier_id });
 
     // Set campaignTitle subscription
     this.campaignTitlesSubscription = this.campaignService.campaignTitles.subscribe((campaignTitles) => {

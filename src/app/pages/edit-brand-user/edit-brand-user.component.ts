@@ -43,6 +43,7 @@ export class EditBrandUserComponent {
     document.title = "Edit Profile - KEXY Brand Webportal";
 
     this.userData = this._authService.userTokenValue;
+    console.log(this.userData);
     this.emailBackup = this.userData.email;
     this.phoneBackup = this.userData.phone;
     this.jobTitleBackup = this.userData.job_title;
@@ -53,7 +54,7 @@ export class EditBrandUserComponent {
 
     this.primaryForm = new FormGroup({
       first_name: new FormControl(
-        this.userData.first_name,
+        this.userData.firstName,
         Validators.compose([
           Validators.required,
           Validators.minLength(0),
@@ -62,7 +63,7 @@ export class EditBrandUserComponent {
         ]),
       ),
       last_name: new FormControl(
-        this.userData.last_name,
+        this.userData.lastName,
         Validators.compose([
           Validators.required,
           Validators.minLength(0),

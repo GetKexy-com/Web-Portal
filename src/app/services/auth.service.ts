@@ -164,6 +164,7 @@ export class AuthService {
   };
 
   async saveUserToken(data: any) {
+    console.log('from saveUserToken', data);
     let userData = data.user;
     userData.token = data.token;
 

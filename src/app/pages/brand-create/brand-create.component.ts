@@ -417,14 +417,12 @@ export class BrandCreateComponent implements OnInit {
       phoneCountryCode: this.phoneCode(),
       industry: localStorage.getItem(constants.INDUSTRY),
       zipCodeList: [{}],
-      ...this.primaryForm.getRawValue()
     };
-
+    Object.assign(data, this.primaryForm.getRawValue());
     data.zipCodeList = [{ zip_code: data.zipCodeList }];
 
     try {
       const response = await this.httpService.post('company', data).toPromise();
-      console.log('response from company created', response);
       if (response?.success) {
         localStorage.setItem('supplierId', response.data.company_id);
         this.isWaitingFlag.set(false);

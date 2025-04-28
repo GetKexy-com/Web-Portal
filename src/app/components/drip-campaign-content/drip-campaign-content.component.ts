@@ -19,6 +19,7 @@ import {CampaignLayoutBottmBtnsComponent} from '../campaign-layout-bottm-btns/ca
 import {CreateDripCampaignTitleComponent} from '../create-drip-campaign-title/create-drip-campaign-title.component';
 import {AddCalendlyLinkContentComponent} from '../add-calendly-link-content/add-calendly-link-content.component';
 import {AddWebsiteContentComponent} from '../add-website-content/add-website-content.component';
+import {PageUiService} from '../../services/page-ui.service';
 
 @Component({
   selector: 'drip-campaign-content',
@@ -80,12 +81,16 @@ export class DripCampaignContentComponent implements OnInit {
     private dripCampaignService: DripCampaignService,
     private campaignService: CampaignService,
     private prospectingService: ProspectingService,
+    private pageUiService: PageUiService,
     // private datePipe: DatePipe,
   ) {
   }
 
   async ngOnInit() {
     // this.selectedDripCampaignType = this.dripCampaignService.selectedDripCampaignType;
+
+    this.pageUiService.changeToOldApiBaseUrl();
+
     this.route.queryParams.subscribe((params) => {
       if (params["id"]) {
         this.dripCampaignId = params["id"];
@@ -147,6 +152,35 @@ export class DripCampaignContentComponent implements OnInit {
     // this.selectedDripCampaignType = dripCampaign["audience_type"];
   };
 
+  // getListOfPromotion = async () => {
+  //   this.promotionsData = [];
+  //   let postData = {
+  //     page: this.page,
+  //     supplier_id: this.userData.supplier_id,
+  //     limit: this.limit,
+  //     get_total_count: true,
+  //     status: constants.ACTIVE,
+  //   };
+  //   let data = await this.campaignService.getListOfCampaigns(postData);
+  //   if (!data["promotions"] || !data["promotions"].length) return;
+  //
+  //   this.promotionTitles = await this.campaignService.getAllCampaignTitle();
+  //
+  //   this.totalPageCounts = data["totalPageCounts"];
+  //   this.calculatePages();
+  //   data["promotions"].map(item => {
+  //     const obj = {
+  //       id: item.id,
+  //       title_of_campaign: item.campaign_title_text,
+  //       promotion_type: item.type_of_campaign,
+  //       date_created: item.campaign.createdAt,
+  //       // date_created: this.datePipe.transform(item.campaign.created_at, "MMM d, y"),
+  //       promotion_data: item,
+  //     };
+  //     this.promotionsData.push(obj);
+  //   });
+  // };
+
   getListOfPromotion = async () => {
     this.promotionsData = [];
     let postData = {
@@ -159,17 +193,17 @@ export class DripCampaignContentComponent implements OnInit {
     let data = await this.campaignService.getListOfCampaigns(postData);
     if (!data["promotions"] || !data["promotions"].length) return;
 
-    this.promotionTitles = await this.campaignService.getAllCampaignTitle();
+    this.promotionTitles = await this.campaignService.getAllCampaignTitle({ supplier_id: this.userData.supplier_id });
 
     this.totalPageCounts = data["totalPageCounts"];
     this.calculatePages();
+
     data["promotions"].map(item => {
       const obj = {
         id: item.id,
-        title_of_campaign: item.campaign_title_text,
-        promotion_type: item.type_of_campaign,
-        date_created: item.campaign.createdAt,
-        // date_created: this.datePipe.transform(item.campaign.created_at, "MMM d, y"),
+        title_of_campaign: this.getCampaignTitle(item.campaign_title_text),
+        promotion_type: item.campaign.campaign_detail.campaign_type,
+        date_created: item.campaign.created_at,
         promotion_data: item,
       };
       this.promotionsData.push(obj);
@@ -206,13 +240,26 @@ export class DripCampaignContentComponent implements OnInit {
     return this.promotionTitles[index].title;
   };
 
+  // getAndSetDripCampaignTitleSubscription = async () => {
+  //   // Get dripCampaignTitles api call
+  //   const postData = {
+  //     companyId: this.userData.supplier_id,
+  //     titleType: "drip"
+  //   }
+  //   await this.dripCampaignService.getAllDripCampaignTitle(postData);
+  //
+  //   // Set campaignTitle subscription
+  //   this.dripCampaignTitlesSubscription = this.dripCampaignService.dripCampaignTitles.subscribe((campaignTitles) => {
+  //     this.campaignTitles = campaignTitles;
+  //     this.campaignTitles.map((i) => {
+  //       i.value = i.title.length > 100 ? i.title.slice(0, 100) + "..." : i.title;
+  //     });
+  //   });
+  // };
+
   getAndSetDripCampaignTitleSubscription = async () => {
     // Get dripCampaignTitles api call
-    const postData = {
-      companyId: this.userData.supplier_id,
-      titleType: "drip"
-    }
-    await this.dripCampaignService.getAllDripCampaignTitle(postData);
+    await this.dripCampaignService.getAllDripCampaignTitle({ supplier_id: this.userData.supplier_id });
 
     // Set campaignTitle subscription
     this.dripCampaignTitlesSubscription = this.dripCampaignService.dripCampaignTitles.subscribe((campaignTitles) => {
@@ -432,6 +479,46 @@ export class DripCampaignContentComponent implements OnInit {
     }
   };
 
+  // handleClickNextButton = async () => {
+  //   this.submitted = true;
+  //
+  //   // Form validation
+  //   if (!this.selectedTitle || !this.selectedEmailToneKey || !this.numberOfEmail || !this.selectedWebsiteKey || !this.targetAudience) {
+  //     return;
+  //   }
+  //
+  //   const payload = {
+  //     dripCampaignId: this.dripCampaignId || "",
+  //     companyId: this.userData.supplier_id,
+  //     dripCampaignTitleId: this.selectedTitleId,
+  //     numberOfEmails: this.numberOfEmail,
+  //     emailTone: this.selectedEmailToneKey,
+  //     emailLength: this.selectedEmailLength.value,
+  //     websiteUrl: this.selectedWebsiteKey,
+  //     campaignId: this.promotionId || "",
+  //     targetAudience: this.targetAudience,
+  //     emailAbout: this.whatDoYouCover,
+  //     audienceType: this.selectedDripCampaignType,
+  //   };
+  //   if (this.dripCampaignDuplicate) {
+  //     payload["dripCampaignDuplicate"] = true;
+  //   }
+  //   if (this.selectedCalendlyLinkKey) {
+  //     payload["calendlyLink"] = this.selectedCalendlyLinkKey;
+  //   }
+  //   console.log({ payload });
+  //   const dripCampaign = await this.dripCampaignService.createOrUpdateDripCampaign(payload);
+  //   this.dripCampaignId = dripCampaign["id"];
+  //   const postData = {
+  //     drip_campaign_id: this.dripCampaignId,
+  //     supplier_id: this.userData.supplier_id,
+  //   };
+  //   await this.dripCampaignService.getCampaign(postData);
+  //
+  //   // Navigate to the next page
+  //   this.nextBtnClick(this.dripCampaignId, true);
+  // };
+
   handleClickNextButton = async () => {
     this.submitted = true;
 
@@ -441,23 +528,26 @@ export class DripCampaignContentComponent implements OnInit {
     }
 
     const payload = {
-      dripCampaignId: this.dripCampaignId || "",
-      companyId: this.userData.supplier_id,
-      dripCampaignTitleId: this.selectedTitleId,
-      numberOfEmails: this.numberOfEmail,
-      emailTone: this.selectedEmailToneKey,
-      emailLength: this.selectedEmailLength.value,
-      websiteUrl: this.selectedWebsiteKey,
-      campaignId: this.promotionId || "",
-      targetAudience: this.targetAudience,
-      emailAbout: this.whatDoYouCover,
-      audienceType: this.selectedDripCampaignType,
+      drip_campaign_id: this.dripCampaignId || "",
+      supplier_id: this.userData.supplier_id,
+      allowed_credit_limit: 1,
+      drip_campaign_title_id: this.selectedTitleId,
+      number_of_emails: this.numberOfEmail,
+      email_tone: this.selectedEmailToneKey,
+      email_length: this.selectedEmailLength.value,
+      website_url: this.selectedWebsiteKey,
+      calendly_link: this.selectedCalendlyLinkKey,
+      campaign_id: this.promotionId || "",
+      supplier_side: this.userData.side || "FOH",
+      status: "",
+      establishment_search_type: "",
+      establishment_search_value: "",
+      target_audience: this.targetAudience,
+      email_about: this.whatDoYouCover,
+      audience_type: this.selectedDripCampaignType,
     };
     if (this.dripCampaignDuplicate) {
-      payload["dripCampaignDuplicate"] = true;
-    }
-    if (this.selectedCalendlyLinkKey) {
-      payload["calendlyLink"] = this.selectedCalendlyLinkKey;
+      payload["drip_campaign_duplicate"] = true;
     }
     console.log({ payload });
     const dripCampaign = await this.dripCampaignService.createOrUpdateDripCampaign(payload);

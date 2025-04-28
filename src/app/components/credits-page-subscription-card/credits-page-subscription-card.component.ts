@@ -204,8 +204,10 @@ export class CreditsPageSubscriptionCardComponent implements OnInit {
   }
 
   private updateProductDetails() {
+    console.log('subscription', this.subscription());
     const paymentsLength = this.subscription().subscription_payments.length - 1;
     this.productDetails.set(this.subscription().subscription_payments[paymentsLength]);
+    console.log('productDetails', this.productDetails());
   }
 
   getPricePerMonthForAUser() {

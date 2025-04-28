@@ -154,31 +154,55 @@ export class AddCalendlyLinkContentComponent implements OnInit {
     );
   }
 
-  async onSubmit(): Promise<void> {
-    this.submitted.set(true);
+  // async onSubmit(): Promise<void> {
+  //   this.submitted.set(true);
+  //
+  //   if (!this.primaryForm.valid) {
+  //     console.log("primaryForm", this.primaryForm);
+  //     return;
+  //   }
+  //
+  //   this.isLoading.set(true);
+  //
+  //   const formData = this.primaryForm.getRawValue();
+  //   this.previousLinks.update(links => [...links, formData.calendly_link]);
+  //
+  //   const payload = {
+  //     calendlyLinks: JSON.stringify(this.previousLinks())
+  //   };
+  //
+  //   try {
+  //     const res = await this.httpService.patch(`company/${this.supplierId}`, payload).toPromise();
+  //     if (res.success) {
+  //       this.prospectingService.updateCalendlyLinks(this.previousLinks());
+  //     }
+  //     this.activeCanvas.dismiss("Cross click");
+  //   } finally {
+  //     this.isLoading.set(false);
+  //   }
+  // }
 
+  onSubmit = async () => {
+    this.submitted.set(true);
     if (!this.primaryForm.valid) {
       console.log("primaryForm", this.primaryForm);
-      return;
+      return false;
     }
-
     this.isLoading.set(true);
-
-    const formData = this.primaryForm.getRawValue();
-    this.previousLinks.update(links => [...links, formData.calendly_link]);
+    let data = this.primaryForm.getRawValue();
+    this.previousLinks.update(links => [...links, data.calendly_link]);
 
     const payload = {
-      calendlyLinks: JSON.stringify(this.previousLinks())
+      supplier_id: this.supplierId,
+      calendly_links: JSON.stringify(this.previousLinks()),
     };
+    console.log("data", payload);
 
-    try {
-      const res = await this.httpService.patch(`company/${this.supplierId}`, payload).toPromise();
-      if (res.success) {
-        this.prospectingService.updateCalendlyLinks(this.previousLinks());
-      }
-      this.activeCanvas.dismiss("Cross click");
-    } finally {
-      this.isLoading.set(false);
+    let res = await this.httpService.post("supplier/edit", payload).toPromise();
+    if (res.success) {
+      this.prospectingService.updateCalendlyLinks(this.previousLinks());
     }
-  }
+    this.activeCanvas.dismiss("Cross click");
+    this.isLoading.set(false);
+  };
 }

@@ -420,9 +420,25 @@ export class CampaignService {
     });
   };
 
-  getAllCampaignTitle = async () => {
+  // getAllCampaignTitle = async () => {
+  //   return new Promise(async (resolve, reject) => {
+  //     this.httpService.get("titles").subscribe((res) => {
+  //       if (!res.success) {
+  //         if (res.error) {
+  //           reject(res.error);
+  //         }
+  //       } else {
+  //         let campaignTitles = res.data;
+  //         resolve(campaignTitles);
+  //         this._campaignTitles.next(campaignTitles);
+  //       }
+  //     });
+  //   });
+  // };
+
+  getAllCampaignTitle = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.get("titles").subscribe((res) => {
+      this.httpService.post("campaigns/getAllTitle", postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
