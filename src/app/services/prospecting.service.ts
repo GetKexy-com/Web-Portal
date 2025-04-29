@@ -1,14 +1,14 @@
-import { Injectable } from "@angular/core";
-import { BehaviorSubject } from "rxjs";
-import { constants } from "../helpers/constants";
-import { HttpService } from "./http.service";
-import { ProspectContact } from "../models/ProspectContact";
-import { offPremiseQOrganizationKeywordTags } from "../helpers/campaign-premise-constants";
-import { routeConstants } from "../helpers/routeConstants";
-import { CampaignService } from "./campaign.service";
+import { Injectable } from '@angular/core';
+import { BehaviorSubject } from 'rxjs';
+import { constants } from '../helpers/constants';
+import { HttpService } from './http.service';
+import { ProspectContact } from '../models/ProspectContact';
+import { offPremiseQOrganizationKeywordTags } from '../helpers/campaign-premise-constants';
+import { routeConstants } from '../helpers/routeConstants';
+import { CampaignService } from './campaign.service';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class ProspectingService {
   private _products = new BehaviorSubject([]);
@@ -67,14 +67,15 @@ export class ProspectingService {
   public searchContactFilterData;
   public searchContactActiveFilterCount;
   public selectedAllContacts;
-  private companyInfoApiUrl = "https://l777t7f5reetofkbbji7uq7jsy0oydzw.lambda-url.us-east-1.on.aws/";
+  private companyInfoApiUrl = 'https://l777t7f5reetofkbbji7uq7jsy0oydzw.lambda-url.us-east-1.on.aws/';
 
   constructor(private httpService: HttpService, private campaignService: CampaignService) {
   }
 
   getProducts = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("prospect/getAllProduct", postData).subscribe((res) => {
+      const url = `prospecting-products?page=${postData.page}&limit=${postData.limit}`;
+      this.httpService.get(url).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -95,7 +96,7 @@ export class ProspectingService {
   createProduct = async (postData) => {
     let products = [...this._products.getValue()];
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("prospect/createProduct", postData).subscribe((res) => {
+      this.httpService.post('prospect/createProduct', postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -115,7 +116,7 @@ export class ProspectingService {
   updateProduct = async (postData) => {
     let products = [...this._products.getValue()];
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("prospect/editProduct", postData).subscribe((res) => {
+      this.httpService.post('prospect/editProduct', postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -136,7 +137,7 @@ export class ProspectingService {
   deleteProduct = async (postData) => {
     let products = [...this._products.getValue()];
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("prospect/deleteProduct", postData).subscribe((res) => {
+      this.httpService.post('prospect/deleteProduct', postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -154,7 +155,7 @@ export class ProspectingService {
   createConversation = async (postData) => {
     let conversation = [...this._conversation.getValue()];
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("prospect/createConversation", postData).subscribe((res) => {
+      this.httpService.post('prospect/createConversation', postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -171,7 +172,7 @@ export class ProspectingService {
 
   addMessageToConversation = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("prospect/addMessageToConversation", postData).subscribe((res) => {
+      this.httpService.post('prospect/addMessageToConversation', postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -193,7 +194,7 @@ export class ProspectingService {
           return resolve(true);
         }
       }
-      this.httpService.post("prospect/getAllConversation", postData).subscribe((res) => {
+      this.httpService.post('prospect/getAllConversation', postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -218,7 +219,7 @@ export class ProspectingService {
       return this.jobTitles;
     }
     return new Promise(async (resolve, reject) => {
-      this.httpService.get("supplier/getProspectingJobTitles").subscribe((res) => {
+      this.httpService.get('supplier/getProspectingJobTitles').subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -242,10 +243,10 @@ export class ProspectingService {
 
     return new Promise(async (resolve, reject) => {
       fetch(this.companyInfoApiUrl, {
-        method: "POST",
+        method: 'POST',
         headers: {
-          Accept: "text/event-stream,application/json",
-          "Content-Type": "application/json",
+          Accept: 'text/event-stream,application/json',
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify(data),
       })
@@ -278,22 +279,22 @@ export class ProspectingService {
       for (let i = 0; i < contacts.length; i++) {
         const c = contacts[i];
         const prospect = {
-          id: "",
-          created_at: "",
-          supplier_id: "",
-          email_subject: "",
+          id: '',
+          created_at: '',
+          supplier_id: '',
+          email_subject: '',
           prospecting_conversations_messages: [],
           receiver_email: c.email,
-          sender_email: "",
+          sender_email: '',
           receiver_details: {
             id: c.id,
-            first_name: c.first_name ? c.first_name : "",
-            last_name: c.last_name ? c.last_name : "",
+            first_name: c.first_name ? c.first_name : '',
+            last_name: c.last_name ? c.last_name : '',
             jobTitle: c.title,
             companyName: c.organization?.name,
             companyWebsite: c.organization?.website_url,
             companyPhone: c.organization?.phone,
-            companyInfo: "",
+            companyInfo: '',
             city: c.city,
             state: c.state,
             country: c.country,
@@ -320,18 +321,18 @@ export class ProspectingService {
   getSalesLeadContacts = async (page = 1, resetOldData = true) => {
     const payload = this.campaignService.getSearchFilters();
 
-    payload["page"] = page;
-    payload["search_from"] = constants.CAMPAIGN;
+    payload['page'] = page;
+    payload['search_from'] = constants.CAMPAIGN;
 
     // Check if data is present in cache
     if (this.cachedSaledLeadSearchContacts.length) {
-      const index = this.cachedSaledLeadSearchContacts.findIndex(i => i.page === payload["page"]);
+      const index = this.cachedSaledLeadSearchContacts.findIndex(i => i.page === payload['page']);
       if (index > -1) {
         return this.cachedSaledLeadSearchContacts[index].data;
       }
     }
 
-    const response = await this.httpService.post("supplier/getCreateDealSearchContacts", payload).toPromise();
+    const response = await this.httpService.post('supplier/getCreateDealSearchContacts', payload).toPromise();
     if (response.success) {
       if (response.data.contacts.people.length) {
         await this.setSalesLeadSearchContacts(response.data.contacts.people, resetOldData);
@@ -389,8 +390,8 @@ export class ProspectingService {
   };
 
   getSalesLeadNameInitials = (contact) => {
-    let c1 = "",
-      c2 = "";
+    let c1 = '',
+      c2 = '';
     if (contact.first_name) {
       c1 = contact.first_name[0];
     }
@@ -434,7 +435,7 @@ export class ProspectingService {
 
   getProductById = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("prospect/getProduct", postData).subscribe((res) => {
+      this.httpService.post('prospect/getProduct', postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -448,7 +449,7 @@ export class ProspectingService {
 
   addContacts = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("contacts/add", postData).subscribe((res) => {
+      this.httpService.post('contacts/add', postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -463,7 +464,7 @@ export class ProspectingService {
 
   editContacts = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("contacts/edit", postData).subscribe((res) => {
+      this.httpService.post('contacts/edit', postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -477,7 +478,7 @@ export class ProspectingService {
 
   removeContactsFromList = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("contacts/labels/removeContacts", postData).subscribe((res) => {
+      this.httpService.post('contacts/labels/removeContacts', postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -498,7 +499,7 @@ export class ProspectingService {
         if (this.cachedContacts[key]) {
           // this._contacts.next(this.cachedContacts[key]["data"]);
           setTimeout(() => { // 🔹 Defer change detection
-            this._contacts.next(this.cachedContacts[key]["data"]);
+            this._contacts.next(this.cachedContacts[key]['data']);
           }, 0);
           return null;
         }
@@ -509,7 +510,7 @@ export class ProspectingService {
     }
 
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("contacts/getAllContacts", postData).subscribe((res) => {
+      this.httpService.post('contacts/getAllContacts', postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -532,7 +533,7 @@ export class ProspectingService {
 
   getContact = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("contacts/get", postData).subscribe((res) => {
+      this.httpService.post('contacts/get', postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -546,7 +547,7 @@ export class ProspectingService {
 
   addLabel = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("contacts/labels/add", postData).subscribe((res) => {
+      this.httpService.post('contacts/labels/add', postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -561,7 +562,7 @@ export class ProspectingService {
   deleteLabel = async (postData) => {
     let labels = [...this._labels.getValue()];
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("contacts/labels/delete", postData).subscribe((res) => {
+      this.httpService.post('contacts/labels/delete', postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -581,7 +582,7 @@ export class ProspectingService {
 
   updateLabel = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("contacts/labels/update", postData).subscribe((res) => {
+      this.httpService.post('contacts/labels/update', postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -595,7 +596,7 @@ export class ProspectingService {
 
   duplicateLabel = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("contacts/labels/duplicateWithContacts", postData).subscribe((res) => {
+      this.httpService.post('contacts/labels/duplicateWithContacts', postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -616,14 +617,14 @@ export class ProspectingService {
       if (Object.keys(this.cachedLabels).length) {
         const key = `${page}${limit}`;
         if (this.cachedLabels[key]) {
-          this._labels.next(this.cachedLabels[key]["data"]);
+          this._labels.next(this.cachedLabels[key]['data']);
           return null;
         }
       }
     }
 
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("contacts/labels", postData).subscribe((res) => {
+      this.httpService.post('contacts/labels', postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -654,14 +655,14 @@ export class ProspectingService {
       if (Object.keys(this.cachedLabelsOnly).length) {
         const key = `${page}${limit}`;
         if (this.cachedLabelsOnly[key]) {
-          this._labelsOnly.next(this.cachedLabelsOnly[key]["data"]);
+          this._labelsOnly.next(this.cachedLabelsOnly[key]['data']);
           return null;
         }
       }
     }
 
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("contacts/getLabelsOnly", postData).subscribe((res) => {
+      this.httpService.post('contacts/getLabelsOnly', postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -682,7 +683,7 @@ export class ProspectingService {
 
   deleteContacts = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("contacts/delete", postData).subscribe((res) => {
+      this.httpService.post('contacts/delete', postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -700,7 +701,7 @@ export class ProspectingService {
     }
     return new Promise(async (resolve, reject) => {
       this._loading_all_contacts.next(true);
-      this.httpService.post("contacts/getAllContacts", postData).subscribe((res) => {
+      this.httpService.post('contacts/getAllContacts', postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             this._loading_all_contacts.next(false);
@@ -717,7 +718,7 @@ export class ProspectingService {
 
   saveContactsFromApollo = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("contacts/saveContactsFromApollo", postData).subscribe((res) => {
+      this.httpService.post('contacts/saveContactsFromApollo', postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -731,7 +732,7 @@ export class ProspectingService {
 
   notifyAddContactsInDrip = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("contacts/notifyAddContactsInDrip", postData).subscribe((res) => {
+      this.httpService.post('contacts/notifyAddContactsInDrip', postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -764,14 +765,14 @@ export class ProspectingService {
           }
         });
       }
-      contact["kexy_contact_labels"] = contactLabels;
+      contact['kexy_contact_labels'] = contactLabels;
     });
     return contactList;
   };
 
   getContactDripCampaigns = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("contacts/getDripCampaigns", postData).subscribe((res) => {
+      this.httpService.post('contacts/getDripCampaigns', postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -785,7 +786,7 @@ export class ProspectingService {
 
   removeDripCampaignFromContact = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("contacts/removeDripCampaignFromContact", postData).subscribe((res) => {
+      this.httpService.post('contacts/removeDripCampaignFromContact', postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -799,7 +800,7 @@ export class ProspectingService {
 
   deleteConversations = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("prospect/deleteConversations", postData).subscribe((res) => {
+      this.httpService.post('prospect/deleteConversations', postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);

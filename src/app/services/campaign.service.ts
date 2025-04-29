@@ -503,7 +503,7 @@ export class CampaignService {
 
   getAllCampaignInnerDetail = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("campaigns/getAllInnerDetail", postData).subscribe((res) => {
+      this.httpService.get("inner-details").subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -650,7 +650,8 @@ export class CampaignService {
     let tempDealList = [];
 
     return new Promise(async (resolve, reject) => {
-      this.httpService.get("landing-pages").subscribe((res) => {
+      const url = `landing-pages?page=${postData.page}&limit=${postData.limit}`;
+      this.httpService.get(url).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -670,6 +671,11 @@ export class CampaignService {
               deal_price: details.price,
               type_of_campaign: details.landingPageType,
               status: campaign.status,
+              analytics: {
+                impressions: '0',
+                clicks: '0',
+                ctr: '0%',
+              },
               token: campaign.token,
               action: "",
               campaign,
@@ -685,7 +691,7 @@ export class CampaignService {
             return a1 < b1 ? 1 : -1;
           });
 
-          resolve({ promotions: tempDealList, totalPageCounts });
+          resolve({ promotions: tempDealList, totalPageCounts, totalRecords: res.data.total });
         }
       });
     });
