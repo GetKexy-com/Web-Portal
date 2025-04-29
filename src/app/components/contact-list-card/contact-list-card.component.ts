@@ -24,7 +24,7 @@ import {FormsModule} from '@angular/forms';
   templateUrl: './contact-list-card.component.html',
   styleUrl: './contact-list-card.component.scss'
 })
-export class ContactListCardComponent {
+export class ContactListCardComponent implements OnInit, OnDestroy, AfterViewChecked {
   @Input() tableHeaderBg;
   @Input() tableHeaderColor;
   @Input() cardData = [];
@@ -68,7 +68,7 @@ export class ContactListCardComponent {
   public navigatePageNumber;
   public loadingSubscription: Subscription;
 
-  constructor(private _authService: AuthService, private modal: NgbModal, private prospectingService: ProspectingService, private pageUiService: PageUiService) {
+  constructor(private _authService: AuthService, private modal: NgbModal, private prospectingService: ProspectingService) {
   }
 
   ngOnInit(): void {
