@@ -1,28 +1,28 @@
-import { CampaignService } from "src/app/services/campaign.service";
-import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from "@angular/core";
-import { AuthService } from "src/app/services/auth.service";
-import { ActivatedRoute, Router } from "@angular/router";
-import { routeConstants } from "src/app/helpers/routeConstants";
-import { constants } from "src/app/helpers/constants";
-import { Subscription } from "rxjs";
-import { environment } from "src/environments/environment";
-import { promotionInitialModalData } from "src/app/helpers/demoData";
-import { NgbModal } from "@ng-bootstrap/ng-bootstrap";
-import {BrandLayoutComponent} from '../../layouts/brand-layout/brand-layout.component';
-import {ProgressCountComponent} from '../../components/progress-count/progress-count.component';
+import { CampaignService } from 'src/app/services/campaign.service';
+import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AuthService } from 'src/app/services/auth.service';
+import { ActivatedRoute, Router } from '@angular/router';
+import { routeConstants } from 'src/app/helpers/routeConstants';
+import { constants } from 'src/app/helpers/constants';
+import { Subscription } from 'rxjs';
+import { environment } from 'src/environments/environment';
+import { promotionInitialModalData } from 'src/app/helpers/demoData';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { BrandLayoutComponent } from '../../layouts/brand-layout/brand-layout.component';
+import { ProgressCountComponent } from '../../components/progress-count/progress-count.component';
 import {
-  KexyProTipsModalContentComponent
+  KexyProTipsModalContentComponent,
 } from '../../components/kexy-pro-tips-modal-content/kexy-pro-tips-modal-content.component';
 import {
-  CampaignDetailsFormContentComponent
+  CampaignDetailsFormContentComponent,
 } from '../../components/campaign-details-form-content/campaign-details-form-content.component';
 import {
-  CampaignContactInfoFormContentComponent
+  CampaignContactInfoFormContentComponent,
 } from '../../components/campaign-contact-info-form-content/campaign-contact-info-form-content.component';
 import {
-  CampaignPreviewContentComponent
+  CampaignPreviewContentComponent,
 } from '../../components/campaign-preview-content/campaign-preview-content.component';
-import {CommonModule} from '@angular/common';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'brand-create-campaign',
@@ -33,12 +33,12 @@ import {CommonModule} from '@angular/common';
     CampaignDetailsFormContentComponent,
     CampaignContactInfoFormContentComponent,
     CampaignPreviewContentComponent,
-    CommonModule
+    CommonModule,
   ],
   templateUrl: './brand-create-campaign.component.html',
-  styleUrl: './brand-create-campaign.component.scss'
+  styleUrl: './brand-create-campaign.component.scss',
 })
-export class BrandCreateCampaignComponent {
+export class BrandCreateCampaignComponent implements OnInit, OnDestroy {
   public currentStep = 1;
   public steps = [
     {
@@ -47,11 +47,11 @@ export class BrandCreateCampaignComponent {
     },
     {
       no: 2,
-      title: "Contact Info",
+      title: 'Contact Info',
     },
     {
       no: 3,
-      title: "Preview & Send",
+      title: 'Preview & Send',
     },
   ];
 
@@ -84,7 +84,7 @@ export class BrandCreateCampaignComponent {
     return false;
   };
 
-  @ViewChild("promotionInitialModal", { static: true }) promotionInitialModal: ElementRef;
+  @ViewChild('promotionInitialModal', { static: true }) promotionInitialModal: ElementRef;
 
   async ngOnInit() {
     document.title = `${constants.LANDING_PAGE}s - KEXY Brand Portal`;
@@ -94,12 +94,12 @@ export class BrandCreateCampaignComponent {
     });
 
     this.route.queryParams.subscribe((params) => {
-      if (params["id"]) {
+      if (params['id']) {
         this.currentStep = null;
-        this.campaignId = params["id"];
+        this.campaignId = params['id'];
         this.getCampaign().then();
       }
-      if (params["action"] && params["action"] === constants.DUPLICATE) {
+      if (params['action'] && params['action'] === constants.DUPLICATE) {
         this.campaignDuplicate = true;
         this.campaignService.setDuplicateCampaignPropertyValue(true);
       }
@@ -111,12 +111,12 @@ export class BrandCreateCampaignComponent {
   ngOnDestroy(): void {
     if (this.loadingSubscription) this.loadingSubscription.unsubscribe();
     if (this.promotionInitialModalSubscription) this.promotionInitialModalSubscription.unsubscribe();
-    if (this.removeQueryParams(this.router.url) === "/" + routeConstants.BRAND.PROMOTIONS) return;
+    if (this.removeQueryParams(this.router.url) === '/' + routeConstants.BRAND.PROMOTIONS) return;
     this.campaignService.resetCampaignDataToDefault();
   }
 
   removeQueryParams(url: string): string {
-    const parts = url.split("?");
+    const parts = url.split('?');
     return parts[0];
   }
 
@@ -130,19 +130,19 @@ export class BrandCreateCampaignComponent {
     };
     const campaign = await this.campaignService.getCampaign(postData);
     console.log({ campaign });
-    if (campaign && campaign["current_step"] === constants.CAMPAIGN_CONTACT) {
+    if (campaign && campaign['current_step'] === constants.CAMPAIGN_CONTACT) {
       this.currentStep = 2;
     }
-    if (campaign && campaign["current_step"] === constants.CAMPAIGN_PREVIEW) {
+    if (campaign && campaign['current_step'] === constants.CAMPAIGN_PREVIEW) {
       this.currentStep = 3;
     }
 
-    if (campaign && campaign["current_step"] === constants.CAMPAIGN_SUBMITTED) {
+    if (campaign && campaign['current_step'] === constants.CAMPAIGN_SUBMITTED) {
       this.currentStep = 1;
     }
   };
 
-  nextBtnClick = async (campaignId = "", overwrite = false) => {
+  nextBtnClick = async (campaignId = '', overwrite = false) => {
     console.log({ campaignId });
     console.log(this.campaignId);
     this.currentStep = ++this.currentStep;
@@ -152,7 +152,7 @@ export class BrandCreateCampaignComponent {
     }
   };
 
-  backBtnClick = async (campaignId = "") => {
+  backBtnClick = async (campaignId = '') => {
     console.log({ campaignId });
     console.log(this.campaignId);
     if (this.currentStep === 1) return;
@@ -165,7 +165,7 @@ export class BrandCreateCampaignComponent {
 
   setWaitingFlagToTrue = () => {
     this.isWaitingFlag = true;
-    console.log("from true", this.isWaitingFlag);
+    console.log('from true', this.isWaitingFlag);
   };
 
   setWaitingFlagToFalse = () => {
@@ -173,7 +173,7 @@ export class BrandCreateCampaignComponent {
   };
 
   handleTutorialBtnClick = () => {
-    window.open(environment.dripCampaignCreateTutorialUrl, "_blank");
+    window.open(environment.dripCampaignCreateTutorialUrl, '_blank');
   };
 
   protected readonly features = promotionInitialModalData;
