@@ -419,7 +419,7 @@ export class BrandCreateComponent implements OnInit {
       zipCodeList: [{}],
     };
     Object.assign(data, this.primaryForm.getRawValue());
-    data.zipCodeList = [{ zip_code: data.zipCodeList }];
+    data.zipCodeList = [data.zipCodeList];
 
     try {
       const response = await this.httpService.post('company', data).toPromise();
