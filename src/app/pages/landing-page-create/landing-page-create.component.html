@@ -10,28 +10,28 @@
       </div>
       <div class="content">
         <div *ngIf="currentStep === 1">
-          <campaign-details-form-content
+          <landing-page-details
             [nextBtnClick]="nextBtnClick"
             [backBtnClick]="backBtnClick"
-          ></campaign-details-form-content>
+          ></landing-page-details>
         </div>
         <div *ngIf="currentStep === 2">
-          <campaign-contact-info-form-content
+          <landing-page-contact
             [setWaitingFlagToFalse]="setWaitingFlagToFalse"
             [setWaitingFlagToTrue]="setWaitingFlagToTrue"
             [nextBtnClick]="nextBtnClick"
             [backBtnClick]="backBtnClick"
-          ></campaign-contact-info-form-content>
+          ></landing-page-contact>
         </div>
         <div *ngIf="currentStep === 3">
-          <campaign-preview-content
+          <landing-page-preview
             [closePreview]=""
             [formData]=""
             [setWaitingFlagToFalse]="setWaitingFlagToFalse"
             [setWaitingFlagToTrue]="setWaitingFlagToTrue"
             [nextBtnClick]="nextBtnClick"
             [backBtnClick]="backBtnClick"
-          ></campaign-preview-content>
+          ></landing-page-preview>
         </div>
       </div>
     </div>

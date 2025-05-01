@@ -10,16 +10,16 @@
 // import {PhoneNumberMaskDirective} from '../../directive/phone-number-mask.directive';
 //
 // @Component({
-//   selector: 'campaign-contact-info-form-content',
+//   selector: 'landing-page-contact',
 //   imports: [
 //     FormsModule,
 //     CampaignLayoutBottmBtnsComponent,
 //     PhoneNumberMaskDirective
 //   ],
-//   templateUrl: './campaign-contact-info-form-content.component.html',
-//   styleUrl: './campaign-contact-info-form-content.component.scss'
+//   templateUrl: './landing-page-contact.component.html',
+//   styleUrl: './landing-page-contact.component.scss'
 // })
-// export class CampaignContactInfoFormContentComponent {
+// export class LandingPageContactComponent {
 //   @Input() setWaitingFlagToTrue;
 //   @Input() setWaitingFlagToFalse;
 //   @Input() nextBtnClick;
@@ -171,17 +171,17 @@ interface QuestionData {
 }
 
 @Component({
-  selector: 'campaign-contact-info-form-content',
+  selector: 'landing-page-contact',
   standalone: true,
   imports: [
     FormsModule,
     CampaignLayoutBottmBtnsComponent,
     PhoneNumberMaskDirective
   ],
-  templateUrl: './campaign-contact-info-form-content.component.html',
-  styleUrl: './campaign-contact-info-form-content.component.scss'
+  templateUrl: './landing-page-contact.component.html',
+  styleUrl: './landing-page-contact.component.scss'
 })
-export class CampaignContactInfoFormContentComponent implements OnInit {
+export class LandingPageContactComponent implements OnInit {
   // Inputs
   @Input() setWaitingFlagToTrue!: () => void;
   @Input() setWaitingFlagToFalse!: () => void;

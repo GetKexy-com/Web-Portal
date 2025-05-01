@@ -25,7 +25,7 @@ import {CampaignLayoutBottmBtnsComponent} from '../campaign-layout-bottm-btns/ca
 import {CommonModule} from '@angular/common';
 
 @Component({
-  selector: 'campaign-details-form-content',
+  selector: 'landing-page-details',
   imports: [
     ReactiveFormsModule,
     NgxFileDropModule,
@@ -35,10 +35,10 @@ import {CommonModule} from '@angular/common';
     CampaignLayoutBottmBtnsComponent,
     CommonModule,
   ],
-  templateUrl: './campaign-details-form-content.component.html',
-  styleUrl: './campaign-details-form-content.component.scss'
+  templateUrl: './landing-page-details.component.html',
+  styleUrl: './landing-page-details.component.scss'
 })
-export class CampaignDetailsFormContentComponent {
+export class LandingPageDetailsComponent {
   @Input() nextBtnClick;
   @Input() backBtnClick;
   public constants = constants;

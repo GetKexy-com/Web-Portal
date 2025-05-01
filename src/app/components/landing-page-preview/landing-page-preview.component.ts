@@ -13,16 +13,16 @@ import {DesktopPreviewComponent} from '../desktop-preview/desktop-preview.compon
 import {CommonModule} from '@angular/common';
 
 @Component({
-  selector: 'campaign-preview-content',
+  selector: 'landing-page-preview',
   imports: [
     CampaignLayoutBottmBtnsComponent,
     DesktopPreviewComponent,
     CommonModule,
   ],
-  templateUrl: './campaign-preview-content.component.html',
-  styleUrl: './campaign-preview-content.component.scss'
+  templateUrl: './landing-page-preview.component.html',
+  styleUrl: './landing-page-preview.component.scss'
 })
-export class CampaignPreviewContentComponent {
+export class LandingPagePreviewComponent {
   @Input() closePreview;
   @Input() formData;
   @Input() setWaitingFlagToTrue;
