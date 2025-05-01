@@ -1,20 +1,20 @@
-import { Component, OnDestroy, OnInit } from "@angular/core";
-import { AuthService } from "src/app/services/auth.service";
-import Swal from "sweetalert2";
-import { environment } from "src/environments/environment";
-import { Router } from "@angular/router";
-import { constants } from "src/app/helpers/constants";
-import { routeConstants } from "src/app/helpers/routeConstants";
-import { CampaignService } from "src/app/services/campaign.service";
-import { ProspectingService } from "src/app/services/prospecting.service";
-import { Subscription } from "rxjs";
-import { PageUiService } from "src/app/services/page-ui.service";
-import {BrandLayoutComponent} from '../../layouts/brand-layout/brand-layout.component';
-import {KexyButtonComponent} from '../../components/kexy-button/kexy-button.component';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { AuthService } from 'src/app/services/auth.service';
+import Swal from 'sweetalert2';
+import { environment } from 'src/environments/environment';
+import { Router } from '@angular/router';
+import { constants } from 'src/app/helpers/constants';
+import { routeConstants } from 'src/app/helpers/routeConstants';
+import { CampaignService } from 'src/app/services/campaign.service';
+import { ProspectingService } from 'src/app/services/prospecting.service';
+import { Subscription } from 'rxjs';
+import { PageUiService } from 'src/app/services/page-ui.service';
+import { BrandLayoutComponent } from '../../layouts/brand-layout/brand-layout.component';
+import { KexyButtonComponent } from '../../components/kexy-button/kexy-button.component';
 import {
-  ListOfLandingPageTableComponent
+  ListOfLandingPageTableComponent,
 } from '../../components/list-of-landing-page-table/list-of-landing-page-table.component';
-import {CommonModule} from '@angular/common';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-brand-campaigns',
@@ -22,12 +22,12 @@ import {CommonModule} from '@angular/common';
     BrandLayoutComponent,
     KexyButtonComponent,
     ListOfLandingPageTableComponent,
-    CommonModule
+    CommonModule,
   ],
   templateUrl: './brand-campaigns.component.html',
-  styleUrl: './brand-campaigns.component.scss'
+  styleUrl: './brand-campaigns.component.scss',
 })
-export class BrandCampaignsComponent {
+export class BrandCampaignsComponent implements OnInit {
   isWaitingFlag: boolean = false;
   initialLoads = true;
   isLoading = false;
@@ -55,7 +55,7 @@ export class BrandCampaignsComponent {
   }
 
   async ngOnInit() {
-    document.title = "List of Landing Page - KEXY Brand Portal";
+    document.title = 'Landing Pages - KEXY';
     this.isWaitingFlag = true;
     this.userData = this._authService.userTokenValue;
 
@@ -70,14 +70,12 @@ export class BrandCampaignsComponent {
       this.campaignService.getAllCampaignTitle(),
       this.campaignService.getAllCampaignInnerDetail({ supplier_id: this.userData.supplier_id }),
       this.prospectingService.getProducts({
-        supplier_id: this.userData.supplier_id,
         page: 1,
         limit: 1000,
-        get_total_count: "false",
       }),
     ]);
     await this.getListOfLandingPage();
-    console.log("landingpagelist", this.landingPageList);
+    console.log('landingpagelist', this.landingPageList);
 
     this.isWaitingFlag = false;
     this.initialLoads = false;
@@ -114,52 +112,52 @@ export class BrandCampaignsComponent {
       limit: this.limit,
       get_total_count: true,
     };
-    const tempDealList = [];
+    // const tempDealList = [];
     try {
-      const data = await this.campaignService.getCampaigns(postData);
-      this.totalPageCounts = Math.ceil(data["total"] / this.limit);
-      this.totalRecordsCount = data["total"];
+      const data = await this.campaignService.getListOfCampaigns(postData); // getListOfCampaigns
+      this.totalPageCounts = data['totalPageCounts'];
+      this.totalRecordsCount = data['totalRecords'];
 
-      data["campaigns"].forEach((campaign) => {
-        const details = campaign.campaign_detail;
-        let dealEndDateTime = new Date(details.end_date).getTime();
+      // data['campaigns'].forEach((campaign) => {
+      //   const details = campaign.campaign_detail;
+      //   let dealEndDateTime = new Date(details.end_date).getTime();
+      //
+      //   let dealSingletem = {
+      //     id: campaign.id,
+      //     deal_title: details.campaign_title,
+      //     campaign_title_text: this.getCampaignTitle(details.campaign_title),
+      //     campaign_details_text: this.getCampaignDetails(details.campaign_details),
+      //     product_name: this.getCampaignProductName(details.prospecting_product_id),
+      //     deal_image: environment.imageUrl + details.campaign_image,
+      //     deal_category: details.category_id,
+      //     deal_price: details.price,
+      //     type_of_campaign: details.campaign_type,
+      //     end_at: dealEndDateTime,
+      //     status: campaign.status,
+      //     analytics: {
+      //       impressions: '0',
+      //       clicks: '0',
+      //       ctr: '0%',
+      //     },
+      //     action: '',
+      //     campaign,
+      //   };
+      //
+      //   tempDealList.push(dealSingletem);
+      //
+      // });
 
-        let dealSingletem = {
-          id: campaign.id,
-          deal_title: details.campaign_title,
-          campaign_title_text: this.getCampaignTitle(details.campaign_title),
-          campaign_details_text: this.getCampaignDetails(details.campaign_details),
-          product_name: this.getCampaignProductName(details.prospecting_product_id),
-          deal_image: environment.imageUrl + details.campaign_image,
-          deal_category: details.category_id,
-          deal_price: details.price,
-          type_of_campaign: details.campaign_type,
-          end_at: dealEndDateTime,
-          status: campaign.status,
-          analytics: {
-            impressions: "0",
-            clicks: "0",
-            ctr: "0%",
-          },
-          action: "",
-          campaign,
-        };
+      // tempDealList.sort(function(a, b) {
+      //   const a1 = a.id,
+      //     b1 = b.id;
+      //   if (a1 == b1) return 0;
+      //   return a1 < b1 ? 1 : -1;
+      // });
 
-        tempDealList.push(dealSingletem);
-
-      });
-
-      tempDealList.sort(function(a, b) {
-        const a1 = a.id,
-          b1 = b.id;
-        if (a1 == b1) return 0;
-        return a1 < b1 ? 1 : -1;
-      });
-
-      this.landingPageList = tempDealList;
+      this.landingPageList = data['promotions'];
 
     } catch (e) {
-      Swal.fire("Error", e.message, "error");
+      await Swal.fire('Error', e.message, 'error');
     }
   };
 
@@ -172,12 +170,12 @@ export class BrandCampaignsComponent {
     if (!this.selectedLandingPages.length) return;
 
     const isConfirm = await Swal.fire({
-      title: "Are you sure?",
-      icon: "warning",
+      title: 'Are you sure?',
+      icon: 'warning',
       showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Yes, Delete!",
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, Delete!',
     });
 
     if (isConfirm.dismiss) {
@@ -190,8 +188,8 @@ export class BrandCampaignsComponent {
       campaign_ids: landingPageIds,
     };
     if (this.selectedAllLandingPages) {
-      postData["campaign_ids"] = [];
-      postData["selected_all_landing_page"] = "true";
+      postData['campaign_ids'] = [];
+      postData['selected_all_landing_page'] = 'true';
     }
 
     const swal = this.pageUiService.showSweetAlertLoading();
@@ -205,7 +203,7 @@ export class BrandCampaignsComponent {
       this.selectedAllLandingPages = false;
 
     } catch (e) {
-      Swal.fire("Error", e.message);
+      Swal.fire('Error', e.message);
 
     } finally {
       swal.close();
@@ -219,7 +217,7 @@ export class BrandCampaignsComponent {
 
     // Only add 'action' param if duplicate is true
     if (duplicate) {
-      queryParams.action = "duplicate";
+      queryParams.action = 'duplicate';
     }
 
     this.router.navigate([routeConstants.BRAND.PROMOTIONS], {
@@ -302,7 +300,7 @@ export class BrandCampaignsComponent {
 
   isUrlCopied: boolean = false;
   copyUrl = async () => {
-    const url = environment.siteUrl + "/promotion?id=" + this.selectedLandingPages[0].campaign.token;
+    const url = environment.siteUrl + '/promotion?id=' + this.selectedLandingPages[0].campaign.token;
     await navigator.clipboard.writeText(url);
 
     this.isUrlCopied = true;

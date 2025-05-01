@@ -180,29 +180,29 @@ export class CampaignService {
   };
 
   public makeDataStructureAndSetCampaignDetailspageData = (campaign) => {
-    const campaignDetailsData = campaign.campaign_detail;
+    const campaignDetailsData = campaign.detail;
     const payload = {
-      campaign_type: campaignDetailsData.campaign_type,
-      campaign_title: campaignDetailsData.campaign_title,
-      campaign_details: campaignDetailsData.campaign_details,
+      campaign_type: campaignDetailsData.landingPageType,
+      campaign_title: campaignDetailsData.title,
+      campaign_details: campaignDetailsData.innerDetail,
       prospecting_product_id: campaignDetailsData.prospecting_product_id,
-      product_knowledge: campaignDetailsData.product_knowledge,
-      campaign_image: campaignDetailsData.campaign_image,
-      campaign_video: campaignDetailsData.campaign_video,
-      category_id: campaignDetailsData.category_id,
-      estimated_savings: campaignDetailsData.estimated_savings,
+      product_knowledge: campaignDetailsData.productKnowledge,
+      campaign_image: campaignDetailsData.image,
+      campaign_video: campaignDetailsData.video,
+      category_id: 1,
+      estimated_savings: campaignDetailsData.estimatedSavings,
       price: campaignDetailsData.price,
-      start_date: campaignDetailsData.start_date,
-      end_date: campaignDetailsData.end_date,
+      start_date: "",
+      end_date: "",
       size: campaignDetailsData.size,
       amount: campaignDetailsData.amount,
-      additional_info: campaignDetailsData.additional_info,
-      sales_sheet: campaignDetailsData.sales_sheet,
-      purchase_url: campaignDetailsData.purchase_url,
-      visit_website: campaignDetailsData.visit_website,
-      message_call_number: campaignDetailsData.message_call_number,
-      custom_button_url: campaignDetailsData.custom_button_url,
-      custom_button_label: campaignDetailsData.custom_button_label,
+      additional_info: campaignDetailsData.additionalInfo,
+      sales_sheet: campaignDetailsData.salesSheet,
+      purchase_url: campaignDetailsData.purchaseUrl,
+      visit_website: campaignDetailsData.visitWebsite,
+      message_call_number: campaignDetailsData.messageCallNumber,
+      custom_button_url: campaignDetailsData.customButtonUrl,
+      custom_button_label: campaignDetailsData.customButtonLabel,
     };
     this.setCampaignDetailsPageData(payload);
   };
@@ -329,8 +329,8 @@ export class CampaignService {
         resolve(this.previewPageData);
         return;
       }
-
-      this.httpService.post("campaigns/get", postData).subscribe((res) => {
+      const url = `landing-pages/${postData.campaign_id}`;
+      this.httpService.get(url).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             this._loading.next(false);
@@ -340,7 +340,7 @@ export class CampaignService {
           if (res.data) {
             // Set page data
             let campaign = res.data;
-
+            console.log(campaign);
             // this.makeDataStructureAndSetSearchEstablishmentpageData(campaign);
             this.makeDataStructureAndSetCampaignDetailspageData(campaign);
 
@@ -503,7 +503,7 @@ export class CampaignService {
 
   getAllCampaignInnerDetail = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("campaigns/getAllInnerDetail", postData).subscribe((res) => {
+      this.httpService.get("inner-details").subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -650,7 +650,8 @@ export class CampaignService {
     let tempDealList = [];
 
     return new Promise(async (resolve, reject) => {
-      this.httpService.get("landing-pages").subscribe((res) => {
+      const url = `landing-pages?page=${postData.page}&limit=${postData.limit}`;
+      this.httpService.get(url).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -670,6 +671,11 @@ export class CampaignService {
               deal_price: details.price,
               type_of_campaign: details.landingPageType,
               status: campaign.status,
+              analytics: {
+                impressions: '0',
+                clicks: '0',
+                ctr: '0%',
+              },
               token: campaign.token,
               action: "",
               campaign,
@@ -685,7 +691,7 @@ export class CampaignService {
             return a1 < b1 ? 1 : -1;
           });
 
-          resolve({ promotions: tempDealList, totalPageCounts });
+          resolve({ promotions: tempDealList, totalPageCounts, totalRecords: res.data.total });
         }
       });
     });
