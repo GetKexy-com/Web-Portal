@@ -130,8 +130,8 @@ export const routes: Routes = [
   {
     path: routeConstants.BRAND.LANDING_PAGES,
     loadComponent: () =>
-      import("./pages/brand-create-campaign/brand-create-campaign.component").then(
-        (m) => m.BrandCreateCampaignComponent,
+      import("./pages/landing-page-create/landing-page-create.component").then(
+        (m) => m.LandingPageCreateComponent,
       ),
     canActivate: [AuthGuard],
   },
