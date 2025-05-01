@@ -195,4 +195,11 @@ export const routes: Routes = [
       import("./pages/brand-credits/brand-credits.component").then((m) => m.BrandCreditsComponent),
     canActivate: [AuthGuard],
   },
+  {
+    path: routeConstants.BRAND.PROMOTION_NO_AUTH,
+    loadComponent: () =>
+      import("./pages/public-promotions/public-promotions.component").then(
+        (m) => m.PublicPromotionsComponent
+      ),
+  },
 ];
