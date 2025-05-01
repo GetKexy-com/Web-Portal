@@ -17,17 +17,17 @@ import {
 import { CommonModule } from '@angular/common';
 
 @Component({
-  selector: 'app-brand-campaigns',
+  selector: 'app-landing-pages',
   imports: [
     BrandLayoutComponent,
     KexyButtonComponent,
     ListOfLandingPageTableComponent,
     CommonModule,
   ],
-  templateUrl: './brand-campaigns.component.html',
-  styleUrl: './brand-campaigns.component.scss',
+  templateUrl: './landing-page.component.html',
+  styleUrl: './landing-page.component.scss',
 })
-export class BrandCampaignsComponent implements OnInit {
+export class LandingPageComponent implements OnInit {
   isWaitingFlag: boolean = false;
   initialLoads = true;
   isLoading = false;
@@ -220,7 +220,7 @@ export class BrandCampaignsComponent implements OnInit {
       queryParams.action = 'duplicate';
     }
 
-    this.router.navigate([routeConstants.BRAND.PROMOTIONS], {
+    this.router.navigate([routeConstants.BRAND.LANDING_PAGES], {
       queryParams,
     });
   };

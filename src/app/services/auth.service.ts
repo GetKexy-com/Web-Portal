@@ -290,7 +290,7 @@ export class AuthService {
       if (userTokenValue.type === constants.BRAND) {
         if (!currentUrl.includes(constants.BRAND)) {
           // this.router.navigate([routeConstants.BRAND.DEAL]);
-          this.router.navigate([routeConstants.BRAND.PROMOTIONS]);
+          this.router.navigate([routeConstants.BRAND.LANDING_PAGES]);
         }
       }
     }

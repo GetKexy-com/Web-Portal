@@ -36,7 +36,7 @@ export class NewFeaturePageAccessService {
       // this.dripCampaignPage.next(true);
       this.businessOperationPage.next(true);
     }
-    if (from === routeConstants.BRAND.PROMOTIONS) {
+    if (from === routeConstants.BRAND.LANDING_PAGES) {
       this.promotionPage.next(true);
     }
     const postData = {

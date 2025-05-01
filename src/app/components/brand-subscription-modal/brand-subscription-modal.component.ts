@@ -103,8 +103,8 @@ export class BrandSubscriptionModalComponent {
       .post("payment/changePaymentMethod", {
         // success_url: environment.siteUrl + routeConstants.BASE_URL + routeConstants.BRAND.SUBSCRIPTION,
         // cancel_url: environment.siteUrl + routeConstants.BASE_URL + routeConstants.BRAND.SUBSCRIPTION,
-        success_url: environment.siteUrl + routeConstants.BASE_URL + routeConstants.BRAND.PROMOTIONS,
-        cancel_url: environment.siteUrl + routeConstants.BASE_URL + routeConstants.BRAND.PROMOTIONS,
+        success_url: environment.siteUrl + routeConstants.BASE_URL + routeConstants.BRAND.LANDING_PAGES,
+        cancel_url: environment.siteUrl + routeConstants.BASE_URL + routeConstants.BRAND.LANDING_PAGES,
       })
       .toPromise();
     // window.location.href = response.data;
@@ -161,8 +161,8 @@ export class BrandSubscriptionModalComponent {
       paidEmployeeIds: [this.userData.id],
       promotion_code: this.couponCode,
       supplier_id: this.userData.supplier_id,
-      success_url: environment.siteUrl + routeConstants.BASE_URL + routeConstants.BRAND.PROMOTIONS,
-      cancel_url: environment.siteUrl + routeConstants.BASE_URL + routeConstants.BRAND.PROMOTIONS,
+      success_url: environment.siteUrl + routeConstants.BASE_URL + routeConstants.BRAND.LANDING_PAGES,
+      cancel_url: environment.siteUrl + routeConstants.BASE_URL + routeConstants.BRAND.LANDING_PAGES,
     };
 
     if (this.from === "add-brand") {

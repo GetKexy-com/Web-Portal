@@ -111,7 +111,7 @@ export class BrandCreateCampaignComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     if (this.loadingSubscription) this.loadingSubscription.unsubscribe();
     if (this.promotionInitialModalSubscription) this.promotionInitialModalSubscription.unsubscribe();
-    if (this.removeQueryParams(this.router.url) === '/' + routeConstants.BRAND.PROMOTIONS) return;
+    if (this.removeQueryParams(this.router.url) === '/' + routeConstants.BRAND.LANDING_PAGES) return;
     this.campaignService.resetCampaignDataToDefault();
   }
 
@@ -148,7 +148,7 @@ export class BrandCreateCampaignComponent implements OnInit, OnDestroy {
     this.currentStep = ++this.currentStep;
     const cId = this.campaignId && !overwrite ? this.campaignId : campaignId;
     if (cId) {
-      await this.router.navigate([routeConstants.BRAND.PROMOTIONS], { queryParams: { id: cId } });
+      await this.router.navigate([routeConstants.BRAND.LANDING_PAGES], { queryParams: { id: cId } });
     }
   };
 
@@ -159,7 +159,7 @@ export class BrandCreateCampaignComponent implements OnInit, OnDestroy {
     this.currentStep = --this.currentStep;
     const cId = this.campaignId ? this.campaignId : campaignId;
     if (cId) {
-      await this.router.navigate([routeConstants.BRAND.PROMOTIONS], { queryParams: { id: cId } });
+      await this.router.navigate([routeConstants.BRAND.LANDING_PAGES], { queryParams: { id: cId } });
     }
   };
 
