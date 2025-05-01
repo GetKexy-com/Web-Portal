@@ -25,7 +25,7 @@ import {
 import { CommonModule } from '@angular/common';
 
 @Component({
-  selector: 'brand-create-campaign',
+  selector: 'landing-page-create',
   imports: [
     BrandLayoutComponent,
     ProgressCountComponent,
@@ -35,10 +35,10 @@ import { CommonModule } from '@angular/common';
     CampaignPreviewContentComponent,
     CommonModule,
   ],
-  templateUrl: './brand-create-campaign.component.html',
-  styleUrl: './brand-create-campaign.component.scss',
+  templateUrl: './landing-page-create.component.html',
+  styleUrl: './landing-page-create.component.scss',
 })
-export class BrandCreateCampaignComponent implements OnInit, OnDestroy {
+export class LandingPageCreateComponent implements OnInit, OnDestroy {
   public currentStep = 1;
   public steps = [
     {
