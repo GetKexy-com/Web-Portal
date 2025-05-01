@@ -14,7 +14,7 @@ import {ErrorMessageCardComponent} from '../../components/error-message-card/err
 import {KexyRichEditorComponent} from '../../components/kexy-rich-editor/kexy-rich-editor.component';
 import {BrandConvoAvatarComponent} from '../../components/brand-convo-avatar/brand-convo-avatar.component';
 import {LabelAndValueComponent} from '../../components/label-and-value/label-and-value.component';
-import {DatePipe} from '@angular/common';
+import {CommonModule, DatePipe} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 
 @Component({
@@ -26,7 +26,8 @@ import {FormsModule} from '@angular/forms';
     BrandConvoAvatarComponent,
     LabelAndValueComponent,
     DatePipe,
-    FormsModule
+    FormsModule,
+    CommonModule,
   ],
   templateUrl: './public-promotions.component.html',
   styleUrl: './public-promotions.component.scss'
