@@ -2,7 +2,7 @@ const BRAND = "brand/";
 const AFFILIATE = "affiliate/";
 const SUBSCRPTIONS = "subscriptions/";
 export const PROSPECTING = "prospecting/";
-export const PROMOTION = "promotion/";
+export const LANDING_PAGE = "landing-page/";
 export const DRIP_CAMPAIGN = "drip-campaign/";
 export const SETTINGS = "settings/";
 export const CONTACTS = "contacts/";
@@ -27,11 +27,11 @@ export const routeConstants = {
   BRAND: {
     PROSPECT_URL: BRAND + PROSPECTING,
     CREATE: BRAND + "create",
-    PROMOTIONS: BRAND + PROMOTION + "create",
-    LIST_PROMOTION: BRAND + PROMOTION + "list",
+    LANDING_PAGES: BRAND + LANDING_PAGE + "create",
+    LIST_PROMOTION: BRAND + LANDING_PAGE + "list",
     PROMOTION_COMPANY_DESC: BRAND + COMPANY_DETAILS + "company-description",
     PROMOTION_PRODUCT_DESC: BRAND + COMPANY_DETAILS + "product-description",
-    CAMPAIGN_ANALYTICS: BRAND + PROMOTION + "analytics",
+    CAMPAIGN_ANALYTICS: BRAND + LANDING_PAGE + "analytics",
     ORGANIZATION: BRAND + "organization",
     ORGANIZATION_LIST: BRAND + "brand-list",
     INVITATION: BRAND + "invitation",

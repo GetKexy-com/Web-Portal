@@ -11,7 +11,7 @@ import {
   COMPANY_DETAILS,
   CONTACTS,
   DRIP_CAMPAIGN,
-  PROMOTION,
+  LANDING_PAGE,
   PROSPECTING,
   routeConstants,
 } from "../../helpers/routeConstants";
@@ -151,7 +151,7 @@ export class BrandLayoutComponent implements OnInit {
     if (url.includes(PROSPECTING)) {
       this.expandProspectingDropdown = true;
     }
-    if (url.includes(PROMOTION)) {
+    if (url.includes(LANDING_PAGE)) {
       this.expandPromotionDropdown = true;
     }
     if (url.includes(DRIP_CAMPAIGN)) {

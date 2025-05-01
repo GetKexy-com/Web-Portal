@@ -46,7 +46,7 @@
 //     this.userId = userToken.id;
 //     if (this.from === routeConstants.BRAND.CREATE_DRIP_CAMPAIGN) {
 //       this.proTipDripCampaign = true;
-//     } else if (this.from === routeConstants.BRAND.PROMOTIONS) {
+//     } else if (this.from === routeConstants.BRAND.LANDING_PAGES) {
 //       this.proTipPromotion = true;
 //     }
 //   }
@@ -60,7 +60,7 @@
 //     if (this.dontShowAgainCheck) {
 //       this.dontShowModalApiCall(this.from);
 //     } else {
-//       if (this.from === routeConstants.BRAND.PROMOTIONS) this._newFeaturePageAccessService.setPromotionPageData(true);
+//       if (this.from === routeConstants.BRAND.LANDING_PAGES) this._newFeaturePageAccessService.setPromotionPageData(true);
 //       if (this.from === routeConstants.BRAND.CREATE_DRIP_CAMPAIGN) this._newFeaturePageAccessService.setDripCampaignPageData(true);
 //     }
 //
@@ -81,7 +81,7 @@
 //
 //   audioSubs;
 //   playAudio(audio) {
-//     if (this.from === routeConstants.BRAND.CREATE_DRIP_CAMPAIGN || this.from === routeConstants.BRAND.PROMOTIONS) {
+//     if (this.from === routeConstants.BRAND.CREATE_DRIP_CAMPAIGN || this.from === routeConstants.BRAND.LANDING_PAGES) {
 //       this.audioOrTutorialBtnClick();
 //       return;
 //     }
@@ -165,7 +165,7 @@ export class KexyProTipsModalContentComponent implements OnDestroy {
     effect(() => {
       if (this.from === routeConstants.BRAND.CREATE_DRIP_CAMPAIGN) {
         this.proTipDripCampaign.set(true);
-      } else if (this.from === routeConstants.BRAND.PROMOTIONS) {
+      } else if (this.from === routeConstants.BRAND.LANDING_PAGES) {
         this.proTipPromotion.set(true);
       }
     });
@@ -186,7 +186,7 @@ export class KexyProTipsModalContentComponent implements OnDestroy {
     if (this.dontShowAgainCheck()) {
       this.dontShowModalApiCall(this.from!);
     } else {
-      if (this.from === routeConstants.BRAND.PROMOTIONS) {
+      if (this.from === routeConstants.BRAND.LANDING_PAGES) {
         this._newFeaturePageAccessService.setPromotionPageData(true);
       }
       if (this.from === routeConstants.BRAND.CREATE_DRIP_CAMPAIGN) {
@@ -210,7 +210,7 @@ export class KexyProTipsModalContentComponent implements OnDestroy {
 
   playAudio(audio: HTMLAudioElement) {
     if (this.from === routeConstants.BRAND.CREATE_DRIP_CAMPAIGN ||
-      this.from === routeConstants.BRAND.PROMOTIONS) {
+      this.from === routeConstants.BRAND.LANDING_PAGES) {
       this.audioOrTutorialBtnClick?.();
       return;
     }

@@ -128,7 +128,7 @@ export const routes: Routes = [
     canActivate: [AuthGuard],
   },
   {
-    path: routeConstants.BRAND.PROMOTIONS,
+    path: routeConstants.BRAND.LANDING_PAGES,
     loadComponent: () =>
       import("./pages/brand-create-campaign/brand-create-campaign.component").then(
         (m) => m.BrandCreateCampaignComponent,
@@ -137,7 +137,7 @@ export const routes: Routes = [
   },
   {
     path: routeConstants.BRAND.LIST_PROMOTION,
-    loadComponent: () => import("./pages/brand-campaigns/brand-campaigns.component").then((m) => m.BrandCampaignsComponent),
+    loadComponent: () => import("./pages/landing-pages/landing-page.component").then((m) => m.LandingPageComponent),
     canActivate: [AuthGuard],
   },
   {
