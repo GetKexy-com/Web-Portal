@@ -37,7 +37,7 @@
 //     },
 //   ];
 //   public isWaiting: boolean = true;
-//   public campaignId;
+//   public landingPageId;
 //   public stripeLoginUrl = "";
 //   public isStripeReady;
 //   public isAdmin;
@@ -58,15 +58,15 @@
 //     this.route.queryParams.subscribe((params) => {
 //       if (params["id"]) {
 //         console.log("Inside ngOnInit and route subscription");
-//         this.campaignId = params["id"];
+//         this.landingPageId = params["id"];
 //       }
 //     });
 //
 //     this.loginToStripeApiCall();
 //
 //     // Show previous data if any
-//     let campaignId = this.campaignId;
-//     if (campaignId) {
+//     let landingPageId = this.landingPageId;
+//     if (landingPageId) {
 //       await this.getCampaign();
 //       this.showPreviousData();
 //     }
@@ -74,13 +74,13 @@
 //   }
 //
 //   getCampaign = async () => {
-//     let campaignId = this.campaignId;
-//     console.log({ campaignId });
-//     if (!campaignId) {
+//     let landingPageId = this.landingPageId;
+//     console.log({ landingPageId });
+//     if (!landingPageId) {
 //       return false;
 //     }
 //     const postData = {
-//       campaign_id: campaignId,
+//       campaign_id: landingPageId,
 //       supplier_id: this.userData.supplier_id,
 //     };
 //     await this.campaignService.getCampaign(postData);
@@ -116,7 +116,7 @@
 //
 //     // Api call
 //     const editContactPayload = {
-//       campaign_id: this.campaignId,
+//       campaign_id: this.landingPageId,
 //       transaction_handle_by: "",
 //       distributor_transaction_handle_url: "",
 //       customer_question_referred_data: JSON.stringify(this.personInfoList),
@@ -157,12 +157,12 @@ interface PersonInfo {
 }
 
 interface ContactInfoPayload {
-  campaign_id: string;
-  transaction_handle_by: string;
-  distributor_transaction_handle_url: string;
-  customer_question_referred_data: string;
-  distributor_rep: string;
-  has_question_for_buyer: number;
+  landingPageId: string;
+  transactionHandleBy?: string;
+  transactionHandleUrl?: string;
+  questionReferredData: string;
+  distributorRep?: string;
+  questionForBuyer: boolean;
 }
 
 interface QuestionData {
@@ -197,7 +197,7 @@ export class LandingPageContactComponent implements OnInit {
   // State signals
   submitted = signal(false);
   isWaiting = signal(true);
-  campaignId = signal<string>('');
+  landingPageId = signal<string>('');
   stripeLoginUrl = signal<string>('');
   isStripeReady = signal<boolean | null>(null);
   isAdmin = signal(false);
@@ -220,14 +220,14 @@ export class LandingPageContactComponent implements OnInit {
 
     this.route.queryParams.subscribe(params => {
       if (params["id"]) {
-        this.campaignId.set(params["id"]);
+        this.landingPageId.set(params["id"]);
       }
     });
 
     await this.loginToStripeApiCall();
 
     // Show previous data if any
-    const campaignId = this.campaignId();
+    const campaignId = this.landingPageId();
     if (campaignId) {
       await this.getCampaign();
       this.showPreviousData();
@@ -236,7 +236,7 @@ export class LandingPageContactComponent implements OnInit {
   }
 
    getCampaign = async ()=> {
-    const campaignId = this.campaignId();
+    const campaignId = this.landingPageId();
     if (!campaignId) return false;
 
     const postData = {
@@ -252,7 +252,7 @@ export class LandingPageContactComponent implements OnInit {
 
     const contactData = contactInfoPageData["contactData"];
     try {
-      const parsedData = JSON.parse(contactData.customer_question_referred_data);
+      const parsedData = JSON.parse(contactData.questionReferredData);
       this.personInfoList.set(Array.isArray(parsedData) ? parsedData : [parsedData]);
     } catch (e) {
       console.error('Error parsing contact data:', e);
@@ -261,11 +261,11 @@ export class LandingPageContactComponent implements OnInit {
 
    loginToStripeApiCall = async () => {
     try {
-      const stripeCheck = await this.httpService.get("payment/loginToStripe").toPromise();
-      if (stripeCheck.success) {
-        this.stripeLoginUrl.set(stripeCheck.data.url);
-        this.isStripeReady.set(stripeCheck.data.type === "login");
-      }
+      // const stripeCheck = await this.httpService.get("payment/loginToStripe").toPromise();
+      // if (stripeCheck.success) {
+      //   this.stripeLoginUrl.set(stripeCheck.data.url);
+      //   this.isStripeReady.set(stripeCheck.data.type === "login");
+      // }
     } catch (error) {
       console.error('Error connecting to Stripe:', error);
     }
@@ -279,12 +279,9 @@ export class LandingPageContactComponent implements OnInit {
     this.submitted.set(true);
 
     const editContactPayload: ContactInfoPayload = {
-      campaign_id: this.campaignId(),
-      transaction_handle_by: "",
-      distributor_transaction_handle_url: "",
-      customer_question_referred_data: JSON.stringify(this.personInfoList()),
-      distributor_rep: "",
-      has_question_for_buyer: 0,
+      landingPageId: this.landingPageId(),
+      questionReferredData: JSON.stringify(this.personInfoList()),
+      questionForBuyer: false,
     };
 
     const questionData: QuestionData = {

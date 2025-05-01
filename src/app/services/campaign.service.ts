@@ -1,12 +1,12 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject } from "rxjs";
-import { constants } from "../helpers/constants";
-import { HttpService } from "./http.service";
-import { ActivatedRoute } from "@angular/router";
-import { environment } from "../../environments/environment";
+import { BehaviorSubject } from 'rxjs';
+import { constants } from '../helpers/constants';
+import { HttpService } from './http.service';
+import { ActivatedRoute } from '@angular/router';
+import { environment } from '../../environments/environment';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class CampaignService {
   private campaignTypes = [
@@ -56,9 +56,9 @@ export class CampaignService {
   public isDuplicateCampaign;
 
   private searchFilters = {};
-  private selectedSearchType = "";
-  private selectedCountry = "";
-  private selectedSavedSearch = "";
+  private selectedSearchType = '';
+  private selectedCountry = '';
+  private selectedSavedSearch = '';
   private searchEstablishmentPageData = {};
   private campaignDetailsPageData = {};
   private contactInfoPageData = {};
@@ -113,25 +113,25 @@ export class CampaignService {
   };
   public setSearchFilters = (data, additionalSearchData = {}) => {
     if (Object.keys(additionalSearchData).length) {
-      data["selectedCountry"] = additionalSearchData["selectedCountry"];
-      data["selectedRestaurantSearchType"] = additionalSearchData["selectedRestaurantSearchType"];
-      data["selectedTargettedPeople"] = additionalSearchData["selectedTargettedPeople"];
-      data["companies"] = additionalSearchData["companies"];
-      data["excludedCompanies"] = additionalSearchData["excludedCompanies"];
-      data["pastCompanies"] = additionalSearchData["pastCompanies"];
+      data['selectedCountry'] = additionalSearchData['selectedCountry'];
+      data['selectedRestaurantSearchType'] = additionalSearchData['selectedRestaurantSearchType'];
+      data['selectedTargettedPeople'] = additionalSearchData['selectedTargettedPeople'];
+      data['companies'] = additionalSearchData['companies'];
+      data['excludedCompanies'] = additionalSearchData['excludedCompanies'];
+      data['pastCompanies'] = additionalSearchData['pastCompanies'];
     }
     this.searchFilters = data;
     localStorage.setItem(constants.SALES_LEAD_SEARCH_PAYLOAD, JSON.stringify(data));
   };
 
   public getSearchFilters = () => {
-    const supplierId = localStorage.getItem("supplierId");
+    const supplierId = localStorage.getItem('supplierId');
     if (this.searchFilters) {
-      this.searchFilters["supplier_id"] = supplierId;
+      this.searchFilters['supplier_id'] = supplierId;
       return this.searchFilters;
     } else {
       const payload = localStorage.getItem(constants.SALES_LEAD_SEARCH_PAYLOAD);
-      payload["supplier_id"] = supplierId;
+      payload['supplier_id'] = supplierId;
       return payload;
     }
   };
@@ -180,20 +180,19 @@ export class CampaignService {
   };
 
   public makeDataStructureAndSetCampaignDetailspageData = (campaign) => {
+    console.log({ campaign });
     const campaignDetailsData = campaign.detail;
     const payload = {
       campaign_type: campaignDetailsData.landingPageType,
-      campaign_title: campaignDetailsData.title,
+      campaign_title: campaignDetailsData.title.id,
       campaign_details: campaignDetailsData.innerDetail,
-      prospecting_product_id: campaignDetailsData.prospecting_product_id,
+      prospecting_product_id: campaignDetailsData.prospectingProduct.id,
       product_knowledge: campaignDetailsData.productKnowledge,
       campaign_image: campaignDetailsData.image,
       campaign_video: campaignDetailsData.video,
       category_id: 1,
       estimated_savings: campaignDetailsData.estimatedSavings,
       price: campaignDetailsData.price,
-      start_date: "",
-      end_date: "",
       size: campaignDetailsData.size,
       amount: campaignDetailsData.amount,
       additional_info: campaignDetailsData.additionalInfo,
@@ -204,23 +203,23 @@ export class CampaignService {
       custom_button_url: campaignDetailsData.customButtonUrl,
       custom_button_label: campaignDetailsData.customButtonLabel,
     };
-    this.setCampaignDetailsPageData(payload);
+    this.setCampaignDetailsPageData(campaign);
   };
 
   public makeDataStructureAndSetContactInfopageData = (campaign) => {
-    const contactInfoData = campaign.campaign_contact_info;
+    const contactInfoData = campaign.contactInfo;
     const questionData = campaign?.campaign_questions;
 
     const editContactPayload = {
-      transaction_handle_by: contactInfoData.transaction_handle_by,
-      distributor_transaction_handle_url: contactInfoData.distributor_transaction_handle_url,
-      customer_question_referred_data: contactInfoData.customer_question_referred_data,
-      distributor_rep: contactInfoData.distributor_rep,
-      has_question_for_buyer: contactInfoData.has_question_for_buyer,
+      transactionHandleBy: contactInfoData.transactionHandleBy,
+      transactionHandleUrl: contactInfoData.transactionHandleUrl,
+      questionReferredData: contactInfoData.questionReferredData,
+      distributorRep: contactInfoData.distributorRep,
+      questionForBuyer: contactInfoData.questionForBuyer,
     };
 
     const questionPayload = {
-      question_list: contactInfoData.has_question_for_buyer ? questionData : [],
+      question_list: contactInfoData.questionForBuyer ? questionData : [],
     };
 
     this.setContactInfoPageData(editContactPayload, questionPayload);
@@ -230,53 +229,75 @@ export class CampaignService {
     this._loading.next(true);
     return new Promise(async (resolve, reject) => {
       // Image save
-      if (payload.campaign_image.startsWith("data:image")) {
+      if (payload.image.startsWith('data:image')) {
         let imgApiResponse = await this.httpService
-          .post("campaigns/saveImage", { image_data: payload.campaign_image })
+          .patch('landing-pages/save-image', { imageData: payload.image })
           .toPromise();
         if (!imgApiResponse.success) {
           this._loading.next(false);
           reject(imgApiResponse.error);
         }
-        payload.campaign_image = imgApiResponse.data;
+        payload.image = imgApiResponse.data.name;
       }
 
-      // Sales sheet save
-      if (payload.sales_sheet) {
-        if (payload.sales_sheet.startsWith("data:application/pdf") || payload.sales_sheet.startsWith("data:image")) {
+      //TODO - Sales sheet save
+      if (payload.salesSheet) {
+        if (payload.salesSheet.startsWith('data:application/pdf') || payload.salesSheet.startsWith('data:image')) {
           let saleSheetResponse = await this.httpService
-            .post("campaigns/saveSalesSheet", {
-              data: payload.sales_sheet,
+            .post('landing-pages/save-sell-sheet', {
+              data: payload.salesSheet,
             })
             .toPromise();
           if (!saleSheetResponse.success) {
             this._loading.next(false);
             reject(saleSheetResponse.error);
           }
-          payload.sales_sheet = saleSheetResponse.data;
+          payload.salesSheet = saleSheetResponse.data;
         }
       }
 
-      this.httpService.post("campaigns/create", payload).subscribe((res) => {
-        if (!res.success) {
-          if (res.error) {
+      if (payload.landingPageId) {
+        const url = `landing-pages/${payload.landingPageId}`;
+        delete payload.landingPageId;
+        this.httpService.patch(url, payload).subscribe((res) => {
+          if (!res.success) {
+            if (res.error) {
+              this._loading.next(false);
+              reject(res.error);
+            }
+          } else {
+            // Set campaignDetails page data
+            this.campaignDetailsPageData = payload;
             this._loading.next(false);
-            reject(res.error);
+            resolve(res.data.id);
           }
-        } else {
-          // Set campaignDetails page data
-          this.campaignDetailsPageData = payload;
-          this._loading.next(false);
-          resolve(res.data.id);
-        }
-      });
+        });
+      } else {
+        this.httpService.post('landing-pages', payload).subscribe((res) => {
+          if (!res.success) {
+            if (res.error) {
+              this._loading.next(false);
+              reject(res.error);
+            }
+          } else {
+            // Set campaignDetails page data
+            this.campaignDetailsPageData = payload;
+            this._loading.next(false);
+            resolve(res.data.id);
+          }
+        });
+      }
+
+
     });
   };
 
   public editContactInfo = async (editContactPayload, questionPayload = {}) => {
     this._loading.next(true);
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("campaigns/editContactInfo", editContactPayload).subscribe(async (res) => {
+      const url = `landing-pages/${editContactPayload.landingPageId}/contact-info`;
+      delete editContactPayload.landingPageId;
+      this.httpService.patch(url, editContactPayload).subscribe(async (res) => {
         if (!res.success) {
           if (res.error) {
             this._loading.next(false);
@@ -285,19 +306,19 @@ export class CampaignService {
         } else {
           // Call question api if user select yes
           let questions = [];
-          if (editContactPayload.has_question_for_buyer) {
-            questionPayload["campaign_id"] = editContactPayload.campaign_id;
-
-            let questionApiRes = await this.httpService.post("campaigns/addQuestions", questionPayload).toPromise();
-            if (!questionApiRes.success) {
-              if (questionApiRes.error) {
-                this._loading.next(false);
-                reject(questionApiRes.error);
-              }
-            } else {
-              questions = questionApiRes?.data;
-            }
-          }
+          // if (editContactPayload.has_question_for_buyer) {
+          //   questionPayload['campaign_id'] = editContactPayload.landingPageId;
+          //
+          //   let questionApiRes = await this.httpService.post('campaigns/addQuestions', questionPayload).toPromise();
+          //   if (!questionApiRes.success) {
+          //     if (questionApiRes.error) {
+          //       this._loading.next(false);
+          //       reject(questionApiRes.error);
+          //     }
+          //   } else {
+          //     questions = questionApiRes?.data;
+          //   }
+          // }
           this._loading.next(false);
           resolve(true);
         }
@@ -308,7 +329,7 @@ export class CampaignService {
   public campaignActivate = async (payload) => {
     this._loading.next(true);
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("campaigns/activate", payload).subscribe((res) => {
+      this.httpService.post('campaigns/activate', payload).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             this._loading.next(false);
@@ -325,7 +346,7 @@ export class CampaignService {
   getCampaign = async (postData) => {
     this._loading.next(true);
     return new Promise(async (resolve, reject) => {
-      if (postData.campaign_id === this.previewPageData["id"]) {
+      if (postData.campaign_id === this.previewPageData['id']) {
         resolve(this.previewPageData);
         return;
       }
@@ -346,8 +367,8 @@ export class CampaignService {
 
             if (
               campaign &&
-              (campaign["current_step"] === constants.CAMPAIGN_PREVIEW ||
-                campaign["current_step"] === constants.CAMPAIGN_SUBMITTED)
+              (campaign['currentStep'] === constants.CAMPAIGN_PREVIEW ||
+                campaign['currentStep'] === constants.CAMPAIGN_SUBMITTED)
             ) {
               this.makeDataStructureAndSetContactInfopageData(campaign);
               this.setPreviewPageData(campaign);
@@ -366,7 +387,7 @@ export class CampaignService {
   addCampaignTitle = async (postData) => {
     let campaignTitles = [...this._campaignTitles.getValue()];
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("campaigns/addTitle", postData).subscribe((res) => {
+      this.httpService.post('campaigns/addTitle', postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -384,7 +405,7 @@ export class CampaignService {
   editCampaignTitle = async (postData) => {
     let campaignTitles = [...this._campaignTitles.getValue()];
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("campaigns/editTitle", postData).subscribe((res) => {
+      this.httpService.post('campaigns/editTitle', postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -401,7 +422,7 @@ export class CampaignService {
 
   deleteCampaignTitle = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("campaigns/deleteTitle", postData).subscribe((res) => {
+      this.httpService.post('campaigns/deleteTitle', postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -422,13 +443,15 @@ export class CampaignService {
 
   getAllCampaignTitle = async () => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.get("titles").subscribe((res) => {
+      this.httpService.get('titles').subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
           }
         } else {
-          let campaignTitles = res.data;
+          let campaignTitles = res.data.filter(t => {
+            return t.status === constants.ACTIVE && t.titleType === 'landing';
+          });
           resolve(campaignTitles);
           this._campaignTitles.next(campaignTitles);
         }
@@ -447,7 +470,7 @@ export class CampaignService {
   addCampaignInnerDetails = async (postData) => {
     let campaignInnerDetails = [...this._campaignInnerDetails.getValue()];
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("campaigns/addInnerDetail", postData).subscribe((res) => {
+      this.httpService.post('campaigns/addInnerDetail', postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -465,7 +488,7 @@ export class CampaignService {
   editCampaignInnerDetails = async (postData) => {
     let campaignInnerDetails = [...this._campaignInnerDetails.getValue()];
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("campaigns/editInnerDetail", postData).subscribe((res) => {
+      this.httpService.post('campaigns/editInnerDetail', postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -482,7 +505,7 @@ export class CampaignService {
 
   deleteCampaignInnerDetail = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("campaigns/deleteInnerDetail", postData).subscribe((res) => {
+      this.httpService.post('campaigns/deleteInnerDetail', postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -503,7 +526,7 @@ export class CampaignService {
 
   getAllCampaignInnerDetail = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.get("inner-details").subscribe((res) => {
+      this.httpService.get('inner-details').subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -528,7 +551,7 @@ export class CampaignService {
   addUnit = async (postData) => {
     let unitList = [...this._units.getValue()];
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("campaigns/addUnit", postData).subscribe((res) => {
+      this.httpService.post('campaigns/addUnit', postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -562,7 +585,7 @@ export class CampaignService {
   addCampaignVideoUrl = async (postData) => {
     let campaignVideoUrls = [...this._campaignVideoUrls.getValue()];
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("campaigns/addVideoUrl", postData).subscribe((res) => {
+      this.httpService.post('campaigns/addVideoUrl', postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -580,7 +603,7 @@ export class CampaignService {
   editCampaignVideoUrl = async (postData) => {
     let campaignVideoUrls = [...this._campaignVideoUrls.getValue()];
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("campaigns/editVideoUrl", postData).subscribe((res) => {
+      this.httpService.post('campaigns/editVideoUrl', postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -597,7 +620,7 @@ export class CampaignService {
 
   deleteCampaignVideoUrl = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("campaigns/deleteVideoUrl", postData).subscribe((res) => {
+      this.httpService.post('campaigns/deleteVideoUrl', postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -616,9 +639,10 @@ export class CampaignService {
     });
   };
 
-  getAllCampaignVideoUrl = async (postData) => {
+  getAllCampaignVideoUrl = async () => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("campaigns/getAllVideoUrls", postData).subscribe((res) => {
+      const url = `video-urls`;
+      this.httpService.get(url).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -677,7 +701,7 @@ export class CampaignService {
                 ctr: '0%',
               },
               token: campaign.token,
-              action: "",
+              action: '',
               campaign,
             };
 
@@ -699,7 +723,7 @@ export class CampaignService {
 
   getCampaignTitleById = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("campaigns/getTitleById", postData).subscribe((res) => {
+      this.httpService.post('campaigns/getTitleById', postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -713,7 +737,7 @@ export class CampaignService {
 
   getCampaignInnerDetailById = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("campaigns/getInnerDetailById", postData).subscribe((res) => {
+      this.httpService.post('campaigns/getInnerDetailById', postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -727,7 +751,7 @@ export class CampaignService {
 
   getCampaigns = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("campaigns/getAll", postData).subscribe((res) => {
+      this.httpService.post('campaigns/getAll', postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -741,7 +765,7 @@ export class CampaignService {
 
   deleteCampaigns = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("campaigns/delete", postData).subscribe((res) => {
+      this.httpService.post('campaigns/delete', postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);

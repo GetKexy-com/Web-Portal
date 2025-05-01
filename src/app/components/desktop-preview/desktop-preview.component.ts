@@ -39,31 +39,31 @@ export class DesktopPreviewComponent implements OnInit {
     this.pageData = this.campaignService.getPreviewPageData();
     // this.setDistributorAndRep();
     this.setContactPerson();
-    console.log("pageData", this.pageData);
     this.setBottomButtonsList();
   }
 
   setBottomButtonsList = () => {
-    const campaignDetails = this.pageData.campaign_detail;
-    const campaignContactInfo = JSON.parse(this.pageData.campaign_contact_info.customer_question_referred_data);
+    const campaignDetails = this.pageData.detail;
+    const campaignContactInfo = JSON.parse(this.pageData.contactInfo.questionReferredData);
     const contactNumber = campaignContactInfo[0]["mobileNumber"];
     const contactEmail = campaignContactInfo[0]["email"];
 
-    if (campaignDetails.purchase_url) this.buttonsList.push({ label: constants.PURCHASE_BTN_TEXT, value: campaignDetails.purchase_url });
-    if (campaignDetails.visit_website) this.buttonsList.push({ label: constants.VISIT_WEBSITE_BTN_TEXT, value: campaignDetails.visit_website });
+    if (campaignDetails.purchaseUrl) this.buttonsList.push({ label: constants.PURCHASE_BTN_TEXT, value: campaignDetails.purchaseUrl });
+    if (campaignDetails.visitWebsite) this.buttonsList.push({ label: constants.VISIT_WEBSITE_BTN_TEXT, value: campaignDetails.visitWebsite });
     if (contactNumber) this.buttonsList.push({ label: constants.SEND_MESSAGE_CALL_BTN_TEXT, value: contactNumber });
     if (contactEmail) this.buttonsList.push({ label: constants.SEND_EMAIL, value: contactEmail });
-    if (campaignDetails.custom_button_url && campaignDetails.custom_button_label) this.buttonsList.push({ label: campaignDetails.custom_button_label, value: campaignDetails.custom_button_url });
+    if (campaignDetails.customButtonUrl && campaignDetails.customButtonLabel) this.buttonsList.push({ label: campaignDetails.customButtonLabel, value: campaignDetails.customButtonUrl });
   }
 
   setContactPerson = () => {
-    let contactList = JSON.parse(this.pageData.campaign_contact_info.customer_question_referred_data);
+    let contactList = JSON.parse(this.pageData.contactInfo.questionReferredData);
     this.contactPerson = `${contactList[0].firstName || ""} ${contactList[0].lastName || ""}`;
     this.contactPerson = this.contactPerson.trim() || "N/A";
   }
 
   public getImageUrl = () => {
-    return `${environment.imageUrl}${this.pageData.campaign_detail.campaign_image}`;
+    console.log(this.pageData);
+    return `${environment.imageUrl}${this.pageData.detail.image}`;
   };
 
   // public setDistributorAndRep = () => {
@@ -76,10 +76,10 @@ export class DesktopPreviewComponent implements OnInit {
   // };
 
   playVideoBtnClick = () => {
-    window.open(this.pageData.campaign_detail['campaign_video'], '_blank');
+    window.open(this.pageData.detail['video'], '_blank');
   }
 
   productInfoSheetBtnClick = () => {
-    window.open(`${environment['imageUrl']}${this.pageData.campaign_detail['sales_sheet']}`, '_blank');
+    window.open(`${environment['imageUrl']}${this.pageData.detail['salesSheet']}`, '_blank');
   }
 }

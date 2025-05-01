@@ -129,17 +129,17 @@ export class LandingPageCreateComponent implements OnInit, OnDestroy {
       supplier_id: this.userData.supplier_id,
     };
     const campaign = await this.campaignService.getCampaign(postData);
-    console.log({ campaign });
-    if (campaign && campaign['current_step'] === constants.CAMPAIGN_CONTACT) {
+    if (campaign && campaign['currentStep'] === constants.CAMPAIGN_CONTACT) {
       this.currentStep = 2;
     }
-    if (campaign && campaign['current_step'] === constants.CAMPAIGN_PREVIEW) {
+    if (campaign && campaign['currentStep'] === constants.CAMPAIGN_PREVIEW) {
       this.currentStep = 3;
     }
 
-    if (campaign && campaign['current_step'] === constants.CAMPAIGN_SUBMITTED) {
+    if (campaign && campaign['currentStep'] === constants.CAMPAIGN_SUBMITTED) {
       this.currentStep = 1;
     }
+    console.log(this.currentStep);
   };
 
   nextBtnClick = async (campaignId = '', overwrite = false) => {

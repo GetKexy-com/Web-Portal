@@ -1,4 +1,4 @@
-import { Component, ElementRef, Input, OnInit, ViewChild } from "@angular/core";
+import { Component, ElementRef, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { constants } from "src/app/helpers/constants";
 import { NgbModal } from "@ng-bootstrap/ng-bootstrap";
 import { NgbOffcanvas } from "@ng-bootstrap/ng-bootstrap";
@@ -38,7 +38,7 @@ import {CommonModule} from '@angular/common';
   templateUrl: './landing-page-details.component.html',
   styleUrl: './landing-page-details.component.scss'
 })
-export class LandingPageDetailsComponent {
+export class LandingPageDetailsComponent implements OnInit, OnDestroy {
   @Input() nextBtnClick;
   @Input() backBtnClick;
   public constants = constants;
@@ -63,7 +63,7 @@ export class LandingPageDetailsComponent {
   public model;
   public startDate: string = "";
   public endDate: string = "";
-  public campaignId;
+  public landingPageId;
   public campaignDuplicate = false;
   public campaignTitle: string = "";
   public campaignDetails: string = "";
@@ -93,7 +93,7 @@ export class LandingPageDetailsComponent {
   async ngOnInit() {
     this.route.queryParams.subscribe((params) => {
       if (params["id"]) {
-        this.campaignId = params["id"];
+        this.landingPageId = params["id"];
       }
       if (params["action"] && params["action"] === constants.DUPLICATE) {
         this.campaignDuplicate = true;
@@ -146,14 +146,14 @@ export class LandingPageDetailsComponent {
       }
 
       // Setting product if needs to show previous data
-      let campaignData = this.campaignService.getCampaignDetailsPageData();
+      let campaignData = this.campaignService.getCampaignDetailsPageData()['detail'];
       if (Object.keys(campaignData).length) {
-        const index = this.products.findIndex((i) => i.id === campaignData["prospecting_product_id"]);
+        const index = this.products.findIndex((i) => i.id === campaignData["prospectingProduct"].id);
         if (index > -1) {
           this.onProductNameSelect(this.products[index]);
 
           //Setting product description/knowledge
-          const descIndex = this.productDescription.findIndex((i) => i.key === campaignData["product_knowledge"]);
+          const descIndex = this.productDescription.findIndex((i) => i.key === campaignData["productKnowledge"]);
           this.onProductDescriptionSelect(this.productDescription[descIndex]);
         }
       }
@@ -173,9 +173,11 @@ export class LandingPageDetailsComponent {
 
       // Setting previous data if any
       let campaignData = this.campaignService.getCampaignDetailsPageData();
+      console.log(this.campaignTitlesDropdownOptions);
+      console.log({ campaignData });
       if (Object.keys(campaignData).length) {
         const index = this.campaignTitlesDropdownOptions.findIndex(
-          (i) => i.id.toString() === campaignData["campaign_title"].toString(),
+          (i) => i.id.toString() === campaignData['detail'].title?.id.toString(),
         );
         if (index > -1) {
           this.onCampaignTitleSelect(this.campaignTitlesDropdownOptions[index]);
@@ -193,14 +195,14 @@ export class LandingPageDetailsComponent {
       (campaignInnerDetails) => {
         this.campaignInnerDetailsDropdownOptions = campaignInnerDetails;
         this.campaignInnerDetailsDropdownOptions.map((i) => {
-          i.value = i.inner_detail.length > 100 ? i.inner_detail.slice(0, 100) + "..." : i.inner_detail;
+          i.value = i.innerDetail.length > 100 ? i.innerDetail.slice(0, 100) + "..." : i.innerDetail;
         });
 
         // Setting previous data if any
         let campaignData = this.campaignService.getCampaignDetailsPageData();
         if (Object.keys(campaignData).length) {
           const index = this.campaignInnerDetailsDropdownOptions.findIndex(
-            (i) => i.id.toString() === campaignData["campaign_details"].toString(),
+            (i) => i.id.toString() === campaignData["detail"].innerDetail?.id.toString(),
           );
 
           if (index > -1) {
@@ -213,20 +215,21 @@ export class LandingPageDetailsComponent {
 
   getAndSetCampaignVideoUrlsSubscription = async () => {
     // Get campaignVideoUrls api call
-    await this.campaignService.getAllCampaignVideoUrl({ supplier_id: this.userData.supplier_id });
+    await this.campaignService.getAllCampaignVideoUrl();
 
     // Set campaignVideoUrls subscription
     this.campaignVideoUrlsSubscription = this.campaignService.campaignVideoUrls.subscribe((videoUrls) => {
       this.campaignVideoUrlDropdownOptions = videoUrls;
       this.campaignVideoUrlDropdownOptions.map((i) => {
-        i.value = i.video_url;
+        i.value = i.videoUrl;
       });
 
+      console.log(this.campaignVideoUrlDropdownOptions);
       // Setting previous data if any
       let campaignData = this.campaignService.getCampaignDetailsPageData();
       if (Object.keys(campaignData).length) {
         const index = this.campaignVideoUrlDropdownOptions.findIndex(
-          (i) => i.id.toString() === campaignData["campaign_video"].toString(),
+          (i) => i.videoUrl.toString() === campaignData['detail']["video"].toString(),
         );
 
         if (index > -1) {
@@ -546,6 +549,7 @@ export class LandingPageDetailsComponent {
   getAndSetSelectedCampaign = () => {
     this.campaignTypes = this.campaignService.getCampaignTypes();
     this.campaignService.selectedCampaign.subscribe((campaign) => {
+      console.log({ campaign });
       this.selectedCampaignType = campaign;
     });
   };
@@ -574,69 +578,69 @@ export class LandingPageDetailsComponent {
 
   setFormGroupField = async () => {
     // Check previous data in service
-    let campaignData = this.campaignService.getCampaignDetailsPageData();
+    let campaignData = this.campaignService.getCampaignDetailsPageData()['detail'];
     console.log("campaignData", campaignData);
     if (Object.keys(campaignData).length) {
-      this.campaignService.changeCampaignType(campaignData["campaign_type"]);
+      this.campaignService.changeCampaignType(campaignData.landingPageType);
 
       // Setting size
       // this.selectedCampaignUnits = campaignData["size"];
 
       // Setting video url if any
-      if (campaignData["campaign_video"]) {
-        this.selectedCampaignVideoUrl = campaignData["campaign_video"];
+      if (campaignData["video"]) {
+        this.selectedCampaignVideoUrl = campaignData["video"];
       }
 
       // Setting purchase url
-      if (campaignData["purchase_url"]) {
-        this.purchaseUrl = campaignData["purchase_url"];
+      if (campaignData["purchaseUrl"]) {
+        this.purchaseUrl = campaignData["purchaseUrl"];
         this.isCheckedPurchaseCheckbox = true;
       }
 
       // Setting visit website
-      if (campaignData["visit_website"]) {
-        this.visitWebsite = campaignData["visit_website"];
+      if (campaignData["visitWebsite"]) {
+        this.visitWebsite = campaignData["visitWebsite"];
         this.isCheckedVisitWebsiteCheckbox = true;
       }
 
       // Setting custom button
-      if (campaignData["custom_button_url"]) {
-        this.customButtonUrl = campaignData["custom_button_url"];
+      if (campaignData["customButtonUrl"]) {
+        this.customButtonUrl = campaignData["customButtonUrl"];
         this.isCheckedCustomBtnCheckbox = true;
       }
 
       // Setting custom button
-      if (campaignData["custom_button_label"]) {
-        this.customButtonLabel = campaignData["custom_button_label"];
+      if (campaignData["customButtonLabel"]) {
+        this.customButtonLabel = campaignData["customButtonLabel"];
       }
     }
 
     // Setting environment imageurl if edit or duplicate
-    let campaignImage = campaignData["campaign_image"];
-    if (this.campaignId || this.campaignDuplicate) {
-      campaignImage = environment.imageUrl + campaignData["campaign_image"];
+    let campaignImage = campaignData["image"];
+    if (this.landingPageId || this.campaignDuplicate) {
+      campaignImage = environment.imageUrl + campaignData["image"];
     }
 
     this.primaryForm = new FormGroup({
-      startDate: new FormControl(
-        campaignData["start_date"] ? this.startDate : "",
-        Validators.compose([Validators.minLength(0), Validators.maxLength(15)]),
-      ),
-      endDate: new FormControl(
-        campaignData["end_date"] ? this.endDate : "",
-        Validators.compose([Validators.minLength(0), Validators.maxLength(15)]),
-      ),
+      // startDate: new FormControl(
+      //   campaignData["start_date"] ? this.startDate : "",
+      //   Validators.compose([Validators.minLength(0), Validators.maxLength(15)]),
+      // ),
+      // endDate: new FormControl(
+      //   campaignData["end_date"] ? this.endDate : "",
+      //   Validators.compose([Validators.minLength(0), Validators.maxLength(15)]),
+      // ),
       productPhoto: new FormControl(
         campaignImage ? campaignImage : "",
         Validators.compose([Validators.required]),
       ),
-      productVideo: new FormControl(campaignData["campaign_video"] ?? ""),
+      productVideo: new FormControl(campaignData["video"] ?? ""),
       product: new FormControl(
-        campaignData["prospecting_product_id"] ?? "",
+        campaignData["prospectingProduct"]?.id ?? "",
         Validators.compose([Validators.required, Validators.minLength(0), Validators.maxLength(30)]),
       ),
       campaignTitle: new FormControl(
-        campaignData["campaign_title"] ?? "",
+        campaignData["title"]?.title ?? "",
         Validators.compose([
           Validators.required,
           Validators.minLength(0),
@@ -645,11 +649,11 @@ export class LandingPageDetailsComponent {
         ]),
       ),
       campaignDetails: new FormControl(
-        campaignData["campaign_details"] ?? "",
+        campaignData["innerDetail"]?.innerDetail ?? "",
         Validators.compose([Validators.minLength(0), Validators.maxLength(1500)]),
       ),
       productKnowledge: new FormControl(
-        campaignData["product_knowledge"] ?? "",
+        campaignData["productKnowledge"] ?? "",
         Validators.compose([
           Validators.required,
           Validators.minLength(0),
@@ -664,7 +668,7 @@ export class LandingPageDetailsComponent {
         ]),
       ),
       estimatedSavings: new FormControl(
-        campaignData["estimated_savings"] ?? "",
+        campaignData["estimatedSavings"] ?? "",
         Validators.compose([
           Validators.required,
         ]),
@@ -675,8 +679,8 @@ export class LandingPageDetailsComponent {
       ),
       size: new FormControl(campaignData["size"] ?? ""),
       amount: new FormControl(campaignData["amount"] ?? ""),
-      additionalInfo: new FormControl(campaignData["additional_info"] ?? ""),
-      sellSheet: new FormControl(campaignData["sales_sheet"] ?? ""),
+      additionalInfo: new FormControl(campaignData["additionalInfo"] ?? ""),
+      sellSheet: new FormControl(campaignData["salesSheet"] ?? ""),
       typeOfCampaign: new FormControl(
         this.selectedCampaignType,
         Validators.compose([Validators.required, Validators.minLength(0), Validators.maxLength(100)]),
@@ -796,35 +800,30 @@ export class LandingPageDetailsComponent {
     // ToDo
     // update campaignCreate api so that establishment_search_type and establishment_search_value can be passed empty
     const payload = {
-      campaign_type: this.selectedCampaignType,
-      supplier_id: this.userData.supplier_id,
-      supplier_side: this.userData.side,
-      establishment_search_type: "a", // Will be passed empty when api updated
-      establishment_search_value: "a", // Will be passed empty when api updated
-      campaign_title: data.campaignTitle,
-      campaign_details: data.campaignDetails,
-      prospecting_product_id: data.product,
-      product_knowledge: data.productKnowledge,
-      campaign_image: campaignImage,
-      campaign_video: data.productVideo,
-      category_id: data.category,
-      estimated_savings: data.estimatedSavings,
+
+      landingPageType: this.selectedCampaignType,
+      companyId: this.userData.supplier_id,
+      titleId: data.campaignTitle,
+      innerDetailsId: data.campaignDetails,
+      prospectingProductId: data.product,
+      productKnowledge: data.productKnowledge,
+      image: campaignImage,
+      video: data.productVideo,
+      estimatedSavings: data.estimatedSavings,
       price: data.price,
-      start_date: startDateData,
-      end_date: endDateData,
       size: data.size,
       amount: data.amount,
-      additional_info: data.additionalInfo,
-      sales_sheet: data.sellSheet,
-      purchase_url: this.purchaseUrl,
-      visit_website: this.visitWebsite,
-      message_call_number: "",
-      custom_button_url: this.customButtonUrl,
-      custom_button_label: this.customButtonLabel,
+      additionalInfo: data.additionalInfo,
+      salesSheet: data.sellSheet,
+      purchaseUrl: this.purchaseUrl,
+      visitWebsite: this.visitWebsite,
+      messageCallNumber: "",
+      customButtonUrl: this.customButtonUrl,
+      customButtonLabel: this.customButtonLabel,
     };
 
-    if (this.campaignId && !this.campaignDuplicate) {
-      payload["campaign_id"] = this.campaignId;
+    if (this.landingPageId && !this.campaignDuplicate) {
+      payload["landingPageId"] = this.landingPageId;
     }
 
     try {
