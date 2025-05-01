@@ -14,14 +14,14 @@ import {
   KexyProTipsModalContentComponent,
 } from '../../components/kexy-pro-tips-modal-content/kexy-pro-tips-modal-content.component';
 import {
-  CampaignDetailsFormContentComponent,
-} from '../../components/campaign-details-form-content/campaign-details-form-content.component';
+  LandingPageDetailsComponent,
+} from '../../components/landing-page-details/landing-page-details.component';
 import {
-  CampaignContactInfoFormContentComponent,
-} from '../../components/campaign-contact-info-form-content/campaign-contact-info-form-content.component';
+  LandingPageContactComponent,
+} from '../../components/landing-page-contact/landing-page-contact.component';
 import {
-  CampaignPreviewContentComponent,
-} from '../../components/campaign-preview-content/campaign-preview-content.component';
+  LandingPagePreviewComponent,
+} from '../../components/landing-page-preview/landing-page-preview.component';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -30,9 +30,9 @@ import { CommonModule } from '@angular/common';
     BrandLayoutComponent,
     ProgressCountComponent,
     KexyProTipsModalContentComponent,
-    CampaignDetailsFormContentComponent,
-    CampaignContactInfoFormContentComponent,
-    CampaignPreviewContentComponent,
+    LandingPageDetailsComponent,
+    LandingPageContactComponent,
+    LandingPagePreviewComponent,
     CommonModule,
   ],
   templateUrl: './landing-page-create.component.html',
@@ -87,7 +87,7 @@ export class LandingPageCreateComponent implements OnInit, OnDestroy {
   @ViewChild('promotionInitialModal', { static: true }) promotionInitialModal: ElementRef;
 
   async ngOnInit() {
-    document.title = `${constants.LANDING_PAGE}s - KEXY Brand Portal`;
+    document.title = `${constants.LANDING_PAGE}s - KEXY`;
     this.userData = this._authService.userTokenValue;
     this.loadingSubscription = this.campaignService.loading.subscribe((loading) => {
       this.isWaitingFlag = loading;
