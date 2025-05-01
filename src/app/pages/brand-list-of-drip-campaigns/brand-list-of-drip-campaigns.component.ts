@@ -322,7 +322,7 @@
 //   protected readonly constants = constants;
 // }
 
-import { Component, inject, signal, DestroyRef } from '@angular/core';
+import {Component, inject, signal, DestroyRef, OnInit} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
@@ -351,7 +351,7 @@ import {ListOfDripCampaignTableComponent} from '../../components/list-of-drip-ca
   templateUrl: './brand-list-of-drip-campaigns.component.html',
   styleUrl: './brand-list-of-drip-campaigns.component.scss'
 })
-export class BrandListOfDripCampaignsComponent {
+export class BrandListOfDripCampaignsComponent implements OnInit {
   // Services
   private authService = inject(AuthService);
   private router = inject(Router);
@@ -396,11 +396,11 @@ export class BrandListOfDripCampaignsComponent {
     this.initialLoads.set(false);
   }
 
-  async getLabels() {
+  getLabels = async ()=> {
     await this.prospectingService.getLabels({ supplier_id: this.userData().supplier_id });
   }
 
-  async getListOfDripCampaigns() {
+  getListOfDripCampaigns = async ()=> {
     const data = await this.dripCampaignService.getListOfDripCampaigns(
       this.limit(),
       this.page(),
@@ -412,7 +412,7 @@ export class BrandListOfDripCampaignsComponent {
     this.totalRecordsCount.set(data["totalRecordsCount"]);
   }
 
-  async getAndSetDripCampaignTitleSubscription() {
+  getAndSetDripCampaignTitleSubscription = async ()=> {
     await this.dripCampaignService.getAllDripCampaignTitle({
       supplier_id: this.userData().supplier_id
     });
@@ -428,12 +428,12 @@ export class BrandListOfDripCampaignsComponent {
       });
   }
 
-  setPageLimit(newLimit: number) {
+  setPageLimit = (newLimit: number)=> {
     localStorage.setItem(constants.BRAND_DRIP_CAMPAIGN_PAGE_LIMIT, newLimit.toString());
     this.limit.set(newLimit);
   }
 
-  async pauseOrResumeOrDeleteDripCampaign(forDelete = false) {
+  pauseOrResumeOrDeleteDripCampaign = async (forDelete = false)=> {
     const dripCampaign = this.selectedDripCampaigns()[0];
     if (!dripCampaign) return;
 
@@ -452,15 +452,8 @@ export class BrandListOfDripCampaignsComponent {
 
     if (isConfirm.dismiss) return;
 
-    await Swal.fire({
-      title: "",
-      text: "Please wait...",
-      showConfirmButton: false,
-      showCancelButton: false,
-      allowOutsideClick: false,
-      allowEscapeKey: false,
-      didOpen: () => Swal.showLoading()
-    });
+    const swal = this.pageUiService.showSweetAlertLoading();
+    swal.showLoading();
 
     const payload = {
       drip_campaign_id: dripCampaign.id,
@@ -489,7 +482,7 @@ export class BrandListOfDripCampaignsComponent {
 
       if (forDelete) {
         await this.getListOfDripCampaigns();
-        this.selectedDripCampaigns.set([]);
+        // this.selectedDripCampaigns.set([]);
       } else {
         const updatedList = this.dripCampaignList().map(item =>
           item.id === dripCampaign.id ? { ...item, status: payload.status } : item
@@ -497,18 +490,21 @@ export class BrandListOfDripCampaignsComponent {
         this.dripCampaignList.set(updatedList);
       }
 
+      this.selectedDripCampaigns.set([]);
+
       await this.httpService.post("user/setUsersActionLog", {
         actionType: "Paused a drip campaign"
       }).toPromise();
+
     } catch (e) {
       Swal.fire("Error", e.message);
       console.error(e);
     } finally {
-      Swal.close();
+      swal.close();
     }
   }
 
-  async deleteDripCampaigns() {
+  deleteDripCampaigns = async ()=> {
     if (!this.selectedDripCampaigns().length) return;
 
     const isConfirm = await Swal.fire({
@@ -545,7 +541,7 @@ export class BrandListOfDripCampaignsComponent {
     }
   }
 
-  redirectToEditPage(duplicate = false) {
+  redirectToEditPage = (duplicate = false)=> {
     const queryParams: any = {
       id: this.selectedDripCampaigns()[0]?.id,
     };
@@ -557,19 +553,19 @@ export class BrandListOfDripCampaignsComponent {
     this.router.navigate([routeConstants.BRAND.CREATE_DRIP_CAMPAIGN], { queryParams });
   }
 
-  setBtnLabelBasedOnCampaignStatus() {
+  setBtnLabelBasedOnCampaignStatus = ()=> {
     const dripCampaign = this.selectedDripCampaigns()[0];
     if (!dripCampaign) return '';
     return dripCampaign.status === constants.ACTIVE ? "Pause" : "Resume";
   }
 
-  setBtnIconBasedOnCampaignStatus() {
+  setBtnIconBasedOnCampaignStatus = ()=> {
     const dripCampaign = this.selectedDripCampaigns()[0];
     if (!dripCampaign) return '';
     return dripCampaign.status === constants.ACTIVE ? "fa-pause-circle-o" : "fa-play-circle-o";
   }
 
-  async receivedLimitNumber(limit: number) {
+  receivedLimitNumber = async (limit: number)=> {
     this.setPageLimit(limit);
     this.page.set(1);
     this.isWaitingFlag.set(true);
@@ -577,7 +573,7 @@ export class BrandListOfDripCampaignsComponent {
     this.isWaitingFlag.set(false);
   }
 
-  async paginationRightArrowClick() {
+  paginationRightArrowClick = async (): Promise<void> => {
     if (this.page() === this.totalPageCounts()) return;
     this.isLoading.set(true);
     this.page.update(p => p + 1);
@@ -585,7 +581,7 @@ export class BrandListOfDripCampaignsComponent {
     this.isLoading.set(false);
   }
 
-  async paginationLeftArrowClick() {
+  paginationLeftArrowClick = async ()=> {
     if (this.page() === 1) return;
     this.isLoading.set(true);
     this.page.update(p => p - 1);
@@ -593,7 +589,7 @@ export class BrandListOfDripCampaignsComponent {
     this.isLoading.set(false);
   }
 
-  handleContactSelect(selectedRow: any, isSelectAll: boolean) {
+  handleContactSelect = (selectedRow: any, isSelectAll: boolean)=> {
     if (isSelectAll) {
       const hasSelected = this.dripCampaignList().some(i => i.is_selected);
 
@@ -631,13 +627,13 @@ export class BrandListOfDripCampaignsComponent {
     this.selectedAllDripCampaigns.set(false);
   }
 
-  addContactBtnClick() {
+  addContactBtnClick = ()=> {
     this.router.navigate([routeConstants.BRAND.MANAGE_CONTACTS], {
       queryParams: { addToDripCampaignId: this.selectedDripCampaigns()[0]?.id }
     });
   }
 
-  toggleSelectAllSelection() {
+  toggleSelectAllSelection = ()=> {
     this.selectedAllDripCampaigns.update(v => !v);
   }
 }

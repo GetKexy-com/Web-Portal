@@ -36,29 +36,29 @@ export class PageUiService {
     return str;
   }
 
-  public formatDate(date) {
-    let input = date;
-    if (/\D\/$/.test(input)) input = input.substr(0, input.length - 3);
-    let values = input.split("/").map(function(v) {
-      return v.replace(/\D/g, "");
-    });
-    if (values[0]) values[0] = this.__checkDateValue(values[0], 12);
-    if (values[1]) values[1] = this.__checkDateValue(values[1], 31);
-
-    const output = values.map(function(v, i) {
-      return v.length == 2 && i < 2 ? v + "/" : v;
-    });
-
-    return output.join("").substr(0, 14);
-  }
+  // public formatDate(date) {
+  //   let input = date;
+  //   if (/\D\/$/.test(input)) input = input.substr(0, input.length - 3);
+  //   let values = input.split("/").map(function(v) {
+  //     return v.replace(/\D/g, "");
+  //   });
+  //   if (values[0]) values[0] = this.__checkDateValue(values[0], 12);
+  //   if (values[1]) values[1] = this.__checkDateValue(values[1], 31);
+  //
+  //   const output = values.map(function(v, i) {
+  //     return v.length == 2 && i < 2 ? v + "/" : v;
+  //   });
+  //
+  //   return output.join("").substr(0, 14);
+  // }
 
   public setSelectedProspectingConv(conv: ProspectContact) {
     this.selectedProspectingConv = conv;
   }
 
-  public getSelectedProspectingConv() {
-    return this.selectedProspectingConv;
-  }
+  // public getSelectedProspectingConv() {
+  //   return this.selectedProspectingConv;
+  // }
 
   public updateGleapIcon(shouldShow) {
     setTimeout(() => {
@@ -81,13 +81,13 @@ export class PageUiService {
     return string.charAt(0).toUpperCase() + string.slice(1);
   };
 
-  public customEmailValidator(): ValidatorFn {
-    return (control: AbstractControl): { [key: string]: any } | null => {
-      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/; // Ensures a valid TLD
-      const valid = emailRegex.test(control.value);
-      return valid ? null : { invalidEmail: true };
-    };
-  }
+  // public customEmailValidator(): ValidatorFn {
+  //   return (control: AbstractControl): { [key: string]: any } | null => {
+  //     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/; // Ensures a valid TLD
+  //     const valid = emailRegex.test(control.value);
+  //     return valid ? null : { invalidEmail: true };
+  //   };
+  // }
 
   public showSweetAlertLoading = () => {
     Swal.fire({
