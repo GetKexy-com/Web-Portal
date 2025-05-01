@@ -15,6 +15,7 @@ import {KexyRichEditorComponent} from '../../components/kexy-rich-editor/kexy-ri
 import {BrandConvoAvatarComponent} from '../../components/brand-convo-avatar/brand-convo-avatar.component';
 import {LabelAndValueComponent} from '../../components/label-and-value/label-and-value.component';
 import {DatePipe} from '@angular/common';
+import {FormsModule} from '@angular/forms';
 
 @Component({
   selector: 'app-public-promotions',
@@ -24,7 +25,8 @@ import {DatePipe} from '@angular/common';
     KexyRichEditorComponent,
     BrandConvoAvatarComponent,
     LabelAndValueComponent,
-    DatePipe
+    DatePipe,
+    FormsModule
   ],
   templateUrl: './public-promotions.component.html',
   styleUrl: './public-promotions.component.scss'
