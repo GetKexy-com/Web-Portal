@@ -12,7 +12,7 @@
         <div class="buttons-wrap">
           <div class="btn-wrap mb-2">
             <app-kexy-button
-              [disabled]="!pageData.detail.salesSheet"
+              [disabled]="!landingPage.detail.salesSheet"
               label="Info Sheet"
               bgColor="#E7F6FE"
               textColor="#0047CC"
@@ -22,7 +22,7 @@
           </div>
           <div class="btn-wrap">
             <app-kexy-button
-              [disabled]="!pageData.detail.video"
+              [disabled]="!landingPage.detail.video"
               label="Play Video"
               bgColor="#E7F6FE"
               textColor="#0047CC"
@@ -40,14 +40,7 @@
           <div
             class="kexy-tag"
           >
-            <span
-              *ngIf="pageData.detail.landingPageType === constants.DEAL_WITH_PRICE">{{ constants.DEAL_LIST_PRICE }}</span>
-            <span
-              *ngIf="pageData.detail.landingPageType === constants.ANNOUNCEMENT_KEY">{{ constants.ANNOUNCEMENT_VALUE }}</span>
-            <span
-              *ngIf="pageData.detail.landingPageType === constants.FEATURED_PRODUCT">{{ constants.PRODUCT_OFFERING_NO_PRICE_LISTED }}</span>
-            <span
-              *ngIf="pageData.detail.landingPageType === constants.LISTING_OF_PRODUCT">{{ constants.LIST_PRODUCT_ON_PLATFORM }}</span>
+            <span>{{landingPage.detail.landingPageType}}</span>
           </div>
         </div>
         <div class="campaign-price-savings-specs-info-wrap">
@@ -56,23 +49,23 @@
             <p class="right-text">{{ contactPerson }}</p>
           </div>
           <div class="info-row"
-               [style.border]="pageData.detail.landingPageType === constants.FEATURED_PRODUCT ? 'none' : ''">
+               [style.border]="landingPage.detail.landingPageType === constants.FEATURED_PRODUCT ? 'none' : ''">
             <p class="left-text">Price</p>
-            <p *ngIf="pageData.detail.price" class="right-text">{{ pageData.detail.price }}</p>
-            <p *ngIf="!pageData.detail.price" class="right-text">N/A</p>
+            <p *ngIf="landingPage.detail.price" class="right-text">{{ landingPage.detail.price }}</p>
+            <p *ngIf="!landingPage.detail.price" class="right-text">N/A</p>
           </div>
-          <div *ngIf="pageData.detail.landingPageType !== constants.FEATURED_PRODUCT" class="info-row border-0">
+          <div *ngIf="landingPage.detail.landingPageType !== constants.FEATURED_PRODUCT" class="info-row border-0">
             <p class="left-text">Estimated Savings</p>
-            <p *ngIf="pageData.detail.estimatedSavings"
-               class="right-text">{{ pageData.detail.estimatedSavings }}</p>
-            <p *ngIf="!pageData.detail.estimatedSavings" class="right-text">N/A</p>
+            <p *ngIf="landingPage.detail.estimatedSavings"
+               class="right-text">{{ landingPage.detail.estimatedSavings }}</p>
+            <p *ngIf="!landingPage.detail.estimatedSavings" class="right-text">N/A</p>
           </div>
         </div>
         <div class="validation-info-wrap">
           <div class="contents">
-<!--            <p *ngIf="pageData.detail.start_date" class="date-range-text">-->
-<!--              Valid from {{ pageData.detail.start_date | date : "MMM d, y" }} - till-->
-<!--              {{ pageData.detail.end_date | date : "MMM d, y" }}-->
+<!--            <p *ngIf="landingPage.detail.start_date" class="date-range-text">-->
+<!--              Valid from {{ landingPage.detail.start_date | date : "MMM d, y" }} - till-->
+<!--              {{ landingPage.detail.end_date | date : "MMM d, y" }}-->
 <!--            </p>-->
             <p class="offer-text">{{ campaignTitleText }}</p>
           </div>
@@ -87,14 +80,14 @@
         <app-label-and-value label="Details"
                              [value]="campaignDetailsText ? campaignDetailsText : 'N/A'"></app-label-and-value>
       </div>
-      <div *ngIf="pageData.detail.productKnowledge" class="area-wrap">
+      <div *ngIf="landingPage.detail.productKnowledge" class="area-wrap">
         <app-label-and-value
-          [label]="pageData.detail.landingPageType === constants.LISTING_OF_PRODUCT ? 'Service Description' : 'Product Description'"
-          [value]="pageData.detail.productKnowledge"></app-label-and-value>
+          [label]="landingPage.detail.landingPageType === constants.LISTING_OF_PRODUCT ? 'Service Description' : 'Product Description'"
+          [value]="landingPage.detail.productKnowledge"></app-label-and-value>
       </div>
-      <div *ngIf="pageData.detail.additionalInfo" class="area-wrap">
+      <div *ngIf="landingPage.detail.additionalInfo" class="area-wrap">
         <app-label-and-value label="Additional Info"
-                             [value]="pageData.detail.additionalInfo || 'N/A'"></app-label-and-value>
+                             [value]="landingPage.detail.additionalInfo || 'N/A'"></app-label-and-value>
       </div>
     </div>
   </div>

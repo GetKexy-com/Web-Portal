@@ -138,15 +138,18 @@
 //   };
 // }
 
-import {Component, inject, signal, Input, OnInit} from '@angular/core';
+import { Component, inject, signal, Input, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { constants } from 'src/app/helpers/constants';
 import { AuthService } from 'src/app/services/auth.service';
 import { HttpService } from 'src/app/services/http.service';
 import { CampaignService } from 'src/app/services/campaign.service';
 import { ActivatedRoute } from '@angular/router';
-import { CampaignLayoutBottmBtnsComponent } from 'src/app/components/campaign-layout-bottm-btns/campaign-layout-bottm-btns.component';
+import {
+  CampaignLayoutBottmBtnsComponent,
+} from 'src/app/components/campaign-layout-bottm-btns/campaign-layout-bottm-btns.component';
 import { PhoneNumberMaskDirective } from 'src/app/directive/phone-number-mask.directive';
+import { LandingPage } from '../../models/LandingPage';
 
 interface PersonInfo {
   firstName: string;
@@ -176,10 +179,10 @@ interface QuestionData {
   imports: [
     FormsModule,
     CampaignLayoutBottmBtnsComponent,
-    PhoneNumberMaskDirective
+    PhoneNumberMaskDirective,
   ],
   templateUrl: './landing-page-contact.component.html',
-  styleUrl: './landing-page-contact.component.scss'
+  styleUrl: './landing-page-contact.component.scss',
 })
 export class LandingPageContactComponent implements OnInit {
   // Inputs
@@ -187,28 +190,24 @@ export class LandingPageContactComponent implements OnInit {
   @Input() setWaitingFlagToFalse!: () => void;
   @Input() nextBtnClick!: () => void;
   @Input() backBtnClick!: () => void;
+  @Input() landingPage: LandingPage;
 
-  // Services
   private authService = inject(AuthService);
-  private httpService = inject(HttpService);
   private campaignService = inject(CampaignService);
-  private route = inject(ActivatedRoute);
 
   // State signals
   submitted = signal(false);
   isWaiting = signal(true);
   landingPageId = signal<string>('');
-  stripeLoginUrl = signal<string>('');
-  isStripeReady = signal<boolean | null>(null);
   isAdmin = signal(false);
 
   // Data
   personInfoList = signal<PersonInfo[]>([{
-    firstName: "",
-    lastName: "",
-    email: "",
-    phoneCode: "+1",
-    mobileNumber: "",
+    firstName: '',
+    lastName: '',
+    email: '',
+    phoneCode: '+1',
+    mobileNumber: '',
   }]);
 
   // Constants
@@ -216,70 +215,23 @@ export class LandingPageContactComponent implements OnInit {
 
   async ngOnInit() {
     const userData = this.authService.userTokenValue;
+    console.log(this.landingPage);
     this.isAdmin.set(userData.role === constants.ADMIN);
-
-    this.route.queryParams.subscribe(params => {
-      if (params["id"]) {
-        this.landingPageId.set(params["id"]);
-      }
-    });
-
-    await this.loginToStripeApiCall();
-
-    // Show previous data if any
-    const campaignId = this.landingPageId();
-    if (campaignId) {
-      await this.getCampaign();
-      this.showPreviousData();
+    if(this.landingPage.contactInfo.questionReferredData) {
+      this.personInfoList.set(this.landingPage.contactInfo.questionReferredData);
     }
     this.isWaiting.set(false);
   }
 
-   getCampaign = async ()=> {
-    const campaignId = this.landingPageId();
-    if (!campaignId) return false;
-
-    const postData = {
-      campaign_id: campaignId,
-      supplier_id: this.authService.userTokenValue.supplier_id,
-    };
-    await this.campaignService.getCampaign(postData);
-  }
-
-  showPreviousData = () => {
-    const contactInfoPageData = this.campaignService.getContactInfoPageData();
-    if (!contactInfoPageData || Object.keys(contactInfoPageData).length === 0) return;
-
-    const contactData = contactInfoPageData["contactData"];
-    try {
-      const parsedData = JSON.parse(contactData.questionReferredData);
-      this.personInfoList.set(Array.isArray(parsedData) ? parsedData : [parsedData]);
-    } catch (e) {
-      console.error('Error parsing contact data:', e);
-    }
-  }
-
-   loginToStripeApiCall = async () => {
-    try {
-      // const stripeCheck = await this.httpService.get("payment/loginToStripe").toPromise();
-      // if (stripeCheck.success) {
-      //   this.stripeLoginUrl.set(stripeCheck.data.url);
-      //   this.isStripeReady.set(stripeCheck.data.type === "login");
-      // }
-    } catch (error) {
-      console.error('Error connecting to Stripe:', error);
-    }
-  }
-
   handleClickBackButton = () => {
     this.backBtnClick();
-  }
+  };
 
-   handleClickNextButton = async () => {
+  handleClickNextButton = async () => {
     this.submitted.set(true);
 
     const editContactPayload: ContactInfoPayload = {
-      landingPageId: this.landingPageId(),
+      landingPageId: this.landingPage.id.toString(),
       questionReferredData: JSON.stringify(this.personInfoList()),
       questionForBuyer: false,
     };
@@ -298,5 +250,5 @@ export class LandingPageContactComponent implements OnInit {
     } finally {
       this.setWaitingFlagToFalse();
     }
-  }
+  };
 }

@@ -4,6 +4,7 @@ import { constants } from '../helpers/constants';
 import { HttpService } from './http.service';
 import { ActivatedRoute } from '@angular/router';
 import { environment } from '../../environments/environment';
+import { LandingPage, LandingPageStep, LandingPageType } from '../models/LandingPage';
 
 @Injectable({
   providedIn: 'root',
@@ -32,7 +33,7 @@ export class CampaignService {
     },
   ];
 
-  private _selectedCampaign = new BehaviorSubject(constants.LISTING_OF_PRODUCT);
+  private _selectedCampaign = new BehaviorSubject(LandingPageType.PRODUCT_LISTING);
   selectedCampaign = this._selectedCampaign.asObservable();
 
   private _campaignTitles = new BehaviorSubject([]);
@@ -60,15 +61,16 @@ export class CampaignService {
   private selectedCountry = '';
   private selectedSavedSearch = '';
   private searchEstablishmentPageData = {};
-  private campaignDetailsPageData = {};
+  private campaignDetailsPageData: LandingPage = LandingPage.empty();
   private contactInfoPageData = {};
   private previewPageData = {};
+  private landingPage: LandingPage;
   private dripCampaignId: any;
 
   constructor(private httpService: HttpService, private route: ActivatedRoute) {
   }
 
-  public changeCampaignType(value) {
+  public changeLandingPageType(value) {
     this._selectedCampaign.next(value);
   }
 
@@ -136,7 +138,7 @@ export class CampaignService {
     }
   };
 
-  public getCampaignDetailsPageData = () => {
+  public getLandingPageData = (): LandingPage => {
     return this.campaignDetailsPageData;
   };
 
@@ -155,12 +157,12 @@ export class CampaignService {
     };
   };
 
-  public setPreviewPageData = (data) => {
-    this.previewPageData = data;
+  public setLandingPage = (landingPage: LandingPage) => {
+    this.landingPage = landingPage;
   };
 
-  public getPreviewPageData = () => {
-    return this.previewPageData;
+  public getLandingPage = () : LandingPage => {
+    return this.landingPage;
   };
 
   public makeDataStructureAndSetSearchEstablishmentpageData = (campaign) => {
@@ -179,31 +181,8 @@ export class CampaignService {
     this.setSearchEstablishmentPageData(data);
   };
 
-  public makeDataStructureAndSetCampaignDetailspageData = (campaign) => {
-    console.log({ campaign });
-    const campaignDetailsData = campaign.detail;
-    const payload = {
-      campaign_type: campaignDetailsData.landingPageType,
-      campaign_title: campaignDetailsData.title.id,
-      campaign_details: campaignDetailsData.innerDetail,
-      prospecting_product_id: campaignDetailsData.prospectingProduct.id,
-      product_knowledge: campaignDetailsData.productKnowledge,
-      campaign_image: campaignDetailsData.image,
-      campaign_video: campaignDetailsData.video,
-      category_id: 1,
-      estimated_savings: campaignDetailsData.estimatedSavings,
-      price: campaignDetailsData.price,
-      size: campaignDetailsData.size,
-      amount: campaignDetailsData.amount,
-      additional_info: campaignDetailsData.additionalInfo,
-      sales_sheet: campaignDetailsData.salesSheet,
-      purchase_url: campaignDetailsData.purchaseUrl,
-      visit_website: campaignDetailsData.visitWebsite,
-      message_call_number: campaignDetailsData.messageCallNumber,
-      custom_button_url: campaignDetailsData.customButtonUrl,
-      custom_button_label: campaignDetailsData.customButtonLabel,
-    };
-    this.setCampaignDetailsPageData(campaign);
+  public setLandingPageData = (landingPage: LandingPage) => {
+    this.setCampaignDetailsPageData(landingPage);
   };
 
   public makeDataStructureAndSetContactInfopageData = (campaign) => {
@@ -343,13 +322,9 @@ export class CampaignService {
     });
   };
 
-  getCampaign = async (postData) => {
+  getCampaign = async (postData): Promise<LandingPage> => {
     this._loading.next(true);
     return new Promise(async (resolve, reject) => {
-      if (postData.campaign_id === this.previewPageData['id']) {
-        resolve(this.previewPageData);
-        return;
-      }
       const url = `landing-pages/${postData.campaign_id}`;
       this.httpService.get(url).subscribe((res) => {
         if (!res.success) {
@@ -360,21 +335,10 @@ export class CampaignService {
         } else {
           if (res.data) {
             // Set page data
-            let campaign = res.data;
-            console.log(campaign);
-            // this.makeDataStructureAndSetSearchEstablishmentpageData(campaign);
-            this.makeDataStructureAndSetCampaignDetailspageData(campaign);
-
-            if (
-              campaign &&
-              (campaign['currentStep'] === constants.CAMPAIGN_PREVIEW ||
-                campaign['currentStep'] === constants.CAMPAIGN_SUBMITTED)
-            ) {
-              this.makeDataStructureAndSetContactInfopageData(campaign);
-              this.setPreviewPageData(campaign);
-            }
+            const landingPage = new LandingPage(res.data);
+            this.setLandingPageData(landingPage);
             this._loading.next(false);
-            resolve(res.data);
+            resolve(landingPage);
           } else {
             this._loading.next(false);
             reject(false);
@@ -666,7 +630,7 @@ export class CampaignService {
 
   resetCampaignDataToDefault = () => {
     this.searchEstablishmentPageData = {};
-    this.campaignDetailsPageData = {};
+    this.campaignDetailsPageData = LandingPage.empty();
     this.contactInfoPageData = {};
   };
 

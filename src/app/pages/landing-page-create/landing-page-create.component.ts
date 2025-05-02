@@ -23,6 +23,7 @@ import {
   LandingPagePreviewComponent,
 } from '../../components/landing-page-preview/landing-page-preview.component';
 import { CommonModule } from '@angular/common';
+import { LandingPage } from '../../models/LandingPage';
 
 @Component({
   selector: 'landing-page-create',
@@ -56,6 +57,7 @@ export class LandingPageCreateComponent implements OnInit, OnDestroy {
   ];
 
   public subscription;
+  public landingPage: LandingPage;
   public userData;
   public campaignId;
   public routeConstants = routeConstants;
@@ -70,11 +72,6 @@ export class LandingPageCreateComponent implements OnInit, OnDestroy {
     private _authService: AuthService,
     private route: ActivatedRoute,
   ) {
-    // this.router.routeReuseStrategy.shouldReuseRoute = function () {
-    //   console.log("reuse function is called");
-    //   return false;
-    // };
-
     this.router.routeReuseStrategy.shouldReuseRoute = this.resetFormData.bind(this);
   }
 
@@ -128,23 +125,21 @@ export class LandingPageCreateComponent implements OnInit, OnDestroy {
       campaign_id: this.campaignId,
       supplier_id: this.userData.supplier_id,
     };
-    const campaign = await this.campaignService.getCampaign(postData);
-    if (campaign && campaign['currentStep'] === constants.CAMPAIGN_CONTACT) {
+    this.landingPage = await this.campaignService.getCampaign(postData);
+    this.campaignService.setLandingPage(this.landingPage);
+    if (this.landingPage && this.landingPage.currentStep === constants.CAMPAIGN_CONTACT) {
       this.currentStep = 2;
     }
-    if (campaign && campaign['currentStep'] === constants.CAMPAIGN_PREVIEW) {
+    if (this.landingPage && this.landingPage.currentStep === constants.CAMPAIGN_PREVIEW) {
       this.currentStep = 3;
     }
 
-    if (campaign && campaign['currentStep'] === constants.CAMPAIGN_SUBMITTED) {
+    if (this.landingPage && this.landingPage.currentStep === constants.CAMPAIGN_SUBMITTED) {
       this.currentStep = 1;
     }
-    console.log(this.currentStep);
   };
 
   nextBtnClick = async (campaignId = '', overwrite = false) => {
-    console.log({ campaignId });
-    console.log(this.campaignId);
     this.currentStep = ++this.currentStep;
     const cId = this.campaignId && !overwrite ? this.campaignId : campaignId;
     if (cId) {

@@ -17,6 +17,7 @@
         </div>
         <div *ngIf="currentStep === 2">
           <landing-page-contact
+            [landingPage]="landingPage"
             [setWaitingFlagToFalse]="setWaitingFlagToFalse"
             [setWaitingFlagToTrue]="setWaitingFlagToTrue"
             [nextBtnClick]="nextBtnClick"
