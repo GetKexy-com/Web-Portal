@@ -161,7 +161,7 @@ export class CampaignService {
     this.landingPage = landingPage;
   };
 
-  public getLandingPage = () : LandingPage => {
+  public getLandingPage = (): LandingPage => {
     return this.landingPage;
   };
 
@@ -530,26 +530,10 @@ export class CampaignService {
     });
   };
 
-  // getAllUnits = async (postData) => {
-  //   return new Promise(async (resolve, reject) => {
-  //     this.httpService.post("campaigns/getAllUnits", postData).subscribe((res) => {
-  //       if (!res.success) {
-  //         if (res.error) {
-  //           reject(res.error);
-  //         }
-  //       } else {
-  //         let units = res.data;
-  //         resolve(units);
-  //         this._units.next(units);
-  //       }
-  //     });
-  //   });
-  // };
-
   addCampaignVideoUrl = async (postData) => {
     let campaignVideoUrls = [...this._campaignVideoUrls.getValue()];
     return new Promise(async (resolve, reject) => {
-      this.httpService.post('campaigns/addVideoUrl', postData).subscribe((res) => {
+      this.httpService.post('video-urls', postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -567,14 +551,17 @@ export class CampaignService {
   editCampaignVideoUrl = async (postData) => {
     let campaignVideoUrls = [...this._campaignVideoUrls.getValue()];
     return new Promise(async (resolve, reject) => {
-      this.httpService.post('campaigns/editVideoUrl', postData).subscribe((res) => {
+      const videoId = postData.id;
+      delete postData.id;
+      const url = `video-urls/${videoId}`;
+      this.httpService.patch(url, postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
           }
         } else {
-          let editedItemIndex = campaignVideoUrls.findIndex(i => i.id === postData.video_url_id);
-          campaignVideoUrls[editedItemIndex].video_url = postData.video_url;
+          let editedItemIndex = campaignVideoUrls.findIndex(i => i.id === videoId);
+          campaignVideoUrls[editedItemIndex].videoUrl = postData.videoUrl;
           resolve(true);
           this._campaignVideoUrls.next(campaignVideoUrls);
         }
@@ -584,14 +571,15 @@ export class CampaignService {
 
   deleteCampaignVideoUrl = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post('campaigns/deleteVideoUrl', postData).subscribe((res) => {
+      const url = `video-urls/${postData.id}`;
+      this.httpService.delete(url).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
           }
         } else {
           // remove deleted item from service
-          let videoUrlId = postData.video_url_id;
+          let videoUrlId = postData.id;
           let campaignVideoUrls = [...this._campaignVideoUrls.getValue()];
           let index = campaignVideoUrls.findIndex(i => i.id === videoUrlId);
           campaignVideoUrls.splice(index, 1);

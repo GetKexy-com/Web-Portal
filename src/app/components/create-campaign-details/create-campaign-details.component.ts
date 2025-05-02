@@ -21,7 +21,7 @@
 //   supplierId;
 //   isLoading: boolean = false;
 //   submitted: boolean = false;
-//   editData;
+//   videoUrl;
 //   canvasTitle: string = "Create";
 //
 //   constructor(
@@ -36,8 +36,8 @@
 //     this.supplierId = this.userData.supplier_id;
 //
 //     // Get edit data if any
-//     this.editData = this.campaignService.getEditCampaignDetailItem();
-//     if (this.editData?.inner_detail) {
+//     this.videoUrl = this.campaignService.getEditCampaignDetailItem();
+//     if (this.videoUrl?.inner_detail) {
 //       this.campaignService.setEditCampaignDetailItem("");
 //       this.canvasTitle = "Edit";
 //     }
@@ -48,7 +48,7 @@
 //   setPrimaryForm = () => {
 //     this.primaryForm = new FormGroup({
 //       campaign_details: new FormControl(
-//         this.editData?.inner_detail ? this.editData.inner_detail : "",
+//         this.videoUrl?.inner_detail ? this.videoUrl.inner_detail : "",
 //         Validators.compose([Validators.required, Validators.minLength(0), Validators.maxLength(1500)]),
 //       ),
 //     });
@@ -75,8 +75,8 @@
 //       inner_detail: formData.campaign_details,
 //     };
 //     try {
-//       if (this.editData?.inner_detail) {
-//         payload["inner_detail_id"] = this.editData.id;
+//       if (this.videoUrl?.inner_detail) {
+//         payload["inner_detail_id"] = this.videoUrl.id;
 //         await this.campaignService.editCampaignInnerDetails(payload);
 //       } else {
 //         await this.campaignService.addCampaignInnerDetails(payload);

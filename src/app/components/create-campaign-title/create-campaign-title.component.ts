@@ -22,7 +22,7 @@
 //   supplierId;
 //   isLoading: boolean = false;
 //   submitted: boolean = false;
-//   editData;
+//   videoUrl;
 //   canvasTitle: string = "Create";
 //
 //   constructor(
@@ -39,8 +39,8 @@
 //     this.supplierId = this.userData.supplier_id;
 //
 //     // Get edit data if any
-//     this.editData = this.campaignService.getEditCampaignTitleItem();
-//     if (this.editData?.title) {
+//     this.videoUrl = this.campaignService.getEditCampaignTitleItem();
+//     if (this.videoUrl?.title) {
 //       this.campaignService.setEditCampaignTitleItem("");
 //       this.canvasTitle = "Edit";
 //     }
@@ -51,7 +51,7 @@
 //   setPrimaryForm = () => {
 //     this.primaryForm = new FormGroup({
 //       campaign_title: new FormControl(
-//         this.editData?.title ? this.editData.title : "",
+//         this.videoUrl?.title ? this.videoUrl.title : "",
 //         Validators.compose([Validators.required, Validators.minLength(0), Validators.maxLength(50)]),
 //       ),
 //     });
@@ -77,8 +77,8 @@
 //       title: formData.campaign_title,
 //     };
 //     try {
-//       if (this.editData?.title) {
-//         payload["title_id"] = this.editData.id;
+//       if (this.videoUrl?.title) {
+//         payload["title_id"] = this.videoUrl.id;
 //         await this.campaignService.editCampaignTitle(payload);
 //       } else {
 //         await this.campaignService.addCampaignTitle(payload);

@@ -1,4 +1,3 @@
-// Sub-interfaces
 export interface IInnerDetail {
   id: number;
   innerDetail: string;
@@ -179,15 +178,4 @@ export class LandingPage {
     return new LandingPage(emptyRawData);
   }
 
-  // Helper method to get the first referred contact
-  getPrimaryContact(): IQuestionReferredDataItem | null {
-    return this.contactInfo.questionReferredData[0] || null;
-  }
-
-  // Helper method to check if campaign is active
-  isActive(): boolean {
-    return this.status === 'active';
-  }
-
-  // You can add more business logic methods here as needed
 }

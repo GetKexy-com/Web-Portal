@@ -18,7 +18,7 @@
 //   primaryForm: FormGroup;
 //   userData;
 //   supplierId;
-//   editData;
+//   videoUrl;
 //   canvasTitle: string = "Create";
 //
 //   constructor(
@@ -32,9 +32,9 @@
 //     this.supplierId = this.userData.supplier_id;
 //
 //     // Get edit data if any
-//     this.editData = this.prospectingService.getSelectedProduct();
-//     console.log('editData', this.editData);
-//     if (this.editData && this.editData.name) {
+//     this.videoUrl = this.prospectingService.getSelectedProduct();
+//     console.log('videoUrl', this.videoUrl);
+//     if (this.videoUrl && this.videoUrl.name) {
 //       this.prospectingService.setSelectedProduct("");
 //       this.canvasTitle = "Edit";
 //     }
@@ -45,10 +45,10 @@
 //   setPrimaryForm = () => {
 //     this.primaryForm = new FormGroup({
 //       product_name: new FormControl(
-//         this.editData?.name ? this.editData.name : "",
+//         this.videoUrl?.name ? this.videoUrl.name : "",
 //         Validators.compose([Validators.required, Validators.minLength(0), Validators.maxLength(30)])
 //       ),
-//       product_desc: new FormControl(this.editData && this.editData.descriptions.length ? this.editData.descriptions[0] : "",
+//       product_desc: new FormControl(this.videoUrl && this.videoUrl.descriptions.length ? this.videoUrl.descriptions[0] : "",
 //         Validators.compose([Validators.maxLength(1000)])),
 //       category: new FormControl(
 //         "1",
@@ -86,11 +86,11 @@
 //     };
 //
 //     try {
-//       if (this.editData?.name) {
-//         payload["descriptions"] = this.editData.descriptions;
-//         payload["status"] = this.editData.status;
-//         payload["created_at"] = this.editData.created_at;
-//         payload["product_id"] = this.editData.id;
+//       if (this.videoUrl?.name) {
+//         payload["descriptions"] = this.videoUrl.descriptions;
+//         payload["status"] = this.videoUrl.status;
+//         payload["created_at"] = this.videoUrl.created_at;
+//         payload["product_id"] = this.videoUrl.id;
 //         delete payload.isOpened;
 //         delete payload.isEditClicked;
 //         console.log(payload);
@@ -140,16 +140,13 @@ export class CreateProductComponent {
 
   // Form
   primaryForm = new FormGroup({
-    product_name: new FormControl('', [
+    name: new FormControl('', [
       Validators.required,
       Validators.minLength(0),
       Validators.maxLength(30)
     ]),
-    product_desc: new FormControl('', [
+    description: new FormControl('', [
       Validators.maxLength(1000)
-    ]),
-    category: new FormControl('1', [
-      Validators.required
     ]),
   });
 
@@ -171,9 +168,8 @@ export class CreateProductComponent {
 
   setPrimaryForm() {
     this.primaryForm.patchValue({
-      product_name: this.editData()?.name || '',
-      product_desc: this.editData()?.descriptions?.length ? this.editData().descriptions[0] : '',
-      category: '1'
+      name: this.editData()?.name || '',
+      description: this.editData()?.descriptions?.length ? this.editData().descriptions[0] : '',
     });
   }
 
@@ -192,24 +188,15 @@ export class CreateProductComponent {
 
     const formData = this.primaryForm.getRawValue();
     const payload: any = {
-      product_name: formData.product_name,
-      category_id: 1,
-      descriptions: formData.product_desc ? [formData.product_desc] : [],
-      isOpened: true,
-      isEditClicked: true,
-      supplier_id: this.supplierId(),
-      user_id: this.userData().id,
+      name: formData.name,
+      descriptions: formData.description ? [formData.description] : [],
+      companyId: this.supplierId(),
     };
 
     try {
       if (this.editData()?.name) {
         payload.descriptions = this.editData().descriptions;
-        payload.status = this.editData().status;
-        payload.created_at = this.editData().created_at;
-        payload.product_id = this.editData().id;
-        delete payload.isOpened;
-        delete payload.isEditClicked;
-
+        payload.id = this.editData().id;
         await this.prospectingService.updateProduct(payload);
       } else {
         await this.prospectingService.createProduct(payload);

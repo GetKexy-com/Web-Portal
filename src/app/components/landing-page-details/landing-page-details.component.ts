@@ -336,8 +336,7 @@ export class LandingPageDetailsComponent implements OnInit, OnDestroy {
     if (!confirmed) return;
 
     const postData = {
-      supplier_id: this.userData.supplier_id,
-      video_url_id: data.id,
+      id: data.id,
     };
 
     try {
@@ -360,8 +359,7 @@ export class LandingPageDetailsComponent implements OnInit, OnDestroy {
     if (!confirmed) return;
 
     const postData = {
-      supplier_id: this.userData.supplier_id,
-      product_id: data.id,
+      id: data.id,
     };
 
     try {
@@ -392,14 +390,10 @@ export class LandingPageDetailsComponent implements OnInit, OnDestroy {
     productDescriptions.splice(index, 1);
 
     const payload = {
-      product_name: data.product_name,
-      category_id: data.category_id,
+      name: data.product_name,
       descriptions: productDescriptions,
-      supplier_id: this.userData.supplier_id,
-      user_id: this.userData.id,
-      status: data.product_status,
-      created_at: data.created_at,
-      product_id: data.product_id,
+      companyId: this.userData.supplier_id,
+      id: data.product_id,
     };
 
     try {
@@ -417,7 +411,6 @@ export class LandingPageDetailsComponent implements OnInit, OnDestroy {
   handleClickEditIconInVideoUrl = (data, event: Event) => {
     // Stop the event propagation to prevent the outer button click handler from being called
     event.stopPropagation();
-
     // Set selected item in service and open canvas
     this.campaignService.setEditVideoUrlItem(data);
     this.openCreateCampaignVideoUrlCanvas();

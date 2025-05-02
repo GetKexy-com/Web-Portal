@@ -96,7 +96,7 @@ export class ProspectingService {
   createProduct = async (postData) => {
     let products = [...this._products.getValue()];
     return new Promise(async (resolve, reject) => {
-      this.httpService.post('prospect/createProduct', postData).subscribe((res) => {
+      this.httpService.post('prospecting-products', postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -116,14 +116,17 @@ export class ProspectingService {
   updateProduct = async (postData) => {
     let products = [...this._products.getValue()];
     return new Promise(async (resolve, reject) => {
-      this.httpService.post('prospect/editProduct', postData).subscribe((res) => {
+      const productId = postData.id;
+      delete postData.id;
+      const url = `prospecting-products/${productId}`;
+      this.httpService.patch(url, postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
           }
         } else {
           products.forEach((p, index) => {
-            if (p.id === postData.product_id) {
+            if (p.id === productId) {
               products[index] = res.data;
             }
           });
@@ -137,13 +140,14 @@ export class ProspectingService {
   deleteProduct = async (postData) => {
     let products = [...this._products.getValue()];
     return new Promise(async (resolve, reject) => {
-      this.httpService.post('prospect/deleteProduct', postData).subscribe((res) => {
+      const url = `prospecting-products/${postData.id}`;
+      this.httpService.delete(url).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
           }
         } else {
-          products = products.filter((p) => p.id !== postData.product_id);
+          products = products.filter((p) => p.id !== postData.id);
           console.log(products);
           resolve(true);
           this._products.next(products);

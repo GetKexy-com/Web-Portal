@@ -1,11 +1,11 @@
-import { Component, OnInit } from "@angular/core";
-import { NgbActiveOffcanvas } from "@ng-bootstrap/ng-bootstrap";
-import {FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators} from "@angular/forms";
-import { HttpService } from "src/app/services/http.service";
-import { AuthService } from "src/app/services/auth.service";
-import { CampaignService } from "../../services/campaign.service";
-import {ErrorMessageCardComponent} from '../error-message-card/error-message-card.component';
-import {CommonModule} from '@angular/common';
+import { Component, OnInit } from '@angular/core';
+import { NgbActiveOffcanvas } from '@ng-bootstrap/ng-bootstrap';
+import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { HttpService } from 'src/app/services/http.service';
+import { AuthService } from 'src/app/services/auth.service';
+import { CampaignService } from '../../services/campaign.service';
+import { ErrorMessageCardComponent } from '../error-message-card/error-message-card.component';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'create-campaign-video-url',
@@ -15,7 +15,7 @@ import {CommonModule} from '@angular/common';
     CommonModule,
   ],
   templateUrl: './create-campaign-video-url.component.html',
-  styleUrl: './create-campaign-video-url.component.scss'
+  styleUrl: './create-campaign-video-url.component.scss',
 })
 export class CreateCampaignVideoUrlComponent {
   primaryForm: FormGroup;
@@ -23,26 +23,27 @@ export class CreateCampaignVideoUrlComponent {
   supplierId;
   isLoading: boolean = false;
   submitted: boolean = false;
-  editData;
-  canvasTitle: string = "Add";
+  videoUrl;
+  canvasTitle: string = 'Add';
 
   constructor(
     public activeCanvas: NgbActiveOffcanvas,
     private fb: FormBuilder,
     private httpService: HttpService,
     private _authService: AuthService,
-    private campaignService: CampaignService
-  ) {}
+    private campaignService: CampaignService,
+  ) {
+  }
 
   ngOnInit(): void {
     this.userData = this._authService.userTokenValue;
     this.supplierId = this.userData.supplier_id;
 
     // Get edit data if any
-    this.editData = this.campaignService.getEditVideoUrlItem();
-    if (this.editData?.video_url) {
-      this.campaignService.setEditVideoUrlItem("");
-      this.canvasTitle = "Edit";
+    this.videoUrl = this.campaignService.getEditVideoUrlItem();
+    if (this.videoUrl?.videoUrl) {
+      this.campaignService.setEditVideoUrlItem('');
+      this.canvasTitle = 'Edit';
     }
 
     this.setPrimaryForm();
@@ -51,8 +52,8 @@ export class CreateCampaignVideoUrlComponent {
   setPrimaryForm = () => {
     this.primaryForm = new FormGroup({
       url: new FormControl(
-        this.editData?.video_url ? this.editData.video_url : "",
-        Validators.compose([Validators.required, Validators.minLength(0), Validators.maxLength(500)])
+        this.videoUrl?.videoUrl ? this.videoUrl.videoUrl : '',
+        Validators.compose([Validators.required, Validators.minLength(0), Validators.maxLength(500)]),
       ),
     });
   };
@@ -66,24 +67,25 @@ export class CreateCampaignVideoUrlComponent {
   handleSubmit = async () => {
     this.submitted = true;
     if (!this.primaryForm.valid) {
-      console.log("primaryForm", this.primaryForm);
+      console.log('primaryForm', this.primaryForm);
       return false;
     }
     this.isLoading = true;
 
     const formData = this.primaryForm.getRawValue();
     let payload = {
-      supplier_id: this.supplierId,
-      video_url: formData.url
+      videoUrl: formData.url,
     };
+    if (this.videoUrl.id) {
+      payload['id'] = this.videoUrl.id;
+    }
     try {
-      if (this.editData?.video_url) {
-        payload['video_url_id'] = this.editData.id;
+      if (this.videoUrl?.videoUrl) {
         await this.campaignService.editCampaignVideoUrl(payload);
       } else {
         await this.campaignService.addCampaignVideoUrl(payload);
       }
-      this.activeCanvas.dismiss("Cross click");
+      this.activeCanvas.dismiss('Cross click');
       this.isLoading = false;
     } catch (e) {
       console.log(e);
