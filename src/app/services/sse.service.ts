@@ -346,9 +346,11 @@ export class SseService {
   updateDripBulkEmail(email) {
     let emails = [...this._dripBulkEmails.getValue()];
     // If user update email that was not saved to DB yet.
+    console.log('email', email);
+    console.log('allEmails', emails);
     let index = -1;
     if (!email.id) {
-      index = emails.findIndex((e) => e.email_sequence === email.email_sequence);
+      index = emails.findIndex((e) => e.emailSequence === email.emailSequence);
     } else {
       index = emails.findIndex((e) => e.id === email.id);
     }

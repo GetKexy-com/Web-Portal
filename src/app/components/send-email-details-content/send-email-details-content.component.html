@@ -1,129 +1,3 @@
-<!--<div class="canvas-content-wrap">-->
-<!--  <div class="head-area">-->
-<!--    <p>Email Details</p>-->
-<!--    <img src="/assets/images/close-icon.png" alt="Close" (click)="activeCanvas.dismiss('Cross click')" />-->
-<!--  </div>-->
-
-<!--  <div class="canvas-body">-->
-<!--    <form (ngSubmit)="handleSubmit()">-->
-<!--      <div class="input-wrap">-->
-
-<!--        &lt;!&ndash;Email Tones&ndash;&gt;-->
-<!--        <div class="label-and-input d-flex align-items-end" style="border-bottom: 1px solid #E7F6FE">-->
-<!--          <kexy-select-dropdown-->
-<!--            label="Email Tone"-->
-<!--            shortNoteBesideLabel=""-->
-<!--            [selectAllBtn]="false"-->
-<!--            [required]="false"-->
-<!--            [options]="emailTones"-->
-<!--            [addNewBtn]="false"-->
-<!--            [onAddNewClick]=""-->
-<!--            [selectedOption]="selectedEmailToneKey"-->
-<!--            [onSelectSingleItem]="onEmailToneSelect"-->
-<!--            [editIcon]="false"-->
-<!--            [deleteIcon]="false"-->
-<!--            [onDeleteClick]=""-->
-<!--            [onEditClick]=""-->
-<!--            optionStyle="button"-->
-<!--            backgroundColor="white"-->
-<!--            placeholder="Please Select"-->
-<!--            style="flex: 1"-->
-<!--          ></kexy-select-dropdown>-->
-<!--          <kexy-select-dropdown-->
-<!--            style="margin-left: 10px"-->
-<!--            label="Email Length"-->
-<!--            shortNoteBesideLabel=""-->
-<!--            [selectAllBtn]="false"-->
-<!--            [required]="false"-->
-<!--            [options]="emailLengthKeys"-->
-<!--            [addNewBtn]="false"-->
-<!--            [onAddNewClick]=""-->
-<!--            [selectedOption]="selectedEmailLength ? selectedEmailLength['value'] : ''"-->
-<!--            [onSelectSingleItem]="onEmailLengthSelect"-->
-<!--            [rowIndex]="1"-->
-<!--            [editIcon]="false"-->
-<!--            [deleteIcon]="false"-->
-<!--            [onDeleteClick]=""-->
-<!--            [onEditClick]=""-->
-<!--            [isSearchAble]="false"-->
-<!--            optionStyle="button"-->
-<!--            backgroundColor="white"-->
-<!--            placeholder="Please Select"-->
-<!--          ></kexy-select-dropdown>-->
-<!--          <app-kexy-button-->
-<!--            [label]="isLoading ? 'Please wait...' : 'Generate Email' "-->
-<!--            [disabled]="generateEmailOrSaveDisabled()"-->
-<!--            [title]="disableTitle"-->
-<!--            [iconLeft]="isLoading ? 'fa-refresh fa-spin' : 'fa-refresh'"-->
-<!--            (click)="generateEmailContent()"-->
-<!--            class="ms-2"-->
-<!--            style="min-width: fit-content"-->
-<!--          ></app-kexy-button>-->
-<!--        </div>-->
-
-<!--        &lt;!&ndash;Subject line&ndash;&gt;-->
-<!--        <div class="label-and-input">-->
-<!--          <p>Subject line <i class="fa fa-asterisk" aria-hidden="true"></i></p>-->
-<!--          <input type="text" placeholder="Enter text" class="form-control" name="emailSubject"-->
-<!--                 [(ngModel)]="emailSubject" />-->
-<!--          <div *ngIf="!emailSubject">-->
-<!--            <error-message-card message="Field is required!"></error-message-card>-->
-<!--          </div>-->
-<!--        </div>-->
-
-<!--        &lt;!&ndash;Tweak the dripEmail to your liking&ndash;&gt;-->
-<!--        <div class="label-and-input">-->
-<!--          <p>Tweak the Email to your liking! <span style="text-transform: none; font-size: 14px">(learn more about-->
-<!--            <a (click)="showPersonalizationTagsInfoPopup($event)" href="#">personalization tags</a>)</span></p>-->
-<!--          <div class="ckeditor-wrap">-->
-<!--            <kexy-rich-editor-->
-<!--              [border]="false"-->
-<!--              [content]="emailContent"-->
-<!--              [onContentUpdate]="onEmailContentChange">-->
-<!--            </kexy-rich-editor>-->
-<!--          </div>-->
-
-<!--        </div>-->
-
-<!--      </div>-->
-
-<!--      <div class="bottom-buttons">-->
-<!--        <app-kexy-button-->
-<!--          style="width: 50%; margin-right: 10px"-->
-<!--          [label]="isLoading ? 'Please wait...' : 'Save' "-->
-<!--          [title]="disableTitle"-->
-<!--          [disabled]="generateEmailOrSaveDisabled()"-->
-<!--          [iconLeft]="isLoading ? 'fa-refresh fa-spin' : 'fa-cloud-upload'"-->
-<!--          type="submit"-->
-<!--        ></app-kexy-button>-->
-<!--        <app-kexy-button-->
-<!--          style="width: 50%"-->
-<!--          label="Cancel"-->
-<!--          bgColor="white"-->
-<!--          textColor="#010101"-->
-<!--          borderColor="#d9d9d9"-->
-<!--          (click)="activeCanvas.dismiss('Cross click')"-->
-<!--        ></app-kexy-button>-->
-<!--      </div>-->
-<!--    </form>-->
-<!--  </div>-->
-<!--</div>-->
-
-<!--<ng-template #personalizationTagsModal let-d="dismiss" let-c="close">-->
-<!--  <modal [modalClose]="c" title="Personalization Tags">-->
-<!--    <div class="modal-body">-->
-<!--      <div class="personalized-tags">-->
-<!--        <p class="m-0 pb-1"><strong>Personalization tags</strong></p>-->
-<!--        <p class="pb-1">The following tags can be used on both Plain text or HTML version</p>-->
-<!--        <p><strong>Prospect's First Name:</strong> [receiver_first_name]</p>-->
-<!--        <p><strong>Prospect's Company Name:</strong> [receiver_company_name]</p>-->
-<!--        <p><strong>Link to Your Promotion:</strong> [promotion_info]</p>-->
-<!--      </div>-->
-<!--    </div>-->
-<!--  </modal>-->
-<!--</ng-template>-->
-
-
 <div class="canvas-content-wrap">
   <div class="head-area">
     <p>Email Details</p>
@@ -133,6 +7,7 @@
   <div class="canvas-body">
     <form (ngSubmit)="handleSubmit()">
       <div class="input-wrap">
+
         <!--Email Tones-->
         <div class="label-and-input d-flex align-items-end" style="border-bottom: 1px solid #E7F6FE">
           <kexy-select-dropdown
@@ -143,7 +18,7 @@
             [options]="emailTones"
             [addNewBtn]="false"
             [onAddNewClick]=""
-            [selectedOption]="selectedEmailToneKey()"
+            [selectedOption]="selectedEmailToneKey"
             [onSelectSingleItem]="onEmailToneSelect"
             [editIcon]="false"
             [deleteIcon]="false"
@@ -163,7 +38,7 @@
             [options]="emailLengthKeys"
             [addNewBtn]="false"
             [onAddNewClick]=""
-            [selectedOption]="selectedEmailLength() ? selectedEmailLength()['value'] : ''"
+            [selectedOption]="selectedEmailLength ? selectedEmailLength['value'] : ''"
             [onSelectSingleItem]="onEmailLengthSelect"
             [rowIndex]="1"
             [editIcon]="false"
@@ -176,10 +51,10 @@
             placeholder="Please Select"
           ></kexy-select-dropdown>
           <app-kexy-button
-            [label]="isLoading() ? 'Please wait...' : 'Generate Email' "
+            [label]="isLoading ? 'Please wait...' : 'Generate Email' "
             [disabled]="generateEmailOrSaveDisabled()"
-            [title]="disableTitle()"
-            [iconLeft]="isLoading() ? 'fa-refresh fa-spin' : 'fa-refresh'"
+            [title]="disableTitle"
+            [iconLeft]="isLoading ? 'fa-refresh fa-spin' : 'fa-refresh'"
             (click)="generateEmailContent()"
             class="ms-2"
             style="min-width: fit-content"
@@ -191,9 +66,9 @@
           <p>Subject line <i class="fa fa-asterisk" aria-hidden="true"></i></p>
           <input type="text" placeholder="Enter text" class="form-control" name="emailSubject"
                  [(ngModel)]="emailSubject" />
-          @if (!emailSubject) {
+          <div *ngIf="!emailSubject">
             <error-message-card message="Field is required!"></error-message-card>
-          }
+          </div>
         </div>
 
         <!--Tweak the dripEmail to your liking-->
@@ -203,20 +78,22 @@
           <div class="ckeditor-wrap">
             <kexy-rich-editor
               [border]="false"
-              [content]="emailContent()"
+              [content]="emailContent"
               [onContentUpdate]="onEmailContentChange">
             </kexy-rich-editor>
           </div>
+
         </div>
+
       </div>
 
       <div class="bottom-buttons">
         <app-kexy-button
           style="width: 50%; margin-right: 10px"
-          [label]="isLoading() ? 'Please wait...' : 'Save' "
-          [title]="disableTitle()"
+          [label]="isLoading ? 'Please wait...' : 'Save' "
+          [title]="disableTitle"
           [disabled]="generateEmailOrSaveDisabled()"
-          [iconLeft]="isLoading() ? 'fa-refresh fa-spin' : 'fa-cloud-upload'"
+          [iconLeft]="isLoading ? 'fa-refresh fa-spin' : 'fa-cloud-upload'"
           type="submit"
         ></app-kexy-button>
         <app-kexy-button
@@ -232,8 +109,8 @@
   </div>
 </div>
 
-@if (personalizationTagsModal()) {
-  <modal [modalClose]="closePersonalizationModal" title="Personalization Tags">
+<ng-template #personalizationTagsModal let-d="dismiss" let-c="close">
+  <modal [modalClose]="c" title="Personalization Tags">
     <div class="modal-body">
       <div class="personalized-tags">
         <p class="m-0 pb-1"><strong>Personalization tags</strong></p>
@@ -244,4 +121,127 @@
       </div>
     </div>
   </modal>
-}
+</ng-template>
+
+
+<!--<div class="canvas-content-wrap">-->
+<!--  <div class="head-area">-->
+<!--    <p>Email Details</p>-->
+<!--    <img src="/assets/images/close-icon.png" alt="Close" (click)="activeCanvas.dismiss('Cross click')" />-->
+<!--  </div>-->
+
+<!--  <div class="canvas-body">-->
+<!--    <form (ngSubmit)="handleSubmit()">-->
+<!--      <div class="input-wrap">-->
+<!--        &lt;!&ndash;Email Tones&ndash;&gt;-->
+<!--        <div class="label-and-input d-flex align-items-end" style="border-bottom: 1px solid #E7F6FE">-->
+<!--          <kexy-select-dropdown-->
+<!--            label="Email Tone"-->
+<!--            shortNoteBesideLabel=""-->
+<!--            [selectAllBtn]="false"-->
+<!--            [required]="false"-->
+<!--            [options]="emailTones"-->
+<!--            [addNewBtn]="false"-->
+<!--            [onAddNewClick]=""-->
+<!--            [selectedOption]="selectedEmailToneKey()"-->
+<!--            [onSelectSingleItem]="onEmailToneSelect"-->
+<!--            [editIcon]="false"-->
+<!--            [deleteIcon]="false"-->
+<!--            [onDeleteClick]=""-->
+<!--            [onEditClick]=""-->
+<!--            optionStyle="button"-->
+<!--            backgroundColor="white"-->
+<!--            placeholder="Please Select"-->
+<!--            style="flex: 1"-->
+<!--          ></kexy-select-dropdown>-->
+<!--          <kexy-select-dropdown-->
+<!--            style="margin-left: 10px"-->
+<!--            label="Email Length"-->
+<!--            shortNoteBesideLabel=""-->
+<!--            [selectAllBtn]="false"-->
+<!--            [required]="false"-->
+<!--            [options]="emailLengthKeys"-->
+<!--            [addNewBtn]="false"-->
+<!--            [onAddNewClick]=""-->
+<!--            [selectedOption]="selectedEmailLength() ? selectedEmailLength()['value'] : ''"-->
+<!--            [onSelectSingleItem]="onEmailLengthSelect"-->
+<!--            [rowIndex]="1"-->
+<!--            [editIcon]="false"-->
+<!--            [deleteIcon]="false"-->
+<!--            [onDeleteClick]=""-->
+<!--            [onEditClick]=""-->
+<!--            [isSearchAble]="false"-->
+<!--            optionStyle="button"-->
+<!--            backgroundColor="white"-->
+<!--            placeholder="Please Select"-->
+<!--          ></kexy-select-dropdown>-->
+<!--          <app-kexy-button-->
+<!--            [label]="isLoading() ? 'Please wait...' : 'Generate Email' "-->
+<!--            [disabled]="generateEmailOrSaveDisabled()"-->
+<!--            [title]="disableTitle()"-->
+<!--            [iconLeft]="isLoading() ? 'fa-refresh fa-spin' : 'fa-refresh'"-->
+<!--            (click)="generateEmailContent()"-->
+<!--            class="ms-2"-->
+<!--            style="min-width: fit-content"-->
+<!--          ></app-kexy-button>-->
+<!--        </div>-->
+
+<!--        &lt;!&ndash;Subject line&ndash;&gt;-->
+<!--        <div class="label-and-input">-->
+<!--          <p>Subject line <i class="fa fa-asterisk" aria-hidden="true"></i></p>-->
+<!--          <input type="text" placeholder="Enter text" class="form-control" name="emailSubject"-->
+<!--                 [(ngModel)]="emailSubject" />-->
+<!--          @if (!emailSubject) {-->
+<!--            <error-message-card message="Field is required!"></error-message-card>-->
+<!--          }-->
+<!--        </div>-->
+
+<!--        &lt;!&ndash;Tweak the dripEmail to your liking&ndash;&gt;-->
+<!--        <div class="label-and-input">-->
+<!--          <p>Tweak the Email to your liking! <span style="text-transform: none; font-size: 14px">(learn more about-->
+<!--            <a (click)="showPersonalizationTagsInfoPopup($event)" href="#">personalization tags</a>)</span></p>-->
+<!--          <div class="ckeditor-wrap">-->
+<!--            <kexy-rich-editor-->
+<!--              [border]="false"-->
+<!--              [content]="emailContent()"-->
+<!--              [onContentUpdate]="onEmailContentChange">-->
+<!--            </kexy-rich-editor>-->
+<!--          </div>-->
+<!--        </div>-->
+<!--      </div>-->
+
+<!--      <div class="bottom-buttons">-->
+<!--        <app-kexy-button-->
+<!--          style="width: 50%; margin-right: 10px"-->
+<!--          [label]="isLoading() ? 'Please wait...' : 'Save' "-->
+<!--          [title]="disableTitle()"-->
+<!--          [disabled]="generateEmailOrSaveDisabled()"-->
+<!--          [iconLeft]="isLoading() ? 'fa-refresh fa-spin' : 'fa-cloud-upload'"-->
+<!--          type="submit"-->
+<!--        ></app-kexy-button>-->
+<!--        <app-kexy-button-->
+<!--          style="width: 50%"-->
+<!--          label="Cancel"-->
+<!--          bgColor="white"-->
+<!--          textColor="#010101"-->
+<!--          borderColor="#d9d9d9"-->
+<!--          (click)="activeCanvas.dismiss('Cross click')"-->
+<!--        ></app-kexy-button>-->
+<!--      </div>-->
+<!--    </form>-->
+<!--  </div>-->
+<!--</div>-->
+
+<!--@if (personalizationTagsModal()) {-->
+<!--  <modal [modalClose]="closePersonalizationModal" title="Personalization Tags">-->
+<!--    <div class="modal-body">-->
+<!--      <div class="personalized-tags">-->
+<!--        <p class="m-0 pb-1"><strong>Personalization tags</strong></p>-->
+<!--        <p class="pb-1">The following tags can be used on both Plain text or HTML version</p>-->
+<!--        <p><strong>Prospect's First Name:</strong> [receiver_first_name]</p>-->
+<!--        <p><strong>Prospect's Company Name:</strong> [receiver_company_name]</p>-->
+<!--        <p><strong>Link to Your Promotion:</strong> [promotion_info]</p>-->
+<!--      </div>-->
+<!--    </div>-->
+<!--  </modal>-->
+<!--}-->

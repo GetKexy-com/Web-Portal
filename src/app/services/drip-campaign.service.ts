@@ -68,7 +68,8 @@ export class DripCampaignService {
   getCampaign = async (postData) => {
     this._loading.next(true);
     return new Promise(async (resolve, reject) => {
-      this.httpService.get(`drip-campaigns/${postData.drip_campaign_id}`).subscribe((res) => {
+      const url = `drip-campaigns/${postData.drip_campaign_id}`;
+      this.httpService.get(url).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             this._loading.next(false);
@@ -81,9 +82,9 @@ export class DripCampaignService {
             let campaign = res.data;
             this.setPagesData(campaign);
             this._dripCampaignStatus.next(campaign.status);
-            const emails = campaign.drip_campaign_emails;
+            const emails = campaign.emails;
             emails.forEach(email => {
-              email.delay_between_previous_email = JSON.parse(email.delay_between_previous_email);
+              email.delay_between_previous_email = JSON.parse(email.delayBetweenPreviousEmail);
             });
             this.sseService.addToDripBulkEmails(emails);
             this._loading.next(false);
@@ -141,7 +142,9 @@ export class DripCampaignService {
 
   updateDripCampaign = (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.patch(`drip-campaigns/${postData.dripCampaignId}`, postData).subscribe((res) => {
+      const url = `drip-campaigns/${postData.dripCampaignId}`;
+      delete postData.dripCampaignId;
+      this.httpService.patch(url, postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             this._loading.next(false);
@@ -157,7 +160,9 @@ export class DripCampaignService {
 
   updateDripCampaignEmail = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("drip-campaigns/updateEmail", postData).subscribe((res) => {
+      const url = `drip-campaigns/email/${postData.drip_campaign_email_id}`;
+      delete postData.drip_campaign_email_id;
+      this.httpService.patch(url, postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -531,7 +536,8 @@ export class DripCampaignService {
 
   getProspects = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("drip-campaigns/getProspects", postData).subscribe((res) => {
+      const url = `drip-campaigns/${postData.drip_campaign_id}/prospects`;
+      this.httpService.get(url).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -562,7 +568,8 @@ export class DripCampaignService {
 
   insights = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("drip-campaigns/insights", postData).subscribe((res) => {
+      const url = `drip-campaigns/${postData.drip_campaign_id}/insights?emailId=${postData.drip_campaign_email_id}`;
+      this.httpService.get(url).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
