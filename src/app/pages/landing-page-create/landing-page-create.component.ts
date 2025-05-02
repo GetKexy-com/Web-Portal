@@ -137,6 +137,10 @@ export class LandingPageCreateComponent implements OnInit, OnDestroy {
     if (this.landingPage && this.landingPage.currentStep === constants.CAMPAIGN_SUBMITTED) {
       this.currentStep = 1;
     }
+
+    if(this.campaignDuplicate) {
+      this.currentStep = 1;
+    }
   };
 
   nextBtnClick = async (campaignId = '', overwrite = false) => {

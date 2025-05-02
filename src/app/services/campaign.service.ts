@@ -351,7 +351,7 @@ export class CampaignService {
   addCampaignTitle = async (postData) => {
     let campaignTitles = [...this._campaignTitles.getValue()];
     return new Promise(async (resolve, reject) => {
-      this.httpService.post('campaigns/addTitle', postData).subscribe((res) => {
+      this.httpService.post('titles', postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -369,13 +369,16 @@ export class CampaignService {
   editCampaignTitle = async (postData) => {
     let campaignTitles = [...this._campaignTitles.getValue()];
     return new Promise(async (resolve, reject) => {
-      this.httpService.post('campaigns/editTitle', postData).subscribe((res) => {
+      const titleId = postData.id;
+      const url = `titles/${titleId}`;
+      delete postData.id;
+      this.httpService.patch(url, postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
           }
         } else {
-          let editedItemIndex = campaignTitles.findIndex(i => i.id === postData.title_id);
+          let editedItemIndex = campaignTitles.findIndex(i => i.id === titleId);
           campaignTitles[editedItemIndex].title = postData.title;
           resolve(true);
           this._campaignTitles.next(campaignTitles);
@@ -386,14 +389,15 @@ export class CampaignService {
 
   deleteCampaignTitle = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post('campaigns/deleteTitle', postData).subscribe((res) => {
+      const url = `titles/${postData.id}`;
+      this.httpService.delete(url).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
           }
         } else {
           // remove deleted item from service
-          let titleId = postData.title_id;
+          let titleId = postData.id;
           let campaignTitles = [...this._campaignTitles.getValue()];
           let index = campaignTitles.findIndex(i => i.id === titleId);
           campaignTitles.splice(index, 1);
@@ -434,7 +438,8 @@ export class CampaignService {
   addCampaignInnerDetails = async (postData) => {
     let campaignInnerDetails = [...this._campaignInnerDetails.getValue()];
     return new Promise(async (resolve, reject) => {
-      this.httpService.post('campaigns/addInnerDetail', postData).subscribe((res) => {
+      const url = `inner-details`;
+      this.httpService.post(url, postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -452,14 +457,17 @@ export class CampaignService {
   editCampaignInnerDetails = async (postData) => {
     let campaignInnerDetails = [...this._campaignInnerDetails.getValue()];
     return new Promise(async (resolve, reject) => {
-      this.httpService.post('campaigns/editInnerDetail', postData).subscribe((res) => {
+      const id = postData.id;
+      const url = `inner-details/${id}`;
+      delete postData.id;
+      this.httpService.patch(url, postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
           }
         } else {
-          let editedItemIndex = campaignInnerDetails.findIndex(i => i.id === postData.inner_detail_id);
-          campaignInnerDetails[editedItemIndex].inner_detail = postData.inner_detail;
+          let editedItemIndex = campaignInnerDetails.findIndex(i => i.id === id);
+          campaignInnerDetails[editedItemIndex].innerDetail = postData.innerDetail;
           resolve(true);
           this._campaignInnerDetails.next(campaignInnerDetails);
         }
@@ -469,14 +477,15 @@ export class CampaignService {
 
   deleteCampaignInnerDetail = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post('campaigns/deleteInnerDetail', postData).subscribe((res) => {
+      const url = `inner-details/${postData.id}`;
+      this.httpService.delete(url).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
           }
         } else {
           // remove deleted item from service
-          let innerDetailId = postData.inner_detail_id;
+          let innerDetailId = postData.id;
           let campaignInnerDetails = [...this._campaignInnerDetails.getValue()];
           let index = campaignInnerDetails.findIndex(i => i.id === innerDetailId);
           campaignInnerDetails.splice(index, 1);
@@ -717,7 +726,8 @@ export class CampaignService {
 
   deleteCampaigns = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post('campaigns/delete', postData).subscribe((res) => {
+      console.log(postData);
+      this.httpService.delete('landing-pages', postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);

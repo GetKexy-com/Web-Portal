@@ -103,10 +103,10 @@ import { ErrorMessageCardComponent } from 'src/app/components/error-message-card
   standalone: true,
   imports: [
     ReactiveFormsModule,
-    ErrorMessageCardComponent
+    ErrorMessageCardComponent,
   ],
   templateUrl: './create-campaign-details.component.html',
-  styleUrl: './create-campaign-details.component.scss'
+  styleUrl: './create-campaign-details.component.scss',
 })
 export class CreateCampaignDetailsComponent {
   // Services
@@ -127,10 +127,10 @@ export class CreateCampaignDetailsComponent {
 
   // Form
   primaryForm = new FormGroup({
-    campaign_details: new FormControl('', [
+    innerDetail: new FormControl('', [
       Validators.required,
       Validators.minLength(0),
-      Validators.maxLength(1500)
+      Validators.maxLength(1500),
     ]),
   });
 
@@ -142,9 +142,9 @@ export class CreateCampaignDetailsComponent {
     const editData = this.campaignService.getEditCampaignDetailItem();
     this.editData.set(editData);
 
-    if (editData?.inner_detail) {
-      this.campaignService.setEditCampaignDetailItem("");
-      this.canvasTitle.set("Edit");
+    if (editData?.innerDetail) {
+      this.campaignService.setEditCampaignDetailItem('');
+      this.canvasTitle.set('Edit');
     }
 
     this.setPrimaryForm();
@@ -152,7 +152,7 @@ export class CreateCampaignDetailsComponent {
 
   setPrimaryForm() {
     this.primaryForm.patchValue({
-      campaign_details: this.editData()?.inner_detail || ''
+      innerDetail: this.editData()?.innerDetail || '',
     });
   }
 
@@ -171,19 +171,19 @@ export class CreateCampaignDetailsComponent {
     const formData = this.primaryForm.getRawValue();
 
     const payload: any = {
-      supplier_id: this.supplierId(),
-      inner_detail: formData.campaign_details,
+      innerDetail: formData.innerDetail,
+      companyId: this.supplierId(),
     };
 
     try {
-      if (this.editData()?.inner_detail) {
-        payload.inner_detail_id = this.editData().id;
+      if (this.editData()?.innerDetail) {
+        payload.id = this.editData().id;
         await this.campaignService.editCampaignInnerDetails(payload);
       } else {
         await this.campaignService.addCampaignInnerDetails(payload);
       }
 
-      this.activeCanvas.dismiss("Cross click");
+      this.activeCanvas.dismiss('Cross click');
     } catch (error) {
       console.error('Error saving campaign details:', error);
     } finally {

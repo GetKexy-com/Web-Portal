@@ -74,14 +74,6 @@ export class DesktopPreviewComponent implements OnInit {
     return `${environment.imageUrl}${this.landingPage.detail.image}`;
   };
 
-  // public setDistributorAndRep = () => {
-  //   console.log("distributorAndRep", this.landingPage?.campaign_contact_info);
-  //   const distributorAndRep = JSON.parse(this.landingPage?.campaign_contact_info?.distributor_rep);
-  //   if (distributorAndRep.length && !distributorAndRep[0].distributor) return;
-  //
-  //   this.distributorName = distributorAndRep[0].distributor?.value;
-  //   this.repName = distributorAndRep[0].rep[1]?.value;
-  // };
 
   playVideoBtnClick = () => {
     window.open(this.landingPage.detail.video, '_blank');

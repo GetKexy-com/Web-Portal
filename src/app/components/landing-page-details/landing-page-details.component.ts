@@ -192,16 +192,14 @@ export class LandingPageDetailsComponent implements OnInit, OnDestroy {
         });
 
         // Setting previous data if any
-        let campaignData = this.campaignService.getLandingPageData();
-        if (Object.keys(campaignData).length) {
-          const index = this.campaignInnerDetailsDropdownOptions.findIndex(
-            (i) => i.id.toString() === campaignData['detail'].innerDetail?.id.toString(),
-          );
+        const index = this.campaignInnerDetailsDropdownOptions.findIndex(
+          (i) => i.id.toString() === this.landingPage.detail.innerDetail?.id.toString(),
+        );
 
-          if (index > -1) {
-            this.onCampaignInnerDetailsSelect(this.campaignInnerDetailsDropdownOptions[index]);
-          }
+        if (index > -1) {
+          this.onCampaignInnerDetailsSelect(this.campaignInnerDetailsDropdownOptions[index]);
         }
+
       },
     );
   };
@@ -248,14 +246,10 @@ export class LandingPageDetailsComponent implements OnInit, OnDestroy {
       this.productDescription.push({
         key: d,
         value: d.length > 100 ? d.slice(0, 100) + '...' : d,
-        supplier_id: product.supplier_id,
-        user_id: product.user_id,
-        category_id: product.category_id,
-        created_at: product.created_at,
-        product_id: product.id,
-        product_name: product.name,
-        product_descriptions: product.descriptions,
-        product_status: product.status,
+        companyId: this.userData.supplier_id,
+        productId: product.id,
+        name: product.name,
+        descriptions: product.descriptions,
       });
     });
     // this.prospectingService.setSelectedProduct(product);
@@ -286,8 +280,7 @@ export class LandingPageDetailsComponent implements OnInit, OnDestroy {
     if (!confirmed) return;
 
     const postData = {
-      supplier_id: this.userData.supplier_id,
-      title_id: data.id,
+      id: data.id,
     };
     try {
       await this.campaignService.deleteCampaignTitle(postData);
@@ -310,8 +303,7 @@ export class LandingPageDetailsComponent implements OnInit, OnDestroy {
     if (!confirmed) return;
 
     const postData = {
-      supplier_id: this.userData.supplier_id,
-      inner_detail_id: data.id,
+      id: data.id,
     };
 
     try {
@@ -385,15 +377,15 @@ export class LandingPageDetailsComponent implements OnInit, OnDestroy {
     const confirmed = await this.__isDeleteConfirmed();
     if (!confirmed) return;
 
-    let index = data.product_descriptions.indexOf(data.key);
-    let productDescriptions = data.product_descriptions;
+    let index = data.descriptions.indexOf(data.key);
+    let productDescriptions = data.descriptions;
     productDescriptions.splice(index, 1);
-
+    console.log(data);
     const payload = {
-      name: data.product_name,
+      name: data.name,
       descriptions: productDescriptions,
       companyId: this.userData.supplier_id,
-      id: data.product_id,
+      id: data.productId,
     };
 
     try {
@@ -431,9 +423,9 @@ export class LandingPageDetailsComponent implements OnInit, OnDestroy {
   handleClickEditIconInProductDescription = (data, event: Event) => {
     // Stop the event propagation to prevent the outer button click handler from being called
     event.stopPropagation();
-
+    console.log(data);
     // Set selected item in service and open canvas
-    let index = data.product_descriptions.indexOf(data.key);
+    let index = data.descriptions.indexOf(data.key);
 
     // Set product description index
     data.descriptionIndex = index;
@@ -454,6 +446,7 @@ export class LandingPageDetailsComponent implements OnInit, OnDestroy {
   };
 
   handleClickEditIconInDetailOfCampaign = (data, event: Event) => {
+    console.log(data);
     // Stop the event propagation to prevent the outer button click handler from being called
     event.stopPropagation();
 
@@ -773,10 +766,7 @@ export class LandingPageDetailsComponent implements OnInit, OnDestroy {
       ? data.productPhoto.replace(environment.imageUrl, '')
       : data.productPhoto;
 
-    // ToDo
-    // update campaignCreate api so that establishment_search_type and establishment_search_value can be passed empty
     const payload = {
-
       landingPageType: this.selectedCampaignType,
       companyId: this.userData.supplier_id,
       titleId: data.campaignTitle,

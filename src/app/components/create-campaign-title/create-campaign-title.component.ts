@@ -174,13 +174,14 @@ export class CreateCampaignTitleComponent {
     const formData = this.primaryForm.getRawValue();
 
     const payload: any = {
-      supplier_id: this.supplierId(),
       title: formData.campaign_title,
+      companyId: this.supplierId(),
+      titleType: 'landing'
     };
 
     try {
       if (this.editData()?.title) {
-        payload.title_id = this.editData().id;
+        payload.id = this.editData().id;
         await this.campaignService.editCampaignTitle(payload);
       } else {
         await this.campaignService.addCampaignTitle(payload);
