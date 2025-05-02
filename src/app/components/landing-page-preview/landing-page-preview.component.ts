@@ -11,6 +11,7 @@ import { ProspectingService } from "../../services/prospecting.service";
 import {CampaignLayoutBottmBtnsComponent} from '../campaign-layout-bottm-btns/campaign-layout-bottm-btns.component';
 import {DesktopPreviewComponent} from '../desktop-preview/desktop-preview.component';
 import {CommonModule} from '@angular/common';
+import { LandingPage } from '../../models/LandingPage';
 
 @Component({
   selector: 'landing-page-preview',
@@ -22,7 +23,7 @@ import {CommonModule} from '@angular/common';
   templateUrl: './landing-page-preview.component.html',
   styleUrl: './landing-page-preview.component.scss'
 })
-export class LandingPagePreviewComponent {
+export class LandingPagePreviewComponent implements OnInit {
   @Input() closePreview;
   @Input() formData;
   @Input() setWaitingFlagToTrue;
@@ -34,7 +35,7 @@ export class LandingPagePreviewComponent {
   public userData;
   public isWaiting: boolean = true;
   public campaignId;
-  public pageData;
+  public landingPage: LandingPage;
   public products;
   public campaignTitleText: string = "";
   public campaignDetailsText: string = "";
@@ -61,8 +62,8 @@ export class LandingPagePreviewComponent {
       }
     });
     // Get campaign api call for load preview data
-    await this.getCampaign();
-    this.pageData = this.campaignService.getPreviewPageData();
+    // await this.getCampaign();
+    this.landingPage = this.campaignService.getLandingPage();
 
     // Set necessary data
     await this.getCampaignData();
@@ -115,21 +116,20 @@ export class LandingPagePreviewComponent {
   };
 
   getCampaignTitleAndOtherData = () => {
-    const campaignDetails = this.pageData.campaign_detail;
-
+    const campaignDetails = this.landingPage.detail;
     // Setting campaign title text
-    let index = this.campaignTitles.findIndex(i => i.id.toString() === campaignDetails.campaign_title.toString());
-    this.campaignTitleText = this.campaignTitles[index]?.title || "Landing page title is deleted";
+    // let index = this.campaignTitles.findIndex(i => i.id.toString() === campaignDetails.campaign_title.toString());
+    this.campaignTitleText = campaignDetails.title.title || "Landing page title is deleted";
 
-    if (this.campaignInnerDetails.length > 0 && campaignDetails.campaign_details) {
+    if (this.campaignInnerDetails.length > 0 && campaignDetails.innerDetail) {
       // Setting campaign details text
-      index = this.campaignInnerDetails.findIndex(i => i.id.toString() === campaignDetails.campaign_details.toString());
-      this.campaignDetailsText = this.campaignInnerDetails[index]?.inner_detail || "Landing page details is deleted";
+      // index = this.campaignInnerDetails.findIndex(i => i.id.toString() === campaignDetails.campaign_details.toString());
+      this.campaignDetailsText = campaignDetails.innerDetail.innerDetail || "Landing page details is deleted";
     }
 
     // Setting product text
-    index = this.products.findIndex(i => i.id.toString() === campaignDetails.prospecting_product_id.toString());
-    this.productText = this.products[index]?.name || "Product is deleted";
+    // let index = this.products.findIndex(i => i.id.toString() === campaignDetails.prospecting_product_id.toString());
+    this.productText = campaignDetails.prospectingProduct?.name || "Product is deleted";
   };
 
   // changePreviewMode = () => {

@@ -290,11 +290,11 @@ export class BrandDripCampaignComponent implements OnInit, OnDestroy {
 //   }
 //
 //   async getCampaign() {
-//     const campaignId = this.dripCampaignId();
-//     if (!campaignId) return false;
+//     const landingPageId = this.dripCampaignId();
+//     if (!landingPageId) return false;
 //
 //     const postData = {
-//       drip_campaign_id: campaignId,
+//       drip_campaign_id: landingPageId,
 //       supplier_id: this.userData().supplier_id,
 //     };
 //
@@ -313,10 +313,10 @@ export class BrandDripCampaignComponent implements OnInit, OnDestroy {
 //     }
 //   }
 //
-//   nextBtnClick = async (campaignId = "", overwrite = false) => {
+//   nextBtnClick = async (landingPageId = "", overwrite = false) => {
 //     this.currentStep.update(step => step + 1);
 //
-//     const cId = this.dripCampaignId() && !overwrite ? this.dripCampaignId() : campaignId;
+//     const cId = this.dripCampaignId() && !overwrite ? this.dripCampaignId() : landingPageId;
 //     if (cId) {
 //       await this.router.navigate([routeConstants.BRAND.CREATE_DRIP_CAMPAIGN], {
 //         queryParams: { id: cId }

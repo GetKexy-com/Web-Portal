@@ -1,39 +1,3 @@
-<!--<div class="promotion-attributes">-->
-<!--  <div class="head-area">-->
-<!--    <p>{{canvasTitle}} Product/Service</p>-->
-<!--    <img src="/assets/images/close-icon.png" alt="Close" (click)="activeCanvas.dismiss('Cross click')" />-->
-<!--  </div>-->
-
-<!--  <div class="canvas-body">-->
-<!--    <form [formGroup]="primaryForm" (ngSubmit)="saveNewProduct()">-->
-<!--      <div class="input-wrap">-->
-<!--        <div class="label-and-input">-->
-<!--          <p>Product/Service Name</p>-->
-<!--          <input class="form-control" formControlName="product_name" type="text" maxlength="30"/>-->
-<!--          <p class="text-right mt-2 mb-0">{{primaryForm.get('product_name').value.length}}/30</p>-->
-<!--          <div *ngIf="formValidationErrorCheck('product_name')">-->
-<!--            <error-message-card message="Field is required!"></error-message-card>-->
-<!--          </div>-->
-<!--        </div>-->
-
-<!--        <div *ngIf="!editData" class="label-and-input">-->
-<!--          <p>Product/Service Description</p>-->
-<!--          <textarea class="form-control" formControlName="product_desc" type="text" maxlength="1000"></textarea>-->
-<!--          <p class="text-right mt-2 mb-0">{{primaryForm.get('product_desc').value.length}}/1000</p>-->
-<!--        </div>-->
-
-
-<!--      </div>-->
-<!--      <div class="buttons mt-4">-->
-<!--        <button type="submit" class="blue-button me-3">-->
-<!--          Save<i *ngIf="isLoading" class="fa fa-spinner fa-spin ms-2" aria-hidden="true" style="color: white"></i>-->
-<!--        </button>-->
-<!--        <button type="button" class="blue-border-white-bg-button" (click)="activeCanvas.dismiss('Cross click')">Cancel</button>-->
-<!--      </div>-->
-<!--    </form>-->
-<!--  </div>-->
-<!--</div>-->
-
 <div class="promotion-attributes">
   <div class="head-area">
     <p>{{canvasTitle()}} Product/Service</p>
@@ -47,14 +11,14 @@
           <p>Product/Service Name</p>
           <input
             class="form-control"
-            formControlName="product_name"
+            formControlName="name"
             type="text"
             maxlength="30"
           />
           <p class="text-right mt-2 mb-0">
-            {{primaryForm.get('product_name')?.value?.length || 0}}/30
+            {{primaryForm.get('name')?.value?.length || 0}}/30
           </p>
-          @if (formValidationErrorCheck('product_name')) {
+          @if (formValidationErrorCheck('name')) {
             <error-message-card message="Field is required!" />
           }
         </div>
@@ -64,12 +28,12 @@
             <p>Product/Service Description</p>
             <textarea
               class="form-control"
-              formControlName="product_desc"
+              formControlName="description"
               type="text"
               maxlength="1000"
             ></textarea>
             <p class="text-right mt-2 mb-0">
-              {{primaryForm.get('product_desc')?.value?.length || 0}}/1000
+              {{primaryForm.get('description')?.value?.length || 0}}/1000
             </p>
           </div>
         }

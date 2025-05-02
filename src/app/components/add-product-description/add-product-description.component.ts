@@ -107,7 +107,7 @@ import { ErrorMessageCardComponent } from 'src/app/components/error-message-card
 
 interface DescriptionData {
   descriptionIndex: number;
-  product_descriptions: string[];
+  descriptions: string[];
 }
 
 @Component({
@@ -115,10 +115,10 @@ interface DescriptionData {
   standalone: true,
   imports: [
     ReactiveFormsModule,
-    ErrorMessageCardComponent
+    ErrorMessageCardComponent,
   ],
   templateUrl: './add-product-description.component.html',
-  styleUrl: './add-product-description.component.scss'
+  styleUrl: './add-product-description.component.scss',
 })
 export class AddProductDescriptionComponent {
   // Services
@@ -139,7 +139,7 @@ export class AddProductDescriptionComponent {
   primaryForm = new FormGroup({
     product_desc: new FormControl('', [
       Validators.required,
-      Validators.maxLength(1000)
+      Validators.maxLength(1000),
     ]),
   });
 
@@ -153,8 +153,8 @@ export class AddProductDescriptionComponent {
     this.descriptionData.set(descData);
 
     if (descData?.descriptionIndex > -1) {
-      this.canvasTitle.set("Edit");
-      this.prospectingService.setSelectedDescription("");
+      this.canvasTitle.set('Edit');
+      this.prospectingService.setSelectedDescription('');
     }
 
     this.setPrimaryForm();
@@ -162,10 +162,10 @@ export class AddProductDescriptionComponent {
 
   setPrimaryForm() {
     const descValue = this.descriptionData()?.descriptionIndex > -1
-      ? this.descriptionData()!.product_descriptions[this.descriptionData()!.descriptionIndex]
-      : "";
+      ? this.descriptionData()!.descriptions[this.descriptionData()!.descriptionIndex]
+      : '';
     this.primaryForm.patchValue({
-      product_desc: descValue
+      product_desc: descValue,
     });
   }
 
@@ -196,14 +196,14 @@ export class AddProductDescriptionComponent {
       }
 
       const payload = {
-        product_id: product.id,
-        category_id: product.category_id,
-        product_name: product.name,
-        descriptions: descriptions
+        id: product.id,
+        name: product.name,
+        descriptions: descriptions,
+        companyId: product.companyId,
       };
 
       await this.prospectingService.updateProduct(payload);
-      this.activeCanvas.dismiss("Cross click");
+      this.activeCanvas.dismiss('Cross click');
     } catch (error) {
       console.error('Error saving product description:', error);
     } finally {

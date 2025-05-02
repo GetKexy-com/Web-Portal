@@ -6,11 +6,12 @@ import { map } from 'rxjs/operators';
 
 import { environment } from '../../environments/environment';
 
-@Injectable({ providedIn: "root" })
+@Injectable({ providedIn: 'root' })
 export class HttpService {
   public apiUrl = `${environment.baseUrl}`;
 
-  constructor(private _http: HttpClient) {}
+  constructor(private _http: HttpClient) {
+  }
 
   get(url: string, baseUrl = this.apiUrl, params?: any): Observable<any> {
     const urlStr = baseUrl + url;
@@ -25,12 +26,12 @@ export class HttpService {
     let headers = this._getHeaders();
     return this._http
       .post(urlStr, body, { headers: headers })
-      .pipe(map((response) =>  {
-        if(response['error'] && response['code'] && response['trace']) {
+      .pipe(map((response) => {
+        if (response['error'] && response['code'] && response['trace']) {
           response['success'] = false;
-          response['error']['message'] = "Something went wrong. Please contact us.";
+          response['error']['message'] = 'Something went wrong. Please contact us.';
         }
-        return response
+        return response;
       }));
   }
 
@@ -50,9 +51,9 @@ export class HttpService {
       .pipe(map((response) => response));
   }
 
-  delete(url: string): Observable<any> {
+  delete(url: string, body?): Observable<any> {
     const urlStr = this.apiUrl + url;
-    return this._http.delete(urlStr).pipe(map((response) => response));
+    return this._http.delete(urlStr, { body }).pipe(map((response) => response));
   }
 
   _getHeaders(): HttpHeaders {

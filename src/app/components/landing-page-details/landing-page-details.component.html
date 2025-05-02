@@ -402,13 +402,13 @@
                   </span>
                   <span class="pdf-name" *ngIf="sellSheetFileName">{{ sellSheetFileName }}</span>
                   <!--sellsheet for edit or duplicate-->
-                  <span class="pdf-name" *ngIf="!sellSheetFileName && campaignId">
+                  <span class="pdf-name" *ngIf="!sellSheetFileName && landingPageId">
                     <a [href]="environment.imageUrl + primaryForm.get('sellSheet').value" target="_blank"
                     >View Sell Sheet</a
                     >
                   </span>
                   <!--sellsheet for back-->
-                  <span class="pdf-name" *ngIf="!sellSheetFileName && !campaignId">
+                  <span class="pdf-name" *ngIf="!sellSheetFileName && !landingPageId">
                     <a [href]="primaryForm.get('sellSheet').value" target="_blank">View Sell Sheet</a>
                   </span>
                 </span>

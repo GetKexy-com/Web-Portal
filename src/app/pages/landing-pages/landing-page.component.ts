@@ -182,14 +182,13 @@ export class LandingPageComponent implements OnInit {
       return;
     }
 
-    const landingPageIds = this.selectedLandingPages.map(i => i.id.toString());
+    const landingPageIds = this.selectedLandingPages.map(i => i.id);
     const postData = {
-      supplier_id: this.userData.supplier_id,
-      campaign_ids: landingPageIds,
+      ids: landingPageIds,
     };
     if (this.selectedAllLandingPages) {
-      postData['campaign_ids'] = [];
-      postData['selected_all_landing_page'] = 'true';
+      postData['ids'] = [];
+      postData['selectedAll'] = true;
     }
 
     const swal = this.pageUiService.showSweetAlertLoading();
