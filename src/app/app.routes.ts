@@ -196,10 +196,10 @@ export const routes: Routes = [
     canActivate: [AuthGuard],
   },
   {
-    path: routeConstants.BRAND.PROMOTION_NO_AUTH,
+    path: routeConstants.BRAND.LANDING_PAGE_NO_AUTH,
     loadComponent: () =>
-      import("./pages/public-promotions/public-promotions.component").then(
-        (m) => m.PublicPromotionsComponent
+      import("./pages/public-landing-page/public-landing-page.component").then(
+        (m) => m.PublicLandingPageComponent
       ),
   },
 ];

@@ -4,7 +4,7 @@ export const environment = {
   baseUrl: "http://192.168.0.122:3000/v2/",
   imageUrl: "https://d2m1cdle9kqn71.cloudfront.net/",
   externalAssetUrl: "https://d2m1cdle9kqn71.cloudfront.net/KEXY_Connect_assets/",
-  siteUrl: "https://devclient.getkexy.com",
+  siteUrl: "http://localhost:4200",
   distributorPortalUrl: "https://devclient.getkexy.com/distributor/",
   supplierPortalUrl: "https://devclient.getkexy.com/brand/",
   socketUri: "https://devapi.getkexy.com:3002",

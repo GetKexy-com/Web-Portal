@@ -4,7 +4,7 @@ import Swal from 'sweetalert2';
 import { environment } from 'src/environments/environment';
 import { Router } from '@angular/router';
 import { constants } from 'src/app/helpers/constants';
-import { routeConstants } from 'src/app/helpers/routeConstants';
+import { LANDING_PAGE, routeConstants } from 'src/app/helpers/routeConstants';
 import { CampaignService } from 'src/app/services/campaign.service';
 import { ProspectingService } from 'src/app/services/prospecting.service';
 import { Subscription } from 'rxjs';
@@ -117,43 +117,6 @@ export class LandingPageComponent implements OnInit {
       const data = await this.campaignService.getListOfCampaigns(postData); // getListOfCampaigns
       this.totalPageCounts = data['totalPageCounts'];
       this.totalRecordsCount = data['totalRecords'];
-
-      // data['campaigns'].forEach((campaign) => {
-      //   const details = campaign.campaign_detail;
-      //   let dealEndDateTime = new Date(details.end_date).getTime();
-      //
-      //   let dealSingletem = {
-      //     id: campaign.id,
-      //     deal_title: details.campaign_title,
-      //     campaign_title_text: this.getCampaignTitle(details.campaign_title),
-      //     campaign_details_text: this.getCampaignDetails(details.campaign_details),
-      //     product_name: this.getCampaignProductName(details.prospecting_product_id),
-      //     deal_image: environment.imageUrl + details.campaign_image,
-      //     deal_category: details.category_id,
-      //     deal_price: details.price,
-      //     type_of_campaign: details.campaign_type,
-      //     end_at: dealEndDateTime,
-      //     status: campaign.status,
-      //     analytics: {
-      //       impressions: '0',
-      //       clicks: '0',
-      //       ctr: '0%',
-      //     },
-      //     action: '',
-      //     campaign,
-      //   };
-      //
-      //   tempDealList.push(dealSingletem);
-      //
-      // });
-
-      // tempDealList.sort(function(a, b) {
-      //   const a1 = a.id,
-      //     b1 = b.id;
-      //   if (a1 == b1) return 0;
-      //   return a1 < b1 ? 1 : -1;
-      // });
-
       this.landingPageList = data['promotions'];
 
     } catch (e) {
@@ -299,7 +262,8 @@ export class LandingPageComponent implements OnInit {
 
   isUrlCopied: boolean = false;
   copyUrl = async () => {
-    const url = environment.siteUrl + '/promotion?id=' + this.selectedLandingPages[0].campaign.token;
+    console.log(this.selectedLandingPages);
+    const url = environment.siteUrl + '/landing-page?id=' + this.selectedLandingPages[0].campaign.token;
     await navigator.clipboard.writeText(url);
 
     this.isUrlCopied = true;
