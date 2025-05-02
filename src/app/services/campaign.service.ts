@@ -324,8 +324,59 @@ export class CampaignService {
 
   getCampaign = async (postData): Promise<LandingPage> => {
     this._loading.next(true);
+    const url = `landing-pages/${postData.campaign_id}`;
     return new Promise(async (resolve, reject) => {
-      const url = `landing-pages/${postData.campaign_id}`;
+      this.httpService.get(url).subscribe((res) => {
+        if (!res.success) {
+          if (res.error) {
+            this._loading.next(false);
+            reject(res.error);
+          }
+        } else {
+          if (res.data) {
+            // Set page data
+            const landingPage = new LandingPage(res.data);
+            this.setLandingPageData(landingPage);
+            this._loading.next(false);
+            resolve(landingPage);
+          } else {
+            this._loading.next(false);
+            reject(false);
+          }
+        }
+      });
+    });
+
+  };
+
+  private __makeHttpToGetLandingPage(url: string) {
+    return new Promise(async (resolve, reject) => {
+      this.httpService.get(url).subscribe((res) => {
+        if (!res.success) {
+          if (res.error) {
+            this._loading.next(false);
+            reject(res.error);
+          }
+        } else {
+          if (res.data) {
+            // Set page data
+            const landingPage: LandingPage = new LandingPage(res.data);
+            this.setLandingPageData(landingPage);
+            this._loading.next(false);
+            resolve(landingPage);
+          } else {
+            this._loading.next(false);
+            reject(false);
+          }
+        }
+      });
+    });
+  }
+
+  getCampaignWithToken = async (postData): Promise<LandingPage> => {
+    this._loading.next(true);
+    const url = `landing-pages/public?id=${postData.id}`;
+    return new Promise(async (resolve, reject) => {
       this.httpService.get(url).subscribe((res) => {
         if (!res.success) {
           if (res.error) {

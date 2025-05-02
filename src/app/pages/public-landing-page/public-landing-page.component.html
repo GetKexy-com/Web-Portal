@@ -12,22 +12,12 @@
         <div class="campaign-type-logo-and-title for-mobile">
           <div class="title-and-offer-text">
             <p class="title">{{ productText }}</p>
-            <p *ngIf="promotion.campaign_detail.start_date" class="offer-text">
-              {{ promotion.campaign_detail.start_date | date : "MM/dd/yy" }}
-              - {{ promotion.campaign_detail.end_date | date : "MM/dd/yy" }}
-            </p>
           </div>
 
           <div
             class="kexy-tag"
           >
-            <span *ngIf="promotion.campaign_detail.campaign_type === constants.DEAL_WITH_PRICE">Deal</span>
-            <span *ngIf="promotion.campaign_detail.campaign_type === constants.INFORMATIVE">Informative</span>
-            <span *ngIf="promotion.campaign_detail.campaign_type === constants.FEATURED_PRODUCT">Featured Product</span>
-            <span
-              *ngIf="promotion.campaign_detail.campaign_type === constants.LISTING_OF_PRODUCT">{{ constants.LIST_PRODUCT_ON_PLATFORM }}</span>
-            <span
-              *ngIf="promotion.campaign_detail.campaign_type === constants.ANNOUNCEMENT_KEY">{{ constants.ANNOUNCEMENT_VALUE }}</span>
+            <span>{{landingPage.detail.landingPageType}}</span>
           </div>
         </div>
         <!--End-->
@@ -43,7 +33,7 @@
           <div class="buttons-wrap">
             <div class="btn-wrap mb-2">
               <app-kexy-button
-                [disabled]="!promotion.campaign_detail.sales_sheet"
+                [disabled]="!landingPage.detail.salesSheet"
                 label="Info Sheet"
                 bgColor="#E7F6FE"
                 textColor="#0047CC"
@@ -53,7 +43,7 @@
             </div>
             <div class="btn-wrap">
               <app-kexy-button
-                [disabled]="!promotion.campaign_detail.campaign_video"
+                [disabled]="!landingPage.detail.video"
                 label="Play Video"
                 bgColor="#E7F6FE"
                 textColor="#0047CC"
@@ -68,23 +58,10 @@
           <div class="campaign-type-logo-and-title for-desktop">
             <div class="title-and-offer-text">
               <p class="title">{{ productText }}</p>
-              <p *ngIf="promotion.campaign_detail.start_date" class="offer-text">
-                {{ promotion.campaign_detail.start_date | date : "MM/dd/yy" }}
-                - {{ promotion.campaign_detail.end_date | date : "MM/dd/yy" }}
-              </p>
             </div>
 
-            <div
-              class="kexy-tag"
-            >
-              <span *ngIf="promotion.campaign_detail.campaign_type === constants.DEAL_WITH_PRICE">Deal</span>
-              <span *ngIf="promotion.campaign_detail.campaign_type === constants.INFORMATIVE">Informative</span>
-              <span
-                *ngIf="promotion.campaign_detail.campaign_type === constants.FEATURED_PRODUCT">Featured Product</span>
-              <span
-                *ngIf="promotion.campaign_detail.campaign_type === constants.LISTING_OF_PRODUCT">{{ constants.LIST_PRODUCT_ON_PLATFORM }}</span>
-              <span
-                *ngIf="promotion.campaign_detail.campaign_type === constants.ANNOUNCEMENT_KEY">{{ constants.ANNOUNCEMENT_VALUE }}</span>
+            <div class="kexy-tag">
+              <span>{{landingPage.detail.landingPageType}}</span>
             </div>
           </div>
           <!--End-->
@@ -95,25 +72,21 @@
               <p class="right-text">{{ contactPerson }}</p>
             </div>
             <div class="info-row"
-                 [style.border]="promotion.campaign_detail.campaign_type === constants.FEATURED_PRODUCT ? 'none' : ''">
+                 [style.border]="landingPage.detail.landingPageType === constants.FEATURED_PRODUCT ? 'none' : ''">
               <p class="left-text">Price</p>
-              <p *ngIf="promotion.campaign_detail.price" class="right-text">{{ promotion.campaign_detail.price }}</p>
-              <p *ngIf="!promotion.campaign_detail.price" class="right-text">N/A</p>
+              <p *ngIf="landingPage.detail.price" class="right-text">{{ landingPage.detail.price }}</p>
+              <p *ngIf="!landingPage.detail.price" class="right-text">N/A</p>
             </div>
-            <div *ngIf="promotion.campaign_detail.campaign_type !== constants.FEATURED_PRODUCT"
+            <div *ngIf="landingPage.detail.landingPageType !== constants.FEATURED_PRODUCT"
                  class="info-row border-0">
               <p class="left-text">Estimated Savings</p>
-              <p *ngIf="promotion.campaign_detail.estimated_savings"
-                 class="right-text">{{ promotion.campaign_detail.estimated_savings }}</p>
-              <p *ngIf="!promotion.campaign_detail.estimated_savings" class="right-text">N/A</p>
+              <p *ngIf="landingPage.detail.estimatedSavings"
+                 class="right-text">{{ landingPage.detail.estimatedSavings }}</p>
+              <p *ngIf="!landingPage.detail.estimatedSavings" class="right-text">N/A</p>
             </div>
           </div>
           <div class="validation-info-wrap">
             <div class="contents">
-              <p *ngIf="promotion.campaign_detail.start_date" class="date-range-text">
-                Valid from {{ promotion.campaign_detail.start_date | date : "MMM d, y" }} - till
-                {{ promotion.campaign_detail.end_date | date : "MMM d, y" }}
-              </p>
               <p class="offer-text">{{ promotionTitleText }}</p>
             </div>
             <div class="img-wrap">
@@ -127,14 +100,14 @@
           <app-label-and-value label="Details"
                                [value]="promotionDetailsText ? promotionDetailsText : 'N/A'"></app-label-and-value>
         </div>
-        <div *ngIf="promotion.campaign_detail.product_knowledge" class="area-wrap">
+        <div *ngIf="landingPage.detail.productKnowledge" class="area-wrap">
           <app-label-and-value
-            [label]="promotion.campaign_detail.campaign_type === constants.LISTING_OF_PRODUCT ? 'Service Description' : 'Product Description'"
-            [value]="promotion.campaign_detail.product_knowledge"></app-label-and-value>
+            [label]="landingPage.detail.landingPageType === constants.LISTING_OF_PRODUCT ? 'Service Description' : 'Product Description'"
+            [value]="landingPage.detail.productKnowledge"></app-label-and-value>
         </div>
-        <div *ngIf="promotion.campaign_detail.additional_info" class="area-wrap">
+        <div *ngIf="landingPage.detail.additionalInfo" class="area-wrap">
           <app-label-and-value label="Additional Info"
-                               [value]="promotion.campaign_detail.additional_info || 'N/A'"></app-label-and-value>
+                               [value]="landingPage.detail.additionalInfo || 'N/A'"></app-label-and-value>
         </div>
       </div>
     </div>
@@ -215,16 +188,16 @@
           <error-message-card message="Please enter valid data."></error-message-card>
         </div>
       </div>
-      <div class="bottom-btn-area">
-        <div class="btn-wrap">
-          <app-kexy-button
-            (click)="addMessageToConversation()"
-            [disabled]="loading"
-            [label]="loading ? 'Please wait...' : 'Send email' "
-            [iconLeft]="loading ? 'fa-refresh fa-spin' : 'fa-paper-plane-o'"
-          ></app-kexy-button>
-        </div>
-      </div>
+<!--      <div class="bottom-btn-area">-->
+<!--        <div class="btn-wrap">-->
+<!--          <app-kexy-button-->
+<!--            (click)="addMessageToConversation()"-->
+<!--            [disabled]="loading"-->
+<!--            [label]="loading ? 'Please wait...' : 'Send email' "-->
+<!--            [iconLeft]="loading ? 'fa-refresh fa-spin' : 'fa-paper-plane-o'"-->
+<!--          ></app-kexy-button>-->
+<!--        </div>-->
+<!--      </div>-->
     </div>
   </div>
 </ng-template>
