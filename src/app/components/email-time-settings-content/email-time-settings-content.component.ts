@@ -13,6 +13,7 @@ import {KexySelectDropdownComponent} from '../kexy-select-dropdown/kexy-select-d
 import {ErrorMessageCardComponent} from '../error-message-card/error-message-card.component';
 import {KexyToggleSwitchComponent} from '../kexy-toggle-switch/kexy-toggle-switch.component';
 import {CommonModule} from '@angular/common';
+import {ListDetail} from '../../models/List';
 
 @Component({
   selector: 'email-time-settings-content',
@@ -234,13 +235,7 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
   };
 
   getDripCampaignsApiCall = async () => {
-    const postData = {
-      page: 1,
-      supplier_id: this.userData.supplier_id,
-      limit: 1000,
-      get_total_count: false,
-    };
-    this.dripCampaignList = await this.dripCampaignService.getListOfDripCampaignsWithoutPagination(postData, true);
+    this.dripCampaignList = await this.dripCampaignService.getListOfDripCampaignsWithoutPagination(true);
     if (this.dripCampaignList.length) {
       this.dripCampaignList = this.dripCampaignList.filter(i => {
         return (i.status === constants.PUBLISHED || i.status === constants.ACTIVE);
@@ -525,7 +520,7 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
     await this.prospectingService.getLabelsOnly(getLabelApiPostData);
 
     // Set Label Subscription
-    this.contactLabelsSubscription = this.prospectingService.labelsOnly.subscribe((labels) => {
+    this.contactLabelsSubscription = this.prospectingService.labelsOnly.subscribe((labels: ListDetail[]) => {
       // Set label dropdown options
       this.enrollmentLabelOptions = [];
       this.unenrollmentLabelOptions = [];
@@ -534,8 +529,8 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
         const labelObj = {
           key: i.label,
           value: i.label,
-          itemBgColor: i.bg_color,
-          itemTextColor: i.text_color,
+          itemBgColor: i.bgColor,
+          itemTextColor: i.textColor,
           id: i.id,
           isSelected: false,
         };

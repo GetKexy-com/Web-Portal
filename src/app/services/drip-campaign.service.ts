@@ -353,18 +353,19 @@ export class DripCampaignService {
     });
   };
 
-  getListOfDripCampaignsWithoutPagination = async (postData, overwrite = false) => {
+  getListOfDripCampaignsWithoutPagination = async (overwrite = false) => {
     if (this.allDripCampaigns.length > 0 && !overwrite) {
       return this.allDripCampaigns;
     }
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("drip-campaigns/getAll", postData).subscribe((res) => {
+      this.httpService.get("drip-campaigns").subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
           }
 
         } else {
+          console.log('get all drip campaigns', res);
           res.data.drip_campaigns.sort(function(a, b) {
             const a1 = a.id,
               b1 = b.id;
