@@ -26,7 +26,7 @@ import {CommonModule} from '@angular/common';
   templateUrl: './email-time-settings-content.component.html',
   styleUrl: './email-time-settings-content.component.scss'
 })
-export class EmailTimeSettingsContentComponent {
+export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
   isLoading: boolean = false;
   isWaitingFlag: boolean = true;
   submitted: boolean = false;
@@ -80,16 +80,15 @@ export class EmailTimeSettingsContentComponent {
     public dripCampaignService: DripCampaignService,
     public prospectingService: ProspectingService,
     public pageUiService: PageUiService,
-    // private route: ActivatedRoute,
   ) {
   }
 
   async ngOnInit() {
     this.dripCampaign = this.dripCampaignService.getDripCampaignContentPageData();
     this.dripCampaignId = this.dripCampaign.id;
+    console.log('dripCampaign', this.dripCampaign.settings);
     this.userData = this._authService.userTokenValue;
 
-    await this.getSettings();
     await this.getAndSetLabels();
     await this.getAndSetDripCampaignTitleSubscription();
     await this.getDripCampaignsApiCall();
@@ -269,18 +268,6 @@ export class EmailTimeSettingsContentComponent {
     return this.dripCampaignTitles[index].title;
   };
 
-  getSettings = async () => {
-    const postData = {
-      supplier_id: this.userData.supplier_id,
-      drip_campaign_id: this.dripCampaignId,
-    };
-    const data = await this.dripCampaignService.getSettings(postData);
-    if (data && (data["settings"] || data["enrollment_triggers"])) {
-      this.settings = data["settings"];
-      this.enrollment = data["enrollment_triggers"];
-    }
-  };
-
   onDaySelect = (day, index = null, rowIndex = null) => {
     console.log(rowIndex);
     this.runCampaignArray[rowIndex].day = day.value;
@@ -402,7 +389,7 @@ export class EmailTimeSettingsContentComponent {
     this.isLoading = true;
     try {
       await this.dripCampaignService.updateSettings(postData);
-      await this.getSettings();
+      // TODO - Manually do get settings functionality
       this.setPreviousData();
       Swal.fire("Success", "Settings saved successfully", "success");
 
@@ -447,7 +434,7 @@ export class EmailTimeSettingsContentComponent {
 
     try {
       await this.dripCampaignService.removeListFromCampaign(postData);
-      await this.getSettings();
+      // TODO - Manually do get settings functionality
       await this.getAndSetLabels();
       this.setPreviousData();
 
@@ -602,7 +589,7 @@ export class EmailTimeSettingsContentComponent {
     this.isLoading = true;
     try {
       await this.dripCampaignService.enrollmentTriggers(postData);
-      await this.getSettings();
+      // TODO - Manually do get settings functionality
       await this.getAndSetLabels();
       this.setPreviousData();
 

@@ -124,12 +124,13 @@ export class GenerateDripCampaignComponent implements OnInit {
       }
     });
     this.emailsSubscription = this.sseService.dripBulkEmails.subscribe((emails: DripEmail[]) => {
+      console.log('emails', emails);
       this.emails = emails;
-      console.log('emails', this.emails);
       this.emails.forEach(e => {
-        const delay = e.delay_between_previous_email;
+        const delay = e.delayBetweenPreviousEmail;
         e["emailText"] = `${delay.days} day(s) ${delay.hours} hour(s) ${delay.minutes} minute(s)`;
       });
+
       this.scroll = true;
       if (!this.disableScroll) {
         setTimeout(() => {
@@ -406,10 +407,10 @@ export class GenerateDripCampaignComponent implements OnInit {
     const formattedEmails = [];
     this.emails.forEach((e, index) => {
       const email = {
-        emailSequence: e.email_sequence,
-        emailSubject: e.email_subject,
-        emailContent: e.email_content,
-        delayBetweenPreviousEmail: JSON.stringify(e.delay_between_previous_email),
+        emailSequence: e.emailSequence,
+        emailSubject: e.emailSubject,
+        emailContent: e.emailContent,
+        delayBetweenPreviousEmail: JSON.stringify(e.delayBetweenPreviousEmail),
         emailLength: this.selectedEmailLength.value,
         emailTone: this.selectedEmailToneKey,
       };

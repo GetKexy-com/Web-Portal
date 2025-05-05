@@ -113,7 +113,6 @@ export class AuthService {
     // const response = await this.userOrganisationApiCall(overwrite);
     const response = await this.userCompaniesApiCall(overwrite);
     if (response.success) {
-      console.log('response for subscription', response);
       const userData = this.userTokenValue;
       const userId = userData.id;
       const brand = response.data[0];

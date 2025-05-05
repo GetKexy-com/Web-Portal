@@ -161,11 +161,11 @@ export class SendEmailDetailsContentComponent implements OnInit, OnDestroy {
 
     const postData = {
       drip_campaign_email_id: this.dripEmail.id,
-      emailSubject: this.dripEmail.email_subject,
-      emailContent: this.dripEmail.email_content,
+      emailSubject: this.dripEmail.emailSubject,
+      emailContent: this.dripEmail.emailContent,
       emailTone: this.selectedEmailToneKey,
       emailLength: this.selectedEmailLength.value,
-      delayBetweenPreviousEmail: JSON.stringify(this.dripEmail.delay_between_previous_email),
+      delayBetweenPreviousEmail: JSON.stringify(this.dripEmail.delayBetweenPreviousEmail),
     };
     try {
       await this.dripCampaignService.updateDripCampaignEmail(postData);
@@ -188,7 +188,7 @@ export class SendEmailDetailsContentComponent implements OnInit, OnDestroy {
     const content = this.emailSubject + this.emailContent;
     const data = {
       email_tone: this.selectedEmailToneKey,
-      email_number: this.dripEmail.email_sequence,
+      email_number: this.dripEmail.emailSequence,
       email_length: this.selectedEmailLength.key,
       promotion_info: this.hasPromotion,
       content,

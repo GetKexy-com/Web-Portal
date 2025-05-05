@@ -662,7 +662,8 @@ export class ProspectingService {
     }
 
     return new Promise(async (resolve, reject) => {
-      this.httpService.post('contacts/getLabelsOnly', postData).subscribe((res) => {
+      const url = `lists?page=${postData.page}&limit=${postData.limit}`;
+      this.httpService.get(url).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);

@@ -78,13 +78,12 @@ export class DripCampaignService {
         } else {
           if (res.data) {
             // Set page data
-            console.log('res data', res.data);
             let campaign = res.data;
             this.setPagesData(campaign);
             this._dripCampaignStatus.next(campaign.status);
             const emails = campaign.emails;
             emails.forEach(email => {
-              email.delay_between_previous_email = JSON.parse(email.delayBetweenPreviousEmail);
+              email.delayBetweenPreviousEmail = JSON.parse(email.delayBetweenPreviousEmail);
             });
             this.sseService.addToDripBulkEmails(emails);
             this._loading.next(false);
