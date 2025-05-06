@@ -167,10 +167,9 @@ export class DripCampaignContentComponent implements OnInit {
     data["landingPages"].map(item => {
       const obj = {
         id: item.id,
-        title_of_campaign: item.campaign_title_text,
-        promotion_type: item.type_of_campaign,
-        date_created: item.campaign.createdAt,
-        // date_created: this.datePipe.transform(item.campaign.created_at, "MMM d, y"),
+        title_of_campaign: item.detail.title.title,
+        promotion_type: item.detail.landingPageType,
+        date_created: item.createdAt,
         promotion_data: item,
       };
       this.promotionsData.push(obj);

@@ -4,6 +4,7 @@ import {HttpService} from "./http.service";
 import {CampaignService} from "./campaign.service";
 import {SseService} from "./sse.service";
 import {DripCampaign, IRawDripCampaign} from '../models/DripCampaign';
+import {EnrollmentTriggers, IRawEnrollmentTrigger} from '../models/EnrollmentTriggers';
 
 @Injectable({
   providedIn: 'root'
@@ -78,7 +79,6 @@ export class DripCampaignService {
           }
         } else {
           if (res.data) {
-            // Set page data
             let campaign = res.data;
             const dripCampaign = new DripCampaign(res.data);
             this.setDripCampaign(dripCampaign);
@@ -690,16 +690,27 @@ export class DripCampaignService {
     });
   };
 
+  updateDripCampaignWithLatestSettings = (res) => {
+    let campaign = res.data;
+    const dripCampaign = new DripCampaign(res.data);
+    this.setDripCampaign(dripCampaign);
+    this._dripCampaignStatus.next(campaign.status);
+    this.sseService.addToDripBulkEmails(dripCampaign.emails);
+  }
+
   updateSettings = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("drip-campaigns/updateSettings", postData).subscribe((res) => {
+      const url = `drip-campaigns/${postData.drip_campaign_id}/settings`;
+      delete postData.drip_campaign_id;
+      this.httpService.post(url, postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
           }
 
         } else {
-          resolve(res.data);
+          this.updateDripCampaignWithLatestSettings(res);
+          resolve(true);
         }
       });
     });
@@ -707,14 +718,17 @@ export class DripCampaignService {
 
   enrollmentTriggers = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("drip-campaigns/enrollmentTriggers", postData).subscribe((res) => {
+      const url = `drip-campaigns/${postData.drip_campaign_id}/enrollment-triggers`;
+      delete postData.drip_campaign_id;
+      this.httpService.post(url, postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
           }
 
         } else {
-          resolve(res.data);
+          this.updateDripCampaignWithLatestSettings(res);
+          resolve(true);
         }
       });
     });

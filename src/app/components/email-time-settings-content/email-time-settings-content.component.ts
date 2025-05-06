@@ -85,12 +85,7 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
   }
 
   async ngOnInit() {
-    this.dripCampaign = this.dripCampaignService.getDripCampaignContentPageData();
-    console.log(this.dripCampaign);
-    this.dripCampaignId = this.dripCampaign.id;
-    this.settings = this.dripCampaign.settings;
-    this.enrollment = this.dripCampaign.lists;
-    this.userData = this._authService.userTokenValue;
+    this.setInitialData();
 
     await this.getAndSetLabels();
     await this.getAndSetDripCampaignTitleSubscription();
@@ -103,6 +98,15 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     if (this.dripCampaignTitlesSubscription) this.dripCampaignTitlesSubscription.unsubscribe();
     if (this.contactLabelsSubscription) this.contactLabelsSubscription.unsubscribe();
+  }
+
+  setInitialData = () => {
+    this.dripCampaign = this.dripCampaignService.getDripCampaignContentPageData();
+    console.log(this.dripCampaign);
+    this.dripCampaignId = this.dripCampaign.id;
+    this.settings = this.dripCampaign.settings;
+    this.enrollment = this.dripCampaign.lists;
+    this.userData = this._authService.userTokenValue;
   }
 
   setPreviousData = () => {
@@ -335,12 +339,14 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
 
     const postData = {
       drip_campaign_id: this.dripCampaignId,
-      supplier_id: this.userData.supplier_id,
+      companyId: this.userData.supplier_id,
       settings: [
         {
           ...(this.runTimeId && {id: this.runTimeId}),
-          settings_type: "run_time",
-          settings_value: this.runCampaignArray.map(item => {
+          dripCampaignId: this.dripCampaignId,
+          
+          settingsType: "run_time",
+          settingsValue: this.runCampaignArray.map(item => {
             return {
               type: this.runCampaign,
               day: item.day,
@@ -399,6 +405,8 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
   };
 
   removeActiveList = async (list) => {
+    console.log(list);
+    return;
     const isConfirm = await Swal.fire({
       title: "Are you sure?",
       icon: "warning",
@@ -546,18 +554,20 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
     // this.isEmptyEnrollList = false;
 
     const newEnrollListIds = this.enrollmentLabelOptions.filter(i => i.isSelected).map(i => i.id);
-    const previousEnrollListIds = this.enrollList.map(i => i.kexy_label_id);
+    const previousEnrollListIds = this.enrollList.map(i => i.list.id);
 
     const postData = {
       drip_campaign_id: this.dripCampaignId,
-      supplier_id: this.userData.supplier_id,
-      enroll_list_ids: [...newEnrollListIds, ...previousEnrollListIds],
-      un_enroll_list_ids: this.unenrollmentLabelOptions.filter(i => i.isSelected).map(i => i.id),
-      other_settings: [
+      companyId: this.userData.supplier_id,
+      enrollListIds: [...newEnrollListIds, ...previousEnrollListIds],
+      unEnrollListIds: this.unenrollmentLabelOptions.filter(i => i.isSelected).map(i => i.id),
+      otherSettings: [
         {
           ...(this.prospectUnenrollIfReplyId && {id: this.prospectUnenrollIfReplyId}),
-          settings_type: "prospect_un_enroll_if_reply",
-          settings_value: [
+          dripCampaignId: this.dripCampaignId,
+          companyId: this.userData.supplier_id,
+          settingsType: "prospect_un_enroll_if_reply",
+          settingsValue: [
             {
               value: this.prospectUnenrollIfReply,
             },
@@ -565,8 +575,10 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
         },
         {
           ...(this.allowReenrollId && {id: this.allowReenrollId}),
-          settings_type: "allow_re_enroll",
-          settings_value: [
+          dripCampaignId: this.dripCampaignId,
+          companyId: this.userData.supplier_id,
+          settingsType: "allow_re_enroll",
+          settingsValue: [
             {
               value: this.allowContactsReenroll,
             },
@@ -578,7 +590,7 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
     this.isLoading = true;
     try {
       await this.dripCampaignService.enrollmentTriggers(postData);
-      // TODO - Manually do get settings functionality
+      this.setInitialData();
       await this.getAndSetLabels();
       this.setPreviousData();
 
