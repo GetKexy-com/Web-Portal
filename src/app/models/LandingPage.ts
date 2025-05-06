@@ -92,10 +92,12 @@ export interface IRawLandingPage {
 
 export class LandingPage {
   id: number;
+  isSelected?: boolean;
   currentStep: string;
   status: string;
   createdAt: string;
   detail: ILandingPageDetail;
+  token?: string;
   contactInfo: IContactInfo;
 
   constructor(rawData: IRawLandingPage) {

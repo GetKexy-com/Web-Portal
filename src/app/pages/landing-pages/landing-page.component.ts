@@ -15,6 +15,7 @@ import {
   ListOfLandingPageTableComponent,
 } from '../../components/list-of-landing-page-table/list-of-landing-page-table.component';
 import { CommonModule } from '@angular/common';
+import { LandingPage } from '../../models/LandingPage';
 
 @Component({
   selector: 'app-landing-pages',
@@ -31,14 +32,14 @@ export class LandingPageComponent implements OnInit {
   isWaitingFlag: boolean = false;
   initialLoads = true;
   isLoading = false;
-  landingPageList = [];
+  landingPages: LandingPage[] = [];
   page = 1;
   limit = 25;
   userData;
   dripCampaignTitles;
   totalPageCounts;
   totalRecordsCount;
-  selectedLandingPages = [];
+  selectedLandingPages: LandingPage[] = [];
   campaignTitles;
   campaignDetails;
   products;
@@ -75,7 +76,7 @@ export class LandingPageComponent implements OnInit {
       }),
     ]);
     await this.getListOfLandingPage();
-    console.log('landingpagelist', this.landingPageList);
+    console.log('landingpagelist', this.landingPages);
 
     this.isWaitingFlag = false;
     this.initialLoads = false;
@@ -114,10 +115,10 @@ export class LandingPageComponent implements OnInit {
     };
     // const tempDealList = [];
     try {
-      const data = await this.campaignService.getListOfCampaigns(postData); // getListOfCampaigns
+      const data = await this.campaignService.getListOfLandingPage(postData);
       this.totalPageCounts = data['totalPageCounts'];
       this.totalRecordsCount = data['totalRecords'];
-      this.landingPageList = data['promotions'];
+      this.landingPages = data['landingPages'];
 
     } catch (e) {
       await Swal.fire('Error', e.message, 'error');
@@ -218,17 +219,17 @@ export class LandingPageComponent implements OnInit {
 
   handleContactSelect = (selectedRow, isSelectAll) => {
     if (isSelectAll) {
-      if (this.landingPageList.some((i) => i.is_selected)) {
-        this.landingPageList.map((i) => {
-          i.is_selected = false;
+      if (this.landingPages.some((i) => i.isSelected)) {
+        this.landingPages.map((i) => {
+          i.isSelected = false;
           const index = this.selectedLandingPages.findIndex((j) => j.id === i.id);
           if (index > -1) {
             this.selectedLandingPages.splice(index, 1);
           }
         });
       } else {
-        this.landingPageList.map((i) => {
-          i.is_selected = true;
+        this.landingPages.map((i) => {
+          i.isSelected = true;
           const index = this.selectedLandingPages.findIndex((j) => j.id === i.id);
           if (index === -1) {
             this.selectedLandingPages.push(i);
@@ -236,16 +237,16 @@ export class LandingPageComponent implements OnInit {
         });
       }
     } else {
-      const rowIndex = this.landingPageList.findIndex((i) => i.id === selectedRow.id);
-      this.landingPageList[rowIndex].is_selected = !this.landingPageList[rowIndex].is_selected;
+      const rowIndex = this.landingPages.findIndex((i) => i.id === selectedRow.id);
+      this.landingPages[rowIndex].isSelected = !this.landingPages[rowIndex].isSelected;
 
-      if (this.landingPageList[rowIndex].is_selected) {
-        const index = this.selectedLandingPages.findIndex((j) => j.id === this.landingPageList[rowIndex].id);
+      if (this.landingPages[rowIndex].isSelected) {
+        const index = this.selectedLandingPages.findIndex((j) => j.id === this.landingPages[rowIndex].id);
         if (index === -1) {
-          this.selectedLandingPages.push(this.landingPageList[rowIndex]);
+          this.selectedLandingPages.push(this.landingPages[rowIndex]);
         }
       } else {
-        const index = this.selectedLandingPages.findIndex((j) => j.id === this.landingPageList[rowIndex].id);
+        const index = this.selectedLandingPages.findIndex((j) => j.id === this.landingPages[rowIndex].id);
         if (index > -1) {
           this.selectedLandingPages.splice(index, 1);
         }
@@ -263,7 +264,7 @@ export class LandingPageComponent implements OnInit {
   isUrlCopied: boolean = false;
   copyUrl = async () => {
     console.log(this.selectedLandingPages);
-    const url = environment.siteUrl + '/landing-page?id=' + this.selectedLandingPages[0].campaign.token;
+    const url = environment.siteUrl + '/landing-page?id=' + this.selectedLandingPages[0].token;
     await navigator.clipboard.writeText(url);
 
     this.isUrlCopied = true;

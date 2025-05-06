@@ -34,8 +34,8 @@
 
 <!--        &lt;!&ndash; product - start &ndash;&gt;-->
 
-<!--        <ng-container *ngIf="!isWaitingFlag && cardData.length > 0">-->
-<!--          <tr class="n-product" *ngFor="let row of cardData; let i = index" (click)="handleClickRadioButton(row)">-->
+<!--        <ng-container *ngIf="!isWaitingFlag && landingPages.length > 0">-->
+<!--          <tr class="n-product" *ngFor="let row of landingPages; let i = index" (click)="handleClickRadioButton(row)">-->
 <!--            <ng-container *ngFor="let column of columnList">-->
 <!--              <td-->
 <!--                [style.width]="column.width"-->
@@ -81,7 +81,7 @@
 <!--            </ng-container>-->
 <!--          </tr>-->
 <!--        </ng-container>-->
-<!--        <ng-container *ngIf="!isWaitingFlag && cardData.length === 0">-->
+<!--        <ng-container *ngIf="!isWaitingFlag && landingPages.length === 0">-->
 <!--          <tr class="n-product">-->
 <!--            <td class="n-cell" [colSpan]="columnList.length">-->
 <!--              <span class="text-center d-inline-block w-100">Sorry, no data found.</span>-->

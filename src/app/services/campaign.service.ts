@@ -4,7 +4,7 @@ import { constants } from '../helpers/constants';
 import { HttpService } from './http.service';
 import { ActivatedRoute } from '@angular/router';
 import { environment } from '../../environments/environment';
-import { LandingPage, LandingPageStep, LandingPageType } from '../models/LandingPage';
+import { IRawLandingPage, LandingPage, LandingPageStep, LandingPageType } from '../models/LandingPage';
 
 @Injectable({
   providedIn: 'root',
@@ -682,8 +682,8 @@ export class CampaignService {
     this.contactInfoPageData = {};
   };
 
-  getListOfCampaigns = async (postData) => {
-    let tempDealList = [];
+  getListOfLandingPage = async (postData) => {
+    let landingPages: LandingPage[] = [];
 
     return new Promise(async (resolve, reject) => {
       const url = `landing-pages?page=${postData.page}&limit=${postData.limit}`;
@@ -696,38 +696,18 @@ export class CampaignService {
 
           let totalPageCounts = Math.ceil(res.data.total / postData.limit);
 
-          res.data.landingPages.forEach((campaign) => {
-            const details = campaign.detail;
-            let dealSingletem = {
-              id: campaign.id,
-              campaign_title_text: details.title.title,
-              campaign_details_text: details.innerDetail?.innerDetail,
-              product_name: details.prospectingProduct.name,
-              deal_image: environment.imageUrl + details.image,
-              deal_price: details.price,
-              type_of_campaign: details.landingPageType,
-              status: campaign.status,
-              analytics: {
-                impressions: '0',
-                clicks: '0',
-                ctr: '0%',
-              },
-              token: campaign.token,
-              action: '',
-              campaign,
-            };
-
-            tempDealList.push(dealSingletem);
+          res.data.landingPages.forEach((campaign: IRawLandingPage) => {
+            landingPages.push(new LandingPage(campaign));
           });
 
-          tempDealList.sort(function(a, b) {
+          landingPages.sort(function(a, b) {
             const a1 = a.id,
               b1 = b.id;
             if (a1 == b1) return 0;
             return a1 < b1 ? 1 : -1;
           });
 
-          resolve({ promotions: tempDealList, totalPageCounts, totalRecords: res.data.total });
+          resolve({ landingPages, totalPageCounts, totalRecords: res.data.total });
         }
       });
     });

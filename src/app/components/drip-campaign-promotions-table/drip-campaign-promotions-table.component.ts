@@ -18,7 +18,7 @@
 // export class DripCampaignPromotionsTableComponent {
 //   @Input() tableHeaderBg;
 //   @Input() tableHeaderColor;
-//   @Input() cardData;
+//   @Input() landingPages;
 //   @Input() isLoading: boolean = false;
 //   @Input() isWaitingFlag: boolean;
 //   @Input() promotionId;
