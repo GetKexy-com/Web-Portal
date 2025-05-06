@@ -1,4 +1,4 @@
-<div class="desktop-preview-content-wrap">
+<div class="desktop-preview-content-wrap" *ngIf="landingPage">
   <div class="top-mid-section-wrap">
     <div class="top-area">
       <div class="asset-and-buttons">
@@ -40,7 +40,7 @@
           <div
             class="kexy-tag"
           >
-            <span>{{landingPage.detail.landingPageType}}</span>
+            <span>{{ landingPage.detail.landingPageType }}</span>
           </div>
         </div>
         <div class="campaign-price-savings-specs-info-wrap">
@@ -63,10 +63,10 @@
         </div>
         <div class="validation-info-wrap">
           <div class="contents">
-<!--            <p *ngIf="landingPage.detail.start_date" class="date-range-text">-->
-<!--              Valid from {{ landingPage.detail.start_date | date : "MMM d, y" }} - till-->
-<!--              {{ landingPage.detail.end_date | date : "MMM d, y" }}-->
-<!--            </p>-->
+            <!--            <p *ngIf="landingPage.detail.start_date" class="date-range-text">-->
+            <!--              Valid from {{ landingPage.detail.start_date | date : "MMM d, y" }} - till-->
+            <!--              {{ landingPage.detail.end_date | date : "MMM d, y" }}-->
+            <!--            </p>-->
             <p class="offer-text">{{ campaignTitleText }}</p>
           </div>
           <div class="img-wrap">
@@ -94,10 +94,13 @@
 
   <div class="bottom-section">
 
-    <div class="btn-wrap" *ngFor="let button of buttonsList; let i = index;">
-      <app-kexy-button [label]="button.label" [bgColor]="i === 0 ? '' : 'transparent'"
-                       [borderColor]="i === 0 ? '' : 'black'" [textColor]="i === 0 ? '' : 'black'" iconSize="small"
-                       align="center"></app-kexy-button>
-    </div>
+<!--    <div class="btn-wrap" *ngFor="let button of buttonsList; let i = index;">-->
+<!--      <app-kexy-button-->
+<!--        (click)="sendEmailBtnClickHander(button)"-->
+<!--        [label]="button.label"-->
+<!--        [bgColor]="i === 0 ? '' : 'transparent'"-->
+<!--        [borderColor]="i === 0 ? '' : 'black'" [textColor]="i === 0 ? '' : 'black'" iconSize="small"-->
+<!--        align="center"></app-kexy-button>-->
+<!--    </div>-->
   </div>
 </div>

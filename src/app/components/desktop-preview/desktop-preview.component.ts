@@ -1,4 +1,4 @@
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, OnInit, Input, Output } from '@angular/core';
 import { CampaignService } from 'src/app/services/campaign.service';
 import { constants } from 'src/app/helpers/constants';
 import { environment } from 'src/environments/environment';
@@ -22,11 +22,13 @@ export class DesktopPreviewComponent implements OnInit {
   @Input() campaignTitleText: string = '';
   @Input() campaignDetailsText: string = '';
   @Input() productText: string = '';
+  @Input() landingPage: LandingPage;
+  @Input() sendEmailBtnClickHander;
   public readonly constants = constants;
   public distributorName: string = '';
   public repName: string = '';
   public imageUrl = '';
-  public landingPage: LandingPage;
+  // public landingPage: LandingPage;
   public products;
   public userData;
   public contactPerson: string = '';
@@ -37,7 +39,7 @@ export class DesktopPreviewComponent implements OnInit {
 
   async ngOnInit() {
     this.userData = this._authService.userTokenValue;
-    this.landingPage = this.campaignService.getLandingPage();
+    // this.landingPage = this.campaignService.getLandingPage();
     this.setContactPerson();
     this.setBottomButtonsList();
   }

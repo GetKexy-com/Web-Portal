@@ -7,6 +7,8 @@ import { Subscription } from "rxjs";
 import { NgbModal } from "@ng-bootstrap/ng-bootstrap";
 import {CommonModule, DecimalPipe, NgClass} from '@angular/common';
 import {FormsModule} from '@angular/forms';
+import { LandingPage } from '../../models/LandingPage';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'list-of-landing-page-table',
@@ -22,7 +24,7 @@ import {FormsModule} from '@angular/forms';
 export class ListOfLandingPageTableComponent {
   @Input() tableHeaderBg;
   @Input() tableHeaderColor;
-  @Input() cardData = [];
+  @Input() landingPages: LandingPage[] = [];
   @Input() selectedLandingPages;
   @Input() isLoading: boolean = false;
   @Input() isWaitingFlag: boolean;
@@ -94,7 +96,7 @@ export class ListOfLandingPageTableComponent {
 
   // selectedItemCount;
   // isNoItemSelected = () => {
-  //   this.selectedItemCount = this.cardData.filter((i) => i.is_selected).length;
+  //   this.selectedItemCount = this.landingPages.filter((i) => i.is_selected).length;
   //   return this.selectedItemCount === 0;
   // };
 
@@ -117,15 +119,16 @@ export class ListOfLandingPageTableComponent {
 
   selectedItemCount;
   getSelectedItemCount = () => {
-    this.selectedItemCount = this.cardData.filter((i) => i.is_selected).length;
+    this.selectedItemCount = this.landingPages.filter((i) => i.isSelected).length;
     return this.selectedItemCount;
   };
 
   getCheckboxIcon(): string {
     if (this.selectedItemCount === 0) return "fa fa-square-o checkbox-icon";
-    if (this.selectedItemCount > 0 && this.selectedItemCount < this.cardData.length) return "fa fa-minus-square-o";
+    if (this.selectedItemCount > 0 && this.selectedItemCount < this.landingPages.length) return "fa fa-minus-square-o";
     return "fa fa-check-square-o";
   }
 
   protected readonly constants = constants;
+  protected readonly environment = environment;
 }

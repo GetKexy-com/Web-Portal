@@ -19,6 +19,7 @@ import {CampaignLayoutBottmBtnsComponent} from '../campaign-layout-bottm-btns/ca
 import {CreateDripCampaignTitleComponent} from '../create-drip-campaign-title/create-drip-campaign-title.component';
 import {AddCalendlyLinkContentComponent} from '../add-calendly-link-content/add-calendly-link-content.component';
 import {AddWebsiteContentComponent} from '../add-website-content/add-website-content.component';
+import { LandingPage } from '../../models/LandingPage';
 
 @Component({
   selector: 'drip-campaign-content',
@@ -156,14 +157,14 @@ export class DripCampaignContentComponent implements OnInit {
       get_total_count: true,
       status: constants.ACTIVE,
     };
-    let data = await this.campaignService.getListOfCampaigns(postData);
-    if (!data["promotions"] || !data["promotions"].length) return;
+    let data = await this.campaignService.getListOfLandingPage(postData);
+    if (!data["landingPages"] || !data["landingPages"].length) return;
 
     this.promotionTitles = await this.campaignService.getAllCampaignTitle();
 
     this.totalPageCounts = data["totalPageCounts"];
     this.calculatePages();
-    data["promotions"].map(item => {
+    data["landingPages"].map(item => {
       const obj = {
         id: item.id,
         title_of_campaign: item.campaign_title_text,
@@ -672,7 +673,7 @@ export class DripCampaignContentComponent implements OnInit {
 //     };
 //
 //     try {
-//       const data = await this.campaignService.getListOfCampaigns(postData);
+//       const data = await this.campaignService.getListOfLandingPage(postData);
 //       if (!data["promotions"]?.length) return;
 //
 //       const promotionTitles: any = await this.campaignService.getAllCampaignTitle({

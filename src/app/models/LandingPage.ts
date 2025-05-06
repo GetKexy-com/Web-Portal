@@ -79,6 +79,7 @@ export interface IRawLandingPage {
   id: number;
   currentStep: string;
   status: string;
+  token?: string;
   createdAt: string;
   detail: Omit<ILandingPageDetail, 'prospectingProduct'> & {
     prospectingProduct: Omit<IProspectingProduct, 'descriptions'> & {
@@ -92,16 +93,19 @@ export interface IRawLandingPage {
 
 export class LandingPage {
   id: number;
+  isSelected?: boolean;
   currentStep: string;
   status: string;
   createdAt: string;
   detail: ILandingPageDetail;
+  token?: string;
   contactInfo: IContactInfo;
 
   constructor(rawData: IRawLandingPage) {
     this.id = rawData.id;
     this.currentStep = rawData.currentStep;
     this.status = rawData.status;
+    this.token = rawData.token;
     this.createdAt = rawData.createdAt;
 
     this.detail = {

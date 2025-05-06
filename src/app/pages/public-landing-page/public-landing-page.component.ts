@@ -13,10 +13,10 @@ import { KexyButtonComponent } from '../../components/kexy-button/kexy-button.co
 import { ErrorMessageCardComponent } from '../../components/error-message-card/error-message-card.component';
 import { KexyRichEditorComponent } from '../../components/kexy-rich-editor/kexy-rich-editor.component';
 import { BrandConvoAvatarComponent } from '../../components/brand-convo-avatar/brand-convo-avatar.component';
-import { LabelAndValueComponent } from '../../components/label-and-value/label-and-value.component';
-import { CommonModule, DatePipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LandingPage } from '../../models/LandingPage';
+import { DesktopPreviewComponent } from '../../components/desktop-preview/desktop-preview.component';
 
 @Component({
   selector: 'app-public-landing-page',
@@ -25,10 +25,9 @@ import { LandingPage } from '../../models/LandingPage';
     ErrorMessageCardComponent,
     KexyRichEditorComponent,
     BrandConvoAvatarComponent,
-    LabelAndValueComponent,
-    DatePipe,
     FormsModule,
     CommonModule,
+    DesktopPreviewComponent,
   ],
   templateUrl: './public-landing-page.component.html',
   styleUrl: './public-landing-page.component.scss',
@@ -124,7 +123,7 @@ export class PublicLandingPageComponent implements OnInit {
       id: this.promotionIdFromParams,
     };
     this.landingPage = await this.campaignService.getCampaignWithToken(postData);
-
+    console.log(this.landingPage);
     this.purchaseUrl = this.landingPage.contactInfo.transactionHandleUrl;
 
     const contactData = this.landingPage.contactInfo.questionReferredData;
@@ -210,39 +209,40 @@ export class PublicLandingPageComponent implements OnInit {
     this.updatedEmailContent = editor.getData();
   };
 
-  // addMessageToConversation = async () => {
-  //   this.submitted = true;
-  //
-  //   const postData = {
-  //     sender_name: this.userFullName,
-  //     sender_email: this.userEmailAddress,
-  //     sender_email_content: this.updatedEmailContent,
-  //     receiver_user_id: this.landingPage.,
-  //     product_name: this.productText,
-  //   };
-  //
-  //   this.loading = true;
-  //   const sendEmailApi = await this.httpService.post('prospect/sendEmailFromPromotionPublicUrl', postData);
-  //   const res = await lastValueFrom(sendEmailApi);
-  //   this.loading = false;
-  //   if (res.success) {
-  //     await Swal.fire({
-  //       title: `Success!`,
-  //       text: 'Email sent successfully.',
-  //       icon: 'success',
-  //     });
-  //     this.userFullName = '';
-  //     this.userEmailAddress = '';
-  //     this.modalRef.close();
-  //
-  //   } else {
-  //     await Swal.fire({
-  //       title: `Error`,
-  //       text: res.error.message,
-  //       icon: 'warning',
-  //     });
-  //   }
-  // };
+  addMessageToConversation = async () => {
+    this.submitted = true;
+
+    const postData = {
+      sender_name: this.userFullName,
+      sender_email: this.userEmailAddress,
+      sender_email_content: this.updatedEmailContent,
+      receiver_user_id: this.landingPage,
+      product_name: this.productText,
+    };
+    console.log(postData);
+
+    this.loading = true;
+    // const sendEmailApi = await this.httpService.post('prospect/sendEmailFromPromotionPublicUrl', postData);
+    // const res = await lastValueFrom(sendEmailApi);
+    // this.loading = false;
+    // if (res.success) {
+    //   await Swal.fire({
+    //     title: `Success!`,
+    //     text: 'Email sent successfully.',
+    //     icon: 'success',
+    //   });
+    //   this.userFullName = '';
+    //   this.userEmailAddress = '';
+    //   this.modalRef.close();
+    //
+    // } else {
+    //   await Swal.fire({
+    //     title: `Error`,
+    //     text: res.error.message,
+    //     icon: 'warning',
+    //   });
+    // }
+  };
 
   modalRef;
   sendMessageBtnClick = (modalContent) => {
