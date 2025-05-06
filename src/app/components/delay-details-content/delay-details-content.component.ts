@@ -39,7 +39,7 @@ export class DelayDetailsContentComponent {
     this.supplierId = this.userData.supplier_id;
     this.dripEmail = this.dripCampaignService.getEditEmail();
     console.log(this.dripEmail);
-    this.delay = this.dripEmail.delay_between_previous_email;
+    this.delay = this.dripEmail.delayBetweenPreviousEmail;
   }
 
   onDelayDaysChange = () => {
@@ -64,7 +64,7 @@ export class DelayDetailsContentComponent {
     }
 
     this.isLoading = true;
-    this.dripEmail.delay_between_previous_email = this.delay;
+    this.dripEmail.delayBetweenPreviousEmail = this.delay;
     // If drip email does not have an ID, it means user did not save it yet.
     // So we avoid calling the update api and only update local data and hide the canvas
     if (!this.dripEmail.id) {
@@ -75,9 +75,9 @@ export class DelayDetailsContentComponent {
       supplier_id: "",
       drip_campaign_id: this.dripEmail.drip_campaign_id,
       drip_campaign_email_id: this.dripEmail.id,
-      email_subject: this.dripEmail.email_subject,
-      email_content: this.dripEmail.email_content,
-      delay_between_previous_email: JSON.stringify(this.dripEmail.delay_between_previous_email),
+      email_subject: this.dripEmail.emailSubject,
+      email_content: this.dripEmail.emailContent,
+      delay_between_previous_email: JSON.stringify(this.dripEmail.delayBetweenPreviousEmail),
     };
     try {
       await this.dripCampaignService.updateDripCampaignEmail(postData);

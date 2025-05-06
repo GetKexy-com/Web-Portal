@@ -62,9 +62,10 @@
               class="ms-1"
               (click)="handleShowHideNumberOfEmailsInput()"
             >
-              <i class="fa fa-pencil" style="cursor: pointer" aria-hidden="true"></i></span></p>
+              <i class="fa fa-pencil" style="cursor: pointer" aria-hidden="true"></i></span>
+          </p>
           <p *ngIf="!numberOfEmailsInputShow"
-             class="day-text">{{ dripCampaign.drip_campaign_detail.number_of_emails }}</p>
+             class="day-text">{{ dripCampaign.details.numberOfEmails }}</p>
           <div *ngIf="numberOfEmailsInputShow" class="d-flex mt-2">
             <div class="d-flex">
               <input class="form-control number-of-email-input" type="number" min="1" [(ngModel)]="numberOfEmail"
@@ -92,7 +93,6 @@
         </div>
       </div>
       <div class="d-flex">
-
         <app-kexy-button
           (click)="openSettingsCanvas()"
           class="me-2"
@@ -103,7 +103,6 @@
           bgColor="#e7f6fe"
           textColor="#2847cc"
         ></app-kexy-button>
-
         <app-kexy-button
           *ngIf="emails.length"
           [class]="'me-2'"
@@ -125,22 +124,22 @@
           (click)="generateEmailContent()"
           radius="8px"
         ></app-kexy-button>
-        <app-kexy-button
-          *ngIf="dripCampaignStatus === constants.ACTIVE"
-          [label]="isContentLoading ? 'Please wait...' : 'Pause' "
-          [disabled]="isContentLoading || isSendEmailLoading"
-          [iconLeft]="isContentLoading ? 'fa-refresh fa-spin' : 'fa-pause'"
-          (click)="pauseOrResumeDripCampaign()"
-          radius="8px"
-        ></app-kexy-button>
-        <app-kexy-button
-          *ngIf="dripCampaignStatus === constants.PAUSE"
-          [label]="isContentLoading ? 'Please wait...' : 'Resume' "
-          [disabled]="isContentLoading || isSendEmailLoading"
-          [iconLeft]="isContentLoading ? 'fa-refresh fa-spin' : 'fa-play'"
-          (click)="pauseOrResumeDripCampaign()"
-          radius="8px"
-        ></app-kexy-button>
+<!--        <app-kexy-button-->
+<!--          *ngIf="dripCampaignStatus === constants.ACTIVE"-->
+<!--          [label]="isContentLoading ? 'Please wait...' : 'Pause' "-->
+<!--          [disabled]="isContentLoading || isSendEmailLoading"-->
+<!--          [iconLeft]="isContentLoading ? 'fa-refresh fa-spin' : 'fa-pause'"-->
+<!--          (click)="pauseOrResumeDripCampaign()"-->
+<!--          radius="8px"-->
+<!--        ></app-kexy-button>-->
+<!--        <app-kexy-button-->
+<!--          *ngIf="dripCampaignStatus === constants.PAUSE"-->
+<!--          [label]="isContentLoading ? 'Please wait...' : 'Resume' "-->
+<!--          [disabled]="isContentLoading || isSendEmailLoading"-->
+<!--          [iconLeft]="isContentLoading ? 'fa-refresh fa-spin' : 'fa-play'"-->
+<!--          (click)="pauseOrResumeDripCampaign()"-->
+<!--          radius="8px"-->
+<!--        ></app-kexy-button>-->
       </div>
     </div>
   </div>
@@ -156,7 +155,7 @@
         <drip-campaign-card
           headerIcon="/assets/icon/message-sent-white-icon.svg"
           [headerTitle]="'Send Email #' + (i + 1)"
-          [emailText]="email.email_subject"
+          [emailText]="email.emailSubject"
           [email]="email"
           clickRate="50% click rate"
           [showBlueBorder]="true"

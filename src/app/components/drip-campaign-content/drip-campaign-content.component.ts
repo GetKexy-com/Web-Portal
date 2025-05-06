@@ -200,12 +200,12 @@ export class DripCampaignContentComponent implements OnInit {
     });
   };
 
-  getCampaignTitle = (title_id) => {
-    const index = this.promotionTitles && this.promotionTitles.findIndex(i => i.id.toString() === title_id.toString());
-    if (index < 0) return;
-
-    return this.promotionTitles[index].title;
-  };
+  // getCampaignTitle = (title_id) => {
+  //   const index = this.promotionTitles && this.promotionTitles.findIndex(i => i.id.toString() === title_id.toString());
+  //   if (index < 0) return;
+  //
+  //   return this.promotionTitles[index].title;
+  // };
 
   getAndSetDripCampaignTitleSubscription = async () => {
     // Get dripCampaignTitles api call

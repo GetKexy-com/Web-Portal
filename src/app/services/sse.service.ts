@@ -199,13 +199,12 @@ export class SseService {
 
   dripBulkEmailContentStream = async (data) => {
     let emails: DripEmail[] = [];
-    let email_sequence = 1;
-    let email_subject = "";
-    let email_content = "";
-    let delay_between_previous_email: EmailDelay = { days: 3, hours: 0, minutes: 0 };
+    let emailSequence = 1;
+    let emailSubject = "";
+    let emailContent = "";
+    let delayBetweenPreviousEmail: EmailDelay = { days: 3, hours: 0, minutes: 0 };
     this._dripBulkEmailLoading.next(true);
     let subjectReady = false;
-    let newEmailStartWithSubjectChunk = "";
     const url = this.dripBulkEmailApiUrl;
     fetch(url, {
       method: "POST",
@@ -234,10 +233,10 @@ export class SseService {
             // completed previous dripEmail content So we push content of previous Email in here
             // and start the new dripEmail content.
             if (str.includes(this.newEmailStartSign)) {
-              let current_subject = email_subject;
-              let current_content = email_content;
-              email_subject = "";
-              email_content = "";
+              let current_subject = emailSubject;
+              let current_content = emailContent;
+              emailSubject = "";
+              emailContent = "";
               subjectReady = false;
 
               // There are times we get the stream like this - "thrilled##### \n\n^^Welcome to"
@@ -247,14 +246,14 @@ export class SseService {
               // add first part to the previous email_content, last part to the email_subject for next email
               let cleanStr = str.split(this.newEmailStartSign);
               current_content += cleanStr[0];
-              email_subject = cleanStr[1].replace(this.subjectStartSign, "");
+              emailSubject = cleanStr[1].replace(this.subjectStartSign, "");
 
               // Check if the subject has the end sign in here.
               // If it has then we have to end the subject and start the content
-              if(email_subject.indexOf(this.subjectEndSign) > -1 && !subjectReady) {
-                let newStr = email_subject.split(this.subjectEndSign);
-                email_subject = newStr[0];
-                email_content += newStr[1].replaceAll("\n\n", "<p>");
+              if(emailSubject.indexOf(this.subjectEndSign) > -1 && !subjectReady) {
+                let newStr = emailSubject.split(this.subjectEndSign);
+                emailSubject = newStr[0];
+                emailContent += newStr[1].replaceAll("\n\n", "<p>");
                 subjectReady = true;
               }
 
@@ -262,15 +261,15 @@ export class SseService {
                 current_content = current_content.replaceAll("\n\n", "<p>");
                 current_content = current_content.replaceAll("\n", "<br>");
                 const email: DripEmail = {
-                  delay_between_previous_email,
-                  email_sequence,
-                  email_subject: current_subject,
-                  email_content: current_content,
+                  delayBetweenPreviousEmail,
+                  emailSequence,
+                  emailSubject: current_subject,
+                  emailContent: current_content,
                 };
                 emails.push(email);
                 this.addToDripBulkEmails(emails);
                 // Increment email_sequence by 1 so next dripEmail sequence is set to next number.
-                email_sequence += 1;
+                emailSequence += 1;
               }
 
               // !!!! IMPORTANT !!!
@@ -285,35 +284,35 @@ export class SseService {
             if (str.includes(this.subjectStartSign)) {
               // AI send "Subject:" as one stream object for 1st dripEmail. So we filter it here.
               str = str.replace(this.subjectStartSign, "");
-              email_subject += str;
+              emailSubject += str;
             } else {
               let contentStart = false;
 
               if (str.indexOf(this.subjectEndSign) === -1 && !subjectReady) {
-                email_subject += str;
+                emailSubject += str;
               } else if (str.indexOf(this.subjectEndSign) > -1 && !subjectReady) {
                 let newStr = str.split(this.subjectEndSign);
-                email_subject += newStr[0];
-                email_content += newStr[1].replaceAll("\n\n", "<p>");
+                emailSubject += newStr[0];
+                emailContent += newStr[1].replaceAll("\n\n", "<p>");
                 subjectReady = true;
               } else if (subjectReady) {
                 if (!contentStart) {
                   contentStart = true;
                 }
-                email_content += str;
+                emailContent += str;
               }
             }
           }
 
           if (done) {
-            if (email_subject && email_content) {
-              email_content = email_content.replaceAll("\n\n", "<p>");
-              email_content = email_content.replaceAll("\n", "<br>");
+            if (emailSubject && emailContent) {
+              emailContent = emailContent.replaceAll("\n\n", "<p>");
+              emailContent = emailContent.replaceAll("\n", "<br>");
               const email: DripEmail = {
-                delay_between_previous_email,
-                email_sequence,
-                email_subject,
-                email_content,
+                delayBetweenPreviousEmail,
+                emailSequence,
+                emailSubject,
+                emailContent,
               };
               emails.push(email);
               this.addToDripBulkEmails(emails);
@@ -346,9 +345,11 @@ export class SseService {
   updateDripBulkEmail(email) {
     let emails = [...this._dripBulkEmails.getValue()];
     // If user update email that was not saved to DB yet.
+    console.log('email', email);
+    console.log('allEmails', emails);
     let index = -1;
     if (!email.id) {
-      index = emails.findIndex((e) => e.email_sequence === email.email_sequence);
+      index = emails.findIndex((e) => e.emailSequence === email.emailSequence);
     } else {
       index = emails.findIndex((e) => e.id === email.id);
     }

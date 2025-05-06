@@ -134,11 +134,11 @@ export class BrandDripCampaignComponent implements OnInit, OnDestroy {
       supplier_id: this.userData.supplier_id,
     };
     const campaign = await this.dripCampaignService.getCampaign(postData);
-
-    if (campaign && campaign["current_step"] === constants.CAMPAIGN_CONTENT) {
+    console.log('campaign', campaign);
+    if (campaign && campaign["currentStep"] === constants.CAMPAIGN_CONTENT) {
       this.currentStep = 1;
     }
-    if (campaign && campaign["current_step"] === constants.GENERATE_EMAILS) {
+    if (campaign && campaign["currentStep"] === constants.GENERATE_EMAILS) {
       this.currentStep = 2;
     }
     if (campaign && this.dripCampaignDuplicate) {

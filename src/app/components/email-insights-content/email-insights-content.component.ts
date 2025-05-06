@@ -14,7 +14,7 @@ import {InsightsContactsOrLinksComponent} from '../insights-contacts-or-links/in
   templateUrl: './email-insights-content.component.html',
   styleUrl: './email-insights-content.component.scss'
 })
-export class EmailInsightsContentComponent {
+export class EmailInsightsContentComponent implements OnInit{
   sentEmailCount = 0;
   insightsData;
   insights: object[] = [];

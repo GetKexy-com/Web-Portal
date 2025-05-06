@@ -4,7 +4,6 @@ import { NgbModal, NgbOffcanvas } from "@ng-bootstrap/ng-bootstrap";
 import { AuthService } from "../../services/auth.service";
 import { Subscription } from "rxjs";
 import Swal from "sweetalert2";
-import * as linkify from "linkifyjs";
 import { DripCampaignService } from "../../services/drip-campaign.service";
 import { routeConstants } from "../../helpers/routeConstants";
 import { ActivatedRoute, Router } from "@angular/router";
@@ -13,7 +12,6 @@ import { SseService } from "../../services/sse.service";
 import { ProspectingService } from "../../services/prospecting.service";
 import { CampaignService } from "../../services/campaign.service";
 import { DUMMY_PROSPECT } from "../../models/ProspectContact";
-import { PageUiService } from "../../services/page-ui.service";
 import {KexySelectDropdownComponent} from '../kexy-select-dropdown/kexy-select-dropdown.component';
 import {KexyButtonComponent} from '../kexy-button/kexy-button.component';
 import {ErrorMessageCardComponent} from '../error-message-card/error-message-card.component';
@@ -45,7 +43,7 @@ import {CommonModule} from '@angular/common';
   templateUrl: './generate-drip-campaign.component.html',
   styleUrl: './generate-drip-campaign.component.scss'
 })
-export class GenerateDripCampaignComponent {
+export class GenerateDripCampaignComponent implements OnInit {
   @Input() nextBtnClick;
   @Input() backBtnClick;
   userData;
@@ -126,11 +124,13 @@ export class GenerateDripCampaignComponent {
       }
     });
     this.emailsSubscription = this.sseService.dripBulkEmails.subscribe((emails: DripEmail[]) => {
+      console.log('emails', emails);
       this.emails = emails;
       this.emails.forEach(e => {
-        const delay = e.delay_between_previous_email;
+        const delay = e.delayBetweenPreviousEmail;
         e["emailText"] = `${delay.days} day(s) ${delay.hours} hour(s) ${delay.minutes} minute(s)`;
       });
+
       this.scroll = true;
       if (!this.disableScroll) {
         setTimeout(() => {
@@ -142,15 +142,15 @@ export class GenerateDripCampaignComponent {
       this.dripCampaignStatus = status;
     });
     this.showAiEmailError();
-    this.numberOfEmail = this.dripCampaign.drip_campaign_detail.number_of_emails;
+    this.numberOfEmail = this.dripCampaign.details.numberOfEmails;
 
-    if (this.dripCampaign.drip_campaign_detail.campaign_id) {
+    if (this.dripCampaign.details.campaignId) {
       this.getCampaignThenProductName();
     }
 
     // Set 1st index as the default which is 'short' if not find anything in service for this field
     // const emailLength = this.dripCampaignService.getEmailLength();
-    const emailLength = this.dripCampaign?.drip_campaign_detail?.email_length;
+    const emailLength = this.dripCampaign?.details?.emailLength;
     if (emailLength) {
       const index = this.emailLengthKeys.findIndex(i => i.value === emailLength);
       this.onEmailLengthSelect(this.emailLengthKeys[index]);
@@ -160,7 +160,7 @@ export class GenerateDripCampaignComponent {
 
     // Set 1st index as the default which is 'Friendly' if not find anything in service for this field
     // const emailTone = this.dripCampaignService.selectedEmailTone;
-    const emailTone = this.dripCampaign?.drip_campaign_detail?.email_tone;
+    const emailTone = this.dripCampaign?.details?.emailTone;
     if (emailTone) {
       const index = this.emailTones.findIndex(i => i.value === emailTone);
       this.onEmailToneSelect(this.emailTones[index]);
@@ -177,8 +177,8 @@ export class GenerateDripCampaignComponent {
     };
     try {
       await this.dripCampaignService.getProspects(postData);
-      this.dripCampaignProspectsSubscription = this.dripCampaignService.dripCampaignProspects.subscribe(prospects => {
-        this.dripCampaignProspects = prospects;
+      this.dripCampaignProspectsSubscription = this.dripCampaignService.dripCampaignProspects.subscribe(data => {
+        this.dripCampaignProspects = data["prospects"];
       });
 
     } catch (e) {
@@ -199,7 +199,7 @@ export class GenerateDripCampaignComponent {
   getCampaignThenProductName = async () => {
     // Get campaign api call
     const postData = {
-      campaign_id: this.dripCampaign.drip_campaign_detail.campaign_id,
+      campaign_id: this.dripCampaign.details.campaignId,
       supplier_id: this.userData.supplier_id,
     };
     const campaign = await this.campaignService.getCampaign(postData);
@@ -253,20 +253,20 @@ export class GenerateDripCampaignComponent {
   generateEmailContent = async () => {
     this.emails = [];
     const data = {
-      count: this.dripCampaign.drip_campaign_detail.number_of_emails,
-      email_tone: this.selectedEmailToneKey || this.dripCampaign.drip_campaign_detail.email_tone,
+      count: this.dripCampaign.details.numberOfEmails,
+      email_tone: this.selectedEmailToneKey || this.dripCampaign.details.emailTone,
       sender_name: this.userData.first_name + " " + this.userData.last_name,
       sender_number: this.userData.phone_country_code + this.userData.phone,
       sender_company_name: this.userData.supplier_name,
-      sender_website: this.dripCampaign.drip_campaign_detail.website_url || "",
-      sender_calendly_link: this.dripCampaign.drip_campaign_detail.calendly_link || "",
+      sender_website: this.dripCampaign.details.websiteUrl || "",
+      sender_calendly_link: this.dripCampaign.details.calendlyLink || "",
       sender_company_details: this.userData.company_description,
       sender_product_name: this.selectedPromotionsProductName,
       sender_product_category: "",
       sender_product_description: "",
       email_length: this.selectedEmailLength.key,
-      target_audience: this.dripCampaign.target_audience,
-      email_about: this.dripCampaign.email_about,
+      target_audience: this.dripCampaign.targetAudience,
+      email_about: this.dripCampaign.emailAbout,
       promotion_info: !!this.selectedPromotionsProductName,
     };
     await this.sseService.dripBulkEmailContentStream(data);
@@ -407,23 +407,22 @@ export class GenerateDripCampaignComponent {
     const formattedEmails = [];
     this.emails.forEach((e, index) => {
       const email = {
-        ...e,
-        delay_between_previous_email: JSON.stringify(e.delay_between_previous_email),
-        email_length: this.selectedEmailLength.value,
-        email_tone: this.selectedEmailToneKey,
+        emailSequence: e.emailSequence,
+        emailSubject: e.emailSubject,
+        emailContent: e.emailContent,
+        delayBetweenPreviousEmail: JSON.stringify(e.delayBetweenPreviousEmail),
+        emailLength: this.selectedEmailLength.value,
+        emailTone: this.selectedEmailToneKey,
       };
       formattedEmails.push(email);
     });
 
     try {
       const postData = {
-        drip_campaign_id: this.dripCampaignId,
-        save_emails: "false",
+        dripCampaignId: this.dripCampaignId,
+        saveEmails: save === "true" ? "true" : "false",
         emails: formattedEmails,
       };
-      if (save === "true") {
-        postData["save_emails"] = "true";
-      }
       await this.dripCampaignService.publishDripCampaign(postData);
 
     } catch (e) {
@@ -476,56 +475,53 @@ export class GenerateDripCampaignComponent {
 
   protected readonly constants = constants;
 
-  pauseOrResumeDripCampaign = async () => {
-    let isConfirm = await Swal.fire({
-      title: "Are you sure?",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: this.dripCampaign.status === constants.ACTIVE ? "Yes, Pause!" : "Yes, Resume!",
-    });
-
-    if (isConfirm.dismiss) {
-      return;
-    }
-
-    this.isContentLoading = true;
-    const payload = {
-      drip_campaign_id: this.dripCampaign.id,
-      supplier_id: this.userData.supplier_id,
-      allowed_credit_limit: this.dripCampaign.allowed_credit_limit,
-      drip_campaign_title_id: this.dripCampaign.drip_campaign_detail.drip_campaign_title_id,
-      number_of_emails: this.dripCampaign.drip_campaign_detail.number_of_emails,
-      website_url: this.dripCampaign.drip_campaign_detail.website_url || "",
-      calendly_link: this.dripCampaign.drip_campaign_detail.calendly_link || "",
-      campaign_id: this.dripCampaign.drip_campaign_detail.campaign_id,
-      supplier_side: this.dripCampaign.supplier_side,
-      status: this.dripCampaign.status === constants.ACTIVE ? constants.PAUSE : constants.ACTIVE,
-      establishment_search_type: this.dripCampaign.establishment_search_type,
-      establishment_search_value: this.dripCampaign.establishment_search_value,
-      target_audience: this.dripCampaign.target_audience,
-      email_about: this.dripCampaign.email_about,
-      audience_type: this.dripCampaign.audience_type,
-      email_tone: this.selectedEmailToneKey,
-      email_length: this.selectedEmailLength.value,
-    };
-
-    try {
-      await this.dripCampaignService.createOrUpdateDripCampaign(payload);
-      const postData = {
-        drip_campaign_id: this.dripCampaignId,
-        supplier_id: this.userData.supplier_id,
-      };
-      this.dripCampaign = await this.dripCampaignService.getCampaign(postData);
-
-      this.isContentLoading = false;
-
-    } catch (e) {
-      console.log(e);
-      this.isContentLoading = false;
-    }
-  };
+  // pauseOrResumeDripCampaign = async () => {
+  //   let isConfirm = await Swal.fire({
+  //     title: "Are you sure?",
+  //     icon: "warning",
+  //     showCancelButton: true,
+  //     confirmButtonColor: "#3085d6",
+  //     cancelButtonColor: "#d33",
+  //     confirmButtonText: this.dripCampaign.status === constants.ACTIVE ? "Yes, Pause!" : "Yes, Resume!",
+  //   });
+  //
+  //   if (isConfirm.dismiss) {
+  //     return;
+  //   }
+  //
+  //   this.isContentLoading = true;
+  //   const payload = {
+  //     drip_campaign_id: this.dripCampaign.id,
+  //     supplier_id: this.userData.supplier_id,
+  //     allowed_credit_limit: 1,
+  //     drip_campaign_title_id: this.dripCampaign.details.title.id,
+  //     number_of_emails: this.dripCampaign.details.numberOfEmails,
+  //     website_url: this.dripCampaign.details.websiteUrl || "",
+  //     calendly_link: this.dripCampaign.details.calendlyLink || "",
+  //     campaign_id: this.dripCampaign.details.campaignId,
+  //     status: this.dripCampaign.status === constants.ACTIVE ? constants.PAUSE : constants.ACTIVE,
+  //     target_audience: this.dripCampaign.targetAudience,
+  //     email_about: this.dripCampaign.emailAbout,
+  //     audience_type: this.dripCampaign.audienceType,
+  //     email_tone: this.selectedEmailToneKey,
+  //     email_length: this.selectedEmailLength.value,
+  //   };
+  //
+  //   try {
+  //     await this.dripCampaignService.createOrUpdateDripCampaign(payload);
+  //     const postData = {
+  //       drip_campaign_id: this.dripCampaignId,
+  //       supplier_id: this.userData.supplier_id,
+  //     };
+  //     this.dripCampaign = await this.dripCampaignService.getCampaign(postData);
+  //
+  //     this.isContentLoading = false;
+  //
+  //   } catch (e) {
+  //     console.log(e);
+  //     this.isContentLoading = false;
+  //   }
+  // };
 
   numberOfEmailsInputShow = false;
   handleShowHideNumberOfEmailsInput = () => {
@@ -536,30 +532,27 @@ export class GenerateDripCampaignComponent {
     this.numberOfEmailUpdateApiLoading = true;
 
     const payload = {
-      drip_campaign_id: this.dripCampaign.id,
-      supplier_id: this.dripCampaign.supplier_id,
-      allowed_credit_limit: this.dripCampaign.allowed_credit_limit,
-      drip_campaign_title_id: this.dripCampaign.drip_campaign_detail.drip_campaign_title_id,
-      number_of_emails: this.numberOfEmail,
-      email_tone: this.dripCampaign.drip_campaign_detail.email_tone,
-      website_url: this.dripCampaign.drip_campaign_detail.website_url || "",
-      calendly_link: this.dripCampaign.drip_campaign_detail.calendly_link || "",
-      campaign_id: this.dripCampaign.drip_campaign_detail.campaign_id,
-      supplier_side: this.dripCampaign.supplier_side,
+      dripCampaignId: this.dripCampaign.id,
+      companyId: this.dripCampaign.company.id,
+      dripCampaignTitleId: this.dripCampaign.details.title.id,
+      numberOfEmails: this.numberOfEmail,
+      emailTone: this.dripCampaign.details.emailTone,
+      websiteUrl: this.dripCampaign.details.websiteUrl || "",
+      campaignId: this.dripCampaign.details.campaignId,
       status: this.dripCampaign.status,
-      establishment_search_type: this.dripCampaign.establishment_search_type,
-      establishment_search_value: this.dripCampaign.establishment_search_value,
-      target_audience: this.dripCampaign.target_audience,
-      email_about: this.dripCampaign.email_about,
-      audience_type: this.dripCampaign.audience_type,
-      email_length: this.selectedEmailLength.value,
+      targetAudience: this.dripCampaign.targetAudience,
+      emailAbout: this.dripCampaign.emailAbout,
+      audienceType: this.dripCampaign.audienceType,
+      emailLength: this.selectedEmailLength.value,
     };
+    if (this.dripCampaign.details.calendlyLink) {
+      payload["calendlyLink"] = this.dripCampaign.details.calendlyLink;
+    }
 
     try {
       await this.dripCampaignService.createOrUpdateDripCampaign(payload);
       const postData = {
         drip_campaign_id: this.dripCampaignId,
-        supplier_id: this.userData.supplier_id,
       };
       this.dripCampaign = await this.dripCampaignService.getCampaign(postData);
       this.numberOfEmailsInputShow = false;

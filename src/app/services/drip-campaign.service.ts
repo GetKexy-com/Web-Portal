@@ -1,8 +1,9 @@
-import { Injectable } from "@angular/core";
-import { BehaviorSubject } from "rxjs";
-import { HttpService } from "./http.service";
-import { CampaignService } from "./campaign.service";
-import { SseService } from "./sse.service";
+import {Injectable} from "@angular/core";
+import {BehaviorSubject} from "rxjs";
+import {HttpService} from "./http.service";
+import {CampaignService} from "./campaign.service";
+import {SseService} from "./sse.service";
+import {DripCampaign, IRawDripCampaign} from '../models/DripCampaign';
 
 @Injectable({
   providedIn: 'root'
@@ -31,10 +32,10 @@ export class DripCampaignService {
   public editDripCampaignTitleItem;
   public emailEditItem;
   public hasPromotion;
-  public allDripCampaigns = [];
+  public allDripCampaigns: DripCampaign[] = [];
   public selectedDripCampaignType;
   public selectedLaunchDripCampaignType;
-  private dripCampaignContentPageData = {};
+  private dripCampaign: DripCampaign = DripCampaign.empty();
   public emailProspects = [];
   public insightApiPostData;
   public suppressionListApiPostData;
@@ -47,28 +48,29 @@ export class DripCampaignService {
   }
 
   getDripCampaignContentPageData = () => {
-    return this.dripCampaignContentPageData;
+    return this.dripCampaign;
   };
 
   removeDripCampaign = () => {
-    this.dripCampaignContentPageData = {};
+    this.dripCampaign = DripCampaign.empty();
     this.campaignService.setSearchEstablishmentPageData({});
   };
 
-  setPagesData = (dripCampaign) => {
+  setDripCampaign = (dripCampaign: DripCampaign) => {
     const dripCampaignContent = dripCampaign.details;
     if (Object.keys(dripCampaignContent).length > 0) {
-      this.dripCampaignContentPageData = dripCampaign;
-      if (dripCampaign.establishment_search_type && dripCampaign.establishment_search_value) {
-        this.campaignService.makeDataStructureAndSetSearchEstablishmentpageData(dripCampaign);
-      }
+      this.dripCampaign = dripCampaign;
+      // if (dripCampaign.establishment_search_type && dripCampaign.establishment_search_value) {
+      //   this.campaignService.makeDataStructureAndSetSearchEstablishmentpageData(dripCampaign);
+      // }
     }
   };
 
   getCampaign = async (postData) => {
     this._loading.next(true);
     return new Promise(async (resolve, reject) => {
-      this.httpService.get(`drip-campaigns/${postData.drip_campaign_id}`).subscribe((res) => {
+      const url = `drip-campaigns/${postData.drip_campaign_id}`;
+      this.httpService.get(url).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             this._loading.next(false);
@@ -77,15 +79,11 @@ export class DripCampaignService {
         } else {
           if (res.data) {
             // Set page data
-            console.log('res data', res.data);
             let campaign = res.data;
-            this.setPagesData(campaign);
+            const dripCampaign = new DripCampaign(res.data);
+            this.setDripCampaign(dripCampaign);
             this._dripCampaignStatus.next(campaign.status);
-            const emails = campaign.drip_campaign_emails;
-            emails.forEach(email => {
-              email.delay_between_previous_email = JSON.parse(email.delay_between_previous_email);
-            });
-            this.sseService.addToDripBulkEmails(emails);
+            this.sseService.addToDripBulkEmails(dripCampaign.emails);
             this._loading.next(false);
             resolve(campaign);
           } else {
@@ -141,7 +139,9 @@ export class DripCampaignService {
 
   updateDripCampaign = (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.patch(`drip-campaigns/${postData.dripCampaignId}`, postData).subscribe((res) => {
+      const url = `drip-campaigns/${postData.dripCampaignId}`;
+      delete postData.dripCampaignId;
+      this.httpService.patch(url, postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             this._loading.next(false);
@@ -157,13 +157,15 @@ export class DripCampaignService {
 
   updateDripCampaignEmail = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("drip-campaigns/updateEmail", postData).subscribe((res) => {
+      const url = `drip-campaigns/email/${postData.drip_campaign_email_id}`;
+      delete postData.drip_campaign_email_id;
+      this.httpService.patch(url, postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
           }
         } else {
-          // this.dripCampaignContentPageData = postData;
+          // this.dripCampaign = postData;
           resolve(res.data.id);
         }
       });
@@ -192,7 +194,7 @@ export class DripCampaignService {
             reject(res.error);
           }
         } else {
-          // this.dripCampaignContentPageData = postData;
+          // this.dripCampaign = postData;
           resolve(true);
         }
       });
@@ -224,7 +226,7 @@ export class DripCampaignService {
             reject(res.error);
           }
         } else {
-          let item = { ...res.data };
+          let item = {...res.data};
           campaignTitles.push(item);
           resolve(true);
           this._dripCampaignTitles.next(campaignTitles);
@@ -322,14 +324,14 @@ export class DripCampaignService {
           let totalPageCounts = Math.ceil(res.data.total / limit);
           let totalRecordsCount = res.data.total;
 
-          res.data.drip_campaigns.sort(function(a, b) {
+          res.data.drip_campaigns.sort(function (a, b) {
             const a1 = a.id,
               b1 = b.id;
             if (a1 == b1) return 0;
             return a1 < b1 ? 1 : -1;
           });
 
-          resolve({ dripCampaigns: res.data.drip_campaigns, totalPageCounts, totalRecordsCount });
+          resolve({dripCampaigns: res.data.drip_campaigns, totalPageCounts, totalRecordsCount});
         }
       });
     });
@@ -349,25 +351,23 @@ export class DripCampaignService {
     });
   };
 
-  getListOfDripCampaignsWithoutPagination = async (postData, overwrite = false) => {
-    if (this.allDripCampaigns.length > 0 && !overwrite) {
-      return this.allDripCampaigns;
-    }
+  getListOfDripCampaignsWithoutPagination = async (overwrite = false): Promise<DripCampaign[]> => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("drip-campaigns/getAll", postData).subscribe((res) => {
+      if (this.allDripCampaigns?.length > 0 && !overwrite) {
+        resolve(this.allDripCampaigns);
+        return;
+      }
+      this.httpService.get("drip-campaigns").subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
           }
 
         } else {
-          res.data.drip_campaigns.sort(function(a, b) {
-            const a1 = a.id,
-              b1 = b.id;
-            if (a1 == b1) return 0;
-            return a1 < b1 ? 1 : -1;
-          });
-          this.allDripCampaigns = res.data.drip_campaigns;
+          //this.allDripCampaigns = res.data;
+          res.data.forEach((rawData: IRawDripCampaign) => {
+            this.allDripCampaigns.push(new DripCampaign(rawData))
+          })
 
           resolve(this.allDripCampaigns);
         }
@@ -531,7 +531,8 @@ export class DripCampaignService {
 
   getProspects = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("drip-campaigns/getProspects", postData).subscribe((res) => {
+      const url = `drip-campaigns/${postData.drip_campaign_id}/prospects`;
+      this.httpService.get(url).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -562,7 +563,8 @@ export class DripCampaignService {
 
   insights = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("drip-campaigns/insights", postData).subscribe((res) => {
+      const url = `drip-campaigns/${postData.drip_campaign_id}/insights?emailId=${postData.drip_campaign_email_id}`;
+      this.httpService.get(url).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);

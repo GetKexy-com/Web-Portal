@@ -92,13 +92,7 @@ export class BrandLaunchDripCampaignComponent {
   };
 
   getDripCampaignsApiCall = async () => {
-    const postData = {
-      page: 1,
-      supplier_id: this.userData.supplier_id,
-      limit: 1000,
-      get_total_count: false,
-    };
-    this.dripCampaignList = await this.dripCampaignService.getListOfDripCampaignsWithoutPagination(postData, true);
+    this.dripCampaignList = await this.dripCampaignService.getListOfDripCampaignsWithoutPagination(true);
     if (this.dripCampaignList.length) {
       this.dripCampaignList = this.dripCampaignList.filter(i => {
         return (i.status === constants.PUBLISHED || i.status === constants.ACTIVE);

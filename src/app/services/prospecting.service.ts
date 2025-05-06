@@ -6,6 +6,7 @@ import { ProspectContact } from '../models/ProspectContact';
 import { offPremiseQOrganizationKeywordTags } from '../helpers/campaign-premise-constants';
 import { routeConstants } from '../helpers/routeConstants';
 import { CampaignService } from './campaign.service';
+import {List} from '../models/List';
 
 @Injectable({
   providedIn: 'root',
@@ -666,20 +667,21 @@ export class ProspectingService {
     }
 
     return new Promise(async (resolve, reject) => {
-      this.httpService.post('contacts/getLabelsOnly', postData).subscribe((res) => {
+      const url = `lists?page=${postData.page}&limit=${postData.limit}`;
+      this.httpService.get(url).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
           }
         } else {
           resolve(true);
-          let labels = res.data;
+          let data = new List(res.data);
 
           const key = `${page ? page : this.manageListCurrentPage}${limit ? limit : this.manageListLimit}`;
-          this.cachedLabelsOnly[key] = { data: labels };
+          this.cachedLabelsOnly[key] = { data: data.lists };
 
-          this.totalListCount = res.total;
-          this._labelsOnly.next(labels);
+          this.totalListCount = data.total;
+          this._labelsOnly.next(data.lists);
         }
       });
     });

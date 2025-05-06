@@ -18,7 +18,7 @@ import {KexyButtonComponent} from '../kexy-button/kexy-button.component';
   templateUrl: './drip-campaign-card.component.html',
   styleUrl: './drip-campaign-card.component.scss'
 })
-export class DripCampaignCardComponent {
+export class DripCampaignCardComponent implements OnInit {
   @Input() headerIcon;
   @Input() headerTitle;
   @Input() emailText;
@@ -48,7 +48,6 @@ export class DripCampaignCardComponent {
     this.dripCampaignStatusSubscription = this.dripCampaignService.dripCampaignStatus.subscribe(status => {
       this.dripCampaignStatus = status;
     });
-
   }
 
   handleShowDetailsBtnClick = () => {
@@ -61,7 +60,7 @@ export class DripCampaignCardComponent {
 
   deleteLoading = false;
   deleteItem = async () => {
-    if (!this.isDelayCard && this.email.is_email_sent) {
+    if (!this.isDelayCard && this.email["isEmailSent"]) {
       await Swal.fire({
         title: `Error`,
         text: "This email has already been sent out to public and can not be deleted.",
@@ -131,16 +130,16 @@ export class DripCampaignCardComponent {
     if (this.dripCampaignStatus === constants.COMPLETE) {
       return true;
     }
-    if (this.email.is_email_sent) {
+    if (this.email["isEmailSent"]) {
       return true;
     }
     this.disableTitle = "";
     return this.deleteLoading;
   };
 
-  handleShowDripCampaignContacts = () => {
-    this.showDripCampaignContacts();
-  }
+  // handleShowDripCampaignContacts = () => {
+  //   this.showDripCampaignContacts();
+  // }
 
   protected readonly constants = constants;
 
