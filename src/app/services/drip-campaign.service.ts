@@ -1,8 +1,9 @@
-import { Injectable } from "@angular/core";
-import { BehaviorSubject } from "rxjs";
-import { HttpService } from "./http.service";
-import { CampaignService } from "./campaign.service";
-import { SseService } from "./sse.service";
+import {Injectable} from "@angular/core";
+import {BehaviorSubject} from "rxjs";
+import {HttpService} from "./http.service";
+import {CampaignService} from "./campaign.service";
+import {SseService} from "./sse.service";
+import {DripCampaign, IRawDripCampaign} from '../models/DripCampaign';
 
 @Injectable({
   providedIn: 'root'
@@ -31,10 +32,10 @@ export class DripCampaignService {
   public editDripCampaignTitleItem;
   public emailEditItem;
   public hasPromotion;
-  public allDripCampaigns = [];
+  public allDripCampaigns: DripCampaign[] = [];
   public selectedDripCampaignType;
   public selectedLaunchDripCampaignType;
-  private dripCampaignContentPageData = {};
+  private dripCampaign: DripCampaign = DripCampaign.empty();
   public emailProspects = [];
   public insightApiPostData;
   public suppressionListApiPostData;
@@ -47,21 +48,21 @@ export class DripCampaignService {
   }
 
   getDripCampaignContentPageData = () => {
-    return this.dripCampaignContentPageData;
+    return this.dripCampaign;
   };
 
   removeDripCampaign = () => {
-    this.dripCampaignContentPageData = {};
+    this.dripCampaign = DripCampaign.empty();
     this.campaignService.setSearchEstablishmentPageData({});
   };
 
-  setPagesData = (dripCampaign) => {
+  setDripCampaign = (dripCampaign: DripCampaign) => {
     const dripCampaignContent = dripCampaign.details;
     if (Object.keys(dripCampaignContent).length > 0) {
-      this.dripCampaignContentPageData = dripCampaign;
-      if (dripCampaign.establishment_search_type && dripCampaign.establishment_search_value) {
-        this.campaignService.makeDataStructureAndSetSearchEstablishmentpageData(dripCampaign);
-      }
+      this.dripCampaign = dripCampaign;
+      // if (dripCampaign.establishment_search_type && dripCampaign.establishment_search_value) {
+      //   this.campaignService.makeDataStructureAndSetSearchEstablishmentpageData(dripCampaign);
+      // }
     }
   };
 
@@ -79,13 +80,10 @@ export class DripCampaignService {
           if (res.data) {
             // Set page data
             let campaign = res.data;
-            this.setPagesData(campaign);
+            const dripCampaign = new DripCampaign(res.data);
+            this.setDripCampaign(dripCampaign);
             this._dripCampaignStatus.next(campaign.status);
-            const emails = campaign.emails;
-            emails.forEach(email => {
-              email.delayBetweenPreviousEmail = JSON.parse(email.delayBetweenPreviousEmail);
-            });
-            this.sseService.addToDripBulkEmails(emails);
+            this.sseService.addToDripBulkEmails(dripCampaign.emails);
             this._loading.next(false);
             resolve(campaign);
           } else {
@@ -167,7 +165,7 @@ export class DripCampaignService {
             reject(res.error);
           }
         } else {
-          // this.dripCampaignContentPageData = postData;
+          // this.dripCampaign = postData;
           resolve(res.data.id);
         }
       });
@@ -196,7 +194,7 @@ export class DripCampaignService {
             reject(res.error);
           }
         } else {
-          // this.dripCampaignContentPageData = postData;
+          // this.dripCampaign = postData;
           resolve(true);
         }
       });
@@ -228,7 +226,7 @@ export class DripCampaignService {
             reject(res.error);
           }
         } else {
-          let item = { ...res.data };
+          let item = {...res.data};
           campaignTitles.push(item);
           resolve(true);
           this._dripCampaignTitles.next(campaignTitles);
@@ -326,14 +324,14 @@ export class DripCampaignService {
           let totalPageCounts = Math.ceil(res.data.total / limit);
           let totalRecordsCount = res.data.total;
 
-          res.data.drip_campaigns.sort(function(a, b) {
+          res.data.drip_campaigns.sort(function (a, b) {
             const a1 = a.id,
               b1 = b.id;
             if (a1 == b1) return 0;
             return a1 < b1 ? 1 : -1;
           });
 
-          resolve({ dripCampaigns: res.data.drip_campaigns, totalPageCounts, totalRecordsCount });
+          resolve({dripCampaigns: res.data.drip_campaigns, totalPageCounts, totalRecordsCount});
         }
       });
     });
@@ -353,11 +351,12 @@ export class DripCampaignService {
     });
   };
 
-  getListOfDripCampaignsWithoutPagination = async (overwrite = false) => {
-    if (this.allDripCampaigns.length > 0 && !overwrite) {
-      return this.allDripCampaigns;
-    }
+  getListOfDripCampaignsWithoutPagination = async (overwrite = false): Promise<DripCampaign[]> => {
     return new Promise(async (resolve, reject) => {
+      if (this.allDripCampaigns?.length > 0 && !overwrite) {
+        resolve(this.allDripCampaigns);
+        return;
+      }
       this.httpService.get("drip-campaigns").subscribe((res) => {
         if (!res.success) {
           if (res.error) {
@@ -365,14 +364,10 @@ export class DripCampaignService {
           }
 
         } else {
-          console.log('get all drip campaigns', res);
-          res.data.drip_campaigns.sort(function(a, b) {
-            const a1 = a.id,
-              b1 = b.id;
-            if (a1 == b1) return 0;
-            return a1 < b1 ? 1 : -1;
-          });
-          this.allDripCampaigns = res.data.drip_campaigns;
+          //this.allDripCampaigns = res.data;
+          res.data.forEach((rawData: IRawDripCampaign) => {
+            this.allDripCampaigns.push(new DripCampaign(rawData))
+          })
 
           resolve(this.allDripCampaigns);
         }

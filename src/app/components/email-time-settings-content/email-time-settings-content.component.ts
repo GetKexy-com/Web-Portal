@@ -1,19 +1,19 @@
-import { Component, OnDestroy, OnInit } from "@angular/core";
-import { NgbActiveOffcanvas } from "@ng-bootstrap/ng-bootstrap";
+import {Component, OnDestroy, OnInit} from "@angular/core";
+import {NgbActiveOffcanvas} from "@ng-bootstrap/ng-bootstrap";
 import Swal from "sweetalert2";
-import { constants } from "../../helpers/constants";
-import { AuthService } from "../../services/auth.service";
-import { DripCampaignService } from "../../services/drip-campaign.service";
-import { Subscription } from "rxjs";
-import { ProspectingService } from "../../services/prospecting.service";
-import { PageUiService } from "../../services/page-ui.service";
+import {constants} from "../../helpers/constants";
+import {AuthService} from "../../services/auth.service";
+import {DripCampaignService} from "../../services/drip-campaign.service";
+import {Subscription} from "rxjs";
+import {ProspectingService} from "../../services/prospecting.service";
+import {PageUiService} from "../../services/page-ui.service";
 import {KexyTabComponent} from '../kexy-tab/kexy-tab.component';
 import {FormsModule} from '@angular/forms';
 import {KexySelectDropdownComponent} from '../kexy-select-dropdown/kexy-select-dropdown.component';
-import {ErrorMessageCardComponent} from '../error-message-card/error-message-card.component';
 import {KexyToggleSwitchComponent} from '../kexy-toggle-switch/kexy-toggle-switch.component';
 import {CommonModule} from '@angular/common';
 import {ListDetail} from '../../models/List';
+import {DripCampaign} from '../../models/DripCampaign';
 
 @Component({
   selector: 'email-time-settings-content',
@@ -43,13 +43,13 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
     fromOptions: [...constants.EMAIL_SETTINGS_TIMES],
     toOptions: [...constants.EMAIL_SETTINGS_TIMES],
   };
-  runCampaignArray = [{ ...this.runCampaignFields }];
-  dontRunCampaignFields = { day: "" };
-  dontRunCampaignArray = [{ ...this.dontRunCampaignFields }];
+  runCampaignArray = [{...this.runCampaignFields}];
+  dontRunCampaignFields = {day: ""};
+  dontRunCampaignArray = [{...this.dontRunCampaignFields}];
   dripCampaignDropDownList = [];
   userData;
   dripCampaignTitles;
-  dripCampaignList;
+  dripCampaignList: DripCampaign[];
   selectedDripCampaign = "";
   dripCampaignId;
   settings;
@@ -86,8 +86,10 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
 
   async ngOnInit() {
     this.dripCampaign = this.dripCampaignService.getDripCampaignContentPageData();
+    console.log(this.dripCampaign);
     this.dripCampaignId = this.dripCampaign.id;
-    console.log('dripCampaign', this.dripCampaign.settings);
+    this.settings = this.dripCampaign.settings;
+    this.enrollment = this.dripCampaign.lists;
     this.userData = this._authService.userTokenValue;
 
     await this.getAndSetLabels();
@@ -108,29 +110,34 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
       this.setEnrollmentPreviousData();
     }
 
-    if (this.settings) {
+    if (this.settings?.length) {
       console.log("settings", this.settings);
 
-      const prospectUnenrollIfReplyIndex = this.settings.findIndex(r => r.settings_type === "prospect_un_enroll_if_reply");
+      const prospectUnenrollIfReplyIndex = this.settings.findIndex(r => r.settingsType === "prospect_un_enroll_if_reply");
       if (prospectUnenrollIfReplyIndex > -1) {
         let prospectUnenrollIfReplyData = this.settings[prospectUnenrollIfReplyIndex];
         this.prospectUnenrollIfReplyId = prospectUnenrollIfReplyData.id;
-        this.prospectUnenrollIfReply = prospectUnenrollIfReplyData.settings_value[0].value;
+
+        if (typeof prospectUnenrollIfReplyData.settingsValue === "string") {
+          prospectUnenrollIfReplyData.settingsValue = JSON.parse(prospectUnenrollIfReplyData.settingsValue);
+        }
+        this.prospectUnenrollIfReply = prospectUnenrollIfReplyData.settingsValue[0].value;
       }
 
-      const allowReenrollIndex = this.settings.findIndex(r => r.settings_type === "allow_re_enroll");
+      const allowReenrollIndex = this.settings.findIndex(r => r.settingsType === "allow_re_enroll");
       if (allowReenrollIndex > -1) {
         let allowReenrollData = this.settings[allowReenrollIndex];
         this.allowReenrollId = allowReenrollData.id;
-        this.allowContactsReenroll = allowReenrollData.settings_value[0].value;
+        this.allowContactsReenroll = allowReenrollData.settingsValue[0].value;
       }
 
-      const runTimeIndex = this.settings.findIndex(r => r.settings_type === "run_time");
+      const runTimeIndex = this.settings.findIndex(r => r.settingsType === "run_time");
       if (runTimeIndex > -1) {
         let runCampaignData = this.settings[runTimeIndex];
         this.runTimeId = runCampaignData.id;
-        this.runCampaign = runCampaignData.settings_value[0].type;
-        const campaignArray = runCampaignData.settings_value;
+        this.runCampaign = runCampaignData.settingsValue[0].type;
+        const campaignArray = runCampaignData.settingsValue;
+        console.log({campaignArray})
         campaignArray.forEach(campaign => {
           campaign["fromOptions"] = [...constants.EMAIL_SETTINGS_TIMES];
           campaign["toOptions"] = [...constants.EMAIL_SETTINGS_TIMES];
@@ -138,32 +145,31 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
         this.runCampaignArray = campaignArray;
       }
 
-      const dontRunTimeIndex = this.settings.findIndex(r => r.settings_type === "do_not_run_time");
+      const dontRunTimeIndex = this.settings.findIndex(r => r.settingsType === "do_not_run_time");
       if (dontRunTimeIndex > -1) {
         let dontRunCampaignData = this.settings[dontRunTimeIndex];
         this.dontRunTimeId = dontRunCampaignData.id;
-        if (dontRunCampaignData.settings_value && dontRunCampaignData.settings_value.length) {
-          this.dontRunCampaignArray = dontRunCampaignData.settings_value;
+        if (dontRunCampaignData.settingsValue && dontRunCampaignData.settingsValue.length) {
+          this.dontRunCampaignArray = dontRunCampaignData.settingsValue;
         }
       }
 
-      const turnOffTimeIndex = this.settings.findIndex(r => r.settings_type === "turn_off_time");
+      const turnOffTimeIndex = this.settings.findIndex(r => r.settingsType === "turn_off_time");
       if (turnOffTimeIndex > -1) {
         let turnOffTimeData = this.settings[turnOffTimeIndex];
         this.turnOffTimeId = turnOffTimeData.id;
-        if (turnOffTimeData.settings_value.length) {
-          // this.changeScheduleCampaignOption();
+        if (turnOffTimeData.settingsValue.length) {
           this.scheduleCampaignTurnOffAutomatically = true;
-          const [date, time, period] = turnOffTimeData.settings_value[0].day.split(" ");
+          const [date, time, period] = turnOffTimeData.settingsValue[0].day.split(" ");
           if (date) this.scheduleCampaignTurnOffAutomaticallyDate = date;
           if (time && period) this.scheduleCampaignTurnOffAutomaticallyTime = `${time} ${period}`;
         }
       }
 
-      const unenrollFromCampaignIndex = this.settings.findIndex(r => r.settings_type === "un_enroll_from_campaign");
+      const unenrollFromCampaignIndex = this.settings.findIndex(r => r.settingsType === "un_enroll_from_campaign");
       if (unenrollFromCampaignIndex > -1) {
         this.unenrollFromCampaignId = this.settings[unenrollFromCampaignIndex].id;
-        let unenrollFromCampaignData = this.settings[unenrollFromCampaignIndex].settings_value;
+        let unenrollFromCampaignData = this.settings[unenrollFromCampaignIndex].settingsValue;
         if (unenrollFromCampaignData.length) {
           // this.changeUnenrollContactOption();
           this.unenrollContactsFromOtherCampaign = true;
@@ -191,40 +197,28 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
     this.enrollList = this.enrollment.filter(r => r.type === "enroll_list");
     this.unEnrollList = this.enrollment.filter(r => r.type === "un_enroll_list");
 
-    const enrolledIds = new Set(this.enrollList.map(enroll => enroll.kexy_label_id));
-    const unEnrolledIds = new Set(this.unEnrollList.map(unEnroll => unEnroll.kexy_label_id));
-
     // **Remove Enrolled Items from Dropdowns**
     this.enrollList.forEach(enroll => {
-      const index = this.enrollmentLabelOptions.findIndex(r => r.id === enroll.kexy_label_id);
+      const index = this.enrollmentLabelOptions.findIndex(r => r.id === enroll.list.id);
       if (index > -1) Object.assign(enroll, this.enrollmentLabelOptions.splice(index, 1)[0]);
 
-      const unenrollIndex = this.unenrollmentLabelOptions.findIndex(r => r.id === enroll.kexy_label_id);
+      const unenrollIndex = this.unenrollmentLabelOptions.findIndex(r => r.id === enroll.list.id);
       if (unenrollIndex > -1) this.unenrollmentLabelOptions.splice(unenrollIndex, 1);
     });
 
     // **Mark Unenrolled Items & Remove from Enrollment Dropdown**
     this.unEnrollList.forEach(unEnroll => {
-      const index = this.unenrollmentLabelOptions.findIndex(r => r.id === unEnroll.kexy_label_id);
+      const index = this.unenrollmentLabelOptions.findIndex(r => r.id === unEnroll.list.id);
       if (index > -1) this.unenrollmentLabelOptions[index].isSelected = true;
 
-      const enrollIndex = this.enrollmentLabelOptions.findIndex(r => r.id === unEnroll.kexy_label_id);
+      const enrollIndex = this.enrollmentLabelOptions.findIndex(r => r.id === unEnroll.list.id);
       if (enrollIndex > -1) this.enrollmentLabelOptions.splice(enrollIndex, 1);
     });
-
-    // // **Repopulate Dropdowns When No Enrollments Exist**
-    // this.enrollmentLabelOptions = this.enrollList.length
-    //   ? this.enrollmentLabelOptions
-    //   : this.labelOptions.filter(option => !unEnrolledIds.has(option.id)).map(option => ({ ...option }));
-    //
-    // this.unenrollmentLabelOptions = this.unEnrollList.length
-    //   ? this.unenrollmentLabelOptions
-    //   : this.labelOptions.filter(option => !enrolledIds.has(option.id)).map(option => ({ ...option }));
   };
 
 
   getAndSetDripCampaignTitleSubscription = async () => {
-    await this.dripCampaignService.getAllDripCampaignTitle({ supplier_id: this.userData.supplier_id });
+    await this.dripCampaignService.getAllDripCampaignTitle({supplier_id: this.userData.supplier_id});
 
     this.dripCampaignTitlesSubscription = this.dripCampaignService.dripCampaignTitles.subscribe((dripCampaignTitles) => {
       this.dripCampaignTitles = dripCampaignTitles;
@@ -243,10 +237,10 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
     }
 
     if (this.dripCampaignList.length) {
-      this.dripCampaignList.forEach(cam => {
+      this.dripCampaignList.forEach((cam: DripCampaign) => {
         this.dripCampaignDropDownList.push({
           key: cam.id,
-          value: this.getCampaignTitle(cam.drip_campaign_detail.drip_campaign_title_id),
+          value: cam.details.title.title,
           id: cam.id,
           isSelected: false,
         });
@@ -256,12 +250,12 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
     }
   };
 
-  getCampaignTitle = (title_id) => {
-    const index = this.dripCampaignTitles && this.dripCampaignTitles.findIndex(i => i.id.toString() === title_id.toString());
-    if (index < 0) return;
-
-    return this.dripCampaignTitles[index].title;
-  };
+  // getCampaignTitle = (title_id) => {
+  //   const index = this.dripCampaignTitles && this.dripCampaignTitles.findIndex(i => i.id.toString() === title_id.toString());
+  //   if (index < 0) return;
+  //
+  //   return this.dripCampaignTitles[index].title;
+  // };
 
   onDaySelect = (day, index = null, rowIndex = null) => {
     console.log(rowIndex);
@@ -315,7 +309,7 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
   };
 
   addNewRunCampaign = () => {
-    this.runCampaignArray.push({ ...this.runCampaignFields });
+    this.runCampaignArray.push({...this.runCampaignFields});
   };
 
   removeRunCampaign = (data) => {
@@ -326,7 +320,7 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
   };
 
   addNewDontRunCampaign = () => {
-    this.dontRunCampaignArray.push({ ...this.dontRunCampaignFields });
+    this.dontRunCampaignArray.push({...this.dontRunCampaignFields});
   };
 
   removeDontRunCampaign = (data) => {
@@ -344,7 +338,7 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
       supplier_id: this.userData.supplier_id,
       settings: [
         {
-          ...(this.runTimeId && { id: this.runTimeId }),
+          ...(this.runTimeId && {id: this.runTimeId}),
           settings_type: "run_time",
           settings_value: this.runCampaignArray.map(item => {
             return {
@@ -356,19 +350,19 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
           }),
         },
         {
-          ...(this.dontRunTimeId && { id: this.dontRunTimeId }),
+          ...(this.dontRunTimeId && {id: this.dontRunTimeId}),
           settings_type: "do_not_run_time",
           settings_value: this.dontRunCampaignArray
             .filter(item => item.day)
-            .map(item => ({ day: item.day })),
+            .map(item => ({day: item.day})),
         },
         {
-          ...(this.turnOffTimeId && { id: this.turnOffTimeId }),
+          ...(this.turnOffTimeId && {id: this.turnOffTimeId}),
           settings_type: "turn_off_time",
-          settings_value: this.scheduleCampaignTurnOffAutomatically ? [{ day: `${this.scheduleCampaignTurnOffAutomaticallyDate} ${this.scheduleCampaignTurnOffAutomaticallyTime}` }] : [],
+          settings_value: this.scheduleCampaignTurnOffAutomatically ? [{day: `${this.scheduleCampaignTurnOffAutomaticallyDate} ${this.scheduleCampaignTurnOffAutomaticallyTime}`}] : [],
         },
         {
-          ...(this.unenrollFromCampaignId && { id: this.unenrollFromCampaignId }),
+          ...(this.unenrollFromCampaignId && {id: this.unenrollFromCampaignId}),
           settings_type: "un_enroll_from_campaign",
           settings_value: this.unenrollContactsFromOtherCampaign ? [
             {
@@ -470,7 +464,7 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
   addBackToUnenrollmentLabelOptions = (selectedValue) => {
     const index = this.unenrollmentLabelOptions.findIndex(r => r.id === selectedValue.id);
     if (index === -1) {
-      this.unenrollmentLabelOptions.push({ ...selectedValue });
+      this.unenrollmentLabelOptions.push({...selectedValue});
     }
   };
 
@@ -500,7 +494,7 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
   addBackToEnrollmentLabelOptions = (selectedValue) => {
     const index = this.enrollmentLabelOptions.findIndex(r => r.id === selectedValue.id);
     if (index === -1) {
-      this.enrollmentLabelOptions.push({ ...selectedValue });
+      this.enrollmentLabelOptions.push({...selectedValue});
     }
   };
 
@@ -534,9 +528,9 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
           id: i.id,
           isSelected: false,
         };
-        this.enrollmentLabelOptions.push({ ...labelObj });
-        this.unenrollmentLabelOptions.push({ ...labelObj });
-        this.labelOptions.push({ ...labelObj });
+        this.enrollmentLabelOptions.push({...labelObj});
+        this.unenrollmentLabelOptions.push({...labelObj});
+        this.labelOptions.push({...labelObj});
       });
     });
   };
@@ -561,7 +555,7 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
       un_enroll_list_ids: this.unenrollmentLabelOptions.filter(i => i.isSelected).map(i => i.id),
       other_settings: [
         {
-          ...(this.prospectUnenrollIfReplyId && { id: this.prospectUnenrollIfReplyId }),
+          ...(this.prospectUnenrollIfReplyId && {id: this.prospectUnenrollIfReplyId}),
           settings_type: "prospect_un_enroll_if_reply",
           settings_value: [
             {
@@ -570,7 +564,7 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
           ],
         },
         {
-          ...(this.allowReenrollId && { id: this.allowReenrollId }),
+          ...(this.allowReenrollId && {id: this.allowReenrollId}),
           settings_type: "allow_re_enroll",
           settings_value: [
             {

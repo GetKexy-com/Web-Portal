@@ -6,7 +6,7 @@ export interface ListDetail {
   textColor: string;
 }
 
-export interface RawListPage {
+export interface RawListData {
   lists: ListDetail[];
   total: number;
 }
@@ -15,7 +15,7 @@ export class List {
   lists: ListDetail[];
   total: number;
 
-  constructor(rawData: RawListPage) {
+  constructor(rawData: RawListData) {
     this.lists = rawData.lists;
     this.total = rawData.total;
   }
