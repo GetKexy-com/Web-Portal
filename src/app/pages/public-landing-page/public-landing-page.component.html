@@ -95,21 +95,21 @@
           </div>
         </div>
       </div>
-      <div class="middle-section">
-        <div *ngIf="promotionDetailsText" class="area-wrap">
-          <app-label-and-value label="Details"
-                               [value]="promotionDetailsText ? promotionDetailsText : 'N/A'"></app-label-and-value>
-        </div>
-        <div *ngIf="landingPage.detail.productKnowledge" class="area-wrap">
-          <app-label-and-value
-            [label]="landingPage.detail.landingPageType === constants.LISTING_OF_PRODUCT ? 'Service Description' : 'Product Description'"
-            [value]="landingPage.detail.productKnowledge"></app-label-and-value>
-        </div>
-        <div *ngIf="landingPage.detail.additionalInfo" class="area-wrap">
-          <app-label-and-value label="Additional Info"
-                               [value]="landingPage.detail.additionalInfo || 'N/A'"></app-label-and-value>
-        </div>
-      </div>
+<!--      <div class="middle-section">-->
+<!--        <div *ngIf="promotionDetailsText" class="area-wrap">-->
+<!--          <app-label-and-value label="Details"-->
+<!--                               [value]="promotionDetailsText ? promotionDetailsText : 'N/A'"></app-label-and-value>-->
+<!--        </div>-->
+<!--        <div *ngIf="landingPage.detail.productKnowledge" class="area-wrap">-->
+<!--          <app-label-and-value-->
+<!--            [label]="landingPage.detail.landingPageType === constants.LISTING_OF_PRODUCT ? 'Service Description' : 'Product Description'"-->
+<!--            [value]="landingPage.detail.productKnowledge"></app-label-and-value>-->
+<!--        </div>-->
+<!--        <div *ngIf="landingPage.detail.additionalInfo" class="area-wrap">-->
+<!--          <app-label-and-value label="Additional Info"-->
+<!--                               [value]="landingPage.detail.additionalInfo || 'N/A'"></app-label-and-value>-->
+<!--        </div>-->
+<!--      </div>-->
     </div>
 
     <div class="bottom-section">
