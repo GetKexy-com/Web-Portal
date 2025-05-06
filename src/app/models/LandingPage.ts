@@ -79,6 +79,7 @@ export interface IRawLandingPage {
   id: number;
   currentStep: string;
   status: string;
+  token?: string;
   createdAt: string;
   detail: Omit<ILandingPageDetail, 'prospectingProduct'> & {
     prospectingProduct: Omit<IProspectingProduct, 'descriptions'> & {
@@ -104,6 +105,7 @@ export class LandingPage {
     this.id = rawData.id;
     this.currentStep = rawData.currentStep;
     this.status = rawData.status;
+    this.token = rawData.token;
     this.createdAt = rawData.createdAt;
 
     this.detail = {
