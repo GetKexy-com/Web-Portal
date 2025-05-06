@@ -344,7 +344,7 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
         {
           ...(this.runTimeId && {id: this.runTimeId}),
           dripCampaignId: this.dripCampaignId,
-          
+          companyId: this.userData.supplier_id,
           settingsType: "run_time",
           settingsValue: this.runCampaignArray.map(item => {
             return {
@@ -357,20 +357,26 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
         },
         {
           ...(this.dontRunTimeId && {id: this.dontRunTimeId}),
-          settings_type: "do_not_run_time",
-          settings_value: this.dontRunCampaignArray
+          dripCampaignId: this.dripCampaignId,
+          companyId: this.userData.supplier_id,
+          settingsType: "do_not_run_time",
+          settingsValue: this.dontRunCampaignArray
             .filter(item => item.day)
             .map(item => ({day: item.day})),
         },
         {
           ...(this.turnOffTimeId && {id: this.turnOffTimeId}),
-          settings_type: "turn_off_time",
-          settings_value: this.scheduleCampaignTurnOffAutomatically ? [{day: `${this.scheduleCampaignTurnOffAutomaticallyDate} ${this.scheduleCampaignTurnOffAutomaticallyTime}`}] : [],
+          dripCampaignId: this.dripCampaignId,
+          companyId: this.userData.supplier_id,
+          settingsType: "turn_off_time",
+          settingsValue: this.scheduleCampaignTurnOffAutomatically ? [{day: `${this.scheduleCampaignTurnOffAutomaticallyDate} ${this.scheduleCampaignTurnOffAutomaticallyTime}`}] : [],
         },
         {
           ...(this.unenrollFromCampaignId && {id: this.unenrollFromCampaignId}),
-          settings_type: "un_enroll_from_campaign",
-          settings_value: this.unenrollContactsFromOtherCampaign ? [
+          dripCampaignId: this.dripCampaignId,
+          companyId: this.userData.supplier_id,
+          settingsType: "un_enroll_from_campaign",
+          settingsValue: this.unenrollContactsFromOtherCampaign ? [
             {
               unenroll: this.unenrollCampaign === "unenrollFromAll" ? "all_other_campaigns" : this.dripCampaignDropDownList
                 .filter(i => i.isSelected)
@@ -384,7 +390,7 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
     this.isLoading = true;
     try {
       await this.dripCampaignService.updateSettings(postData);
-      // TODO - Manually do get settings functionality
+      this.setInitialData();
       this.setPreviousData();
       Swal.fire("Success", "Settings saved successfully", "success");
 
