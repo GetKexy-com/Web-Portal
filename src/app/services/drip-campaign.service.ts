@@ -188,13 +188,14 @@ export class DripCampaignService {
 
   testDripCampaignEmail = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("drip-campaigns/sendTestEmail", postData).subscribe((res) => {
+      const url = `drip-campaigns/${postData.drip_campaign_id}/send-test-email`;
+      delete postData.drip_campaign_id;
+      this.httpService.post(url, postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
           }
         } else {
-          // this.dripCampaign = postData;
           resolve(true);
         }
       });

@@ -179,6 +179,7 @@ export class GenerateDripCampaignComponent implements OnInit {
       await this.dripCampaignService.getProspects(postData);
       this.dripCampaignProspectsSubscription = this.dripCampaignService.dripCampaignProspects.subscribe(data => {
         this.dripCampaignProspects = data["prospects"];
+        console.log('prospects', this.dripCampaignProspects);
       });
 
     } catch (e) {
@@ -187,7 +188,7 @@ export class GenerateDripCampaignComponent implements OnInit {
   };
 
   getEmailContactsInAction = (emailSequence) => {
-    return this.dripCampaignProspects.filter(d => d.email_sequence === emailSequence);
+    return this.dripCampaignProspects.filter(d => d.emailSequence === emailSequence);
   };
 
   onEmailLengthSelect = (selectedValue, index = null, rowIndex = null) => {
@@ -585,7 +586,7 @@ export class GenerateDripCampaignComponent implements OnInit {
     const postData = {
       drip_campaign_id: this.dripCampaignId,
       email: this.testEmailText,
-      prospect: DUMMY_PROSPECT,
+      // prospect: DUMMY_PROSPECT,
     };
     try {
       await this.dripCampaignService.testDripCampaignEmail(postData);
