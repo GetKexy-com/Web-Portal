@@ -80,7 +80,7 @@ export class UploadFileModalContentComponent {
     const base64Data = file.split(",")[1];
     const decodedString = atob(base64Data);
     Papa.parse(decodedString, {
-      header: true,  // Set to true if the first row contains headers
+      header: true,  // Set to true if the first contact contains headers
       skipEmptyLines: true,  // Skip empty lines in the CSV
       complete: (results) => {
         this.parsedData = results.data;

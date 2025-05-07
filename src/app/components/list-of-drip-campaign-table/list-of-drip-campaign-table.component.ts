@@ -120,7 +120,7 @@ export class ListOfDripCampaignTableComponent {
 
   isRowSelected = (row) => {
     // For radio like functionality
-    // return this.selectedDripCampaigns.length > 0 && this.selectedDripCampaigns[0].id === row.id;
+    // return this.selectedDripCampaigns.length > 0 && this.selectedDripCampaigns[0].id === contact.id;
 
     // For multiselect like functionality
     return this.selectedDripCampaigns.findIndex(i => i.id.toString() === row.id.toString()) > -1;

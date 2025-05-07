@@ -1,16 +1,26 @@
-import { AfterViewChecked, Component, EventEmitter, Input, OnDestroy, OnInit, Output } from "@angular/core";
-import { AuthService } from "../../services/auth.service";
-import { constants } from "../../helpers/constants";
-import { Subscription } from "rxjs";
-import { NgbModal } from "@ng-bootstrap/ng-bootstrap";
+import {
+  AfterViewChecked,
+  AfterViewInit,
+  Component,
+  EventEmitter,
+  Input,
+  OnDestroy,
+  OnInit,
+  Output,
+} from '@angular/core';
+import { AuthService } from '../../services/auth.service';
+import { constants } from '../../helpers/constants';
+import { Subscription } from 'rxjs';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import {
   ContactLabelsModalContentComponent,
-} from "../contact-labels-modal-content/contact-labels-modal-content.component";
-import { ProspectingService } from "../../services/prospecting.service";
-import { PageUiService } from "../../services/page-ui.service";
-import {KexyButtonComponent} from '../kexy-button/kexy-button.component';
-import {CommonModule, DatePipe, DecimalPipe} from '@angular/common';
-import {FormsModule} from '@angular/forms';
+} from '../contact-labels-modal-content/contact-labels-modal-content.component';
+import { ProspectingService } from '../../services/prospecting.service';
+import { PageUiService } from '../../services/page-ui.service';
+import { KexyButtonComponent } from '../kexy-button/kexy-button.component';
+import { CommonModule, DatePipe, DecimalPipe } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { Contact } from '../../models/Contact';
 
 @Component({
   selector: 'contact-list-card',
@@ -22,12 +32,12 @@ import {FormsModule} from '@angular/forms';
     CommonModule,
   ],
   templateUrl: './contact-list-card.component.html',
-  styleUrl: './contact-list-card.component.scss'
+  styleUrl: './contact-list-card.component.scss',
 })
-export class ContactListCardComponent {
+export class ContactListCardComponent implements OnInit, OnDestroy, AfterViewInit {
   @Input() tableHeaderBg;
   @Input() tableHeaderColor;
-  @Input() cardData = [];
+  @Input() contacts: Contact[] = [];
   @Input() selectedContacts = [];
   @Input() isLoading: boolean = false;
   @Input() isWaitingFlag: boolean;
@@ -71,9 +81,13 @@ export class ContactListCardComponent {
   constructor(private _authService: AuthService, private modal: NgbModal, private prospectingService: ProspectingService, private pageUiService: PageUiService) {
   }
 
+  ngAfterViewInit() {
+    this.getListViewData();
+  }
+
   ngOnInit(): void {
     this.userData = this._authService.userTokenValue;
-    this.getListViewData();
+    console.log(this.contacts);
   }
 
   ngOnDestroy(): void {
@@ -87,27 +101,27 @@ export class ContactListCardComponent {
   getListViewData = () => {
     let columnList: any;
     columnList = [
-      { name: "", key: "action", width: 40 },
-      { name: "Name", key: "name", width: 120 },
-      { name: "Linkedin", key: "linkedin_url", width: 70 },
-      { name: "Email Address", key: "email", width: 180 },
-      { name: "Email Status", key: "email_status", width: 120 },
-      { name: "Job Title", key: "title", width: 170 },
-      { name: "Company Name", key: "company_name", width: 160 },
-      { name: "Phone Number", key: "phone_number", width: 120 },
-      { name: "City", key: "city", width: 100 },
-      { name: "State/Province", key: "state", width: 100 },
-      { name: "Country", key: "country", width: 120 },
-      { name: "Lists", key: "label", width: 130 },
-      { name: "Marketing Status", key: "marketing_status", width: 120 },
-      { name: "Created", key: "created", width: 160 },
+      { name: '', key: 'action', width: 40 },
+      { name: 'Name', key: 'name', width: 120 },
+      { name: 'Linkedin', key: 'linkedin_url', width: 70 },
+      { name: 'Email Address', key: 'email', width: 180 },
+      { name: 'Email Status', key: 'email_status', width: 120 },
+      { name: 'Job Title', key: 'title', width: 170 },
+      { name: 'Company Name', key: 'company_name', width: 160 },
+      { name: 'Phone Number', key: 'phone_number', width: 120 },
+      { name: 'City', key: 'city', width: 100 },
+      { name: 'State/Province', key: 'state', width: 100 },
+      { name: 'Country', key: 'country', width: 120 },
+      { name: 'Lists', key: 'label', width: 130 },
+      { name: 'Marketing Status', key: 'marketing_status', width: 120 },
+      { name: 'Created', key: 'created', width: 160 },
     ];
     this.columnList = columnList;
   };
 
   browserWidthForTable;
   calcWidth = () => {
-    const sidebarWidth = document.getElementById("main-sidebar")?.clientWidth;
+    const sidebarWidth = document.getElementById('main-sidebar')?.clientWidth;
     const pageMargin = 48;
     let sum = 300;
     let map = {};
@@ -127,27 +141,27 @@ export class ContactListCardComponent {
 
   getCellClasses = (column) => {
     let classes = {
-      "n-cell-only-name": column.key === "no",
-      "col-zip": column.key === "zip_code",
+      'n-cell-only-name': column.key === 'no',
+      'col-zip': column.key === 'zip_code',
     };
 
     return Object.keys(classes)
       .filter((key) => classes[key])
-      .join(" ");
+      .join(' ');
   };
 
   getCellValueToDisplay = (row, column) => this.getCellValue(row, column);
 
   getCellValue = (row, column) => {
-    const details = typeof row.details === "string" ? JSON.parse(row.details) : row.details;
+    const details = typeof row.details === 'string' ? JSON.parse(row.details) : row.details;
     // console.log('details', details);
     if (details[column.key]) {
       return details[column.key];
     }
-    if (column.key === "company_name") {
-      return details.organization?.name || "";
+    if (column.key === 'company_name') {
+      return details.organization?.name || '';
     }
-    if (column.key === "phone_number") {
+    if (column.key === 'phone_number') {
 
       // if (details.organization?.phone) {
       //   let cleanNumber = details.organization.phone.replace(/[^\d]/g, "");
@@ -157,13 +171,13 @@ export class ContactListCardComponent {
       //   }
       // }
 
-      return `${details.organization?.phone || ""}`;
+      return `${details.organization?.phone || ''}`;
     }
   };
 
   selectedItemCount;
   getSelectedItemCount = () => {
-    this.selectedItemCount = this.cardData.filter((i) => i.is_selected).length;
+    this.selectedItemCount = this.contacts.filter((i) => i.isSelected).length;
     return this.selectedItemCount;
   };
 

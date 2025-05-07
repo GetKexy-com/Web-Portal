@@ -8,7 +8,7 @@
       Contacts
       <span class="d-none"> {{ getSelectedItemCount() }} </span>
       <span
-        *ngIf="totalPage && totalPage > 1 && selectedItemCount > 0 && selectedItemCount === cardData.length"
+        *ngIf="totalPage && totalPage > 1 && selectedItemCount > 0 && selectedItemCount === contacts.length"
         class="ms-3 link-text"
         (click)="toggleSelectAllContactSelection()"
       >
@@ -131,7 +131,7 @@
   <section class="new-table-wrapper">
     <!--    [style.width]="tableWidth + 'px'"-->
     <div
-      [style.height]="!isWaitingFlag && cardData.length ? 'calc(100vh - 330px)' : 'auto'" class="list-wrapper"
+      [style.height]="!isWaitingFlag && contacts.length ? 'calc(100vh - 330px)' : 'auto'" class="list-wrapper"
     >
       <table *ngIf="columnList" [style.width]="tableWidth + 'px'" class="n-table">
         <!-- header - start -->
@@ -164,9 +164,9 @@
               <span *ngIf="!column.name && column.key === 'action'" class="select-all-header-icons"
                     (click)="checkboxClicked(null, true)">
                   <i *ngIf="selectedItemCount === 0" aria-hidden="true" class="fa fa-square-o checkbox-icon"></i>
-                  <i *ngIf="selectedItemCount > 0 && selectedItemCount < cardData.length" aria-hidden="true"
+                  <i *ngIf="selectedItemCount > 0 && selectedItemCount < contacts.length" aria-hidden="true"
                      class="fa fa-minus-square-o"></i>
-                  <i *ngIf="cardData.length && selectedItemCount === cardData.length" aria-hidden="true"
+                  <i *ngIf="contacts.length && selectedItemCount === contacts.length" aria-hidden="true"
                      class="fa fa-check-square-o"></i>
               </span>
             </td>
@@ -176,10 +176,10 @@
         <!-- header - end -->
 
         <!-- body - start -->
-        <ng-container *ngIf="!isWaitingFlag && cardData.length > 0">
+        <ng-container *ngIf="!isWaitingFlag && contacts.length > 0">
           <tbody>
-          <tr class="n-product" [class.selected]="row.is_selected" *ngFor="let row of cardData; let i = index"
-              (click)="editContact(row)">
+          <tr class="n-product" [class.selected]="contact.isSelected" *ngFor="let contact of contacts; let i = index"
+              (click)="editContact(contact)">
             <ng-container *ngFor="let column of columnList">
               <td
                 [className]="
@@ -192,63 +192,63 @@
                 <span
                   *ngIf="column.key !== 'action' && column.key !== 'linkedin_url' && column.key !== 'label' && column.key !== 'marketing_status' && column.key !== 'email_status' && column.key !== 'created'"
                   [className]="column.key !== 'email' ? 'text-capitalize' : ''">
-                  {{ getCellValueToDisplay(row, column) || 'N/A' }}
+                  {{ getCellValueToDisplay(contact, column) || 'N/A' }}
                 </span>
 
                 <span *ngIf="column.key === 'created'">
-                  {{ row.created_at | date: 'medium' }}
+                  {{ contact.createdAt | date: 'medium' }}
                 </span>
 
                 <span *ngIf="column.key === 'marketing_status'" class="marketing-status">
-                  <span class="ms-green" *ngIf="row.marketing_status === 'subscribed'">
-                    {{ row.marketing_status }}
+                  <span class="ms-green" *ngIf="contact.marketingStatus === 'subscribed'">
+                    {{ contact.marketingStatus }}
                   </span>
-                  <span class="ms-red" *ngIf="row.marketing_status === 'unsubscribed'">
-                    {{ row.marketing_status }}
+                  <span class="ms-red" *ngIf="contact.marketingStatus === 'unsubscribed'">
+                    {{ contact.marketingStatus }}
                   </span>
                 </span>
 
                 <span *ngIf="column.key === 'linkedin_url'" class="linkedin-icon-wrap"
                       (click)="stopPropagation($event)">
-                  <a [href]="getCellValue(row, column)" target="_blank"><i class="fa fa-linkedin-square"
-                                                                           aria-hidden="true"></i></a>
+                  <a [href]="getCellValue(contact, column)" target="_blank"><i class="fa fa-linkedin-square"
+                                                                               aria-hidden="true"></i></a>
                 </span>
                 <span *ngIf="column.key === 'email_status'">
-                  <span class="email-status status-green" *ngIf="row.email_status === 'verified'">
+                  <span class="email-status status-green" *ngIf="contact.emailStatus === 'verified'">
                     Valid
                   </span>
-                  <span class="email-status status-red" *ngIf="row.email_status === 'invalid'">
+                  <span class="email-status status-red" *ngIf="contact.emailStatus === 'invalid'">
                     Invalid
                   </span>
-                  <span class="email-status status-yellow" *ngIf="row.email_status === 'catch-all'">
+                  <span class="email-status status-yellow" *ngIf="contact.emailStatus === 'catch-all'">
                     Catch-all
                   </span>
-                  <span class="email-status status-yellow" *ngIf="row.email_status === 'unverified'">
+                  <span class="email-status status-yellow" *ngIf="contact.emailStatus === 'unverified'">
                     Unverified
                   </span>
                 </span>
 
                 <span *ngIf="column.key === 'label'">
                   <span
-                    *ngIf="row.kexy_contact_labels?.length"
-                    [style.background-color]="row.kexy_contact_labels[0].kexy_label.bg_color"
-                    [style.color]="row.kexy_contact_labels[0].kexy_label.text_color"
+                    *ngIf="contact.lists?.length"
+                    [style.background-color]="contact.lists[0].bgColor"
+                    [style.color]="contact.lists[0].textColor"
                     class="label-tag"
                   >
-                    {{ row.kexy_contact_labels[0].kexy_label.label }}
+                    {{ contact.lists[0].label }}
                   </span>
                   <span
-                    *ngIf="row.kexy_contact_labels?.length > 1"
+                    *ngIf="contact.lists?.length > 1"
                     class="see-more-label-text"
-                    (click)="openShowAllLabelModal($event, row.kexy_contact_labels)">
-                    +{{ row.kexy_contact_labels?.length - 1 }} more
+                    (click)="openShowAllLabelModal($event, contact.lists)">
+                    +{{ contact.lists?.length - 1 }} more
                   </span>
                 </span>
 
                 <span *ngIf="column.key === 'action'" class="text-center d-inline-block w-100"
-                      (click)="onCheckboxClicked($event, row)">
-                  <i *ngIf="!row.is_selected" aria-hidden="true" class="fa fa-square-o checkbox-icon"></i>
-                  <i *ngIf="row.is_selected" aria-hidden="true" class="fa fa-check-square checkbox-icon selected"></i>
+                      (click)="onCheckboxClicked($event, contact)">
+                  <i *ngIf="!contact.isSelected" aria-hidden="true" class="fa fa-square-o checkbox-icon"></i>
+                  <i *ngIf="contact.isSelected" aria-hidden="true" class="fa fa-check-square checkbox-icon selected"></i>
                 </span>
 
               </td>
@@ -256,7 +256,7 @@
           </tr>
           </tbody>
         </ng-container>
-        <ng-container *ngIf="!isWaitingFlag && cardData.length === 0">
+        <ng-container *ngIf="!isWaitingFlag && contacts.length === 0">
           <tr class="n-product">
             <td [colSpan]="columnList.length" class="n-cell">
               <span class="text-center d-inline-block"

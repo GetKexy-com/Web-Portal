@@ -76,8 +76,8 @@
 //   addNewBtnClick = (e) => {
 //     e.stopPropagation();
 //     if (this.newProductClicked) {
-//       // If user already clicked add new product then do not add new row but
-//       // open the last row they opened but not completed
+//       // If user already clicked add new product then do not add new contact but
+//       // open the last contact they opened but not completed
 //       const p = this.products[this.products.length - 1];
 //       p.isEditClicked = true;
 //       p.isOpened = true;

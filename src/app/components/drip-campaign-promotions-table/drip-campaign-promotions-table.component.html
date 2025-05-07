@@ -35,7 +35,7 @@
 <!--        &lt;!&ndash; product - start &ndash;&gt;-->
 
 <!--        <ng-container *ngIf="!isWaitingFlag && landingPages.length > 0">-->
-<!--          <tr class="n-product" *ngFor="let row of landingPages; let i = index" (click)="handleClickRadioButton(row)">-->
+<!--          <tr class="n-product" *ngFor="let contact of landingPages; let i = index" (click)="handleClickRadioButton(contact)">-->
 <!--            <ng-container *ngFor="let column of columnList">-->
 <!--              <td-->
 <!--                [style.width]="column.width"-->
@@ -46,13 +46,13 @@
 <!--                "-->
 <!--              >-->
 <!--                <span *ngIf="column.key !== 'action' && column.key !== 'promotion_type'">-->
-<!--                  {{ getCellValueToDisplay(row, column) }}-->
+<!--                  {{ getCellValueToDisplay(contact, column) }}-->
 <!--                </span>-->
 
 <!--                <span *ngIf="column.key === 'action' && column.key !== 'promotion_type'"-->
 <!--                      class="text-center d-inline-block w-100">-->
-<!--                  <i *ngIf="promotionId !== row.id" class="fa fa-square-o checkbox-icon" aria-hidden="true"></i>-->
-<!--                  <i *ngIf="promotionId === row.id" class="fa fa-check-square checkbox-icon selected"-->
+<!--                  <i *ngIf="promotionId !== contact.id" class="fa fa-square-o checkbox-icon" aria-hidden="true"></i>-->
+<!--                  <i *ngIf="promotionId === contact.id" class="fa fa-check-square checkbox-icon selected"-->
 <!--                     aria-hidden="true"></i>-->
 <!--                </span>-->
 
@@ -62,20 +62,20 @@
 <!--                  >-->
 <!--&lt;!&ndash;                    <div class="dot"></div>&ndash;&gt;-->
 <!--                    <span-->
-<!--                      *ngIf="row.promotion_type === constants.DEAL_WITH_PRICE">{{ constants.DEAL_LIST_PRICE }}</span>-->
+<!--                      *ngIf="contact.promotion_type === constants.DEAL_WITH_PRICE">{{ constants.DEAL_LIST_PRICE }}</span>-->
 <!--                    <span-->
-<!--                      *ngIf="row.promotion_type === constants.ANNOUNCEMENT_KEY">{{ constants.ANNOUNCEMENT_VALUE }}</span>-->
+<!--                      *ngIf="contact.promotion_type === constants.ANNOUNCEMENT_KEY">{{ constants.ANNOUNCEMENT_VALUE }}</span>-->
 <!--                    <span-->
-<!--                      *ngIf="row.promotion_type === constants.FEATURED_PRODUCT">{{ constants.PRODUCT_OFFERING_NO_PRICE_LISTED }}</span>-->
+<!--                      *ngIf="contact.promotion_type === constants.FEATURED_PRODUCT">{{ constants.PRODUCT_OFFERING_NO_PRICE_LISTED }}</span>-->
 <!--                    <span-->
-<!--                      *ngIf="row.promotion_type === constants.LISTING_OF_PRODUCT">{{ constants.LIST_PRODUCT_ON_PLATFORM }}</span>-->
+<!--                      *ngIf="contact.promotion_type === constants.LISTING_OF_PRODUCT">{{ constants.LIST_PRODUCT_ON_PLATFORM }}</span>-->
 <!--                  </div>-->
 <!--                </span>-->
 
 <!--                <span *ngIf="column.key === 'copy_url'">-->
-<!--                  <i *ngIf="!row['copied']" class="fa fa-clone" (click)="copyUrl(row, $event)" aria-hidden="true"-->
+<!--                  <i *ngIf="!contact['copied']" class="fa fa-clone" (click)="copyUrl(contact, $event)" aria-hidden="true"-->
 <!--                     style="margin-left: 20px"></i>-->
-<!--                  <span class="copied" *ngIf="row['copied']">copied</span>-->
+<!--                  <span class="copied" *ngIf="contact['copied']">copied</span>-->
 <!--                </span>-->
 <!--              </td>-->
 <!--            </ng-container>-->

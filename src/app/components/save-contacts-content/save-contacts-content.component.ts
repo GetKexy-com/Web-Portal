@@ -58,9 +58,9 @@
 //   }
 //
 //   setChargedCredits = () => {
-//     this.selectedContacts.forEach(row => {
-//       console.log(row.data.receiver_details.saved);
-//       if (!row.data.receiver_details.saved) this.chargedCredits += 1;
+//     this.selectedContacts.forEach(contact => {
+//       console.log(contact.data.receiver_details.saved);
+//       if (!contact.data.receiver_details.saved) this.chargedCredits += 1;
 //     });
 //   }
 //

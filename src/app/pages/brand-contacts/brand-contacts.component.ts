@@ -1,28 +1,29 @@
-import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from "@angular/core";
-import { Subscription } from "rxjs";
-import { AuthService } from "src/app/services/auth.service";
-import { NgbModal, NgbOffcanvas } from "@ng-bootstrap/ng-bootstrap";
-import { ProspectingContactsComponent } from "src/app/components/prospecting-contacts/prospecting-contacts.component";
-import { ProspectingService } from "src/app/services/prospecting.service";
-import Swal from "sweetalert2";
-import { ExportToCsv } from "src/app/helpers/CSVHelper";
-import { constants } from "src/app/helpers/constants";
-import { DripCampaignService } from "src/app/services/drip-campaign.service";
-import { ActivatedRoute, Router } from "@angular/router";
-import { ChangeDetectorRef } from "@angular/core";
-import {BrandLayoutComponent} from '../../layouts/brand-layout/brand-layout.component';
-import {KexyButtonComponent} from '../../components/kexy-button/kexy-button.component';
-import {ContactListCardComponent} from '../../components/contact-list-card/contact-list-card.component';
+import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Subscription } from 'rxjs';
+import { AuthService } from 'src/app/services/auth.service';
+import { NgbModal, NgbOffcanvas } from '@ng-bootstrap/ng-bootstrap';
+import { ProspectingContactsComponent } from 'src/app/components/prospecting-contacts/prospecting-contacts.component';
+import { ProspectingService } from 'src/app/services/prospecting.service';
+import Swal from 'sweetalert2';
+import { ExportToCsv } from 'src/app/helpers/CSVHelper';
+import { constants } from 'src/app/helpers/constants';
+import { DripCampaignService } from 'src/app/services/drip-campaign.service';
+import { ActivatedRoute, Router } from '@angular/router';
+import { ChangeDetectorRef } from '@angular/core';
+import { BrandLayoutComponent } from '../../layouts/brand-layout/brand-layout.component';
+import { KexyButtonComponent } from '../../components/kexy-button/kexy-button.component';
+import { ContactListCardComponent } from '../../components/contact-list-card/contact-list-card.component';
 import {
-  UploadFileModalContentComponent
+  UploadFileModalContentComponent,
 } from '../../components/upload-file-modal-content/upload-file-modal-content.component';
 import {
-  SearchContactModalContentComponent
+  SearchContactModalContentComponent,
 } from '../../components/search-contact-modal-content/search-contact-modal-content.component';
 import {
-  AddContactsToDripCampaignComponent
+  AddContactsToDripCampaignComponent,
 } from '../../components/add-contacts-to-drip-campaign/add-contacts-to-drip-campaign.component';
-import {CommonModule} from '@angular/common';
+import { CommonModule } from '@angular/common';
+import { Contact } from '../../models/Contact';
 
 @Component({
   selector: 'brand-contacts',
@@ -32,17 +33,17 @@ import {CommonModule} from '@angular/common';
     ContactListCardComponent,
     UploadFileModalContentComponent,
     SearchContactModalContentComponent,
-    CommonModule
+    CommonModule,
   ],
   templateUrl: './brand-contacts.component.html',
-  styleUrl: './brand-contacts.component.scss'
+  styleUrl: './brand-contacts.component.scss',
 })
-export class BrandContactsComponent {
+export class BrandContactsComponent implements OnInit, OnDestroy {
   modalReference;
   searchModalReference;
   userData;
   supplierId;
-  contactList = [];
+  contactList: Contact[] = [];
   totalContactsCount = 0;
   isWaitingFlag: boolean = true;
   isLoading: boolean = false;
@@ -56,19 +57,19 @@ export class BrandContactsComponent {
   searchLabelIds = [];
   searchLabels = [];
   labelOptions = [];
-  searchContactName = "";
-  searchContactEmail = "";
-  searchContactCompanyName = "";
-  searchContactCountry = "";
-  searchContactCity = "";
-  searchContactState = "";
-  searchContactMarketingStatus = "";
-  searchContactEmailStatus = "";
+  searchContactName = '';
+  searchContactEmail = '';
+  searchContactCompanyName = '';
+  searchContactCountry = '';
+  searchContactCity = '';
+  searchContactState = '';
+  searchContactMarketingStatus = '';
+  searchContactEmailStatus = '';
   addToDripCampaignId;
   addToDrip;
   contactId;
-  sortType = "";
-  sortBy = "";
+  sortType = '';
+  sortBy = '';
   activeFilterCount = 0;
   selectAllContacts = false;
 
@@ -89,7 +90,7 @@ export class BrandContactsComponent {
   }
 
   async ngOnInit() {
-    document.title = "Contacts - KEXY Brand Portal";
+    document.title = 'Contacts - KEXY Brand Portal';
     this.userData = this._authService.userTokenValue;
     this.supplierId = this.userData.supplier_id;
 
@@ -123,35 +124,33 @@ export class BrandContactsComponent {
 
   getQueryParams = () => {
     this.route.queryParams.subscribe(async (params) => {
-      if (params["addToDripCampaignId"]) {
-        this.addToDripCampaignId = params["addToDripCampaignId"];
+      if (params['addToDripCampaignId']) {
+        this.addToDripCampaignId = params['addToDripCampaignId'];
       }
-      if (params["addToDrip"] && params["contactId"]) {
+      if (params['addToDrip'] && params['contactId']) {
         this.addToDrip = true;
-        this.contactId = params["contactId"];
+        this.contactId = params['contactId'];
       }
     });
   };
 
   getContactsApiPostData = () => {
     return {
-      supplier_id: this.supplierId,
-      drip_campaign_id: "",
-      label_ids: this.searchLabelIds,
-      contact_name: this.searchContactName,
-      company_name: this.searchContactCompanyName,
-      email: this.searchContactEmail,
-      job_title: "",
-      email_status: this.searchContactEmailStatus,
-      marketing_status: this.searchContactMarketingStatus,
+      companyId: this.supplierId,
+      dripCampaignId: '',
+      listIds: this.searchLabelIds[0] || '',
+      contactName: this.searchContactName,
+      companyName: this.searchContactCompanyName,
+      jobTitle: '',
+      emailStatus: this.searchContactEmailStatus,
+      marketingStatus: this.searchContactMarketingStatus,
       city: this.searchContactCity,
       state: this.searchContactState,
       country: this.searchContactCountry,
       page: this.page,
       limit: this.limit,
-      get_total_count: true,
-      sort_by: this.sortBy,
-      sort_type: this.sortType,
+      sortBy: this.sortBy,
+      sortType: this.sortType,
     };
   };
 
@@ -167,14 +166,14 @@ export class BrandContactsComponent {
     };
     const contact = await this.prospectingService.getContact(postData);
     this.contactList = this.prospectingService.setLabelsInContactsList([contact]);
-    this.totalPage = "1";
+    this.totalPage = '1';
   };
 
   setContactSubscription = () => {
-    this.contactListSubscription = this.prospectingService.contacts.subscribe((data) => {
+    this.contactListSubscription = this.prospectingService.contactRes.subscribe((data) => {
       if (data) {
-        this.contactList = this.prospectingService.setLabelsInContactsList(data["contacts"]);
-        this.totalContactsCount = data["total"];
+        this.contactList = this.prospectingService.setLabelsInContactsList(data.contacts);
+        this.totalContactsCount = data.total;
         this.totalPage = Math.ceil(this.totalContactsCount / this.limit);
 
         this.selectedContacts = [];
@@ -187,7 +186,7 @@ export class BrandContactsComponent {
 
   getLabels = async () => {
     // Get Label
-    await this.prospectingService.getLabels({ supplier_id: this.supplierId });
+    await this.prospectingService.getLabels({ companyId: this.supplierId, page: 1, limit: 9999999 });
 
     // Set Label Subscription
     this.contactLabelsSubscription = this.prospectingService.labels.subscribe((labels) => {
@@ -197,8 +196,8 @@ export class BrandContactsComponent {
         const labelObj = {
           key: i.label,
           value: i.label,
-          itemBgColor: i.bg_color,
-          itemTextColor: i.text_color,
+          itemBgColor: i.bgColor,
+          itemTextColor: i.textColor,
           id: i.id,
           isSelected: false,
         };
@@ -212,29 +211,27 @@ export class BrandContactsComponent {
     this.exportBtnLoading = true;
 
     const postData = {
-      supplier_id: this.supplierId,
-      drip_campaign_id: "",
-      label_ids: [],
-      contact_name: "",
-      company_name: "",
-      job_title: "",
-      marketing_status: "",
-      email_status: "",
-      city: "",
-      state: "",
-      country: "",
+      companyId: this.supplierId,
+      listIds: '',
+      contactName: '',
+      companyName: '',
+      marketingStatus: '',
+      emailStatus: '',
+      jobTitle: '',
+      city: '',
+      state: '',
+      country: '',
       page: 1,
       limit: 9999999,
-      get_total_count: true,
-      sort_by: "",
-      sort_type: "",
+      sortBy: '',
+      sortType: '',
     };
     try {
       this.allContacts = await this.prospectingService.getAllContacts(postData, true);
       this.exportBtnLoading = false;
     } catch (e) {
       this.exportBtnLoading = false;
-      Swal.fire("Error", e.message);
+      Swal.fire('Error', e.message);
     }
   };
 
@@ -305,16 +302,16 @@ export class BrandContactsComponent {
     await this.getPaginatedContacts(true);
 
     // Clear contact cache
-    this.prospectingService.cachedContacts = {};
+    this.prospectingService.cachedContactPages = {};
   };
 
   importBtnClick = (content) => {
-    this.modalReference = this.modal.open(content, { size: "md" });
+    this.modalReference = this.modal.open(content, { size: 'md' });
   };
 
-  @ViewChild("searchContacts", { static: true }) searchContactsModal: ElementRef;
+  @ViewChild('searchContacts', { static: true }) searchContactsModal: ElementRef;
   handleSearchBtnClick = () => {
-    this.searchModalReference = this.modal.open(this.searchContactsModal, { size: "lg" });
+    this.searchModalReference = this.modal.open(this.searchContactsModal, { size: 'lg' });
   };
 
   closeModal = () => {
@@ -343,24 +340,24 @@ export class BrandContactsComponent {
     this.openSlider(ProspectingContactsComponent);
   };
 
-  openSlider = (component, sliderClass = "contact-slide-content") => {
+  openSlider = (component, sliderClass = 'contact-slide-content') => {
     this.ngbOffcanvas.open(component, {
       panelClass: `${sliderClass} edit-rep-canvas`,
-      backdropClass: "edit-rep-canvas-backdrop",
-      position: "end",
+      backdropClass: 'edit-rep-canvas-backdrop',
+      position: 'end',
       scroll: false,
     });
   };
 
   resetSearchData = async () => {
-    this.searchContactName = "";
-    this.searchContactCompanyName = "";
-    this.searchContactEmail = "";
-    this.searchContactCountry = "";
-    this.searchContactState = "";
-    this.searchContactCity = "";
-    this.searchContactMarketingStatus = "";
-    this.searchContactEmailStatus = "";
+    this.searchContactName = '';
+    this.searchContactCompanyName = '';
+    this.searchContactEmail = '';
+    this.searchContactCountry = '';
+    this.searchContactState = '';
+    this.searchContactCity = '';
+    this.searchContactMarketingStatus = '';
+    this.searchContactEmailStatus = '';
     this.searchLabels = [];
     this.searchLabelIds = [];
     this.activeFilterCount = 0;
@@ -374,9 +371,9 @@ export class BrandContactsComponent {
 
   handleContactSelect = (selectedRow, isSelectAll) => {
     if (isSelectAll) {
-      if (this.contactList.some((i) => i.is_selected)) {
+      if (this.contactList.some((i) => i.isSelected)) {
         this.contactList.map((i) => {
-          i.is_selected = false;
+          i.isSelected = false;
           const index = this.selectedContacts.findIndex((j) => j.id === i.id);
           if (index > -1) {
             this.selectedContacts.splice(index, 1);
@@ -385,7 +382,7 @@ export class BrandContactsComponent {
 
       } else {
         this.contactList.map((i) => {
-          i.is_selected = true;
+          i.isSelected = true;
           const index = this.selectedContacts.findIndex((j) => j.id === i.id);
           if (index === -1) {
             this.selectedContacts.push(i);
@@ -394,9 +391,9 @@ export class BrandContactsComponent {
       }
     } else {
       const rowIndex = this.contactList.findIndex((i) => i.id === selectedRow.id);
-      this.contactList[rowIndex].is_selected = !this.contactList[rowIndex].is_selected;
+      this.contactList[rowIndex].isSelected = !this.contactList[rowIndex].isSelected;
 
-      if (this.contactList[rowIndex].is_selected) {
+      if (this.contactList[rowIndex].isSelected) {
         const index = this.selectedContacts.findIndex((j) => j.id === this.contactList[rowIndex].id);
         if (index === -1) {
           this.selectedContacts.push(this.contactList[rowIndex]);
@@ -441,14 +438,14 @@ export class BrandContactsComponent {
     } else {
       searchData.labels = [];
     }
-    this.searchContactName = searchData.name || "";
-    this.searchContactCompanyName = searchData.companyName || "";
-    this.searchContactEmail = searchData.email || "";
-    this.searchContactCity = searchData.city || "";
-    this.searchContactState = searchData.state || "";
-    this.searchContactCountry = searchData.country || "";
-    this.searchContactMarketingStatus = searchData.marketingStatus || "";
-    this.searchContactEmailStatus = searchData.emailStatus || "";
+    this.searchContactName = searchData.name || '';
+    this.searchContactCompanyName = searchData.companyName || '';
+    this.searchContactEmail = searchData.email || '';
+    this.searchContactCity = searchData.city || '';
+    this.searchContactState = searchData.state || '';
+    this.searchContactCountry = searchData.country || '';
+    this.searchContactMarketingStatus = searchData.marketingStatus || '';
+    this.searchContactEmailStatus = searchData.emailStatus || '';
 
     this.setActiveFilterCount(searchData);
     this.prospectingService.searchContactFilterData = searchData;
@@ -471,32 +468,32 @@ export class BrandContactsComponent {
   };
 
   getImportedFileData = async (data) => {
-    console.log("data", data);
+    console.log('data', data);
     this.isLoading = true;
     const contacts = [];
 
     data.map(contact => {
       contacts.push({
-        id: "",
-        first_name: contact["First Name"],
-        last_name: contact["Last Name"],
-        name: `${contact["First Name"]} ${contact["Last Name"]}`,
-        linkedin_url: contact["Linkedin"],
-        title: contact["Job Title"],
+        id: '',
+        first_name: contact['First Name'],
+        last_name: contact['Last Name'],
+        name: `${contact['First Name']} ${contact['Last Name']}`,
+        linkedin_url: contact['Linkedin'],
+        title: contact['Job Title'],
         email_status: null,
         photo_url: null,
         twitter_url: null,
         github_url: null,
         facebook_url: null,
-        headline: contact["Job Title"],
-        email: contact["Email"],
-        organization_id: "",
+        headline: contact['Job Title'],
+        email: contact['Email'],
+        organization_id: '',
         employment_history: [{}],
-        state: contact["State"],
-        city: contact["City"],
-        country: contact["Country"],
+        state: contact['State'],
+        city: contact['City'],
+        country: contact['Country'],
         organization: {
-          name: contact["Company Name"],
+          name: contact['Company Name'],
           website_url: null,
           blog_url: null,
           angellist_url: null,
@@ -504,15 +501,15 @@ export class BrandContactsComponent {
           twitter_url: null,
           facebook_url: null,
           logo_url: null,
-          phone: contact["Phone Number"],
+          phone: contact['Phone Number'],
           industry: null,
           founded_year: null,
           estimated_num_employees: null,
-          street_address: "",
-          city: contact["City"],
-          state: contact["State"],
-          postal_code: "",
-          country: contact["Country"],
+          street_address: '',
+          city: contact['City'],
+          state: contact['State'],
+          postal_code: '',
+          country: contact['Country'],
         },
         is_likely_to_engage: true,
       });
@@ -526,7 +523,7 @@ export class BrandContactsComponent {
     };
 
     if (this.zerobounceBypass) {
-      payload["bypass_zerobounce"] = "true";
+      payload['bypass_zerobounce'] = 'true';
     }
 
     try {
@@ -538,18 +535,18 @@ export class BrandContactsComponent {
           label_id: labelId,
         };
         const notifyApiRes = await this.prospectingService.notifyAddContactsInDrip(notifyApiPostData);
-        if (notifyApiRes && notifyApiRes["drip_campaign_id"]) {
-          const dripCampaign = await this.dripCampaignService.getDripCampaignTitle({ drip_campaign_id: notifyApiRes["drip_campaign_id"] });
+        if (notifyApiRes && notifyApiRes['drip_campaign_id']) {
+          const dripCampaign = await this.dripCampaignService.getDripCampaignTitle({ drip_campaign_id: notifyApiRes['drip_campaign_id'] });
           let isConfirm = await Swal.fire({
-            title: "Are you sure?",
-            text: `Selected "${this.selectedLabel["value"]}" is connected to a drip campaign "${dripCampaign["title"]}". Do you want to add these contacts to this drip campaign?`,
-            icon: "warning",
+            title: 'Are you sure?',
+            text: `Selected "${this.selectedLabel['value']}" is connected to a drip campaign "${dripCampaign['title']}". Do you want to add these contacts to this drip campaign?`,
+            icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: "#3085d6",
-            cancelButtonColor: "#d33",
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
             allowOutsideClick: false,
             allowEscapeKey: false,
-            confirmButtonText: "Yes, do it!",
+            confirmButtonText: 'Yes, do it!',
             showLoaderOnConfirm: true,
           });
 
@@ -559,7 +556,7 @@ export class BrandContactsComponent {
               contacts,
               label_ids: [labelId],
               notify: false,
-              drip_campaign_id: notifyApiRes["drip_campaign_id"],
+              drip_campaign_id: notifyApiRes['drip_campaign_id'],
             };
             await this.dripCampaignService.assignContactsAndLabelsInCampaign(assignApiPostData);
           }
@@ -571,7 +568,7 @@ export class BrandContactsComponent {
       this.closeModal();
     } catch (e) {
       this.isLoading = false;
-      await Swal.fire("Error", e.message);
+      await Swal.fire('Error', e.message);
     }
   };
 
@@ -579,7 +576,7 @@ export class BrandContactsComponent {
     await this.getAllContacts();
 
     const headers = `First Name,Last Name,Linkedin,Email,Email Status,Job Title,Company Name,Phone Number,City,State,Country,Marketing Status,List`;
-    let rows = "";
+    let rows = '';
     this.allContacts.forEach((contact) => {
       // console.log('contact', contact);
       let labels = [];
@@ -588,36 +585,36 @@ export class BrandContactsComponent {
       });
 
       let contactDetails = JSON.parse(contact.details);
-      rows += `${contactDetails.first_name?.replace(/,/g, " ")}, `;
-      rows += `${contactDetails.last_name?.replace(/,/g, " ")}, `;
-      rows += `${contactDetails.linkedin_url?.replace(/,/g, " ")}, `;
-      rows += `${contactDetails.email?.replace(/,/g, " ")}, `;
-      rows += `${contactDetails.email_status?.replace(/,/g, " ")}, `;
-      rows += `${contactDetails.title?.replace(/,/g, " ")}, `;
-      rows += `${contactDetails.organization.name?.replace(/,/g, " ")}, `;
-      rows += `${contactDetails.organization.phone?.replace(/,/g, " ")}, `;
-      rows += `${contactDetails.city?.replace(/,/g, " ")}, `;
-      rows += `${contactDetails.state?.replace(/,/g, " ")}, `;
-      rows += `${contactDetails.country?.replace(/,/g, " ")}, `;
-      rows += `${contact.marketing_status?.replace(/,/g, " ")}, `;
-      rows += `${labels.length ? labels.join("/") : ""}\n`;
+      rows += `${contactDetails.first_name?.replace(/,/g, ' ')}, `;
+      rows += `${contactDetails.last_name?.replace(/,/g, ' ')}, `;
+      rows += `${contactDetails.linkedin_url?.replace(/,/g, ' ')}, `;
+      rows += `${contactDetails.email?.replace(/,/g, ' ')}, `;
+      rows += `${contactDetails.email_status?.replace(/,/g, ' ')}, `;
+      rows += `${contactDetails.title?.replace(/,/g, ' ')}, `;
+      rows += `${contactDetails.organization.name?.replace(/,/g, ' ')}, `;
+      rows += `${contactDetails.organization.phone?.replace(/,/g, ' ')}, `;
+      rows += `${contactDetails.city?.replace(/,/g, ' ')}, `;
+      rows += `${contactDetails.state?.replace(/,/g, ' ')}, `;
+      rows += `${contactDetails.country?.replace(/,/g, ' ')}, `;
+      rows += `${contact.marketing_status?.replace(/,/g, ' ')}, `;
+      rows += `${labels.length ? labels.join('/') : ''}\n`;
     });
     // console.log(rows);
-    await ExportToCsv.download("Contacts.csv", headers + "\n" + rows);
+    await ExportToCsv.download('Contacts.csv', headers + '\n' + rows);
     this.isWaitingFlag = false;
   };
 
   deleteContacts = async () => {
     let isConfirm = await Swal.fire({
-      title: "Are you sure?",
-      text: "You won't be able to revert this!",
-      icon: "warning",
+      title: 'Are you sure?',
+      text: 'You won\'t be able to revert this!',
+      icon: 'warning',
       showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
       allowOutsideClick: false,
       allowEscapeKey: false,
-      confirmButtonText: "Yes, delete it!",
+      confirmButtonText: 'Yes, delete it!',
       showLoaderOnConfirm: true,
     });
 
@@ -626,8 +623,8 @@ export class BrandContactsComponent {
     }
 
     Swal.fire({
-      title: "",
-      text: "Please wait...",
+      title: '',
+      text: 'Please wait...',
       showConfirmButton: false,
       showCancelButton: false,
       allowOutsideClick: false,
@@ -642,9 +639,9 @@ export class BrandContactsComponent {
       contacts: contactIds,
     };
     if (this.selectAllContacts) {
-      postData["selected_all_contacts"] = "true";
-      postData["selected_all_contacts_payload"] = this.getContactsApiPostData();
-      postData["contacts"] = [];
+      postData['selected_all_contacts'] = 'true';
+      postData['selected_all_contacts_payload'] = this.getContactsApiPostData();
+      postData['contacts'] = [];
     }
     try {
       await this.prospectingService.deleteContacts(postData);
@@ -653,7 +650,7 @@ export class BrandContactsComponent {
       Swal.close();
     } catch (e) {
       Swal.close();
-      await Swal.fire("Error", e.message);
+      await Swal.fire('Error', e.message);
     }
   };
 
@@ -677,7 +674,7 @@ export class BrandContactsComponent {
   };
 
   handleAddToDripCampaign = () => {
-    this.openSlider(AddContactsToDripCampaignComponent, "attributes-bg");
+    this.openSlider(AddContactsToDripCampaignComponent, 'attributes-bg');
   };
 
   toggleSelectAllContactSelection = () => {
