@@ -328,22 +328,6 @@ export class GenerateDripCampaignComponent implements OnInit {
     this.testEmailModalRef = this.modal.open(modalContent);
   };
 
-  getSettings = async () => {
-    const postData = {
-      supplier_id: this.userData.supplier_id,
-      drip_campaign_id: this.dripCampaignId,
-    };
-    const data = await this.dripCampaignService.getSettings(postData);
-    let enrollList;
-    if (data && data["enrollment_triggers"]) {
-      const enrollment = data["enrollment_triggers"];
-      if (enrollment?.length) {
-        enrollList = enrollment.filter(r => r.type === "enroll_list");
-      }
-    }
-    return enrollList;
-  };
-
   handleClickNextButton = async () => {
     if (!this.emails.length) {
       await Swal.fire({
@@ -354,7 +338,8 @@ export class GenerateDripCampaignComponent implements OnInit {
       return;
     }
 
-    const enrollList = await this.getSettings();
+    const enrollment = this.dripCampaign.lists;
+    const enrollList = enrollment.filter(r => r.type === "enroll_list");
     if (!enrollList?.length) {
       this.openSettingsCanvas();
       await Swal.fire({
@@ -392,8 +377,8 @@ export class GenerateDripCampaignComponent implements OnInit {
 
       const postData = {
         drip_campaign_id: this.dripCampaignId,
-        supplier_id: this.userData.supplier_id,
-        notify: "true",
+        companyId: this.userData.supplier_id,
+        // notify: "true",
       };
       await this.dripCampaignService.activateDripCampaign(postData);
       return true;
