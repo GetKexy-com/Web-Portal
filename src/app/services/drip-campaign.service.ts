@@ -364,7 +364,13 @@ export class DripCampaignService {
           }
 
         } else {
-          //this.allDripCampaigns = res.data;
+          res.data.sort(function(a, b) {
+            const a1 = a.id,
+              b1 = b.id;
+            if (a1 == b1) return 0;
+            return a1 < b1 ? 1 : -1;
+          });
+
           res.data.forEach((rawData: IRawDripCampaign) => {
             this.allDripCampaigns.push(new DripCampaign(rawData))
           })
@@ -702,7 +708,7 @@ export class DripCampaignService {
     return new Promise(async (resolve, reject) => {
       const url = `drip-campaigns/${postData.drip_campaign_id}/settings`;
       delete postData.drip_campaign_id;
-      this.httpService.post(url, postData).subscribe((res) => {
+      this.httpService.patch(url, postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -736,14 +742,17 @@ export class DripCampaignService {
 
   removeListFromCampaign = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("drip-campaigns/removeListFromCampaign", postData).subscribe((res) => {
+      const url = `drip-campaigns/list/${postData.list_id}`;
+      delete postData.list_id;
+      this.httpService.delete(url, postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
           }
 
         } else {
-          resolve(res.data);
+          this.updateDripCampaignWithLatestSettings(res);
+          resolve(true);
         }
       });
     });

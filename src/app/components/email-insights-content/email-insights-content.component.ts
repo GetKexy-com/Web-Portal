@@ -50,23 +50,23 @@ export class EmailInsightsContentComponent implements OnInit{
   setDifferentTypesOfInsights = () => {
     if (this.insights && this.insights.length) {
       this.insights.forEach((insight, index) => {
-        if (insight["insight_type"] === constants.CLICK) {
+        if (insight["insightType"] === constants.CLICK) {
           this.clickedInsights.push(insight);
         }
 
-        if (insight["insight_type"] === constants.OPEN) {
+        if (insight["insightType"] === constants.OPEN) {
           this.openedInsights.push(insight);
         }
 
-        if (insight["insight_type"] === constants.REPLY) {
+        if (insight["insightType"] === constants.REPLY) {
           this.repliedInsights.push(insight);
         }
 
-        if(insight["clicked_link"]) {
-          if (this.topClickedLinks[insight["clicked_link"]]) {
-            this.topClickedLinks[insight["clicked_link"]].push(insight);
+        if(insight["clickedLink"]) {
+          if (this.topClickedLinks[insight["clickedLink"]]) {
+            this.topClickedLinks[insight["clickedLink"]].push(insight);
           } else {
-            this.topClickedLinks[insight["clicked_link"]] = [insight];
+            this.topClickedLinks[insight["clickedLink"]] = [insight];
           }
         }
       });
@@ -74,23 +74,21 @@ export class EmailInsightsContentComponent implements OnInit{
       this.topClickedContacts = this.setTopEngagedContacts(this.clickedInsights);
       this.topOpenedContacts = this.setTopEngagedContacts(this.openedInsights);
       this.setInsightRates();
-      console.log(this.topOpenedContacts);
     }
   }
 
   setTopEngagedContacts = (data: object[]) => {
     let topContacts: object = {};
     data.forEach(insight => {
-      const contact = insight["kexy_contact"];
+      const contact = insight["contact"];
       const contactId = contact?.id.toString();
       if (topContacts[contactId]) {
         topContacts[contactId]["count"] += 1;
       } else {
-        delete insight["kexy_contact"];
+        delete insight["contact"];
         topContacts[contactId] = {...contact, insight, count: 1};
       }
     })
-
     return Object.values(topContacts).sort((a, b) => b.count - a.count);
   }
 

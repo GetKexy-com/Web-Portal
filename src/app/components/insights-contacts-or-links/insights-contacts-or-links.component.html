@@ -67,11 +67,11 @@
       <ng-container *ngIf="paginatedClickedContacts.length && !isLoading">
         <div *ngFor="let item of paginatedClickedContacts" class="data-row" style="border-top: 1px solid #ddd">
           <p class="link">
-            <span *ngIf="item['contact_name'] && item['email']">{{item["contact_name"]}} <{{item["email"]}}></span>
-            <span *ngIf="!item['contact_name'] || !item['email']">< Deleted Contact ></span>
+            <span *ngIf="item['contactName'] && item['email']">{{item["contactName"]}} <{{item["email"]}}></span>
+            <span *ngIf="!item['contactName'] || !item['email']">< Deleted Contact ></span>
             <img
               class="info-img tooltip-question tooltip-btn ms-1"
-              [ngbTooltip]="item['insight']['clicked_link']"
+              [ngbTooltip]="item['insight']['clickedLink']"
               tooltipClass="custom-tooltip-class"
               src="/assets/icon/grey-circle-info-icon.svg"
               alt="info icon"
@@ -89,8 +89,8 @@
     <ng-container *ngIf="selectedTabItem === constants.OPENS">
       <ng-container *ngIf="paginatedOpenedContacts.length && !isLoading">
         <div *ngFor="let item of paginatedOpenedContacts" class="data-row" style="border-top: 1px solid #ddd">
-          <p *ngIf="item['contact_name'] && item['email']" class="link">{{item["contact_name"]}} <{{item["email"]}}></p>
-          <p *ngIf="!item['contact_name'] || !item['email']" class="link">< Deleted Contact ></p>
+          <p *ngIf="item['contactName'] && item['email']" class="link">{{item["contactName"]}} <{{item["email"]}}></p>
+          <p *ngIf="!item['contactName'] || !item['email']" class="link">< Deleted Contact ></p>
           <p class="clicks font-weight-normal">{{item["count"]}}</p>
         </div>
       </ng-container>

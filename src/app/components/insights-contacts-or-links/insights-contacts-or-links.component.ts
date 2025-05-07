@@ -33,9 +33,6 @@ export class InsightsContactsOrLinksComponent {
   paginatedLinks: object[] = [];
   protected readonly constants = constants;
 
-  ngOnInit() {
-  }
-
   switchTabItem = (item) => {
     this.selectedTabItem = item;
     this.currentPage = 1;
@@ -85,7 +82,6 @@ export class InsightsContactsOrLinksComponent {
   }
 
   downloadIconClickedInLink = (insights) => {
-    console.log(insights);
     this.downloadEngagedContactsInLinks(insights.data);
   }
 
@@ -94,12 +90,12 @@ export class InsightsContactsOrLinksComponent {
     let rows = "";
     let contacts = {};
     data.forEach((row) => {
-      let contact = row["kexy_contact"];
+      let contact = row["contact"];
       if (contact && !contacts[contact.email]) {
         contacts[contact.email] = contact;
-        rows += `${contact.contact_name?.length ? contact.contact_name?.replace(/,/g, " ") : ""}, `;
+        rows += `${contact.contactName?.length ? contact.contactName?.replace(/,/g, " ") : ""}, `;
         rows += `${contact.email?.length ? contact.email?.replace(/,/g, " ") : ""}, `;
-        rows += `${contact.job_title?.length ? contact.job_title?.replace(/,/g, " ") : ""}, `;
+        rows += `${contact.jobTitle?.length ? contact.jobTitle?.replace(/,/g, " ") : ""}, `;
         rows += `${contact.city?.length ? contact.city?.replace(/,/g, " ") : ""}, `;
         rows += `${contact.state?.length ? contact.state?.replace(/,/g, " ") : ""}, `;
         rows += `${contact.country?.length ? contact.country?.replace(/,/g, " ") : ""}\n`;

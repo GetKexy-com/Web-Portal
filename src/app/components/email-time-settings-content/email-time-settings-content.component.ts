@@ -391,6 +391,7 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
     try {
       await this.dripCampaignService.updateSettings(postData);
       this.setInitialData();
+      await this.getAndSetLabels();
       this.setPreviousData();
       Swal.fire("Success", "Settings saved successfully", "success");
 
@@ -412,7 +413,6 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
 
   removeActiveList = async (list) => {
     console.log(list);
-    return;
     const isConfirm = await Swal.fire({
       title: "Are you sure?",
       icon: "warning",
@@ -430,14 +430,14 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
     swal.showLoading();
 
     const postData = {
-      drip_campaign_id: this.dripCampaignId,
-      supplier_id: this.userData.supplier_id,
-      list_id: list.kexy_label_id,
+      list_id: list.list.id,
+      dripCampaignId: this.dripCampaignId,
+      companyId: this.userData.supplier_id,
     };
 
     try {
       await this.dripCampaignService.removeListFromCampaign(postData);
-      // TODO - Manually do get settings functionality
+      this.setInitialData();
       await this.getAndSetLabels();
       this.setPreviousData();
 
