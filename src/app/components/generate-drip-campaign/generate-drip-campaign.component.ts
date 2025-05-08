@@ -414,7 +414,6 @@ export class GenerateDripCampaignComponent implements OnInit {
     } catch (e) {
       await Swal.fire("Error", e.message);
     }
-
   };
 
   __isConfirmed = async () => {

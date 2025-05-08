@@ -306,33 +306,28 @@ export class DripCampaignService {
     return this.editDripCampaignTitleItem;
   };
 
-  getListOfDripCampaigns = async (limit = 10, page = 1, supplier_id) => {
+  getListOfDripCampaigns = async (limit = 10, page = 1) => {
     let tempDealList = [];
-    let postData = {
-      page: page,
-      supplier_id: supplier_id,
-      limit: limit,
-      get_total_count: true,
-    };
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("drip-campaigns/getAll", postData).subscribe((res) => {
+      const url = `drip-campaigns?limit=${limit}&page=${page}`;
+      this.httpService.get(url).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
           }
         } else {
-
+          console.log('res', res);
           let totalPageCounts = Math.ceil(res.data.total / limit);
           let totalRecordsCount = res.data.total;
 
-          res.data.drip_campaigns.sort(function (a, b) {
+          res.data.dripCampaigns.sort(function (a, b) {
             const a1 = a.id,
               b1 = b.id;
             if (a1 == b1) return 0;
             return a1 < b1 ? 1 : -1;
           });
 
-          resolve({dripCampaigns: res.data.drip_campaigns, totalPageCounts, totalRecordsCount});
+          resolve({dripCampaigns: res.data, totalPageCounts, totalRecordsCount});
         }
       });
     });
@@ -365,14 +360,14 @@ export class DripCampaignService {
           }
 
         } else {
-          res.data.sort(function(a, b) {
+          res.data.dripCampaigns.sort(function(a, b) {
             const a1 = a.id,
               b1 = b.id;
             if (a1 == b1) return 0;
             return a1 < b1 ? 1 : -1;
           });
 
-          res.data.forEach((rawData: IRawDripCampaign) => {
+          res.data.dripCampaigns.forEach((rawData: IRawDripCampaign) => {
             this.allDripCampaigns.push(new DripCampaign(rawData))
           })
 

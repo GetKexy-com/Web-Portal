@@ -337,6 +337,7 @@ import { PageUiService } from 'src/app/services/page-ui.service';
 import {BrandLayoutComponent} from '../../layouts/brand-layout/brand-layout.component';
 import {KexyButtonComponent} from '../../components/kexy-button/kexy-button.component';
 import {ListOfDripCampaignTableComponent} from '../../components/list-of-drip-campaign-table/list-of-drip-campaign-table.component';
+import {DripCampaign} from '../../models/DripCampaign';
 
 @Component({
   selector: 'brand-list-of-drip-campaigns',
@@ -365,7 +366,7 @@ export class BrandListOfDripCampaignsComponent {
   isWaitingFlag = signal(false);
   initialLoads = signal(true);
   isLoading = signal(false);
-  dripCampaignList = signal<any[]>([]);
+  dripCampaignList = signal([]);
   page = signal(1);
   limit = signal(25);
   userData = signal<any>(null);
@@ -403,8 +404,7 @@ export class BrandListOfDripCampaignsComponent {
   async getListOfDripCampaigns() {
     const data = await this.dripCampaignService.getListOfDripCampaigns(
       this.limit(),
-      this.page(),
-      this.userData().supplier_id
+      this.page()
     );
 
     this.dripCampaignList.set(data["dripCampaigns"]);
