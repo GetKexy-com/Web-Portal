@@ -327,7 +327,7 @@ export class DripCampaignService {
             return a1 < b1 ? 1 : -1;
           });
 
-          resolve({dripCampaigns: res.data, totalPageCounts, totalRecordsCount});
+          resolve({dripCampaigns: res.data.dripCampaigns, totalPageCounts, totalRecordsCount});
         }
       });
     });

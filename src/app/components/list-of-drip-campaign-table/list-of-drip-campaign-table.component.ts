@@ -10,6 +10,7 @@ import {CommonModule, DatePipe, DecimalPipe, NgClass} from '@angular/common';
 import {
   ContactLabelsModalContentComponent
 } from '../contact-labels-modal-content/contact-labels-modal-content.component';
+import {DripCampaign} from '../../models/DripCampaign';
 
 @Component({
   selector: 'list-of-drip-campaign-table',
@@ -23,10 +24,10 @@ import {
   templateUrl: './list-of-drip-campaign-table.component.html',
   styleUrl: './list-of-drip-campaign-table.component.scss'
 })
-export class ListOfDripCampaignTableComponent {
+export class ListOfDripCampaignTableComponent implements OnInit, AfterViewChecked, OnDestroy {
   @Input() tableHeaderBg;
   @Input() tableHeaderColor;
-  @Input() cardData = [];
+  @Input() cardData: DripCampaign[] = [];
   @Input() dripCampaignTitles = [];
   @Input() selectedDripCampaigns;
   @Input() isLoading: boolean = false;
@@ -56,6 +57,7 @@ export class ListOfDripCampaignTableComponent {
     this.contactLabelsSubscription = this.prospectingService.labels.subscribe((labels) => {
       // Set label dropdown options
       this.labelOptions = labels;
+      console.log('labelOptions', this.labelOptions);
     });
 
     this.getListViewData();
@@ -102,12 +104,12 @@ export class ListOfDripCampaignTableComponent {
     this.selectedLimit.emit(this.limit);
   };
 
-  getCampaignTitle = (title_id) => {
-    const index = this.dripCampaignTitles && this.dripCampaignTitles.findIndex(i => i.id.toString() === title_id.toString());
-    if (index < 0) return;
-
-    return this.dripCampaignTitles[index].title;
-  };
+  // getCampaignTitle = (title_id) => {
+  //   const index = this.dripCampaignTitles && this.dripCampaignTitles.findIndex(i => i.id.toString() === title_id.toString());
+  //   if (index < 0) return;
+  //
+  //   return this.dripCampaignTitles[index].title;
+  // };
 
   redirectToEditPage = (dripCampaign) => {
     const queryParams: any = {
@@ -134,7 +136,7 @@ export class ListOfDripCampaignTableComponent {
       return false;
     }
 
-    const listId = this.enrolledLists[0].kexy_label_id;
+    const listId = this.enrolledLists[0].id;
     const index = this.labelOptions.findIndex(l => l.id === listId);
     if (index > -1) {
       this.list = this.labelOptions[index];
@@ -148,12 +150,12 @@ export class ListOfDripCampaignTableComponent {
   openShowAllLabelModal = (labelsArray) => {
     const lists = [];
     labelsArray.forEach(label => {
-      const index = this.labelOptions.findIndex(l => l.id === label.kexy_label_id);
+      const index = this.labelOptions.findIndex(l => l.id === label.id);
       if (index > -1) {
         const listObj = {
           kexy_label: {
-            bg_color: this.labelOptions[index].bg_color,
-            text_color: this.labelOptions[index].text_color,
+            bg_color: this.labelOptions[index].bgColor,
+            text_color: this.labelOptions[index].textColor,
             label: this.labelOptions[index].label,
           },
         };
@@ -167,7 +169,7 @@ export class ListOfDripCampaignTableComponent {
 
   selectedItemCount;
   getSelectedItemCount = () => {
-    this.selectedItemCount = this.cardData.filter((i) => i.is_selected).length;
+    this.selectedItemCount = this.cardData.filter((i) => i.isSelected).length;
     return this.selectedItemCount;
   };
 
