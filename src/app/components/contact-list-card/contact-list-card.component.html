@@ -200,10 +200,11 @@
                 </span>
 
                 <span *ngIf="column.key === 'marketing_status'" class="marketing-status">
-                  <span class="ms-green" *ngIf="contact.marketingStatus === 'subscribed'">
-                    {{ contact.marketingStatus }}
-                  </span>
-                  <span class="ms-red" *ngIf="contact.marketingStatus === 'unsubscribed'">
+                  <span
+                    [ngClass]="{
+                    'ms-green': contact.marketingStatus == 'subscribed',
+                    'ms-red': contact.marketingStatus == 'unsubscribed'
+                    }">
                     {{ contact.marketingStatus }}
                   </span>
                 </span>
@@ -248,7 +249,8 @@
                 <span *ngIf="column.key === 'action'" class="text-center d-inline-block w-100"
                       (click)="onCheckboxClicked($event, contact)">
                   <i *ngIf="!contact.isSelected" aria-hidden="true" class="fa fa-square-o checkbox-icon"></i>
-                  <i *ngIf="contact.isSelected" aria-hidden="true" class="fa fa-check-square checkbox-icon selected"></i>
+                  <i *ngIf="contact.isSelected" aria-hidden="true"
+                     class="fa fa-check-square checkbox-icon selected"></i>
                 </span>
 
               </td>

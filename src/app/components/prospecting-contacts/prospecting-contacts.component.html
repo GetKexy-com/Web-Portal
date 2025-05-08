@@ -30,7 +30,7 @@
                 backgroundColor="white"
                 placeholder="Please Select"
               ></kexy-select-dropdown>
-              <div *ngIf="formValidationErrorCheck('marketing_status')">
+              <div *ngIf="formValidationErrorCheck('marketingStatus')">
                 <error-message-card message="Field is required!"></error-message-card>
               </div>
             </div>
@@ -67,8 +67,8 @@
             <div *ngIf="!isMultipleContactsSelected" class="input-wrap">
               <div class="label-and-input">
                 <p>First Name</p>
-                <input class="form-control" formControlName="first_name" type="text" placeholder="First Name" />
-                <div *ngIf="formValidationErrorCheck('first_name')">
+                <input class="form-control" formControlName="firstName" type="text" placeholder="First Name" />
+                <div *ngIf="formValidationErrorCheck('firstName')">
                   <error-message-card message="Field is required!"></error-message-card>
                 </div>
               </div>
@@ -78,8 +78,8 @@
             <div *ngIf="!isMultipleContactsSelected" class="input-wrap">
               <div class="label-and-input">
                 <p>Last Name</p>
-                <input class="form-control" formControlName="last_name" type="text" placeholder="Last Name" />
-                <div *ngIf="formValidationErrorCheck('last_name')">
+                <input class="form-control" formControlName="lastName" type="text" placeholder="Last Name" />
+                <div *ngIf="formValidationErrorCheck('lastName')">
                   <error-message-card message="Field is required!"></error-message-card>
                 </div>
               </div>
@@ -89,7 +89,7 @@
             <div *ngIf="!isMultipleContactsSelected" class="input-wrap">
               <div class="label-and-input">
                 <p>LinkedIn</p>
-                <input class="form-control" formControlName="linkedin" type="text" placeholder="LinkedIn" />
+                <input class="form-control" formControlName="linkedinUrl" type="text" placeholder="LinkedIn" />
               </div>
             </div>
           </div>
@@ -97,8 +97,8 @@
             <div *ngIf="!isMultipleContactsSelected" class="input-wrap">
               <div class="label-and-input">
                 <p>Email Address</p>
-                <input class="form-control" formControlName="email_address" type="text" placeholder="Email Address" />
-                <div *ngIf="formValidationErrorCheck('email_address')">
+                <input class="form-control" formControlName="email" type="text" placeholder="Email Address" />
+                <div *ngIf="formValidationErrorCheck('email')">
                   <error-message-card message="Field is required!"></error-message-card>
                 </div>
               </div>
@@ -108,7 +108,7 @@
             <div *ngIf="!isMultipleContactsSelected" class="input-wrap">
               <div class="label-and-input">
                 <p>Job Title</p>
-                <input class="form-control" formControlName="job_title" type="text" placeholder="Job Title" />
+                <input class="form-control" formControlName="title" type="text" placeholder="Job Title" />
               </div>
             </div>
           </div>
@@ -116,7 +116,7 @@
             <div *ngIf="!isMultipleContactsSelected" class="input-wrap">
               <div class="label-and-input">
                 <p>Company Name</p>
-                <input class="form-control" formControlName="company_name" type="text" placeholder="Company Name" />
+                <input class="form-control" formControlName="organizationName" type="text" placeholder="Company Name" />
               </div>
             </div>
           </div>
@@ -126,11 +126,11 @@
                 <p>Phone Number</p>
                 <div class="d-flex form-control">
                   <!--                  <span class="me-2">+1</span>-->
-                  <input style="border: none; flex: 1" formControlName="phone_number" type="text"
+                  <input style="border: none; flex: 1" formControlName="organizationPhone" type="text"
                          placeholder="+1 (123) 123-1231" />
                 </div>
               </div>
-              <div *ngIf="formValidationErrorCheck('phone_number')">
+              <div *ngIf="formValidationErrorCheck('organizationPhone')">
                 <error-message-card message="Invalid Number!"></error-message-card>
               </div>
             </div>

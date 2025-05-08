@@ -473,7 +473,7 @@ export class ProspectingService {
 
   editContacts = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post('contacts/edit', postData).subscribe((res) => {
+      this.httpService.patch('contacts', postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);

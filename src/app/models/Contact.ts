@@ -1,6 +1,7 @@
 export class Contact {
   id: number;
   isSelected?: boolean;
+  apolloContactId?: string;
   lists?: any[];
   email: string;
   contactName: string;
@@ -39,11 +40,104 @@ export class Contact {
 
   private parseDetails(detailsString: string): ContactDetails {
     try {
-      return JSON.parse(detailsString);
+      const parsed = JSON.parse(detailsString);
+      return this.convertToCamelCase(parsed);
     } catch (error) {
       console.error('Failed to parse contact details:', error);
       return {} as ContactDetails;
     }
+  }
+
+  private convertToCamelCase(data: any): ContactDetails {
+    return {
+      id: data.id,
+      apolloContactId: data.apollo_contact_id,
+      firstName: data.first_name,
+      lastName: data.last_name,
+      name: data.name,
+      linkedinUrl: data.linkedin_url,
+      title: data.title,
+      marketingStatus: data.marketing_status,
+      emailStatus: data.email_status,
+      photoUrl: data.photo_url,
+      twitterUrl: data.twitter_url,
+      githubUrl: data.github_url,
+      facebookUrl: data.facebook_url,
+      headline: data.headline,
+      email: data.email,
+      organizationId: data.organization_id,
+      employmentHistory: data.employment_history,
+      state: data.state,
+      city: data.city,
+      country: data.country,
+      notes: data.notes,
+      organization: data.organization ? {
+        name: data.organization.name,
+        websiteUrl: data.organization.website_url,
+        blogUrl: data.organization.blog_url,
+        angellistUrl: data.organization.angellist_url,
+        linkedinUrl: data.organization.linkedin_url,
+        twitterUrl: data.organization.twitter_url,
+        facebookUrl: data.organization.facebook_url,
+        logoUrl: data.organization.logo_url,
+        phone: data.organization.phone,
+        industry: data.organization.industry,
+        foundedYear: data.organization.founded_year,
+        estimatedNumEmployees: data.organization.estimated_num_employees,
+        streetAddress: data.organization.street_address,
+        city: data.organization.city,
+        state: data.organization.state,
+        postalCode: data.organization.postal_code,
+        country: data.organization.country,
+      } : undefined,
+      isLikelyToEngage: data.is_likely_to_engage,
+    };
+  }
+
+  static contactPostDto(contact: Contact) {
+    return {
+      id: contact.id.toString() || '',
+      apolloContactId: contact.details.apolloContactId || '',
+      firstName: contact.details.firstName || contact.contactName.split(' ')[0] || '',
+      lastName: contact.details.lastName || contact.contactName.split(' ').slice(1).join(' ') || '',
+      name: contact.details.name || contact.contactName || '',
+      linkedinUrl: contact.details.linkedinUrl || '',
+      title: contact.details.title || contact.jobTitle || '',
+      marketingStatus: contact.details.marketingStatus || contact.marketingStatus || 'subscribed',
+      emailStatus: contact.details.emailStatus || contact.emailStatus || null,
+      photoUrl: contact.details.photoUrl || null,
+      twitterUrl: contact.details.twitterUrl || null,
+      githubUrl: contact.details.githubUrl || null,
+      facebookUrl: contact.details.facebookUrl || null,
+      headline: contact.details.headline || contact.jobTitle || '',
+      email: contact.details.email || contact.email || '',
+      organizationId: contact.details.organizationId || '',
+      employmentHistory: contact.details.employmentHistory || [{}],
+      state: contact.details.state || contact.state || '',
+      city: contact.details.city || contact.city || '',
+      country: contact.details.country || contact.country || '',
+      notes: contact.details.notes || contact.notes || '',
+      organization: {
+        name: contact.details.organization?.name || contact.companyName || '',
+        websiteUrl: contact.details.organization?.websiteUrl || null,
+        blogUrl: contact.details.organization?.blogUrl || null,
+        angellistUrl: contact.details.organization?.angellistUrl || null,
+        linkedinUrl: contact.details.organization?.linkedinUrl || '',
+        twitterUrl: contact.details.organization?.twitterUrl || null,
+        facebookUrl: contact.details.organization?.facebookUrl || null,
+        logoUrl: contact.details.organization?.logoUrl || null,
+        phone: contact.details.organization?.phone || '',
+        industry: contact.details.organization?.industry || null,
+        foundedYear: contact.details.organization?.foundedYear || null,
+        estimatedNumEmployees: contact.details.organization?.estimatedNumEmployees || null,
+        streetAddress: contact.details.organization?.streetAddress || '',
+        city: contact.details.organization?.city || contact.city || '',
+        state: contact.details.organization?.state || contact.state || '',
+        postalCode: contact.details.organization?.postalCode || '',
+        country: contact.details.organization?.country || contact.country || '',
+      },
+      isLikelyToEngage: contact.details.isLikelyToEngage ?? true,
+    };
   }
 
   static empty(): Contact {
@@ -59,11 +153,53 @@ export class Contact {
       emailStatus: 'unverified',
       marketingStatus: 'unsubscribed',
       listIds: [],
-      details: '{}',
+      details: JSON.stringify({
+        id: '',
+        apolloContactId: '',
+        firstName: '',
+        lastName: '',
+        name: '',
+        linkedinUrl: '',
+        title: '',
+        marketingStatus: '',
+        emailStatus: null,
+        photoUrl: null,
+        twitterUrl: null,
+        githubUrl: null,
+        facebookUrl: null,
+        headline: '',
+        email: '',
+        organizationId: '',
+        employmentHistory: [],
+        state: '',
+        city: '',
+        country: '',
+        notes: '',
+        organization: {
+          name: '',
+          websiteUrl: null,
+          blogUrl: null,
+          angellistUrl: null,
+          linkedinUrl: null,
+          twitterUrl: null,
+          facebookUrl: null,
+          logoUrl: null,
+          phone: '',
+          industry: null,
+          foundedYear: null,
+          estimatedNumEmployees: null,
+          streetAddress: '',
+          city: '',
+          state: '',
+          postalCode: '',
+          country: '',
+        },
+        isLikelyToEngage: false,
+      }),
       source: 'manual',
       notes: null,
       status: 'inactive',
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
     };
     return new Contact(emptyRawData);
   }
@@ -72,12 +208,12 @@ export class Contact {
     return new Contact({
       ...json,
       listIds: json.listIds || [],
-      details: json.details || '{}'
+      details: json.details || '{}',
     });
   }
 }
 
-// Supporting interfaces
+// Supporting interfaces with camelCase properties
 export interface IRawContact {
   id: number;
   email: string;
@@ -99,47 +235,47 @@ export interface IRawContact {
 
 export interface ContactDetails {
   id?: string;
-  apollo_contact_id?: string;
-  first_name?: string;
-  last_name?: string;
+  apolloContactId?: string;
+  firstName?: string;
+  lastName?: string;
   name?: string;
-  linkedin_url?: string;
+  linkedinUrl?: string;
   title?: string;
-  marketing_status?: string;
-  email_status?: string | null;
-  photo_url?: string | null;
-  twitter_url?: string | null;
-  github_url?: string | null;
-  facebook_url?: string | null;
+  marketingStatus?: string;
+  emailStatus?: string | null;
+  photoUrl?: string | null;
+  twitterUrl?: string | null;
+  githubUrl?: string | null;
+  facebookUrl?: string | null;
   headline?: string;
   email?: string;
-  organization_id?: string;
-  employment_history?: any[][];
+  organizationId?: string;
+  employmentHistory?: any[][];
   state?: string;
   city?: string;
   country?: string;
   notes?: string;
   organization?: ContactOrganization;
-  is_likely_to_engage?: boolean;
+  isLikelyToEngage?: boolean;
 }
 
 export interface ContactOrganization {
   name?: string;
-  website_url?: string | null;
-  blog_url?: string | null;
-  angellist_url?: string | null;
-  linkedin_url?: string | null;
-  twitter_url?: string | null;
-  facebook_url?: string | null;
-  logo_url?: string | null;
+  websiteUrl?: string | null;
+  blogUrl?: string | null;
+  angellistUrl?: string | null;
+  linkedinUrl?: string | null;
+  twitterUrl?: string | null;
+  facebookUrl?: string | null;
+  logoUrl?: string | null;
   phone?: string;
   industry?: string | null;
-  founded_year?: number | null;
-  estimated_num_employees?: number | null;
-  street_address?: string;
+  foundedYear?: number | null;
+  estimatedNumEmployees?: number | null;
+  streetAddress?: string;
   city?: string;
   state?: string;
-  postal_code?: string;
+  postalCode?: string;
   country?: string;
 }
 

@@ -330,6 +330,7 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
   };
 
   editContactClick = (data = null) => {
+    console.log({ data });
     if (data) {
       this.prospectingService.clickedContactInContactPage = [data];
     }
