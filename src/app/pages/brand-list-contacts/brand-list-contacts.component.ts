@@ -134,9 +134,9 @@ export class BrandListContactsComponent {
   };
 
   setContactSubscription = () => {
-    this.contactListSubscription = this.prospectingService.contacts.subscribe((data) => {
-      this.contactList = this.prospectingService.setLabelsInContactsList(data["contacts"]);
-      this.totalContactsCount = parseInt(data["total"]);
+    this.contactListSubscription = this.prospectingService.contactRes.subscribe((data) => {
+      this.contactList = this.prospectingService.setLabelsInContactsList(data.contacts);
+      this.totalContactsCount =data.total;
       this.totalPage = Math.ceil(this.totalContactsCount / this.limit);
 
       // Resetting edit and contact button showing condition
@@ -223,7 +223,7 @@ export class BrandListContactsComponent {
     await this.getPaginatedContacts();
 
     // Clear contact cache
-    this.prospectingService.cachedContacts = {};
+    this.prospectingService.cachedContactPages = {};
   };
 
   navigateSpecificPage = async (page) => {

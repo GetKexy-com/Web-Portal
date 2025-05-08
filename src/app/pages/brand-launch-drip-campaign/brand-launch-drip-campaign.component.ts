@@ -208,9 +208,9 @@ export class BrandLaunchDripCampaignComponent {
     };
     await this.prospectingService.getContacts(postData);
 
-    this.contactListSubscription = this.prospectingService.contacts.subscribe((data) => {
+    this.contactListSubscription = this.prospectingService.contactRes.subscribe((data) => {
       this.contactList = [];
-      this.contactList = data["contacts"];
+      this.contactList = data.contacts;
       this.setContactIdInDetailsInContacts();
     });
   };

@@ -75,7 +75,7 @@ export class BrandInvitePeopleComponent {
     this._authService.loggedUserRedirectToProperDashboard();
     document.title = "Invite Users - KEXY Brand Webportal";
 
-    //add default form field - atleast 1 row
+    //add default form field - atleast 1 contact
     this.peoplesList().push(this.newPeopleRow());
 
     this.userData = this._authService.userTokenValue;

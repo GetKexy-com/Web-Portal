@@ -6,7 +6,9 @@ import { ProspectContact } from '../models/ProspectContact';
 import { offPremiseQOrganizationKeywordTags } from '../helpers/campaign-premise-constants';
 import { routeConstants } from '../helpers/routeConstants';
 import { CampaignService } from './campaign.service';
-import {List} from '../models/List';
+import { List } from '../models/List';
+import { Contact, IRawContact } from '../models/Contact';
+import { IRawLandingPage, LandingPage } from '../models/LandingPage';
 
 @Injectable({
   providedIn: 'root',
@@ -24,8 +26,10 @@ export class ProspectingService {
   private _websites = new BehaviorSubject([]);
   websites = this._websites.asObservable();
 
-  private _contacts = new BehaviorSubject([]);
-  contacts = this._contacts.asObservable();
+  private __contacts: Contact[] = [];
+
+  private _contactRes = new BehaviorSubject({ contacts: this.__contacts, total: 0 });
+  contactRes = this._contactRes.asObservable();
 
   private _labels = new BehaviorSubject([]);
   labels = this._labels.asObservable();
@@ -54,10 +58,10 @@ export class ProspectingService {
   public selectedLabelForEdit;
   public brandContactCurrentPage = 1;
   public brandContactContactLimit = 100;
-  public manageListCurrentPage;
-  public manageListLimit = 100;
+  public manageListCurrentPage: number = 1;
+  public manageListLimit: number = 100;
   public allContacts;
-  public cachedContacts = {};
+  public cachedContactPages = {};
   public cachedLabels = {};
   public cachedLabelsOnly = {};
   public listDripCampaigns = [];
@@ -469,7 +473,7 @@ export class ProspectingService {
 
   editContacts = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post('contacts/edit', postData).subscribe((res) => {
+      this.httpService.patch('contacts', postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -499,38 +503,45 @@ export class ProspectingService {
     // Returned from cache if found
     const { page, limit } = postData;
     if (!overwrite) {
-      if (Object.keys(this.cachedContacts).length) {
+      if (Object.keys(this.cachedContactPages).length) {
         const key = `${page}${limit}`;
-        if (this.cachedContacts[key]) {
-          // this._contacts.next(this.cachedContacts[key]["data"]);
+        if (this.cachedContactPages[key]) {
+          // this._contacts.next(this.cachedContactPages[key]["data"]);
           setTimeout(() => { // 🔹 Defer change detection
-            this._contacts.next(this.cachedContacts[key]['data']);
+            this._contactRes.next(this.cachedContactPages[key]);
           }, 0);
           return null;
         }
       }
     }
     if (overwrite) {
-      this.cachedContacts = {};
+      this.cachedContactPages = {};
     }
 
+    const contacts: Contact[] = [];
     return new Promise(async (resolve, reject) => {
-      this.httpService.post('contacts/getAllContacts', postData).subscribe((res) => {
+      const queryString = Object.entries(postData)
+        .filter(([_, value]) => value !== '') // Filter out empty values
+        .map(([key, value]: [string, string]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+        .join('&');
+      const url = `contacts?${queryString}`;
+      this.httpService.get(url).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
           }
         } else {
           resolve(true);
-          let contacts = res.data;
-
+          res.data.contacts.forEach((contact: IRawContact) => {
+            contacts.push(new Contact(contact));
+          });
           // Set Data In Cache
           if (!overwrite) {
             const key = `${page}${limit}`;
-            this.cachedContacts[key] = { data: contacts };
+            this.cachedContactPages[key] = { contacts, total: res.data.totalContacts };
           }
 
-          this._contacts.next(contacts);
+          this._contactRes.next({ contacts, total: res.data.totalContacts });
         }
       });
     });
@@ -615,8 +626,12 @@ export class ProspectingService {
 
   getLabels = async (postData, overwrite = true) => {
     const { page, limit } = postData;
-    this.manageListCurrentPage = page;
-    this.manageListLimit = limit;
+    if (page) {
+      this.manageListCurrentPage = page;
+    }
+    if (limit) {
+      this.manageListLimit = limit;
+    }
 
     if (!overwrite) {
       if (Object.keys(this.cachedLabels).length) {
@@ -629,14 +644,16 @@ export class ProspectingService {
     }
 
     return new Promise(async (resolve, reject) => {
-      this.httpService.post('contacts/labels', postData).subscribe((res) => {
+      const url = `lists?page=${this.manageListCurrentPage}&limit=${this.manageListLimit}`;
+      console.log(url);
+      this.httpService.get(url).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
           }
         } else {
           resolve(true);
-          let labels = res.data;
+          let labels = res.data.lists;
 
           // Set Data In Cache
           // if (!overwrite) {
@@ -707,7 +724,13 @@ export class ProspectingService {
     }
     return new Promise(async (resolve, reject) => {
       this._loading_all_contacts.next(true);
-      this.httpService.post('contacts/getAllContacts', postData).subscribe((res) => {
+
+      const queryString = Object.entries(postData)
+        .filter(([_, value]) => value !== '') // Filter out empty values
+        .map(([key, value]: [string, string]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+        .join('&');
+      const url = `/contacts?${queryString}`;
+      this.httpService.get(url).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             this._loading_all_contacts.next(false);
@@ -751,27 +774,18 @@ export class ProspectingService {
   };
 
   setLabelsInContactsList = (contactList) => {
-    const labels = this._labels.getValue();
-    contactList.forEach(contact => {
-      const labelIds = JSON.parse(contact.label_ids);
-      let contactLabels = [];
-      if (labelIds) {
-        labelIds.forEach(label => {
-          const index = labels.findIndex(l => l.id?.toString() === label);
+    const lists = this._labels.getValue();
+    contactList.forEach((contact: Contact) => {
+      let contactLists = [];
+      if (contact.listIds) {
+        contact.listIds.forEach(label => {
+          const index = lists.findIndex(l => l.id?.toString() === label);
           if (index > -1) {
-            let foundedLabel = labels[index];
-            contactLabels.push({
-              kexy_label: {
-                bg_color: foundedLabel.bg_color,
-                text_color: foundedLabel.text_color,
-                label: foundedLabel.label,
-                id: foundedLabel.id,
-              },
-            });
+            contactLists.push(lists[index]);
           }
         });
       }
-      contact['kexy_contact_labels'] = contactLabels;
+      contact.lists = contactLists;
     });
     return contactList;
   };

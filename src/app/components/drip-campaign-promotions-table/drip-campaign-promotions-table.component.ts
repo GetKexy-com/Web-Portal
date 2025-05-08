@@ -104,12 +104,12 @@
 //       .join(" ");
 //   };
 //
-//   getCellValueToDisplay = (row, column) => this.getCellValue(row, column);
+//   getCellValueToDisplay = (contact, column) => this.getCellValue(contact, column);
 //
-//   getCellValue = (row, column) => {
+//   getCellValue = (contact, column) => {
 //     let path = column.key.split("#");
 //
-//     let value = row[path.shift()];
+//     let value = contact[path.shift()];
 //
 //     if (path.length) {
 //       value = value[path.shift()];
@@ -254,13 +254,13 @@ export class DripCampaignPromotionsTableComponent implements OnInit, OnDestroy, 
       .join(" ");
   }
 
-  // getCellValueToDisplay(row: any, column: any): string {
-  //   return this.getCellValue(row, column);
+  // getCellValueToDisplay(contact: any, column: any): string {
+  //   return this.getCellValue(contact, column);
   // }
   //
-  // getCellValue(row: any, column: any): string {
+  // getCellValue(contact: any, column: any): string {
   //   const path = column.key.split("#");
-  //   let value: any = row[path.shift()];
+  //   let value: any = contact[path.shift()];
   //
   //   if (path.length) {
   //     value = value[path.shift()];

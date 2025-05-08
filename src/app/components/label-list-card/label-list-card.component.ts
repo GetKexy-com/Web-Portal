@@ -57,7 +57,7 @@ export class LabelListCardComponent {
   ngOnInit(): void {
     this.userData = this._authService.userTokenValue;
     // Clear the previous cached contacts
-    this.prospectingService.cachedContacts = {};
+    this.prospectingService.cachedContactPages = {};
     this.getListViewData();
   }
 
