@@ -53,13 +53,6 @@ export class ListOfDripCampaignTableComponent implements OnInit, AfterViewChecke
   }
 
   ngOnInit(): void {
-    // Set Label Subscription
-    this.contactLabelsSubscription = this.prospectingService.labels.subscribe((labels) => {
-      // Set label dropdown options
-      this.labelOptions = labels;
-      console.log('labelOptions', this.labelOptions);
-    });
-
     this.getListViewData();
   }
 
@@ -136,10 +129,8 @@ export class ListOfDripCampaignTableComponent implements OnInit, AfterViewChecke
       return false;
     }
 
-    const listId = this.enrolledLists[0].id;
-    const index = this.labelOptions.findIndex(l => l.id === listId);
-    if (index > -1) {
-      this.list = this.labelOptions[index];
+    if (this.enrolledLists[0].list) {
+      this.list = this.enrolledLists[0].list;
       return true;
     }
 
@@ -148,22 +139,7 @@ export class ListOfDripCampaignTableComponent implements OnInit, AfterViewChecke
   };
 
   openShowAllLabelModal = (labelsArray) => {
-    const lists = [];
-    labelsArray.forEach(label => {
-      const index = this.labelOptions.findIndex(l => l.id === label.id);
-      if (index > -1) {
-        const listObj = {
-          kexy_label: {
-            bg_color: this.labelOptions[index].bgColor,
-            text_color: this.labelOptions[index].textColor,
-            label: this.labelOptions[index].label,
-          },
-        };
-        lists.push(listObj);
-      }
-    });
-    console.log("lists", lists);
-    this.prospectingService.selectedContactLabels = lists;
+    this.prospectingService.selectedContactLabels = labelsArray;
     this.modal.open(ContactLabelsModalContentComponent);
   };
 

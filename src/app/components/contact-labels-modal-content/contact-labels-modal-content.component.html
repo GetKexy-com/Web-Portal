@@ -7,8 +7,8 @@
 
   <section class="middle-area">
     <div class="labels-wrap">
-      <span *ngFor="let label of labels" class="label" [style.background-color]="label.bgColor"
-            [style.color]="label.textColor">{{ label.label }}</span>
+      <span *ngFor="let label of labels" class="label" [style.background-color]="label.list.bgColor"
+            [style.color]="label.list.textColor">{{ label.list.label }}</span>
     </div>
   </section>
 </div>

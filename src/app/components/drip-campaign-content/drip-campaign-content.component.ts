@@ -20,6 +20,7 @@ import {CreateDripCampaignTitleComponent} from '../create-drip-campaign-title/cr
 import {AddCalendlyLinkContentComponent} from '../add-calendly-link-content/add-calendly-link-content.component';
 import {AddWebsiteContentComponent} from '../add-website-content/add-website-content.component';
 import { LandingPage } from '../../models/LandingPage';
+import {DripCampaign} from '../../models/DripCampaign';
 
 @Component({
   selector: 'drip-campaign-content',
@@ -129,22 +130,24 @@ export class DripCampaignContentComponent implements OnInit {
   }
 
   setPreviousData = () => {
-    let dripCampaign = this.dripCampaignService.getDripCampaignContentPageData();
-    let data = dripCampaign["drip_campaign_detail"];
+    let dripCampaign: DripCampaign = this.dripCampaignService.getDripCampaignContentPageData();
+    console.log('dripCampaign', dripCampaign);
+    let data = dripCampaign.details;
     if (!Object.keys(data).length) return;
 
     if (!this.dripCampaignDuplicate) {
-      const titleIndex = this.campaignTitles.findIndex(i => i.id === data["drip_campaign_title_id"]);
-      if (titleIndex > -1) this.selectedTitle = this.campaignTitles[titleIndex].value;
-      this.selectedTitleId = data["drip_campaign_title_id"];
+      // const titleIndex = this.campaignTitles.findIndex(i => i.id === data["drip_campaign_title_id"]);
+      // if (titleIndex > -1) this.selectedTitle = this.campaignTitles[titleIndex].value;
+      this.selectedTitle = data.title.title;
+      this.selectedTitleId = data.title.id;
     }
-    this.selectedEmailToneKey = data["email_tone"];
-    this.numberOfEmail = data["number_of_emails"];
-    this.promotionId = data["campaign_id"];
-    this.selectedWebsiteKey = data["website_url"] ? data["website_url"] : "";
-    this.selectedCalendlyLinkKey = data["calendly_link"] ? data["calendly_link"] : "";
-    this.whatDoYouCover = dripCampaign["email_about"];
-    this.targetAudience = dripCampaign["target_audience"];
+    this.selectedEmailToneKey = data.emailTone;
+    this.numberOfEmail = data.numberOfEmails;
+    this.promotionId = data.campaignId;
+    this.selectedWebsiteKey = data.websiteUrl ? data.websiteUrl : "";
+    this.selectedCalendlyLinkKey = data.calendlyLink ? data.calendlyLink : "";
+    this.whatDoYouCover = dripCampaign.emailAbout;
+    this.targetAudience = dripCampaign.targetAudience;
     // this.selectedDripCampaignType = dripCampaign["audience_type"];
   };
 

@@ -651,7 +651,8 @@ export class DripCampaignService {
 
   deleteDripCampaigns = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("drip-campaigns/delete", postData).subscribe((res) => {
+      const url = `drip-campaigns`;
+      this.httpService.delete(url, postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);

@@ -5,6 +5,23 @@
   </div>
 
   <div class="canvas-body">
+    <div class="email-info d-flex justify-content-between align-items-center">
+      <div class="mb-3">
+        <p class="email-number-text">Email #{{ email.emailSequence }}</p>
+        <p class="email-subject">Subject: <span>{{ email.emailSubject }}</span></p>
+      </div>
+
+      <div>
+        <app-kexy-button
+          (click)="exportCSV()"
+          [label]="exportBtnLoading ? 'Please wait...' : 'Export' "
+          [iconLeft]="exportBtnLoading ? 'fa-refresh fa-spin' : 'fa-cloud-download'"
+          bgColor="#e7f6fe"
+          textColor="#2847cc"
+          radius="8px"
+        ></app-kexy-button>
+      </div>
+    </div>
     <div class="row">
       <div class="col-12">
         <p class="email-sent-delivered-text">Sent to <span>{{sentEmailCount}}</span></p>

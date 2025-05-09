@@ -390,7 +390,7 @@ export class BrandListOfDripCampaignsComponent implements OnInit {
     await Promise.all([
       this.getAndSetDripCampaignTitleSubscription(),
       this.getListOfDripCampaigns(),
-      this.getLabels()
+      // this.getLabels()
     ]);
     console.log('dripCampaignList', this.dripCampaignList());
 
@@ -398,9 +398,9 @@ export class BrandListOfDripCampaignsComponent implements OnInit {
     this.initialLoads.set(false);
   }
 
-  getLabels = async () => {
-    await this.prospectingService.getLabels({ supplier_id: this.userData().supplier_id });
-  }
+  // getLabels = async () => {
+  //   await this.prospectingService.getLabels({ supplier_id: this.userData().supplier_id });
+  // }
 
   getListOfDripCampaigns = async ()=> {
     const data = await this.dripCampaignService.getListOfDripCampaigns(
@@ -435,7 +435,7 @@ export class BrandListOfDripCampaignsComponent implements OnInit {
   }
 
   pauseOrResumeOrDeleteDripCampaign = async (forDelete = false)=> {
-    const dripCampaign = this.selectedDripCampaigns()[0];
+    const dripCampaign: DripCampaign = this.selectedDripCampaigns()[0];
     if (!dripCampaign) return;
 
     const confirmText = forDelete
@@ -453,39 +453,37 @@ export class BrandListOfDripCampaignsComponent implements OnInit {
 
     if (isConfirm.dismiss) return;
 
-    await Swal.fire({
-      title: "",
-      text: "Please wait...",
-      showConfirmButton: false,
-      showCancelButton: false,
-      allowOutsideClick: false,
-      allowEscapeKey: false,
-      didOpen: () => Swal.showLoading()
-    });
+    // await Swal.fire({
+    //   title: "",
+    //   text: "Please wait...",
+    //   showConfirmButton: false,
+    //   showCancelButton: false,
+    //   allowOutsideClick: false,
+    //   allowEscapeKey: false,
+    //   didOpen: () => Swal.showLoading()
+    // });
 
     const payload = {
-      drip_campaign_id: dripCampaign.id,
-      supplier_id: this.userData().supplier_id,
-      allowed_credit_limit: dripCampaign.allowed_credit_limit,
-      drip_campaign_title_id: dripCampaign.drip_campaign_detail.drip_campaign_title_id,
-      number_of_emails: dripCampaign.drip_campaign_detail.number_of_emails,
-      email_tone: dripCampaign.drip_campaign_detail.email_tone,
-      email_length: dripCampaign.drip_campaign_detail.email_length || "",
-      website_url: dripCampaign.drip_campaign_detail.website_url,
-      calendly_link: dripCampaign.drip_campaign_detail.calendly_link,
-      campaign_id: dripCampaign.drip_campaign_detail.campaign_id,
-      supplier_side: dripCampaign.supplier_side,
+      dripCampaignId: dripCampaign.id,
+      companyId: this.userData().supplier_id,
+      dripCampaignTitleId: dripCampaign.details.title.id,
+      numberOfEmails: dripCampaign.details.numberOfEmails,
+      emailTone: dripCampaign.details.emailTone,
+      emailLength: dripCampaign.details.emailLength || "",
+      websiteUrl: dripCampaign.details.websiteUrl,
+      calendlyLink: dripCampaign.details.calendlyLink,
+      campaignId: dripCampaign.details.campaignId,
       status: forDelete
         ? constants.DELETED
         : (dripCampaign.status === constants.ACTIVE ? constants.PAUSE : constants.ACTIVE),
-      establishment_search_type: dripCampaign.establishment_search_type,
-      establishment_search_value: dripCampaign.establishment_search_value,
-      target_audience: dripCampaign.target_audience,
-      email_about: dripCampaign.email_about,
-      audience_type: dripCampaign.audience_type,
+      targetAudience: dripCampaign.targetAudience,
+      emailAbout: dripCampaign.emailAbout,
+      audienceType: dripCampaign.audienceType,
     };
-
+    console.log('payload', payload);
+    const swal = this.pageUiService.showSweetAlertLoading();
     try {
+      swal.showLoading();
       await this.dripCampaignService.createOrUpdateDripCampaign(payload);
 
       if (forDelete) {
@@ -498,14 +496,11 @@ export class BrandListOfDripCampaignsComponent implements OnInit {
         this.dripCampaignList.set(updatedList);
       }
 
-      await this.httpService.post("user/setUsersActionLog", {
-        actionType: "Paused a drip campaign"
-      }).toPromise();
     } catch (e) {
       Swal.fire("Error", e.message);
       console.error(e);
     } finally {
-      Swal.close();
+      swal.close();
     }
   }
 
@@ -527,11 +522,10 @@ export class BrandListOfDripCampaignsComponent implements OnInit {
     swal.showLoading();
 
     const postData = {
-      supplier_id: this.userData().supplier_id,
-      drip_campaign_ids: this.selectedAllDripCampaigns()
+      ids: this.selectedAllDripCampaigns()
         ? []
-        : this.selectedDripCampaigns().map(i => i.id.toString()),
-      selected_all_drip_campaigns: this.selectedAllDripCampaigns() ? "true" : undefined
+        : this.selectedDripCampaigns().map(i => i.id),
+      selectedAll: this.selectedAllDripCampaigns() ? "true" : undefined
     };
 
     try {

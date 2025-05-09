@@ -297,6 +297,7 @@ export class GenerateDripCampaignComponent implements OnInit {
       drip_campaign_id: parseInt(this.dripCampaignId),
       drip_campaign_email_id: email.id,
       supplier_id: this.userData.supplier_id,
+      email
     };
     this.dripCampaignService.insightApiPostData = insightApiPostData;
     this.__createRightSideSlide(EmailInsightsContentComponent, "email-insights");
