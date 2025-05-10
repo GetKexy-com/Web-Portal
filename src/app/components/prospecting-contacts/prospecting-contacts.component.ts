@@ -81,7 +81,6 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
     // Get edit data
     if (this.prospectingService.clickedContactInContactPage.length) {
       this.selectedContacts = this.prospectingService.clickedContactInContactPage;
-      console.log('selectedContact', this.selectedContacts);
     }
     if (!this.prospectingService.isAddNewButtonClickedInContactPage && !this.prospectingService.clickedContactInContactPage.length) {
       this.selectedContacts = this.prospectingService.selectedContactsInContactsPage;
@@ -237,7 +236,6 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
 
     if (this.selectedContacts?.length && !this.isMultipleContactsSelected) {
       this.contact = this.selectedContacts[0];
-      console.log(this.contact);
       contactDetails = this.contact.details;
 
       // set dropdowns data
@@ -420,14 +418,11 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
 
     const selectedLabelsId = [];
     selectedLabels.map(i => selectedLabelsId.push(`${i.id}`));
-    console.log(selectedLabelsId);
     this.primaryForm.patchValue({ lists: selectedLabelsId });
   };
 
   setAndGetAddOrEditSingleContactApiPayload = (formData) => {
-    const contact: Contact = Contact.empty();
-    contact.id = this.selectedContacts[0].id;
-    const contactDetails: ContactDetails = contact.details;
+    const contactDetails: ContactDetails = this.contact.details;
     contactDetails.firstName = formData.firstName;
     contactDetails.lastName = formData.lastName;
     contactDetails.linkedinUrl = formData.linkedinUrl;
@@ -449,16 +444,19 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
 
     return {
       companyId: this.supplierId,
-      contacts: [Contact.contactPostDto(contact)],
+      contacts: [Contact.contactPostDto(this.contact)],
       listIds: formData.lists,
     };
   };
 
   setAndGetEditMultipleContactApiPayload = (formData) => {
+    const contacts = this.selectedContacts.map((c: any) => {
+      return Contact.contactPostDto(c);
+    });
     return {
-      supplier_id: this.supplierId,
-      contacts: this.selectedContacts,
-      label_ids: formData.label,
+      companyId: this.supplierId,
+      contacts,
+      labelIds: formData.label,
     };
   };
 
@@ -476,25 +474,24 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
 
   getContactsApiPayload = () => {
     const getContactApiPostData = {
-      supplier_id: this.supplierId,
-      page: this.prospectingService.brandContactCurrentPage,
-      limit: this.prospectingService.brandContactContactLimit,
-      drip_campaign_id: '',
-      label_ids: [],
-      contact_name: '',
-      company_name: '',
-      email: '',
-      job_title: '',
-      marketing_status: '',
-      email_status: '',
+      companyId: this.supplierId,
+      dripCampaignId: '',
+      listIds: [],
+      contactName: '',
+      companyName: '',
+      jobTitle: '',
+      emailStatus: '',
+      marketingStatus: '',
       city: '',
       state: '',
       country: '',
-      get_total_count: true,
-      sort_by: '',
+      page: this.prospectingService.brandContactCurrentPage,
+      limit: this.prospectingService.brandContactContactLimit,
+      sortBy: '',
+      sortType: '',
     };
-    if (this.labelIdFromListContactPage) getContactApiPostData['label_ids'] = [this.labelIdFromListContactPage];
-    if (this.labelIdWhenEditContactFromListContactPage) getContactApiPostData['label_ids'] = [this.labelIdWhenEditContactFromListContactPage];
+    if (this.labelIdFromListContactPage) getContactApiPostData.listIds = [this.labelIdFromListContactPage];
+    if (this.labelIdWhenEditContactFromListContactPage) getContactApiPostData.listIds = [this.labelIdWhenEditContactFromListContactPage];
 
     if (!this.labelIdFromListContactPage && !this.labelIdWhenEditContactFromListContactPage) {
       const filterCount = this.prospectingService.searchContactActiveFilterCount;
@@ -503,15 +500,15 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
         if (filterData['country']) getContactApiPostData['country'] = filterData['country'];
         if (filterData['city']) getContactApiPostData['city'] = filterData['city'];
         if (filterData['state']) getContactApiPostData['state'] = filterData['state'];
-        if (filterData['name']) getContactApiPostData['contact_name'] = filterData['name'];
-        if (filterData['companyName']) getContactApiPostData['company_name'] = filterData['companyName'];
-        if (filterData['email']) getContactApiPostData['email'] = filterData['email'];
-        if (filterData['emailStatus']) getContactApiPostData['email_status'] = filterData['emailStatus'];
-        if (filterData['marketingStatus']) getContactApiPostData['marketing_status'] = filterData['marketingStatus'];
+        if (filterData['name']) getContactApiPostData['contactName'] = filterData['name'];
+        if (filterData['companyName']) getContactApiPostData['companyName'] = filterData['companyName'];
+        if (filterData['email']) getContactApiPostData['email'] = filterData['email'].trim();
+        if (filterData['emailStatus']) getContactApiPostData['emailStatus'] = filterData['emailStatus'];
+        if (filterData['marketingStatus']) getContactApiPostData['marketingStatus'] = filterData['marketingStatus'];
         if (filterData['labels']?.length) {
-          const label_ids = [];
-          filterData['labels'].forEach(label => label_ids.push(label.id));
-          getContactApiPostData['label_ids'] = label_ids;
+          const listIds = [];
+          filterData['labels'].forEach(label => listIds.push(label.id));
+          getContactApiPostData.listIds = listIds;
         }
       }
     }

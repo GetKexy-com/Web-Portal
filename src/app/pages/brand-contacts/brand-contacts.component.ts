@@ -172,6 +172,7 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
   setContactSubscription = () => {
     this.contactListSubscription = this.prospectingService.contactRes.subscribe((data) => {
       if (data) {
+        console.log(data);
         this.contactList = this.prospectingService.setLabelsInContactsList(data.contacts);
         this.totalContactsCount = data.total;
         this.totalPage = Math.ceil(this.totalContactsCount / this.limit);
