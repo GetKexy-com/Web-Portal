@@ -233,20 +233,21 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
 
   setPrimaryForm = () => {
     let contactDetails: ContactDetails;
+    this.contact = this.selectedContacts[0];
+    contactDetails = this.contact.details;
 
     if (this.selectedContacts?.length && !this.isMultipleContactsSelected) {
-      this.contact = this.selectedContacts[0];
-      contactDetails = this.contact.details;
-
       // set dropdowns data
       this.selectedCountry = contactDetails.country;
       this.selectedState = contactDetails.state;
       this.selectedMarketingStatus = this.pageUiService.capitalizeFirstLetter(this.contact.marketingStatus);
+    } else {
+      this.selectedMarketingStatus = '';
     }
 
     this.primaryForm = new FormGroup({
       marketingStatus: new FormControl(
-        this.contact.marketingStatus,
+        this.selectedMarketingStatus,
         Validators.compose([Validators.minLength(0)]),
       ),
       firstName: new FormControl(
@@ -264,7 +265,7 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
       // , !this.isMultipleContactsSelected ? Validators.email : null
       email: new FormControl(
         contactDetails.email,
-        Validators.compose([!this.isMultipleContactsSelected ? Validators.required : null]),
+        Validators.compose([!this.isMultipleContactsSelected ? Validators.required : null, Validators.email]),
       ),
       title: new FormControl(
         contactDetails.title,
@@ -280,21 +281,9 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
       country: new FormControl(
         contactDetails.country ? contactDetails.country : constants.UNITED_STATES,
       ),
-      lists: new FormControl([]),
-      // label: new FormControl([], Validators.compose([!this.isMultipleContactsSelected ? Validators.required : null])),
+      lists: new FormControl([], Validators.compose([!this.isMultipleContactsSelected ? Validators.required : null])),
       notes: new FormControl(contactDetails?.notes ? contactDetails.notes : ''),
     });
-  };
-
-  changePhoneNumber = (ev) => {
-    console.log(ev.target.value);
-    const number = ev.target.value;
-    console.log(new AsYouType().input(number));
-    console.log(isValidPhoneNumber(new AsYouType().input(number)));
-    if (isValidPhoneNumber(new AsYouType().input(number))) {
-      let newNUm = parsePhoneNumber(new AsYouType().input(number)).formatNational();
-      console.log(newNUm);
-    }
   };
 
   formValidationErrorCheck = (fieldName: string) => {
@@ -305,6 +294,7 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
 
   handleMultiselectFunctionality = (options, selectedValue) => {
     const i = options.indexOf(selectedValue);
+    console.log({ i });
     if (i > -1) {
       options[i].isSelected = !options[i].isSelected;
     }
@@ -312,6 +302,7 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
 
   onLabelSelect = (selectedValue, index = null, rowIndex = null) => {
     this.handleMultiselectFunctionality(this.labelOptions, selectedValue);
+    this.setLabelFieldToPrimaryForm();
   };
 
   onMarketingStatusSelect = (selectedValue, index = null, rowIndex = null) => {
@@ -412,12 +403,14 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
 
   setLabelFieldToPrimaryForm = () => {
     const selectedLabels = this.labelOptions.filter((i) => i.isSelected);
-    if (!selectedLabels.length) {
-      return;
-    }
+    // if (!selectedLabels.length) {
+    //   return;
+    // }
 
     const selectedLabelsId = [];
-    selectedLabels.map(i => selectedLabelsId.push(`${i.id}`));
+    if (selectedLabels.length) {
+      selectedLabels.map(i => selectedLabelsId.push(`${i.id}`));
+    }
     this.primaryForm.patchValue({ lists: selectedLabelsId });
   };
 
@@ -456,7 +449,8 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
     return {
       companyId: this.supplierId,
       contacts,
-      labelIds: formData.label,
+      listIds: formData.lists,
+      marketingStatus: formData.marketingStatus,
     };
   };
 
@@ -517,16 +511,12 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
 
   handleSubmit = async () => {
     this.submitted = true;
-    this.setLabelFieldToPrimaryForm();
     if (!this.primaryForm.valid) {
-      console.log('primaryForm', this.primaryForm);
       return false;
     }
 
-    // this.isLoading = true;
+    this.isLoading = true;
     const formData = this.primaryForm.getRawValue();
-    console.log(formData);
-    // return ;
     let postData;
     const getContactApiPostData = this.getContactsApiPayload();
 
@@ -535,12 +525,11 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
       if (!this.selectedContacts) {
         postData = this.setAndGetAddOrEditSingleContactApiPayload(formData);
         // Create Contact
-        const createdContacts = await this.prospectingService.addContacts(postData);
+        await this.prospectingService.addContacts(postData);
 
       } else if (this.selectedContacts?.length && !this.isMultipleContactsSelected) {
         // Edit Single Contact
         postData = this.setAndGetAddOrEditSingleContactApiPayload(formData);
-        console.log(postData);
         await this.prospectingService.editContacts(postData);
 
       } else {
