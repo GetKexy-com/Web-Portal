@@ -453,16 +453,6 @@ export class BrandListOfDripCampaignsComponent implements OnInit {
 
     if (isConfirm.dismiss) return;
 
-    // await Swal.fire({
-    //   title: "",
-    //   text: "Please wait...",
-    //   showConfirmButton: false,
-    //   showCancelButton: false,
-    //   allowOutsideClick: false,
-    //   allowEscapeKey: false,
-    //   didOpen: () => Swal.showLoading()
-    // });
-
     const payload = {
       dripCampaignId: dripCampaign.id,
       companyId: this.userData().supplier_id,
@@ -480,8 +470,9 @@ export class BrandListOfDripCampaignsComponent implements OnInit {
       emailAbout: dripCampaign.emailAbout,
       audienceType: dripCampaign.audienceType,
     };
-    console.log('payload', payload);
+
     const swal = this.pageUiService.showSweetAlertLoading();
+
     try {
       swal.showLoading();
       await this.dripCampaignService.createOrUpdateDripCampaign(payload);
@@ -490,10 +481,12 @@ export class BrandListOfDripCampaignsComponent implements OnInit {
         await this.getListOfDripCampaigns();
         this.selectedDripCampaigns.set([]);
       } else {
-        const updatedList = this.dripCampaignList().map(item =>
-          item.id === dripCampaign.id ? { ...item, status: payload.status } : item
-        );
-        this.dripCampaignList.set(updatedList);
+        // const updatedList = this.dripCampaignList().map(item =>
+        //   item.id === dripCampaign.id ? { ...item, status: payload.status } : item
+        // );
+        // this.dripCampaignList.set(updatedList);
+
+        dripCampaign.status = payload.status;
       }
 
     } catch (e) {
@@ -588,13 +581,13 @@ export class BrandListOfDripCampaignsComponent implements OnInit {
     this.isLoading.set(false);
   }
 
-  handleContactSelect = (selectedRow: any, isSelectAll: boolean)=> {
+  handleContactSelect = (selectedRow: any, isSelectAll: boolean) => {
     if (isSelectAll) {
       const hasSelected = this.dripCampaignList().some(i => i.isSelected);
 
       const updatedList = this.dripCampaignList().map(i => ({
         ...i,
-        is_selected: !hasSelected
+        isSelected: !hasSelected
       }));
 
       this.dripCampaignList.set(updatedList);

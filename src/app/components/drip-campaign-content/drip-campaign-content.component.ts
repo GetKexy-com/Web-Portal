@@ -457,7 +457,8 @@ export class DripCampaignContentComponent implements OnInit {
       audienceType: this.selectedDripCampaignType,
     };
     if (this.dripCampaignDuplicate) {
-      payload["dripCampaignDuplicate"] = true;
+      // payload["dripCampaignDuplicate"] = true;
+      payload.dripCampaignId = "";
     }
     if (this.selectedCalendlyLinkKey) {
       payload["calendlyLink"] = this.selectedCalendlyLinkKey;

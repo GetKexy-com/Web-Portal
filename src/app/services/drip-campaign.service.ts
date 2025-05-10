@@ -517,16 +517,19 @@ export class DripCampaignService {
   };
 
   activateDripCampaign = async (postData) => {
+    this._loading.next(true);
     return new Promise(async (resolve, reject) => {
       const url = `drip-campaigns/${postData.drip_campaign_id}/activate`;
       delete postData.drip_campaign_id;
       this.httpService.post(url, postData).subscribe((res) => {
         if (!res.success) {
+          this._loading.next(false);
           if (res.error) {
             reject(res.error);
           }
 
         } else {
+          this._loading.next(false);
           resolve(true);
         }
       });

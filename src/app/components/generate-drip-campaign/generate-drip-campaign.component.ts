@@ -339,6 +339,7 @@ export class GenerateDripCampaignComponent implements OnInit {
       return;
     }
 
+    this.dripCampaign = this.dripCampaignService.getDripCampaignContentPageData();
     const enrollment = this.dripCampaign.lists;
     const enrollList = enrollment.filter(r => r.type === "enroll_list");
     if (!enrollList?.length) {

@@ -54,6 +54,7 @@ export class ListOfDripCampaignTableComponent implements OnInit, AfterViewChecke
 
   ngOnInit(): void {
     this.getListViewData();
+    this.calcWidth();
   }
 
   ngOnDestroy(): void {
