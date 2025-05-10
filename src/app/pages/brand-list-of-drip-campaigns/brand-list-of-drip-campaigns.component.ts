@@ -322,7 +322,7 @@
 //   protected readonly constants = constants;
 // }
 
-import { Component, inject, signal, DestroyRef } from '@angular/core';
+import {Component, inject, signal, DestroyRef, OnInit} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
@@ -337,6 +337,7 @@ import { PageUiService } from 'src/app/services/page-ui.service';
 import {BrandLayoutComponent} from '../../layouts/brand-layout/brand-layout.component';
 import {KexyButtonComponent} from '../../components/kexy-button/kexy-button.component';
 import {ListOfDripCampaignTableComponent} from '../../components/list-of-drip-campaign-table/list-of-drip-campaign-table.component';
+import {DripCampaign} from '../../models/DripCampaign';
 
 @Component({
   selector: 'brand-list-of-drip-campaigns',
@@ -351,7 +352,7 @@ import {ListOfDripCampaignTableComponent} from '../../components/list-of-drip-ca
   templateUrl: './brand-list-of-drip-campaigns.component.html',
   styleUrl: './brand-list-of-drip-campaigns.component.scss'
 })
-export class BrandListOfDripCampaignsComponent {
+export class BrandListOfDripCampaignsComponent implements OnInit {
   // Services
   private authService = inject(AuthService);
   private router = inject(Router);
@@ -365,7 +366,7 @@ export class BrandListOfDripCampaignsComponent {
   isWaitingFlag = signal(false);
   initialLoads = signal(true);
   isLoading = signal(false);
-  dripCampaignList = signal<any[]>([]);
+  dripCampaignList = signal<DripCampaign[]>([]);
   page = signal(1);
   limit = signal(25);
   userData = signal<any>(null);
@@ -389,22 +390,22 @@ export class BrandListOfDripCampaignsComponent {
     await Promise.all([
       this.getAndSetDripCampaignTitleSubscription(),
       this.getListOfDripCampaigns(),
-      this.getLabels()
+      // this.getLabels()
     ]);
+    console.log('dripCampaignList', this.dripCampaignList());
 
     this.isWaitingFlag.set(false);
     this.initialLoads.set(false);
   }
 
-  async getLabels() {
-    await this.prospectingService.getLabels({ supplier_id: this.userData().supplier_id });
-  }
+  // getLabels = async () => {
+  //   await this.prospectingService.getLabels({ supplier_id: this.userData().supplier_id });
+  // }
 
-  async getListOfDripCampaigns() {
+  getListOfDripCampaigns = async ()=> {
     const data = await this.dripCampaignService.getListOfDripCampaigns(
       this.limit(),
-      this.page(),
-      this.userData().supplier_id
+      this.page()
     );
 
     this.dripCampaignList.set(data["dripCampaigns"]);
@@ -412,7 +413,7 @@ export class BrandListOfDripCampaignsComponent {
     this.totalRecordsCount.set(data["totalRecordsCount"]);
   }
 
-  async getAndSetDripCampaignTitleSubscription() {
+  getAndSetDripCampaignTitleSubscription = async ()=> {
     await this.dripCampaignService.getAllDripCampaignTitle({
       supplier_id: this.userData().supplier_id
     });
@@ -428,13 +429,13 @@ export class BrandListOfDripCampaignsComponent {
       });
   }
 
-  setPageLimit(newLimit: number) {
+  setPageLimit = (newLimit: number)=> {
     localStorage.setItem(constants.BRAND_DRIP_CAMPAIGN_PAGE_LIMIT, newLimit.toString());
     this.limit.set(newLimit);
   }
 
-  async pauseOrResumeOrDeleteDripCampaign(forDelete = false) {
-    const dripCampaign = this.selectedDripCampaigns()[0];
+  pauseOrResumeOrDeleteDripCampaign = async (forDelete = false)=> {
+    const dripCampaign: DripCampaign = this.selectedDripCampaigns()[0];
     if (!dripCampaign) return;
 
     const confirmText = forDelete
@@ -452,63 +453,51 @@ export class BrandListOfDripCampaignsComponent {
 
     if (isConfirm.dismiss) return;
 
-    await Swal.fire({
-      title: "",
-      text: "Please wait...",
-      showConfirmButton: false,
-      showCancelButton: false,
-      allowOutsideClick: false,
-      allowEscapeKey: false,
-      didOpen: () => Swal.showLoading()
-    });
-
     const payload = {
-      drip_campaign_id: dripCampaign.id,
-      supplier_id: this.userData().supplier_id,
-      allowed_credit_limit: dripCampaign.allowed_credit_limit,
-      drip_campaign_title_id: dripCampaign.drip_campaign_detail.drip_campaign_title_id,
-      number_of_emails: dripCampaign.drip_campaign_detail.number_of_emails,
-      email_tone: dripCampaign.drip_campaign_detail.email_tone,
-      email_length: dripCampaign.drip_campaign_detail.email_length || "",
-      website_url: dripCampaign.drip_campaign_detail.website_url,
-      calendly_link: dripCampaign.drip_campaign_detail.calendly_link,
-      campaign_id: dripCampaign.drip_campaign_detail.campaign_id,
-      supplier_side: dripCampaign.supplier_side,
+      dripCampaignId: dripCampaign.id,
+      companyId: this.userData().supplier_id,
+      dripCampaignTitleId: dripCampaign.details.title.id,
+      numberOfEmails: dripCampaign.details.numberOfEmails,
+      emailTone: dripCampaign.details.emailTone,
+      emailLength: dripCampaign.details.emailLength || "",
+      websiteUrl: dripCampaign.details.websiteUrl,
+      calendlyLink: dripCampaign.details.calendlyLink,
+      campaignId: dripCampaign.details.campaignId,
       status: forDelete
         ? constants.DELETED
         : (dripCampaign.status === constants.ACTIVE ? constants.PAUSE : constants.ACTIVE),
-      establishment_search_type: dripCampaign.establishment_search_type,
-      establishment_search_value: dripCampaign.establishment_search_value,
-      target_audience: dripCampaign.target_audience,
-      email_about: dripCampaign.email_about,
-      audience_type: dripCampaign.audience_type,
+      targetAudience: dripCampaign.targetAudience,
+      emailAbout: dripCampaign.emailAbout,
+      audienceType: dripCampaign.audienceType,
     };
 
+    const swal = this.pageUiService.showSweetAlertLoading();
+
     try {
+      swal.showLoading();
       await this.dripCampaignService.createOrUpdateDripCampaign(payload);
 
       if (forDelete) {
         await this.getListOfDripCampaigns();
         this.selectedDripCampaigns.set([]);
       } else {
-        const updatedList = this.dripCampaignList().map(item =>
-          item.id === dripCampaign.id ? { ...item, status: payload.status } : item
-        );
-        this.dripCampaignList.set(updatedList);
+        // const updatedList = this.dripCampaignList().map(item =>
+        //   item.id === dripCampaign.id ? { ...item, status: payload.status } : item
+        // );
+        // this.dripCampaignList.set(updatedList);
+
+        dripCampaign.status = payload.status;
       }
 
-      await this.httpService.post("user/setUsersActionLog", {
-        actionType: "Paused a drip campaign"
-      }).toPromise();
     } catch (e) {
       Swal.fire("Error", e.message);
       console.error(e);
     } finally {
-      Swal.close();
+      swal.close();
     }
   }
 
-  async deleteDripCampaigns() {
+  deleteDripCampaigns = async () => {
     if (!this.selectedDripCampaigns().length) return;
 
     const isConfirm = await Swal.fire({
@@ -526,11 +515,10 @@ export class BrandListOfDripCampaignsComponent {
     swal.showLoading();
 
     const postData = {
-      supplier_id: this.userData().supplier_id,
-      drip_campaign_ids: this.selectedAllDripCampaigns()
+      ids: this.selectedAllDripCampaigns()
         ? []
-        : this.selectedDripCampaigns().map(i => i.id.toString()),
-      selected_all_drip_campaigns: this.selectedAllDripCampaigns() ? "true" : undefined
+        : this.selectedDripCampaigns().map(i => i.id),
+      selectedAll: this.selectedAllDripCampaigns() ? "true" : undefined
     };
 
     try {
@@ -545,7 +533,7 @@ export class BrandListOfDripCampaignsComponent {
     }
   }
 
-  redirectToEditPage(duplicate = false) {
+  redirectToEditPage = (duplicate = false)=> {
     const queryParams: any = {
       id: this.selectedDripCampaigns()[0]?.id,
     };
@@ -557,19 +545,19 @@ export class BrandListOfDripCampaignsComponent {
     this.router.navigate([routeConstants.BRAND.CREATE_DRIP_CAMPAIGN], { queryParams });
   }
 
-  setBtnLabelBasedOnCampaignStatus() {
+  setBtnLabelBasedOnCampaignStatus = ()=> {
     const dripCampaign = this.selectedDripCampaigns()[0];
     if (!dripCampaign) return '';
     return dripCampaign.status === constants.ACTIVE ? "Pause" : "Resume";
   }
 
-  setBtnIconBasedOnCampaignStatus() {
+  setBtnIconBasedOnCampaignStatus = ()=> {
     const dripCampaign = this.selectedDripCampaigns()[0];
     if (!dripCampaign) return '';
     return dripCampaign.status === constants.ACTIVE ? "fa-pause-circle-o" : "fa-play-circle-o";
   }
 
-  async receivedLimitNumber(limit: number) {
+  receivedLimitNumber = async (limit: number)=> {
     this.setPageLimit(limit);
     this.page.set(1);
     this.isWaitingFlag.set(true);
@@ -577,7 +565,7 @@ export class BrandListOfDripCampaignsComponent {
     this.isWaitingFlag.set(false);
   }
 
-  async paginationRightArrowClick() {
+  paginationRightArrowClick = async ()=> {
     if (this.page() === this.totalPageCounts()) return;
     this.isLoading.set(true);
     this.page.update(p => p + 1);
@@ -585,7 +573,7 @@ export class BrandListOfDripCampaignsComponent {
     this.isLoading.set(false);
   }
 
-  async paginationLeftArrowClick() {
+  paginationLeftArrowClick = async ()=> {
     if (this.page() === 1) return;
     this.isLoading.set(true);
     this.page.update(p => p - 1);
@@ -593,13 +581,13 @@ export class BrandListOfDripCampaignsComponent {
     this.isLoading.set(false);
   }
 
-  handleContactSelect(selectedRow: any, isSelectAll: boolean) {
+  handleContactSelect = (selectedRow: any, isSelectAll: boolean) => {
     if (isSelectAll) {
-      const hasSelected = this.dripCampaignList().some(i => i.is_selected);
+      const hasSelected = this.dripCampaignList().some(i => i.isSelected);
 
       const updatedList = this.dripCampaignList().map(i => ({
         ...i,
-        is_selected: !hasSelected
+        isSelected: !hasSelected
       }));
 
       this.dripCampaignList.set(updatedList);
@@ -616,13 +604,13 @@ export class BrandListOfDripCampaignsComponent {
       const updatedList = [...this.dripCampaignList()];
       updatedList[rowIndex] = {
         ...updatedList[rowIndex],
-        is_selected: !updatedList[rowIndex].is_selected
+        isSelected: !updatedList[rowIndex].isSelected
       };
 
       this.dripCampaignList.set(updatedList);
 
       this.selectedDripCampaigns.update(selected =>
-        updatedList[rowIndex].is_selected
+        updatedList[rowIndex].isSelected
           ? [...selected, updatedList[rowIndex]]
           : selected.filter(j => j.id !== updatedList[rowIndex].id)
       );
@@ -631,13 +619,13 @@ export class BrandListOfDripCampaignsComponent {
     this.selectedAllDripCampaigns.set(false);
   }
 
-  addContactBtnClick() {
+  addContactBtnClick = ()=> {
     this.router.navigate([routeConstants.BRAND.MANAGE_CONTACTS], {
       queryParams: { addToDripCampaignId: this.selectedDripCampaigns()[0]?.id }
     });
   }
 
-  toggleSelectAllSelection() {
+  toggleSelectAllSelection = ()=> {
     this.selectedAllDripCampaigns.update(v => !v);
   }
 }

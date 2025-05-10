@@ -4,6 +4,7 @@ import {HttpService} from "./http.service";
 import {CampaignService} from "./campaign.service";
 import {SseService} from "./sse.service";
 import {DripCampaign, IRawDripCampaign} from '../models/DripCampaign';
+import {EnrollmentTriggers, IRawEnrollmentTrigger} from '../models/EnrollmentTriggers';
 
 @Injectable({
   providedIn: 'root'
@@ -78,7 +79,6 @@ export class DripCampaignService {
           }
         } else {
           if (res.data) {
-            // Set page data
             let campaign = res.data;
             const dripCampaign = new DripCampaign(res.data);
             this.setDripCampaign(dripCampaign);
@@ -188,13 +188,14 @@ export class DripCampaignService {
 
   testDripCampaignEmail = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("drip-campaigns/sendTestEmail", postData).subscribe((res) => {
+      const url = `drip-campaigns/${postData.drip_campaign_id}/send-test-email`;
+      delete postData.drip_campaign_id;
+      this.httpService.post(url, postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
           }
         } else {
-          // this.dripCampaign = postData;
           resolve(true);
         }
       });
@@ -305,33 +306,28 @@ export class DripCampaignService {
     return this.editDripCampaignTitleItem;
   };
 
-  getListOfDripCampaigns = async (limit = 10, page = 1, supplier_id) => {
+  getListOfDripCampaigns = async (limit = 10, page = 1) => {
     let tempDealList = [];
-    let postData = {
-      page: page,
-      supplier_id: supplier_id,
-      limit: limit,
-      get_total_count: true,
-    };
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("drip-campaigns/getAll", postData).subscribe((res) => {
+      const url = `drip-campaigns?limit=${limit}&page=${page}`;
+      this.httpService.get(url).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
           }
         } else {
-
+          console.log('res', res);
           let totalPageCounts = Math.ceil(res.data.total / limit);
           let totalRecordsCount = res.data.total;
 
-          res.data.drip_campaigns.sort(function (a, b) {
+          res.data.dripCampaigns.sort(function (a, b) {
             const a1 = a.id,
               b1 = b.id;
             if (a1 == b1) return 0;
             return a1 < b1 ? 1 : -1;
           });
 
-          resolve({dripCampaigns: res.data.drip_campaigns, totalPageCounts, totalRecordsCount});
+          resolve({dripCampaigns: res.data.dripCampaigns, totalPageCounts, totalRecordsCount});
         }
       });
     });
@@ -364,8 +360,14 @@ export class DripCampaignService {
           }
 
         } else {
-          //this.allDripCampaigns = res.data;
-          res.data.forEach((rawData: IRawDripCampaign) => {
+          res.data.dripCampaigns.sort(function(a, b) {
+            const a1 = a.id,
+              b1 = b.id;
+            if (a1 == b1) return 0;
+            return a1 < b1 ? 1 : -1;
+          });
+
+          res.data.dripCampaigns.forEach((rawData: IRawDripCampaign) => {
             this.allDripCampaigns.push(new DripCampaign(rawData))
           })
 
@@ -515,14 +517,19 @@ export class DripCampaignService {
   };
 
   activateDripCampaign = async (postData) => {
+    this._loading.next(true);
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("drip-campaigns/activateDripCampaign", postData).subscribe((res) => {
+      const url = `drip-campaigns/${postData.drip_campaign_id}/activate`;
+      delete postData.drip_campaign_id;
+      this.httpService.post(url, postData).subscribe((res) => {
         if (!res.success) {
+          this._loading.next(false);
           if (res.error) {
             reject(res.error);
           }
 
         } else {
+          this._loading.next(false);
           resolve(true);
         }
       });
@@ -647,7 +654,8 @@ export class DripCampaignService {
 
   deleteDripCampaigns = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("drip-campaigns/delete", postData).subscribe((res) => {
+      const url = `drip-campaigns`;
+      this.httpService.delete(url, postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -690,16 +698,27 @@ export class DripCampaignService {
     });
   };
 
+  updateDripCampaignWithLatestSettings = (res) => {
+    let campaign = res.data;
+    const dripCampaign = new DripCampaign(res.data);
+    this.setDripCampaign(dripCampaign);
+    this._dripCampaignStatus.next(campaign.status);
+    this.sseService.addToDripBulkEmails(dripCampaign.emails);
+  }
+
   updateSettings = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("drip-campaigns/updateSettings", postData).subscribe((res) => {
+      const url = `drip-campaigns/${postData.drip_campaign_id}/settings`;
+      delete postData.drip_campaign_id;
+      this.httpService.patch(url, postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
           }
 
         } else {
-          resolve(res.data);
+          this.updateDripCampaignWithLatestSettings(res);
+          resolve(true);
         }
       });
     });
@@ -707,14 +726,17 @@ export class DripCampaignService {
 
   enrollmentTriggers = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("drip-campaigns/enrollmentTriggers", postData).subscribe((res) => {
+      const url = `drip-campaigns/${postData.drip_campaign_id}/enrollment-triggers`;
+      delete postData.drip_campaign_id;
+      this.httpService.post(url, postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
           }
 
         } else {
-          resolve(res.data);
+          this.updateDripCampaignWithLatestSettings(res);
+          resolve(true);
         }
       });
     });
@@ -722,14 +744,17 @@ export class DripCampaignService {
 
   removeListFromCampaign = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("drip-campaigns/removeListFromCampaign", postData).subscribe((res) => {
+      const url = `drip-campaigns/list/${postData.list_id}`;
+      delete postData.list_id;
+      this.httpService.delete(url, postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
           }
 
         } else {
-          resolve(res.data);
+          this.updateDripCampaignWithLatestSettings(res);
+          resolve(true);
         }
       });
     });
