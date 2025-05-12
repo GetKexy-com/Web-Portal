@@ -233,7 +233,9 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
 
   setPrimaryForm = () => {
     let contactDetails: ContactDetails;
-    this.contact = this.selectedContacts[0];
+    if (this.selectedContacts.length) {
+      this.contact = this.selectedContacts[0];
+    }
     contactDetails = this.contact.details;
 
     if (this.selectedContacts?.length && !this.isMultipleContactsSelected) {
@@ -281,7 +283,7 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
       country: new FormControl(
         contactDetails.country ? contactDetails.country : constants.UNITED_STATES,
       ),
-      lists: new FormControl([], Validators.compose([!this.isMultipleContactsSelected ? Validators.required : null])),
+      lists: new FormControl([]),
       notes: new FormControl(contactDetails?.notes ? contactDetails.notes : ''),
     });
   };
@@ -435,11 +437,16 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
     contactDetails.organization.state = formData.state;
     contactDetails.organization.country = formData.country;
 
-    return {
+    const payload = {
       companyId: this.supplierId,
       contacts: [Contact.contactPostDto(this.contact)],
       listIds: formData.lists,
     };
+    if (!formData.lists) {
+      delete payload.listIds;
+    }
+
+    return payload;
   };
 
   setAndGetEditMultipleContactApiPayload = (formData) => {
@@ -514,7 +521,6 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
     if (!this.primaryForm.valid) {
       return false;
     }
-
     this.isLoading = true;
     const formData = this.primaryForm.getRawValue();
     let postData;
@@ -522,7 +528,7 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
 
     try {
 
-      if (!this.selectedContacts) {
+      if (!this.selectedContacts?.length) {
         postData = this.setAndGetAddOrEditSingleContactApiPayload(formData);
         // Create Contact
         await this.prospectingService.addContacts(postData);

@@ -458,7 +458,7 @@ export class ProspectingService {
 
   addContacts = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post('contacts/add', postData).subscribe((res) => {
+      this.httpService.post('contacts', postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
