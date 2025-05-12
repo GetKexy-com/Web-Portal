@@ -1,4 +1,13 @@
-import { AfterViewChecked, Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import {
+  AfterViewChecked,
+  AfterViewInit,
+  Component,
+  EventEmitter,
+  Input,
+  OnDestroy,
+  OnInit,
+  Output,
+} from '@angular/core';
 import { Subscription } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
@@ -23,7 +32,7 @@ import {
   templateUrl: './label-list-card.component.html',
   styleUrl: './label-list-card.component.scss',
 })
-export class LabelListCardComponent implements OnInit, OnDestroy {
+export class LabelListCardComponent implements OnInit, OnDestroy, AfterViewInit {
   @Input() tableHeaderBg;
   @Input() tableHeaderColor;
   @Input() cardData = [];
@@ -59,10 +68,15 @@ export class LabelListCardComponent implements OnInit, OnDestroy {
     // Clear the previous cached contacts
     this.prospectingService.cachedContactPages = {};
     this.getListViewData();
+    this.calcWidth();
   }
 
   ngOnDestroy(): void {
     if (this.loadingSubscription) this.loadingSubscription.unsubscribe();
+  }
+
+  ngAfterViewInit() {
+    this.calcWidth();
   }
 
   ngAfterViewChecked() {

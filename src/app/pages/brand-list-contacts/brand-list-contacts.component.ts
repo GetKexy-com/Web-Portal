@@ -1,23 +1,23 @@
-import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from "@angular/core";
-import { ProspectingService } from "src/app/services/prospecting.service";
-import { Subscription } from "rxjs";
-import { ActivatedRoute, Router } from "@angular/router";
-import { constants } from "src/app/helpers/constants";
-import { AuthService } from "src/app/services/auth.service";
-import { routeConstants } from "src/app/helpers/routeConstants";
-import { NgbModal, NgbOffcanvas } from "@ng-bootstrap/ng-bootstrap";
-import Swal from "sweetalert2";
-import { PageUiService } from "src/app/services/page-ui.service";
-import {BrandLayoutComponent} from '../../layouts/brand-layout/brand-layout.component';
+import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { ProspectingService } from 'src/app/services/prospecting.service';
+import { Subscription } from 'rxjs';
+import { ActivatedRoute, Router } from '@angular/router';
+import { constants } from 'src/app/helpers/constants';
+import { AuthService } from 'src/app/services/auth.service';
+import { routeConstants } from 'src/app/helpers/routeConstants';
+import { NgbModal, NgbOffcanvas } from '@ng-bootstrap/ng-bootstrap';
+import Swal from 'sweetalert2';
+import { PageUiService } from 'src/app/services/page-ui.service';
+import { BrandLayoutComponent } from '../../layouts/brand-layout/brand-layout.component';
 import {
-  ProspectingCommonCardComponent
+  ProspectingCommonCardComponent,
 } from '../../components/prospecting-common-card/prospecting-common-card.component';
-import {ContactListCardComponent} from '../../components/contact-list-card/contact-list-card.component';
+import { ContactListCardComponent } from '../../components/contact-list-card/contact-list-card.component';
 import {
-  UploadFileModalContentComponent
+  UploadFileModalContentComponent,
 } from '../../components/upload-file-modal-content/upload-file-modal-content.component';
-import {ProspectingContactsComponent} from '../../components/prospecting-contacts/prospecting-contacts.component';
-import {CommonModule} from '@angular/common';
+import { ProspectingContactsComponent } from '../../components/prospecting-contacts/prospecting-contacts.component';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-brand-list-contacts',
@@ -29,9 +29,9 @@ import {CommonModule} from '@angular/common';
     CommonModule,
   ],
   templateUrl: './brand-list-contacts.component.html',
-  styleUrl: './brand-list-contacts.component.scss'
+  styleUrl: './brand-list-contacts.component.scss',
 })
-export class BrandListContactsComponent {
+export class BrandListContactsComponent implements OnInit, OnDestroy {
   contactLabelsSubscription: Subscription;
   listId;
   listObj;
@@ -45,8 +45,8 @@ export class BrandListContactsComponent {
   totalContactsCount = 0;
   totalPage;
   selectedContacts = [];
-  sortBy = "";
-  sortType = "";
+  sortBy = '';
+  sortType = '';
   selectAllContacts = false;
 
   constructor(
@@ -61,8 +61,7 @@ export class BrandListContactsComponent {
   }
 
   async ngOnInit() {
-    console.log("on init called?");
-    document.title = "List Contacts - KEXY Brand Portal";
+    document.title = 'List Contacts - KEXY Brand Portal';
     this.userData = this._authService.userTokenValue;
 
     // Set pagination limit from localstorage if found
@@ -72,24 +71,25 @@ export class BrandListContactsComponent {
     }
 
     this.route.queryParams.subscribe((params) => {
-      if (params["listId"]) {
-        this.listId = params["listId"];
+      if (params['listId']) {
+        this.listId = params['listId'];
       }
-      if (params["page"]) {
+      if (params['page']) {
         // Because pagination in API starts from 0 but we show from 1 in frontend, hence we subtract 1
-        this.page = parseInt(params["page"]);
+        this.page = parseInt(params['page']);
       }
     });
 
     this.contactLabelsSubscription = this.prospectingService.lists.subscribe(async (labels) => {
       if (labels.length < 1) {
-        await this.prospectingService.getLists({ supplier_id: this.userData.supplier_id });
+        await this.prospectingService.getLists({});
         return;
       }
       if (this.listId) {
         const index = labels.findIndex(l => l.id.toString() === this.listId.toString());
         if (index > -1) {
           this.listObj = labels[index];
+          this.listObj['user'] = this.userData;
           console.log(this.listObj);
         }
       }
@@ -108,23 +108,21 @@ export class BrandListContactsComponent {
 
   getContactApiPostData = () => {
     return {
-      supplier_id: this.userData.supplier_id,
-      drip_campaign_id: "",
-      label_ids: [parseInt(this.listId)],
-      contact_name: "",
-      company_name: "",
-      job_title: "",
-      email_status: "",
-      marketing_status: "",
-      email: "",
-      city: "",
-      state: "",
-      country: "",
+      companyId: this.userData.supplier_id,
+      dripCampaignId: '',
+      listIds: [parseInt(this.listId)],
+      contactName: '',
+      companyName: '',
+      jobTitle: '',
+      emailStatus: '',
+      marketingStatus: '',
+      city: '',
+      state: '',
+      country: '',
       page: this.page,
       limit: this.limit,
-      get_total_count: true,
-      sort_by: this.sortBy,
-      sort_type: this.sortType,
+      sortBy: this.sortBy,
+      sortType: this.sortType,
     };
   };
 
@@ -136,7 +134,7 @@ export class BrandListContactsComponent {
   setContactSubscription = () => {
     this.contactListSubscription = this.prospectingService.contactRes.subscribe((data) => {
       this.contactList = this.prospectingService.setLabelsInContactsList(data.contacts);
-      this.totalContactsCount =data.total;
+      this.totalContactsCount = data.total;
       this.totalPage = Math.ceil(this.totalContactsCount / this.limit);
 
       // Resetting edit and contact button showing condition
@@ -190,10 +188,10 @@ export class BrandListContactsComponent {
       {
         relativeTo: this.route,
         queryParams: { listId: this.listId, page: this.page },
-        queryParamsHandling: "merge",
+        queryParamsHandling: 'merge',
       },
     ).then(async res => {
-      await this.getContacts(true);
+      await this.getContacts(false);
 
       // if (res) {
       //   await this.getContacts(true);
@@ -301,22 +299,22 @@ export class BrandListContactsComponent {
 
   openContactSlider = () => {
     this.ngbOffcanvas.open(ProspectingContactsComponent, {
-      panelClass: "contact-slide-content edit-rep-canvas",
-      backdropClass: "edit-rep-canvas-backdrop",
-      position: "end",
+      panelClass: 'contact-slide-content edit-rep-canvas',
+      backdropClass: 'edit-rep-canvas-backdrop',
+      position: 'end',
       scroll: false,
     });
   };
 
-  __isConfirmed = async (text = "This action can not be undone.") => {
+  __isConfirmed = async (text = 'This action can not be undone.') => {
     let isConfirm = await Swal.fire({
       title: `Are you sure?`,
       text: text,
-      icon: "warning",
+      icon: 'warning',
       showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Yes, Delete!",
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, Delete!',
     });
 
     return !isConfirm.dismiss;
@@ -341,9 +339,9 @@ export class BrandListContactsComponent {
       label_id_to_delete: this.listId,
     };
     if (this.selectAllContacts) {
-      postData["selected_all_contacts"] = "true";
-      postData["selected_all_contacts_payload"] = this.getContactApiPostData();
-      postData["contacts"] = [];
+      postData['selected_all_contacts'] = 'true';
+      postData['selected_all_contacts_payload'] = this.getContactApiPostData();
+      postData['contacts'] = [];
     }
 
     const swlLoading = this.pageUiService.showSweetAlertLoading();
@@ -355,15 +353,15 @@ export class BrandListContactsComponent {
       swlLoading.close();
     } catch (e) {
       swlLoading.close();
-      await Swal.fire("Error", e.message);
+      await Swal.fire('Error', e.message);
     }
 
   };
 
   modalReference;
-  @ViewChild("uploadContacts", { static: true }) uploadContacts: ElementRef;
+  @ViewChild('uploadContacts', { static: true }) uploadContacts: ElementRef;
   importBtnClick = () => {
-    this.modalReference = this.modal.open(this.uploadContacts, { size: "md" });
+    this.modalReference = this.modal.open(this.uploadContacts, { size: 'md' });
   };
 
   closeModal = () => {
@@ -381,42 +379,42 @@ export class BrandListContactsComponent {
 
     data.map(contact => {
       contacts.push({
-        id: "",
-        first_name: contact["First Name"],
-        last_name: contact["Last Name"],
-        name: `${contact["First Name"]} ${contact["Last Name"]}`,
-        linkedin_url: contact["Linkedin"],
-        title: contact["Job Title"],
+        id: '',
+        first_name: contact['First Name'],
+        last_name: contact['Last Name'],
+        name: `${contact['First Name']} ${contact['Last Name']}`,
+        linkedin_url: contact['Linkedin'],
+        title: contact['Job Title'],
         email_status: null,
         photo_url: null,
         twitter_url: null,
         github_url: null,
         facebook_url: null,
-        headline: contact["Job Title"],
-        email: contact["Email"],
-        organization_id: "",
+        headline: contact['Job Title'],
+        email: contact['Email'],
+        organization_id: '',
         employment_history: [{}],
-        state: contact["State"],
-        city: contact["City"],
-        country: contact["Country"],
+        state: contact['State'],
+        city: contact['City'],
+        country: contact['Country'],
         organization: {
-          name: contact["Company Name"],
+          name: contact['Company Name'],
           website_url: null,
           blog_url: null,
           angellist_url: null,
-          linkedin_url: contact["Linkedin"],
+          linkedin_url: contact['Linkedin'],
           twitter_url: null,
           facebook_url: null,
           logo_url: null,
-          phone: contact["Phone Number"],
+          phone: contact['Phone Number'],
           industry: null,
           founded_year: null,
           estimated_num_employees: null,
-          street_address: "",
-          city: contact["City"],
-          state: contact["State"],
-          postal_code: "",
-          country: contact["Country"],
+          street_address: '',
+          city: contact['City'],
+          state: contact['State'],
+          postal_code: '',
+          country: contact['Country'],
         },
         is_likely_to_engage: true,
       });
@@ -427,10 +425,10 @@ export class BrandListContactsComponent {
       contacts: contacts,
       label_ids: [this.listId],
     };
-    console.log("payload", payload);
+    console.log('payload', payload);
 
     if (this.zerobounceBypass) {
-      payload["bypass_zerobounce"] = "true";
+      payload['bypass_zerobounce'] = 'true';
     }
 
     try {
@@ -441,7 +439,7 @@ export class BrandListContactsComponent {
       this.closeModal();
     } catch (e) {
       this.isLoading = false;
-      await Swal.fire("Error", e.message);
+      await Swal.fire('Error', e.message);
     }
   };
 

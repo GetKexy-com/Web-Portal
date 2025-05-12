@@ -28,8 +28,8 @@
   </div>
 
   <div class="list-info" *ngIf="listInfo">
-    <p class="details-text">Creator: <span>{{ listInfo.user.first_name }} {{ listInfo.user.last_name }}</span></p>
-    <p class="ms-3 details-text">Total Contact(s): <span>{{ listInfo.kexy_contact_labels.length }}</span></p>
+    <p class="details-text">Creator: <span>{{ listInfo.user.firstName }} {{ listInfo.user.lastName }}</span></p>
+    <p class="ms-3 details-text">Total Contact(s): <span>{{ listInfo.contactList.length }}</span></p>
   </div>
 
   <div class="bottom-btn-wrap" *ngIf="bottomBtnLabel">

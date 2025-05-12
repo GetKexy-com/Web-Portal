@@ -561,9 +561,9 @@ export class ProspectingService {
     });
   };
 
-  addLabel = async (postData) => {
+  createNewList = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post('contacts/labels/add', postData).subscribe((res) => {
+      this.httpService.post('lists', postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);

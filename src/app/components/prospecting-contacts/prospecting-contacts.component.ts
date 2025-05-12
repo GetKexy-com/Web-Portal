@@ -182,10 +182,9 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
   getAndSetLabels = () => {
     // Get Label
     const getLabelApiPostData = {
-      supplier_id: this.supplierId,
+      companyId: this.supplierId,
       page: this.prospectingService.manageListCurrentPage || 1,
       limit: this.prospectingService.manageListLimit || 100,
-      get_total_count: true,
     };
     this.prospectingService.getLists(getLabelApiPostData);
 
@@ -217,6 +216,7 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
       // so we set label to that listId
       if (this.labelIdFromListContactPage) {
         this.setLabelForListContactAdd();
+        this.setLabelFieldToPrimaryForm();
       }
     });
   };
