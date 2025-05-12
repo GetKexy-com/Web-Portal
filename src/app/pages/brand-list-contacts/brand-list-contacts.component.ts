@@ -81,9 +81,9 @@ export class BrandListContactsComponent {
       }
     });
 
-    this.contactLabelsSubscription = this.prospectingService.labels.subscribe(async (labels) => {
+    this.contactLabelsSubscription = this.prospectingService.lists.subscribe(async (labels) => {
       if (labels.length < 1) {
-        await this.prospectingService.getLabels({ supplier_id: this.userData.supplier_id });
+        await this.prospectingService.getLists({ supplier_id: this.userData.supplier_id });
         return;
       }
       if (this.listId) {
@@ -350,7 +350,7 @@ export class BrandListContactsComponent {
     try {
       swlLoading.showLoading();
       await this.prospectingService.removeContactsFromList(postData);
-      await this.prospectingService.getLabels({ supplier_id: this.userData.supplier_id });
+      await this.prospectingService.getLists({ supplier_id: this.userData.supplier_id });
       await this.getContacts(true);
       swlLoading.close();
     } catch (e) {
@@ -436,7 +436,7 @@ export class BrandListContactsComponent {
     try {
       await this.prospectingService.addContacts(payload);
       await this.getContacts(true);
-      await this.prospectingService.getLabels({ supplier_id: this.userData.supplier_id });
+      await this.prospectingService.getLists({ supplier_id: this.userData.supplier_id });
       this.isLoading = false;
       this.closeModal();
     } catch (e) {

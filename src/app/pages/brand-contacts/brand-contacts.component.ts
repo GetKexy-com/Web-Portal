@@ -187,10 +187,10 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
 
   getLabels = async () => {
     // Get Label
-    await this.prospectingService.getLabels({ companyId: this.supplierId, page: 1, limit: 9999999 });
+    await this.prospectingService.getLists({ companyId: this.supplierId, page: 1, limit: 9999999 });
 
     // Set Label Subscription
-    this.contactLabelsSubscription = this.prospectingService.labels.subscribe((labels) => {
+    this.contactLabelsSubscription = this.prospectingService.lists.subscribe((labels) => {
       // Set label dropdown options
       this.labelOptions = [];
       labels.map(i => {

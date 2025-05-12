@@ -125,10 +125,10 @@ export class BrandLaunchDripCampaignComponent {
 
   getAndSetLabels = () => {
     // Get Label
-    this.prospectingService.getLabels({ supplier_id: this.userData.supplier_id });
+    this.prospectingService.getLists({ supplier_id: this.userData.supplier_id });
 
     // Set Label Subscription
-    this.contactLabelsSubscription = this.prospectingService.labels.subscribe((labels) => {
+    this.contactLabelsSubscription = this.prospectingService.lists.subscribe((labels) => {
       // Set label dropdown options
       this.labelOptions = [];
       labels.map(i => {
@@ -152,7 +152,7 @@ export class BrandLaunchDripCampaignComponent {
       options[i].isSelected = !options[i].isSelected;
     }
 
-    // get contacts based on labels
+    // get contacts based on lists
     if (this.isLabelSelected()) {
       this.isLoading = true;
       await this.getContacts();

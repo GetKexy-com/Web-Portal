@@ -524,7 +524,7 @@ export class BrandCreateComponent implements OnInit {
       this.phoneCode.set('+' + userCountry.phonecode);
     }
 
-    // Update labels based on country
+    // Update lists based on country
     if (country !== 'US') {
       this.zipCodePlaceholder.set('Postal Code');
       this.zipCodeLabel.set('Please enter a valid Postal Code.');

@@ -187,10 +187,10 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
       limit: this.prospectingService.manageListLimit || 100,
       get_total_count: true,
     };
-    this.prospectingService.getLabels(getLabelApiPostData);
+    this.prospectingService.getLists(getLabelApiPostData);
 
     // Set Label Subscription
-    this.contactLabelsSubscription = this.prospectingService.labels.subscribe((labels) => {
+    this.contactLabelsSubscription = this.prospectingService.lists.subscribe((labels) => {
       // Set label dropdown options
       this.labelOptions = [];
       labels.forEach(i => {
@@ -203,7 +203,7 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
           isSelected: false,
         };
 
-        // Set selected labels for edit for single contact
+        // Set selected lists for edit for single contact
         if (!this.isMultipleContactsSelected && this.selectedContacts?.length) {
           const index = this.selectedContacts[0].lists.findIndex(label => i.id.toString() === label.id.toString());
           if (index > -1) {

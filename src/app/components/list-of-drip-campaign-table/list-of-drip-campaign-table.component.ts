@@ -53,7 +53,7 @@ export class ListOfDripCampaignTableComponent {
 
   ngOnInit(): void {
     // Set Label Subscription
-    this.contactLabelsSubscription = this.prospectingService.labels.subscribe((labels) => {
+    this.contactLabelsSubscription = this.prospectingService.lists.subscribe((labels) => {
       // Set label dropdown options
       this.labelOptions = labels;
     });

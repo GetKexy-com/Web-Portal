@@ -1,16 +1,16 @@
-import { AfterViewChecked, Component, EventEmitter, Input, OnDestroy, OnInit, Output } from "@angular/core";
-import { Subscription } from "rxjs";
-import { AuthService } from "../../services/auth.service";
-import { NgbModal } from "@ng-bootstrap/ng-bootstrap";
-import { ProspectingService } from "../../services/prospecting.service";
-import { PageUiService } from "../../services/page-ui.service";
-import { constants } from "../../helpers/constants";
-import { routeConstants } from "../../helpers/routeConstants";
-import { Router } from "@angular/router";
-import {CommonModule, DatePipe} from '@angular/common';
-import {FormsModule} from '@angular/forms';
+import { AfterViewChecked, Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import { Subscription } from 'rxjs';
+import { AuthService } from '../../services/auth.service';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { ProspectingService } from '../../services/prospecting.service';
+import { PageUiService } from '../../services/page-ui.service';
+import { constants } from '../../helpers/constants';
+import { routeConstants } from '../../helpers/routeConstants';
+import { Router } from '@angular/router';
+import { CommonModule, DatePipe } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import {
-  ListDripCampaignsModalContentComponent
+  ListDripCampaignsModalContentComponent,
 } from '../list-drip-campaigns-modal-content/list-drip-campaigns-modal-content.component';
 
 @Component({
@@ -21,9 +21,9 @@ import {
     CommonModule,
   ],
   templateUrl: './label-list-card.component.html',
-  styleUrl: './label-list-card.component.scss'
+  styleUrl: './label-list-card.component.scss',
 })
-export class LabelListCardComponent {
+export class LabelListCardComponent implements OnInit, OnDestroy {
   @Input() tableHeaderBg;
   @Input() tableHeaderColor;
   @Input() cardData = [];
@@ -72,12 +72,12 @@ export class LabelListCardComponent {
   getListViewData = () => {
     let columnList: any;
     columnList = [
-      { name: "", key: "action", width: 50 },
-      { name: "Name", key: "label", width: 200 },
-      { name: "List Size", key: "list_size", width: 80 },
-      { name: "Creator", key: "creator", width: 120 },
-      { name: "Used In", key: "used_in", width: 140 },
-      { name: "Date Created", key: "date_created", width: 180 },
+      { name: '', key: 'action', width: 50 },
+      { name: 'Name', key: 'label', width: 200 },
+      { name: 'List Size', key: 'list_size', width: 80 },
+      { name: 'Creator', key: 'creator', width: 120 },
+      { name: 'Used In', key: 'used_in', width: 140 },
+      { name: 'Date Created', key: 'date_created', width: 180 },
       // { name: "", key: "edit", width: 50 },
     ];
     this.columnList = columnList;
@@ -85,7 +85,7 @@ export class LabelListCardComponent {
 
   browserWidthForTable;
   calcWidth = () => {
-    const sidebarWidth = document.getElementById("main-sidebar")?.clientWidth;
+    const sidebarWidth = document.getElementById('main-sidebar')?.clientWidth;
     const pageMargin = 48;
     let sum = 300;
     let map = {};
@@ -99,13 +99,13 @@ export class LabelListCardComponent {
 
   getCellClasses = (column) => {
     let classes = {
-      "n-cell-only-name": column.key === "no",
-      "col-zip": column.key === "zip_code",
+      'n-cell-only-name': column.key === 'no',
+      'col-zip': column.key === 'zip_code',
     };
 
     return Object.keys(classes)
       .filter((key) => classes[key])
-      .join(" ");
+      .join(' ');
   };
 
   selectedItemCount;
@@ -134,7 +134,7 @@ export class LabelListCardComponent {
   redirectListContactsPage = async (list) => {
     await this.router.navigate(
       [routeConstants.BRAND.LIST_CONTACTS],
-      { queryParams: { listId: list.id, page: 1 } }
+      { queryParams: { listId: list.id, page: 1 } },
     );
-  }
+  };
 }

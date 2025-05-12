@@ -1,20 +1,20 @@
-import { Component, OnDestroy, OnInit } from "@angular/core";
-import { Subscription } from "rxjs";
-import { AuthService } from "src/app/services/auth.service";
-import { ProspectingService } from "src/app/services/prospecting.service";
-import { NgbOffcanvas } from "@ng-bootstrap/ng-bootstrap";
-import Swal from "sweetalert2";
-import { constants } from "src/app/helpers/constants";
-import { ExportToCsv } from "src/app/helpers/CSVHelper";
-import { DripCampaignService } from "src/app/services/drip-campaign.service";
-import { PageUiService } from "src/app/services/page-ui.service";
-import {BrandLayoutComponent} from '../../layouts/brand-layout/brand-layout.component';
-import {KexyButtonComponent} from '../../components/kexy-button/kexy-button.component';
-import {LabelListCardComponent} from '../../components/label-list-card/label-list-card.component';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Subscription } from 'rxjs';
+import { AuthService } from 'src/app/services/auth.service';
+import { ProspectingService } from 'src/app/services/prospecting.service';
+import { NgbOffcanvas } from '@ng-bootstrap/ng-bootstrap';
+import Swal from 'sweetalert2';
+import { constants } from 'src/app/helpers/constants';
+import { ExportToCsv } from 'src/app/helpers/CSVHelper';
+import { DripCampaignService } from 'src/app/services/drip-campaign.service';
+import { PageUiService } from 'src/app/services/page-ui.service';
+import { BrandLayoutComponent } from '../../layouts/brand-layout/brand-layout.component';
+import { KexyButtonComponent } from '../../components/kexy-button/kexy-button.component';
+import { LabelListCardComponent } from '../../components/label-list-card/label-list-card.component';
 import {
-  AddOrDeleteContactLabelComponent
+  AddOrDeleteContactLabelComponent,
 } from '../../components/add-or-delete-contact-label/add-or-delete-contact-label.component';
-import {CommonModule} from '@angular/common';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'manage-list',
@@ -25,9 +25,9 @@ import {CommonModule} from '@angular/common';
     CommonModule,
   ],
   templateUrl: './manage-list.component.html',
-  styleUrl: './manage-list.component.scss'
+  styleUrl: './manage-list.component.scss',
 })
-export class ManageListComponent {
+export class ManageListComponent implements OnInit, OnDestroy {
   userData;
   supplierId;
   labelOptions = [];
@@ -51,7 +51,7 @@ export class ManageListComponent {
   }
 
   async ngOnInit() {
-    document.title = "Lists - KEXY Brand Portal";
+    document.title = 'Lists - KEXY Brand Portal';
     this.userData = this._authService.userTokenValue;
     this.supplierId = this.userData.supplier_id;
 
@@ -66,7 +66,7 @@ export class ManageListComponent {
       this.page = this.prospectingService.manageListCurrentPage;
     }
 
-    // get labels
+    // get lists
     await this.getLabels(true);
 
     // get all drip campaign titles
@@ -83,15 +83,13 @@ export class ManageListComponent {
   getLabels = async (overwrite = true) => {
     // Get Label
     const postData = {
-      supplier_id: this.supplierId,
       page: this.page,
       limit: this.limit,
-      get_total_count: true,
     };
-    await this.prospectingService.getLabels(postData, overwrite);
+    await this.prospectingService.getLists(postData, overwrite);
 
     // Set Label Subscription
-    this.contactLabelsSubscription = this.prospectingService.labels.subscribe((labels) => {
+    this.contactLabelsSubscription = this.prospectingService.lists.subscribe((labels) => {
       this.labelOptions = labels;
       this.totalContactsCount = this.prospectingService.totalListCount;
       this.totalPage = Math.ceil(this.totalContactsCount / this.limit);
@@ -101,7 +99,7 @@ export class ManageListComponent {
 
   getDripCampaignTitles = async () => {
     // Get dripCampaignTitles api call
-    await this.dripCampaignService.getAllDripCampaignTitle({ supplier_id: this.userData.supplier_id }, false);
+    await this.dripCampaignService.getAllDripCampaignTitle({}, false);
   };
 
   setPreviousSelectedLabels = () => {
@@ -184,9 +182,9 @@ export class ManageListComponent {
 
   editLabel = () => {
     const data = this.selectedLabels[0];
-    data["itemBgColor"] = data.bg_color;
-    data["value"] = data.label;
-    data["itemTextColor"] = data.text_color;
+    data['itemBgColor'] = data.bg_color;
+    data['value'] = data.label;
+    data['itemTextColor'] = data.text_color;
     this.prospectingService.selectedLabelForEdit = data;
     this.openLabelCanvas();
   };
@@ -198,24 +196,24 @@ export class ManageListComponent {
 
   openLabelCanvas = () => {
     this.ngbOffcanvas.open(AddOrDeleteContactLabelComponent, {
-      panelClass: "attributes-bg edit-rep-canvas",
-      backdropClass: "edit-rep-canvas-backdrop label-offcanvas-backdrop",
-      position: "end",
+      panelClass: 'attributes-bg edit-rep-canvas',
+      backdropClass: 'edit-rep-canvas-backdrop label-offcanvas-backdrop',
+      position: 'end',
       scroll: false,
     });
   };
 
   deleteLabels = async () => {
     let isConfirm = await Swal.fire({
-      title: "Are you sure?",
-      text: "List(s) used in active drip campaign(s) will not be deleted.",
-      icon: "warning",
+      title: 'Are you sure?',
+      text: 'List(s) used in active drip campaign(s) will not be deleted.',
+      icon: 'warning',
       showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
       allowOutsideClick: false,
       allowEscapeKey: false,
-      confirmButtonText: "Yes, delete it!",
+      confirmButtonText: 'Yes, delete it!',
       showLoaderOnConfirm: true,
     });
 
@@ -224,8 +222,8 @@ export class ManageListComponent {
     }
 
     Swal.fire({
-      title: "",
-      text: "Please wait...",
+      title: '',
+      text: 'Please wait...',
       showConfirmButton: false,
       showCancelButton: false,
       allowOutsideClick: false,
@@ -247,7 +245,7 @@ export class ManageListComponent {
       Swal.close();
     } catch (e) {
       Swal.close();
-      await Swal.fire("Error", e.message);
+      await Swal.fire('Error', e.message);
     }
   };
 
@@ -265,7 +263,7 @@ export class ManageListComponent {
       swlLoading.close();
     } catch (e) {
       swlLoading.close();
-      await Swal.fire("Error", e.message);
+      await Swal.fire('Error', e.message);
     }
   };
 
@@ -277,20 +275,20 @@ export class ManageListComponent {
 
     const postData = {
       supplier_id: this.supplierId,
-      drip_campaign_id: "",
+      drip_campaign_id: '',
       label_ids: labelIds,
-      contact_name: "",
-      company_name: "",
-      job_title: "",
-      marketing_status: "",
-      email_status: "",
-      city: "",
-      state: "",
-      country: "",
+      contact_name: '',
+      company_name: '',
+      job_title: '',
+      marketing_status: '',
+      email_status: '',
+      city: '',
+      state: '',
+      country: '',
       page: 1,
       limit: 9999999,
       get_total_count: true,
-      sort_by: "",
+      sort_by: '',
     };
     try {
       const contacts = await this.prospectingService.getAllContacts(postData, true);
@@ -298,7 +296,7 @@ export class ManageListComponent {
       return contacts;
     } catch (e) {
       this.exportBtnLoading = false;
-      Swal.fire("Error", e.message);
+      Swal.fire('Error', e.message);
     }
   };
 
@@ -307,7 +305,7 @@ export class ManageListComponent {
     const contacts = await this.getAllContacts();
 
     const headers = `First Name,Last Name,Linkedin,Email,Email Status,Job Title,Company Name,Phone Number,City,State,Country,Marketing Status,List`;
-    let rows = "";
+    let rows = '';
     contacts.forEach((contact) => {
       // console.log('contact', contact);
       let labels = [];
@@ -316,22 +314,22 @@ export class ManageListComponent {
       });
 
       let contactDetails = JSON.parse(contact.details);
-      rows += `${contactDetails.first_name?.replace(/,/g, " ")}, `;
-      rows += `${contactDetails.last_name?.replace(/,/g, " ")}, `;
-      rows += `${contactDetails.linkedin_url?.replace(/,/g, " ")}, `;
-      rows += `${contactDetails.email?.replace(/,/g, " ")}, `;
-      rows += `${contactDetails.email_status?.replace(/,/g, " ")}, `;
-      rows += `${contactDetails.title?.replace(/,/g, " ")}, `;
-      rows += `${contactDetails.organization.name?.replace(/,/g, " ")}, `;
-      rows += `${contactDetails.organization.phone?.replace(/,/g, " ")}, `;
-      rows += `${contactDetails.city?.replace(/,/g, " ")}, `;
-      rows += `${contactDetails.state?.replace(/,/g, " ")}, `;
-      rows += `${contactDetails.country?.replace(/,/g, " ")}, `;
-      rows += `${contact.marketing_status?.replace(/,/g, " ")}, `;
-      rows += `${labels.length ? labels.join("/") : ""}\n`;
+      rows += `${contactDetails.first_name?.replace(/,/g, ' ')}, `;
+      rows += `${contactDetails.last_name?.replace(/,/g, ' ')}, `;
+      rows += `${contactDetails.linkedin_url?.replace(/,/g, ' ')}, `;
+      rows += `${contactDetails.email?.replace(/,/g, ' ')}, `;
+      rows += `${contactDetails.email_status?.replace(/,/g, ' ')}, `;
+      rows += `${contactDetails.title?.replace(/,/g, ' ')}, `;
+      rows += `${contactDetails.organization.name?.replace(/,/g, ' ')}, `;
+      rows += `${contactDetails.organization.phone?.replace(/,/g, ' ')}, `;
+      rows += `${contactDetails.city?.replace(/,/g, ' ')}, `;
+      rows += `${contactDetails.state?.replace(/,/g, ' ')}, `;
+      rows += `${contactDetails.country?.replace(/,/g, ' ')}, `;
+      rows += `${contact.marketing_status?.replace(/,/g, ' ')}, `;
+      rows += `${labels.length ? labels.join('/') : ''}\n`;
     });
     // console.log(rows);
-    await ExportToCsv.download("Contacts.csv", headers + "\n" + rows);
+    await ExportToCsv.download('Contacts.csv', headers + '\n' + rows);
     this.isWaitingFlag = false;
   };
 }

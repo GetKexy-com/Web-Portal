@@ -54,7 +54,7 @@ export class UploadFileModalContentComponent implements OnInit, OnDestroy {
   }
 
   setLabelsSubscription = () => {
-    this.labelsSubscription = this.prospectingService.labels.subscribe((labels) => {
+    this.labelsSubscription = this.prospectingService.lists.subscribe((labels) => {
       this.labelOptions = [];
       labels.forEach(i => {
         const labelObj = {

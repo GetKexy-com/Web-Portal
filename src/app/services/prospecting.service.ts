@@ -32,7 +32,7 @@ export class ProspectingService {
   contactRes = this._contactRes.asObservable();
 
   private _labels = new BehaviorSubject([]);
-  labels = this._labels.asObservable();
+  lists = this._labels.asObservable();
 
   private _labelsOnly = new BehaviorSubject([]);
   labelsOnly = this._labelsOnly.asObservable();
@@ -584,7 +584,7 @@ export class ProspectingService {
             reject(res.error);
           }
         } else {
-          // labels = labels.filter((p) => p.id !== postData.label_id);
+          // lists = lists.filter((p) => p.id !== postData.label_id);
           labels = labels.filter((p) => {
             const index = postData.label_ids.findIndex(l => l === p.id);
             return index === -1;
@@ -624,7 +624,7 @@ export class ProspectingService {
     });
   };
 
-  getLabels = async (postData, overwrite = true) => {
+  getLists = async (postData, overwrite = true) => {
     const { page, limit } = postData;
     if (page) {
       this.manageListCurrentPage = page;
@@ -644,8 +644,7 @@ export class ProspectingService {
     }
 
     return new Promise(async (resolve, reject) => {
-      const url = `lists?page=${this.manageListCurrentPage}&limit=${this.manageListLimit}`;
-      console.log(url);
+      const url = `lists/contacts?page=${this.manageListCurrentPage}&limit=${this.manageListLimit}`;
       this.httpService.get(url).subscribe((res) => {
         if (!res.success) {
           if (res.error) {

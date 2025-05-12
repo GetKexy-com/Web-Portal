@@ -69,22 +69,22 @@
 
         <!-- body - start -->
         <ng-container *ngIf="!isWaitingFlag && cardData.length > 0">
-          <tr class="n-product" [class.selected]="row.is_selected" *ngFor="let row of cardData; let i = index">
+          <tr class="n-product" [class.selected]="row.isSelected" *ngFor="let row of cardData; let i = index">
             <ng-container *ngFor="let column of columnList">
               <td
                 [className]="'n-cell ' + getCellClasses(column)"
                 [style.width]="column.width ? column.width+'px' : ''"
               >
-                <span *ngIf="column.key === 'date_created'">{{row.created_at | date : "medium"}}</span>
+                <span *ngIf="column.key === 'date_created'">{{row.createdAt | date : "medium"}}</span>
 
-                <span *ngIf="column.key === 'list_size'" class="w-100 d-inline-block text-center link-text" (click)="redirectListContactsPage(row)">{{row.kexy_contact_labels.length}}</span>
+                <span *ngIf="column.key === 'list_size'" class="w-100 d-inline-block text-center link-text" (click)="redirectListContactsPage(row)">{{row.contactList.length}}</span>
 
-                <span *ngIf="column.key === 'creator'">{{row.user.first_name}} {{row.user.last_name}}</span>
+                <span *ngIf="column.key === 'creator'">{{userData.firstName}} {{userData.lastName}}</span>
 
                 <span *ngIf="column.key === 'label'" style="cursor: pointer" (click)="redirectListContactsPage(row)">
                   <span
-                    [style.background-color]="row.bg_color"
-                    [style.color]="row.text_color"
+                    [style.background-color]="row.bgColor"
+                    [style.color]="row.textColor"
                     class="label-tag"
                   >
                     {{ row.label }}
@@ -97,12 +97,12 @@
                   style="cursor: pointer"
                   (click)="openShowAllLabelModal($event, row.drip_campaign_kexy_labels)"
                 >
-                  {{row.drip_campaign_kexy_labels.length}} - Drip Campaign(s)
+                  {{row.dripCampaignList.length}} - Drip Campaign(s)
                 </span>
 
                 <span *ngIf="column.key === 'action'" style="cursor: pointer" (click)="checkboxClicked(row)">
-                  <i *ngIf="!row.is_selected" aria-hidden="true" class="fa fa-square-o checkbox-icon"></i>
-                  <i *ngIf="row.is_selected" aria-hidden="true" class="fa fa-check-square checkbox-icon selected"></i>
+                  <i *ngIf="!row.isSelected" aria-hidden="true" class="fa fa-square-o checkbox-icon"></i>
+                  <i *ngIf="row.isSelected" aria-hidden="true" class="fa fa-check-square checkbox-icon selected"></i>
                 </span>
 
                 <!--                <span *ngIf="column.key === 'edit'" class="link-text" (click)="editLabel(contact)">Edit</span>-->

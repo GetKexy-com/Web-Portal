@@ -75,10 +75,10 @@ export class AddContactsToDripCampaignComponent {
       limit: this.prospectingService.manageListLimit || 100,
       get_total_count: true,
     };
-    this.prospectingService.getLabels(getLabelApiPostData);
+    this.prospectingService.getLists(getLabelApiPostData);
 
     // Set Label Subscription
-    this.contactLabelsSubscription = this.prospectingService.labels.subscribe((labels) => {
+    this.contactLabelsSubscription = this.prospectingService.lists.subscribe((labels) => {
       // Set label dropdown options
       this.labels = labels;
     });

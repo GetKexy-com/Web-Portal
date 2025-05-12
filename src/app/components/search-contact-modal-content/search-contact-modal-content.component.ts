@@ -52,11 +52,11 @@
 //     this.userData = this._authService.userTokenValue;
 //
 //     // Set Label subscription
-//     this.prospectingService.getLabels({ supplier_id: this.userData.supplier_id });
-//     this.contactLabelsSubscription = this.prospectingService.labels.subscribe((labels) => {
+//     this.prospectingService.getLists({ supplier_id: this.userData.supplier_id });
+//     this.contactLabelsSubscription = this.prospectingService.lists.subscribe((lists) => {
 //       // Set label dropdown options
 //       this.labelOptions = [];
-//       labels.map(i => this.labelOptions.push({
+//       lists.map(i => this.labelOptions.push({
 //         key: i.label,
 //         value: i.label,
 //         itemBgColor: i.bg_color,
@@ -80,8 +80,8 @@
 //     const filterData = this.prospectingService.searchContactFilterData;
 //     if (activeFilterCount && filterData) {
 //       // Labels
-//       if (filterData.labels && filterData.labels.length) {
-//         filterData.labels.forEach(label => {
+//       if (filterData.lists && filterData.lists.length) {
+//         filterData.lists.forEach(label => {
 //           const index = this.labelOptions.findIndex(l => l.id === label.id);
 //           if (index > -1) {
 //             this.labelOptions[index].isSelected = true;
@@ -172,7 +172,7 @@
 //       emailStatus = this.emailStatusOptions.find(status => status.value === this.selectedEmailStatus).key;
 //     }
 //     const data = {
-//       labels: this.labelOptions.filter(l => l.isSelected),
+//       lists: this.labelOptions.filter(l => l.isSelected),
 //       name: this.contactName,
 //       companyName: this.companyName,
 //       email: this.contactEmail,
@@ -247,11 +247,11 @@ export class SearchContactModalContentComponent implements OnInit {
   async ngOnInit() {
     const userData = this.authService.userTokenValue;
 
-    // Load labels
-    this.prospectingService.getLabels({ supplier_id: userData.supplier_id });
+    // Load lists
+    this.prospectingService.getLists({ supplier_id: userData.supplier_id });
 
-    // Subscribe to labels changes
-    this.prospectingService.labels
+    // Subscribe to lists changes
+    this.prospectingService.lists
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((labels) => {
         this.labelOptions.set(labels.map(i => ({

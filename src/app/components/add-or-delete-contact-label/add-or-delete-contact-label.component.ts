@@ -116,7 +116,7 @@ export class AddOrDeleteContactLabelComponent {
         limit: this.prospectingService.manageListLimit || 100,
         get_total_count: true
       }
-      await this.prospectingService.getLabels(getLabelApiPostData);
+      await this.prospectingService.getLists(getLabelApiPostData);
 
       this.activeCanvas.dismiss("Cross click");
       this.isLoading = false;
@@ -240,7 +240,7 @@ export class AddOrDeleteContactLabelComponent {
 //         await this.prospectingService.addLabel(payload);
 //       }
 //
-//       await this.prospectingService.getLabels({
+//       await this.prospectingService.getLists({
 //         supplier_id: this.supplierId,
 //         page: this.prospectingService.manageListCurrentPage || 1,
 //         limit: this.prospectingService.manageListLimit || 100,

@@ -66,13 +66,13 @@
 //
 //   getAndSetLabels = () => {
 //     // Get Label
-//     this.prospectingService.getLabels({ supplier_id: this.userData.supplier_id });
+//     this.prospectingService.getLists({ supplier_id: this.userData.supplier_id });
 //
 //     // Set Label Subscription
-//     this.contactLabelsSubscription = this.prospectingService.labels.subscribe((labels) => {
+//     this.contactLabelsSubscription = this.prospectingService.lists.subscribe((lists) => {
 //       // Set label dropdown options
 //       this.labelOptions = [];
-//       labels.map(i => {
+//       lists.map(i => {
 //         const labelObj = {
 //           key: i.label,
 //           value: i.label,
@@ -292,10 +292,10 @@ export class SaveContactsContentComponent implements OnInit {
 
   getAndSetLabels() {
     // Get Labels
-    this.prospectingService.getLabels({ supplier_id: this.authService.userTokenValue.supplier_id });
+    this.prospectingService.getLists({ supplier_id: this.authService.userTokenValue.supplier_id });
 
-    // Subscribe to labels changes
-    this.prospectingService.labels
+    // Subscribe to lists changes
+    this.prospectingService.lists
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((labels) => {
         this.labelOptions.set(labels.map(i => ({
