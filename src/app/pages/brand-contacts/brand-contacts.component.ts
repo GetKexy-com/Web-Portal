@@ -47,7 +47,7 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
   totalContactsCount = 0;
   isWaitingFlag: boolean = true;
   isLoading: boolean = false;
-  selectedContacts = [];
+  selectedContacts: Contact[] = [];
   page = 1;
   limit = 100;
   totalPage;
@@ -613,14 +613,21 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
     Swal.showLoading();
 
     const contactIds = [];
-    this.selectedContacts.map(i => contactIds.push(i.id));
+    this.selectedContacts.map((contact: Contact) => contactIds.push({
+      id: contact.id,
+      email: contact.email,
+      firstName: contact.details.firstName,
+      lastName: contact.details.lastName,
+      name: contact.contactName,
+      title: contact.jobTitle,
+    }));
     const postData = {
-      supplier_id: this.supplierId,
+      companyId: this.supplierId,
       contacts: contactIds,
     };
     if (this.selectAllContacts) {
-      postData['selected_all_contacts'] = 'true';
-      postData['selected_all_contacts_payload'] = this.getContactsApiPostData();
+      postData['selectedAllContacts'] = true;
+      postData['selectedAllContactsPayload'] = this.getContactsApiPostData();
       postData['contacts'] = [];
     }
     try {

@@ -175,13 +175,13 @@ export class SearchApolloContactsComponent {
     this.selectedLaunchDripCampaignType = this.dripCampaignService.selectedLaunchDripCampaignType;
 
     const savedSearchesData = {
-      supplier_id: this.userData.supplier_id,
+      companyId: this.userData.supplier_id,
     };
     this.dripCampaignService.getSavedSearchList(savedSearchesData).then((res: any) => {
       res.forEach(search => {
         this.savedSearches.push({
           key: search["id"],
-          value: search["search_name"],
+          value: search["searchName"],
           ...search,
         });
       });
@@ -523,92 +523,89 @@ export class SearchApolloContactsComponent {
     const departmentKeys: string[] = this.getDepartmentKeys();
 
     const payload = {
-      search_from: constants.CAMPAIGN,
-      person_locations: locationList.length ? locationList : [this.selectedCountry],
-      person_titles: selectedJobList.length ? selectedJobList.map(i => i.key) : [],
-      q_organization_keyword_tags: companyKeys.length ? companyKeys : offPremiseQOrganizationKeywordTags.map(i => i.key),
-      organization_industry_tag_ids: selectedIndustryTags.length ? selectedIndustryTags.map(i => i.key) : this.organizationIndustryTagIds.map(i => i.key),
-      person_seniorities: selectedPersonSeniorities.length ? selectedPersonSeniorities.map(i => i.key) : this.personSeniorities.map(i => i.key),
-      currently_using_any_of_technology_uids: technologyKeys,
-      person_department_or_subdepartments: departmentKeys,
-      included_organization_keyword_fields: this.getIncludedOrganizationKeywordFields(),
+      searchFrom: constants.CAMPAIGN,
+      personLocations: locationList.length ? locationList : [this.selectedCountry],
+      personTitles: selectedJobList.length ? selectedJobList.map(i => i.key) : [],
+      qOrganizationKeywordTags: companyKeys.length ? companyKeys : offPremiseQOrganizationKeywordTags.map(i => i.key),
+      organizationIndustryTagIds: selectedIndustryTags.length ? selectedIndustryTags.map(i => i.key) : this.organizationIndustryTagIds.map(i => i.key),
+      personSeniorities: selectedPersonSeniorities.length ? selectedPersonSeniorities.map(i => i.key) : this.personSeniorities.map(i => i.key),
+      currentlyUsingAnyOfTechnologyUids: technologyKeys,
+      personDepartmentOrSubdepartments: departmentKeys,
+      includedOrganizationKeywordFields: this.getIncludedOrganizationKeywordFields(),
     };
 
-    if (this.selectedCompanyType === this.isKnown) payload["exist_fields"] = ["organization_id"];
-    if (this.selectedCompanyType === this.isUnknown) payload["not_exist_fields"] = ["organization_id"];
+    if (this.selectedCompanyType === this.isKnown) payload["existFields"] = ["organization_id"];
+    if (this.selectedCompanyType === this.isUnknown) payload["notExistFields"] = ["organization_id"];
     if (this.selectedCompanyType === this.isAnyOf) {
       let selectedCompanyIds = this.getCompanyIds();
-      if (selectedCompanyIds.length) payload["organization_ids"] = selectedCompanyIds;
+      if (selectedCompanyIds.length) payload["organizationIds"] = selectedCompanyIds;
 
       if (this.isSelectedNotAnyOfCompany) {
         let selectedCompanyIds = this.getNotOrganizationIds();
-        if (selectedCompanyIds.length) payload["not_organization_ids"] = selectedCompanyIds;
+        if (selectedCompanyIds.length) payload["notOrganizationIds"] = selectedCompanyIds;
       }
 
       if (this.isSelectedIncludePastCompany) {
         let selectedCompanyIds = this.getPastOrganizationIds();
-        if (selectedCompanyIds.length) payload["person_past_organization_ids"] = selectedCompanyIds;
+        if (selectedCompanyIds.length) payload["personPastOrganizationIds"] = selectedCompanyIds;
       }
 
       if (this.isSelectedDomainExists) {
-        payload["exist_fields"] = [constants.ORGANIZATION_DOMAIN];
+        payload["existFields"] = [constants.ORGANIZATION_DOMAIN];
       }
     }
 
     // Set payload properties based on selectedTargettedPeople
     if (this.selectedTargettedPeople === constants.OFF_PREMISE) {
-      payload.organization_industry_tag_ids = [];
-      payload.person_seniorities = [];
+      payload.organizationIndustryTagIds = [];
+      payload.personSeniorities = [];
     }
     if (this.selectedTargettedPeople === constants.ON_PREMISE_FOH || this.selectedTargettedPeople === constants.ON_PREMISE_BOH) {
-      payload.person_seniorities = [];
-      payload.q_organization_keyword_tags = [];
+      payload.personSeniorities = [];
+      payload.qOrganizationKeywordTags = [];
     }
     if (this.selectedTargettedPeople === constants.DTC) {
-      payload.person_titles = [];
-      payload.q_organization_keyword_tags = [];
+      payload.personTitles = [];
+      payload.qOrganizationKeywordTags = [];
     }
 
     // If user is NOT F&B then do not send any keyword tags.
     // and we only use what user selected for industry and person_seniorities
     if (!this.isIndustryFoodAndBeverage) {
-      payload.q_organization_keyword_tags = companyKeys.length ? companyKeys : [];
-      payload.organization_industry_tag_ids = selectedIndustryTags.map(i => i.key);
-      payload.person_seniorities = selectedPersonSeniorities.map(i => i.key);
+      payload.qOrganizationKeywordTags = companyKeys.length ? companyKeys : [];
+      payload.organizationIndustryTagIds = selectedIndustryTags.map(i => i.key);
+      payload.personSeniorities = selectedPersonSeniorities.map(i => i.key);
     }
 
     if (noOfEmployeeList.length) {
-      payload["organization_num_employees_ranges"] = noOfEmployeeList.map(i => i.key);
+      payload["organizationNumEmployeesRanges"] = noOfEmployeeList.map(i => i.key);
     }
     if (fundingList.length) {
-      payload["organization_latest_funding_stage_cd"] = fundingList.map(i => parseInt(i.key));
+      payload["organizationLatestFundingStageCd"] = fundingList.map(i => parseInt(i.key));
     }
     if (revenueList.length) {
-      payload["organization_trading_status"] = revenueList.map(i => i.key);
+      payload["organizationTradingStatus"] = revenueList.map(i => i.key);
     }
 
     if (this.minRevenueSelected && this.maxRevenueSelected) {
-      payload["revenue_range"] = {
+      payload["revenueRange"] = {
         "min": this.minRevenueSelected.key,
         "max": this.maxRevenueSelected.key,
       };
     } else {
       if (this.minRevenueSelected) {
-        payload["revenue_range"] = { "min": this.minRevenueSelected.key };
+        payload["revenueRange"] = { "min": this.minRevenueSelected.key };
       }
       if (this.maxRevenueSelected) {
-        payload["revenue_range"] = { "max": this.maxRevenueSelected.key };
+        payload["revenueRange"] = { "max": this.maxRevenueSelected.key };
       }
     }
 
     // Set additional search info
-    const additionalSearchInfo = {
-      selectedCountry: this.selectedCountry,
-      selectedRestaurantSearchType: this.selectedRestaurantSearchType,
-    };
-    if (payload["organization_ids"]?.length) additionalSearchInfo["companies"] = this.companies.filter(item => item["isSelected"]);
-    if (payload["not_organization_ids"]?.length) additionalSearchInfo["excludedCompanies"] = this.excludedCompanies.filter(item => item["isSelected"]);
-    if (payload["person_past_organization_ids"]?.length) additionalSearchInfo["pastCompanies"] = this.pastCompanies.filter(item => item["isSelected"]);
+    const additionalSearchInfo = {};
+    if (payload["organizationIds"]?.length) additionalSearchInfo["companies"] = this.companies.filter(item => item["isSelected"]);
+    if (payload["notOrganizationIds"]?.length) additionalSearchInfo["excludedCompanies"] = this.excludedCompanies.filter(item => item["isSelected"]);
+    if (payload["personPastOrganizationIds"]?.length) additionalSearchInfo["pastCompanies"] = this.pastCompanies.filter(item => item["isSelected"]);
     if (this.isIndustryFoodAndBeverage) additionalSearchInfo["selectedTargettedPeople"] = this.selectedTargettedPeople;
 
     this.campaignService.setSearchFilters(payload, additionalSearchInfo);
@@ -753,8 +750,8 @@ export class SearchApolloContactsComponent {
     // We have to clear previous search data to use the new selected data
     this.resetSearchFilter();
     this.selectedSavedSearches = selectedValue;
-    selectedValue["parsed_search_details"] = JSON.parse(selectedValue.search_details);
-    this.selectedRestaurantSearchType = selectedValue.search_area_type;
+    selectedValue["parsed_search_details"] = JSON.parse(selectedValue.searchDetails);
+    this.selectedRestaurantSearchType = selectedValue.searchAreaType;
 
     // this.selectedCountry = selectedValue.country;
     const countryIndex = this.countries.findIndex((c) => c["value"] === selectedValue.country);
@@ -1214,11 +1211,11 @@ export class SearchApolloContactsComponent {
       searchData["selectedTargettedPeople"] = this.selectedTargettedPeople;
     }
     const payload = {
-      supplier_id: this.userData.supplier_id,
-      search_name: this.saveSearchName,
+      companyId: this.userData.supplier_id,
+      searchName: this.saveSearchName,
       country: this.selectedCountry,
-      search_area_type: this.selectedRestaurantSearchType,
-      search_details: JSON.stringify(searchData),
+      searchAreaType: this.selectedRestaurantSearchType,
+      searchDetails: JSON.stringify(searchData),
     };
     await this.dripCampaignService.saveSearch(payload);
     this.saveSearchModalReference.close();

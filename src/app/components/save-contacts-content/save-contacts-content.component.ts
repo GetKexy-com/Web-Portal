@@ -290,19 +290,25 @@ export class SaveContactsContentComponent implements OnInit {
     this.chargedCredits.set(credits);
   }
 
-  getAndSetLabels() {
+  async getAndSetLabels() {
     // Get Labels
-    this.prospectingService.getLists({ supplier_id: this.authService.userTokenValue.supplier_id });
+    const getLabelApiPostData = {
+      companyId: this.authService.userTokenValue.supplier_id,
+      page: 1,
+      limit: 1000,
+    };
+    await this.prospectingService.getLabelsOnly(getLabelApiPostData);
 
     // Subscribe to lists changes
-    this.prospectingService.lists
+    this.prospectingService.labelsOnly
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((labels) => {
+        console.log(labels);
         this.labelOptions.set(labels.map(i => ({
           key: i.label,
           value: i.label,
-          itemBgColor: i.bg_color,
-          itemTextColor: i.text_color,
+          itemBgColor: i.bgColor,
+          itemTextColor: i.textColor,
           id: i.id,
           isSelected: false
         })));
@@ -388,11 +394,11 @@ export class SaveContactsContentComponent implements OnInit {
     this.submitted.set(true);
 
     // Label validation
-    const labelIds = this.labelOptions()
+    const listIds = this.labelOptions()
       .filter(label => label.isSelected)
       .map(label => label.id.toString());
 
-    if (!labelIds.length) {
+    if (!listIds.length) {
       this.isLabelSelected.set(false);
       return;
     }
@@ -409,9 +415,9 @@ export class SaveContactsContentComponent implements OnInit {
     this.isLoading.set(true);
     const contactIds = this.selectedContacts.map(contact => ({ id: contact.id }));
     const postData = {
-      supplier_id: this.authService.userTokenValue.supplier_id,
+      companyId: this.authService.userTokenValue.supplier_id,
       contacts: contactIds,
-      label_ids: labelIds
+      listIds: listIds
     };
 
     try {

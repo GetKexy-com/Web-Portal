@@ -331,7 +331,7 @@ export class ProspectingService {
     const payload = this.campaignService.getSearchFilters();
 
     payload['page'] = page;
-    payload['search_from'] = constants.CAMPAIGN;
+    payload['searchFrom'] = constants.CAMPAIGN;
 
     // Check if data is present in cache
     if (this.cachedSaledLeadSearchContacts.length) {
@@ -341,17 +341,17 @@ export class ProspectingService {
       }
     }
 
-    const response = await this.httpService.post('supplier/getCreateDealSearchContacts', payload).toPromise();
+    const response = await this.httpService.post('contacts/apollo-searches', payload).toPromise();
     if (response.success) {
-      if (response.data.contacts.people.length) {
-        await this.setSalesLeadSearchContacts(response.data.contacts.people, resetOldData);
+      if (response.data.contacts.length) {
+        await this.setSalesLeadSearchContacts(response.data.contacts, resetOldData);
         // Set data for cache
         const obj = {
           ...payload,
           data: this.salesLeadSearchContacts,
         };
         this.cachedSaledLeadSearchContacts.push(obj);
-        this.totalSearchedContactCount = response.data.total_contacts;
+        this.totalSearchedContactCount = response.data.totalContacts;
         return this.getSalesLeadSearchContacts();
       }
     }
@@ -690,14 +690,12 @@ export class ProspectingService {
             reject(res.error);
           }
         } else {
-          resolve(true);
-          let data = new List(res.data);
-
           const key = `${page ? page : this.manageListCurrentPage}${limit ? limit : this.manageListLimit}`;
-          this.cachedLabelsOnly[key] = { data: data.lists };
+          this.cachedLabelsOnly[key] = { data: res.data.lists };
 
-          this.totalListCount = data.total;
-          this._labelsOnly.next(data.lists);
+          this.totalListCount = res.data.total;
+          this._labelsOnly.next(res.data.lists);
+          resolve(true);
         }
       });
     });
@@ -705,7 +703,7 @@ export class ProspectingService {
 
   deleteContacts = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post('contacts/delete', postData).subscribe((res) => {
+      this.httpService.delete('contacts', postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -746,7 +744,7 @@ export class ProspectingService {
 
   saveContactsFromApollo = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post('contacts/saveContactsFromApollo', postData).subscribe((res) => {
+      this.httpService.post('contacts/apollo-save-contacts', postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);

@@ -129,11 +129,11 @@ export class CampaignService {
   public getSearchFilters = () => {
     const supplierId = localStorage.getItem('supplierId');
     if (this.searchFilters) {
-      this.searchFilters['supplier_id'] = supplierId;
+      this.searchFilters['companyId'] = supplierId;
       return this.searchFilters;
     } else {
       const payload = localStorage.getItem(constants.SALES_LEAD_SEARCH_PAYLOAD);
-      payload['supplier_id'] = supplierId;
+      payload['companyId'] = supplierId;
       return payload;
     }
   };

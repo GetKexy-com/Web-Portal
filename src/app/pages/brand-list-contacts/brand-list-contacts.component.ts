@@ -90,7 +90,6 @@ export class BrandListContactsComponent implements OnInit, OnDestroy {
         if (index > -1) {
           this.listObj = labels[index];
           this.listObj['user'] = this.userData;
-          console.log(this.listObj);
         }
       }
     });
