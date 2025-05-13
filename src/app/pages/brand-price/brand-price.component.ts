@@ -461,12 +461,12 @@ export class BrandPriceComponent implements OnInit {
 
       const postData = {
         type: this.selectedSubscriptionCardData.subscriptionType,
-        supplier_id: this.userData.supplier_id,
-        reccuring: this.isMonthlySelected ? constants.MONTH : constants.YEAR,
-        payment_for: constants.SUBSCRIPTION,
-        success_url: environment.siteUrl + routeConstants.BASE_URL + routeConstants.BRAND.SUBSCRIPTION,
-        cancel_url: environment.siteUrl + routeConstants.BASE_URL + routeConstants.BRAND.SUBSCRIPTION,
-        promotion_code: this.couponCode,
+        companyId: this.userData.supplier_id,
+        recuring: this.isMonthlySelected ? constants.MONTH : constants.YEAR,
+        paymentFor: constants.SUBSCRIPTION,
+        successUrl: environment.siteUrl + routeConstants.BASE_URL + routeConstants.BRAND.SUBSCRIPTION,
+        cancelUrl: environment.siteUrl + routeConstants.BASE_URL + routeConstants.BRAND.SUBSCRIPTION,
+        promotionCode: this.couponCode,
         seats: this.usersCount,
       };
       await this.makePaymentForSubscriptionApi(postData);
@@ -520,11 +520,11 @@ export class BrandPriceComponent implements OnInit {
       let message = "==================\n";
       message += `Supplier Subscription Change\n`;
       message += `Supplier Company Name - ${this.userData.supplier_name}\n`;
-      message += `Name of the person - ${this.userData.first_name} ${this.userData.last_name}\n`;
+      message += `Name of the person - ${this.userData.firstName} ${this.userData.lastName}\n`;
       message += `Email Address of the person - ${this.userData.email}\n`;
       message += `Previous Subscription - ${slackNotification.previous_product_type.replaceAll("BRAND_", "")}\n`;
       message += `Current Subscription - ${slackNotification.product_type.replaceAll("BRAND_", "")}\n`;
-      message += `Previous Number of User - ${this.subscription.total_seats}\n`;
+      message += `Previous Number of User - ${this.subscription.totalSeats}\n`;
       message += `Current Number of User - ${slackNotification.number_of_user}\n`;
       await this.httpService.post("supplier/postSubscriptionChangeNotificationToSlack", { message }).toPromise();
     }
@@ -561,7 +561,7 @@ export class BrandPriceComponent implements OnInit {
       // If user applied coupon when purchasing then we need to adjust the price
       if (this.currentSubscriptionPlan.name === constants.AMATEUR) {
         this.amateurSubscriptionData.price = price;
-        this.amateurSubscriptionData["original_price"] = this.latestSubscriptionPayments.subscription_product.price;
+        this.amateurSubscriptionData["original_price"] = this.latestSubscriptionPayments.subscriptionProduct.price;
 
         if(!this.isMonthlySelected) {
           this.reduceTwentyPercentPrice(this.amateurSubscriptionData);
@@ -598,7 +598,7 @@ export class BrandPriceComponent implements OnInit {
       // If user applied coupon when purchasing then we need to adjust the price
       if (this.currentSubscriptionPlan.name === constants.PRO) {
         this.proSubscriptionData.price = price;
-        this.proSubscriptionData["original_price"] = this.latestSubscriptionPayments.subscription_product.price;
+        this.proSubscriptionData["original_price"] = this.latestSubscriptionPayments.subscriptionProduct.price;
 
         if(!this.isMonthlySelected) {
           this.reduceTwentyPercentPrice(this.proSubscriptionData);
@@ -640,9 +640,9 @@ export class BrandPriceComponent implements OnInit {
     }
 
     if (
-      this.usersCount !== this.subscription.total_seats ||
-      (this.subscription.product_name === constants.SUBSCRIPTION_MONTH && !this.isMonthlySelected) ||
-      (this.subscription.product_name === constants.SUBSCRIPTION_YEAR && this.isMonthlySelected) ||
+      this.usersCount !== this.subscription.totalSeats ||
+      (this.subscription.productName === constants.SUBSCRIPTION_MONTH && !this.isMonthlySelected) ||
+      (this.subscription.productName === constants.SUBSCRIPTION_YEAR && this.isMonthlySelected) ||
       this.currentSubscriptionPlan.name !== this.selectedSubscriptionCardData.title
     ) {
       return true;
