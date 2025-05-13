@@ -236,12 +236,12 @@
                 </strong>
                 <br>
                 <span style="font-size: 14px">
-                  {{ selectedConversation.receiverDetails.jobTitle }} at
+                  {{ selectedConversation.receiverDetails.title }} at
                   <a
-                    [href]="selectedConversation.receiverDetails.companyWebsite"
+                    [href]="selectedConversation.receiverDetails.organization.name"
                     target="_blank"
                     class="company-name">
-                    {{ selectedConversation.receiverDetails.companyName }}
+                    {{ selectedConversation.receiverDetails.organization.name }}
                   </a>
                 </span>
               </span>

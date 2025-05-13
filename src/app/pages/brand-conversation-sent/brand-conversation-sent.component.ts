@@ -198,12 +198,12 @@ export class BrandConversationSentComponent {
     this.sendBtnClicked = true;
     if (!this.updatedEmailContent) return;
     const data = {
-      prospecting_conversation_id: this.selectedConversation.id,
-      sender_email: this.userData.email,
-      receiver_email: this.selectedConversation.receiver_email,
-      email_subject: this.selectedConversation.email_subject,
-      receiver_details: this.selectedConversation.receiver_details,
-      message_content: this.updatedEmailContent,
+      prospectingConversationId: this.selectedConversation.id,
+      senderEmail: this.userData.email,
+      receiverEmail: this.selectedConversation.receiverEmail,
+      emailSubject: this.selectedConversation.emailSubject,
+      receiverDetails: this.selectedConversation.receiverDetails,
+      messageContent: this.updatedEmailContent,
     };
     try {
       this.isLoading = true;

@@ -181,7 +181,10 @@ export class ProspectingService {
 
   addMessageToConversation = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post('prospect/addMessageToConversation', postData).subscribe((res) => {
+      const url = `messages/conversations/${postData.prospectingConversationId}`;
+      delete postData.prospectingConversationId;
+
+      this.httpService.post(url, postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
