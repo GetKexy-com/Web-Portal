@@ -38,9 +38,9 @@ import {CommonModule} from '@angular/common';
   styleUrl: './brand-conversation-sent.component.scss'
 })
 export class BrandConversationSentComponent {
-  conversations: ProspectContact[];
-  filteredConversations: ProspectContact[] = [];
-  selectedConversation: ProspectContact;
+  conversations = [];
+  filteredConversations = [];
+  selectedConversation;
   userData;
   isLoading: boolean = false;
   isPaginationLoading: boolean = false;
@@ -143,12 +143,11 @@ export class BrandConversationSentComponent {
   totalPage;
   getAllConversation = async (overWrite = false) => {
     const data = {
-      supplier_id: this.userData.supplier_id,
+      companyId: this.userData.supplier_id,
       page: this.page,
       limit: this.paginationLimit,
-      get_total_count: "false",
-      pin: this.pinedConversation ? "true" : "false",
-      sent: "true",
+      pin: this.pinedConversation,
+      sent: true,
     };
 
     try {
@@ -225,9 +224,13 @@ export class BrandConversationSentComponent {
 
   forwardToCampaignUserApiLoadig = false;
   forwardToCampaignUser = async (conv) => {
+    console.log(conv);
+    console.log(this.selectedConversation);
     const data = {
-      prospecting_conversation_id: conv.prospecting_conversation_id,
-      prospecting_conversation_message_id: conv.id,
+      conversationId: this.selectedConversation.id,
+      conversationMessageId: conv.id,
+      receiverEmail: this.selectedConversation.receiverEmail,
+      messageContent: conv.messageContent
     };
     console.log("data", data);
     try {
@@ -262,17 +265,17 @@ export class BrandConversationSentComponent {
     } else {
       this.selectedConversation = conv;
     }
+    console.log(this.selectedConversation);
 
     // Reversing conversations
     // this.selectedConversation["prospecting_conversations_messages"] =
     //   this.selectedConversation["prospecting_conversations_messages"].sort((a, b) => {
     //     return new Date(b["message_sent_at"]).getTime() - new Date(a["message_sent_at"]).getTime();
     //   });
-    console.log(conv);
-    this.getProspectInfoApi({ contact_id: conv.receiver_details.id });
+    // this.getProspectInfoApi({ contact_id: conv.receiverDetails.id });
 
     // Update "unread" messages to read.
-    await this.httpService.post("prospect/updateConversation", {
+    await this.httpService.patch(`messages/${this.selectedConversation.id}`, {
       conversation_id: this.selectedConversation.id,
     }).toPromise();
 

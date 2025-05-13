@@ -1,23 +1,23 @@
-import { AfterViewChecked, Component, ElementRef, OnDestroy, OnInit, ViewChild } from "@angular/core";
-import { AuthService } from "src/app/services/auth.service";
-import { ActivatedRoute, Router } from "@angular/router";
-import { routeConstants } from "src/app/helpers/routeConstants";
-import { PageUiService } from "src/app/services/page-ui.service";
-import { ProspectingService } from "src/app/services/prospecting.service";
-import { lastValueFrom, Subscription } from "rxjs";
-import { ProspectContact } from "src/app/models/ProspectContact";
-import { NgbModal } from "@ng-bootstrap/ng-bootstrap";
-import Swal from "sweetalert2";
-import { HttpService } from "src/app/services/http.service";
-import { PhoneNumberFormatter } from "src/app/helpers/phoneNumberValidator";
-import {BrandLayoutComponent} from '../../layouts/brand-layout/brand-layout.component';
-import {FormsModule} from '@angular/forms';
-import {KexyButtonComponent} from '../../components/kexy-button/kexy-button.component';
-import {BrandConvoAvatarComponent} from '../../components/brand-convo-avatar/brand-convo-avatar.component';
-import {KexyRichEditorComponent} from '../../components/kexy-rich-editor/kexy-rich-editor.component';
-import {BrandConvoCardComponent} from '../../components/brand-convo-card/brand-convo-card.component';
-import {BrandConvoEmailComponent} from '../../components/brand-convo-email/brand-convo-email.component';
-import {CommonModule} from '@angular/common';
+import { AfterViewChecked, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AuthService } from 'src/app/services/auth.service';
+import { ActivatedRoute, Router } from '@angular/router';
+import { routeConstants } from 'src/app/helpers/routeConstants';
+import { PageUiService } from 'src/app/services/page-ui.service';
+import { ProspectingService } from 'src/app/services/prospecting.service';
+import { lastValueFrom, Subscription } from 'rxjs';
+import { ProspectContact } from 'src/app/models/ProspectContact';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import Swal from 'sweetalert2';
+import { HttpService } from 'src/app/services/http.service';
+import { PhoneNumberFormatter } from 'src/app/helpers/phoneNumberValidator';
+import { BrandLayoutComponent } from '../../layouts/brand-layout/brand-layout.component';
+import { FormsModule } from '@angular/forms';
+import { KexyButtonComponent } from '../../components/kexy-button/kexy-button.component';
+import { BrandConvoAvatarComponent } from '../../components/brand-convo-avatar/brand-convo-avatar.component';
+import { KexyRichEditorComponent } from '../../components/kexy-rich-editor/kexy-rich-editor.component';
+import { BrandConvoCardComponent } from '../../components/brand-convo-card/brand-convo-card.component';
+import { BrandConvoEmailComponent } from '../../components/brand-convo-email/brand-convo-email.component';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-brand-conversations',
@@ -29,10 +29,10 @@ import {CommonModule} from '@angular/common';
     KexyRichEditorComponent,
     BrandConvoCardComponent,
     BrandConvoEmailComponent,
-    CommonModule
+    CommonModule,
   ],
   templateUrl: './brand-conversations.component.html',
-  styleUrl: './brand-conversations.component.scss'
+  styleUrl: './brand-conversations.component.scss',
 })
 export class BrandConversationsComponent {
   conversations: ProspectContact[];
@@ -62,12 +62,12 @@ export class BrandConversationsComponent {
   }
 
   async ngOnInit() {
-    document.title = "Inbox Messages - KEXY Brand Portal";
+    document.title = 'Inbox Messages - KEXY Brand Portal';
     this.userData = this._authService.userTokenValue;
 
     this.route.queryParams.subscribe((params) => {
-      if (params["page"]) {
-        this.page = parseInt(params["page"]);
+      if (params['page']) {
+        this.page = parseInt(params['page']);
       }
       if (this.prospectingService.totalConversationCount) this.totalConversationCount = this.prospectingService.totalConversationCount;
     });
@@ -120,12 +120,11 @@ export class BrandConversationsComponent {
   totalPage;
   getAllConversation = async (overWrite = false) => {
     const data = {
-      supplier_id: this.userData.supplier_id,
+      companyId: this.userData.supplier_id,
       page: this.page,
       limit: this.paginationLimit,
-      get_total_count: "false",
-      pin: this.pinedConversation ? "true" : "false",
-      inbox: "true",
+      pin: this.pinedConversation,
+      inbox: true,
     };
 
     try {
@@ -160,13 +159,13 @@ export class BrandConversationsComponent {
   };
 
   sendNextEmailTapped = async (modalContent) => {
-    this.modal.open(modalContent, { size: "lg" });
+    this.modal.open(modalContent, { size: 'lg' });
   };
 
-  emailContent = "";
+  emailContent = '';
   sendBtnClicked = false;
 
-  updatedEmailContent = "";
+  updatedEmailContent = '';
   onEmailContentChange = (editor) => {
     this.updatedEmailContent = editor.getData();
   };
@@ -187,13 +186,13 @@ export class BrandConversationsComponent {
       this.isLoading = true;
       await this.prospectingService.addMessageToConversation(data);
       await this.getAllConversation(true);
-      this.emailContent = "";
+      this.emailContent = '';
       this.modal.dismissAll();
       // this.scrollToBottom();
     } catch (e) {
       // Handle error here
       const message = e.message;
-      await Swal.fire("Error", message);
+      await Swal.fire('Error', message);
     } finally {
       this.isLoading = false;
       this.sendBtnClicked = false;
@@ -214,7 +213,7 @@ export class BrandConversationsComponent {
           companyName: conv.receiver_details.organization?.name,
           companyWebsite: conv.receiver_details.organization?.website_url,
           companyPhone: conv.receiver_details.organization?.phone,
-          companyInfo: "",
+          companyInfo: '',
         },
       };
     } else {
@@ -222,16 +221,16 @@ export class BrandConversationsComponent {
     }
 
     // Reversing conversations
-    this.selectedConversation["prospecting_conversations_messages"] =
-      this.selectedConversation["prospecting_conversations_messages"].sort((a, b) => {
-        return new Date(b["message_sent_at"]).getTime() - new Date(a["message_sent_at"]).getTime();
+    this.selectedConversation['prospecting_conversations_messages'] =
+      this.selectedConversation['prospecting_conversations_messages'].sort((a, b) => {
+        return new Date(b['message_sent_at']).getTime() - new Date(a['message_sent_at']).getTime();
       });
 
     console.log(conv);
     this.getProspectInfoApi({ contact_id: conv.receiver_details.id });
 
     // Update "unread" messages to read.
-    await this.httpService.post("prospect/updateConversation", {
+    await this.httpService.post('prospect/updateConversation', {
       conversation_id: this.selectedConversation.id,
     }).toPromise();
 
@@ -245,7 +244,7 @@ export class BrandConversationsComponent {
   };
 
   getProspectInfoApi = (postData) => {
-    const getProspectResponse = this.httpService.post("drip-campaigns/getProspectInfo", postData);
+    const getProspectResponse = this.httpService.post('drip-campaigns/getProspectInfo', postData);
     lastValueFrom(getProspectResponse).then(value => {
       if (value.data?.unsubscribe) this.unsubscribed = true;
     });
@@ -259,14 +258,14 @@ export class BrandConversationsComponent {
   //   });
   // };
 
-  convSearchText = "";
+  convSearchText = '';
   filterConversation = () => {
     const postData = {
       search_string: this.convSearchText,
       supplier_id: this.userData.supplier_id,
     };
     this.searchLoading = true;
-    const response = this.httpService.post("prospect/searchConversations", postData);
+    const response = this.httpService.post('prospect/searchConversations', postData);
     lastValueFrom(response).then(res => {
       if (res.success) {
         this.filteredConversations = res.data;
@@ -276,7 +275,7 @@ export class BrandConversationsComponent {
   };
 
   handleConvSearchInputChange = (ev) => {
-    if (ev.target.value === "") this.filteredConversations = this.conversations;
+    if (ev.target.value === '') this.filteredConversations = this.conversations;
   };
 
   startAConversationBtnClick = () => {
@@ -285,13 +284,13 @@ export class BrandConversationsComponent {
 
   unsubscribeBtnClick = async () => {
     let isConfirm = await Swal.fire({
-      title: "Are you sure?",
-      text: "You won't be able to revert this!",
-      icon: "warning",
+      title: 'Are you sure?',
+      text: 'You won\'t be able to revert this!',
+      icon: 'warning',
       showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Yes",
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes',
     });
 
     if (isConfirm.dismiss) {
@@ -303,7 +302,7 @@ export class BrandConversationsComponent {
       email: this.selectedConversation.receiver_email,
     };
 
-    const unsubscripbeApiResponse = this.httpService.post("email/unsubscribeFromDripCampaignViaBrandUser", postData);
+    const unsubscripbeApiResponse = this.httpService.post('email/unsubscribeFromDripCampaignViaBrandUser', postData);
     lastValueFrom(unsubscripbeApiResponse).then(value => {
       console.log(value);
       if (value.success) {
@@ -347,15 +346,15 @@ export class BrandConversationsComponent {
 
   deleteConversations = async () => {
     let isConfirm = await Swal.fire({
-      title: "Are you sure?",
-      text: "You won't be able to revert this!",
-      icon: "warning",
+      title: 'Are you sure?',
+      text: 'You won\'t be able to revert this!',
+      icon: 'warning',
       showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
       allowOutsideClick: false,
       allowEscapeKey: false,
-      confirmButtonText: "Yes, delete it!",
+      confirmButtonText: 'Yes, delete it!',
       showLoaderOnConfirm: true,
     });
 
@@ -365,8 +364,8 @@ export class BrandConversationsComponent {
 
 
     Swal.fire({
-      title: "",
-      text: "Please wait...",
+      title: '',
+      text: 'Please wait...',
       showConfirmButton: false,
       showCancelButton: false,
       allowOutsideClick: false,
@@ -375,7 +374,7 @@ export class BrandConversationsComponent {
     Swal.showLoading();
 
     const contactIds = [];
-    this.selectedContacts.map(i => contactIds.push(i["id"]));
+    this.selectedContacts.map(i => contactIds.push(i['id']));
     const postData = {
       supplier_id: this.userData.supplier_id,
       conversation_ids: contactIds,
@@ -389,7 +388,7 @@ export class BrandConversationsComponent {
       Swal.close();
     } catch (e) {
       Swal.close();
-      await Swal.fire("Error", e.message);
+      await Swal.fire('Error', e.message);
     }
   };
 }

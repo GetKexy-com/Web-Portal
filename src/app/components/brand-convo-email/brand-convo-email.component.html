@@ -1,14 +1,14 @@
 <div class="msg-box" [class.left]="conversationPosition()">
   <div class="conv-message" [innerHTML]="message"></div>
   <div class="time">
-    {{ email.message_sent_at | date }}
+    {{ email.messageSentAt | date }}
     <span class="ps-2">
-      <i *ngIf="email.message_status === 'delivered'" class="fa fa-envelope-open-o" aria-hidden="true"></i>
-      <i *ngIf="email.message_status === 'opened'" class="fa fa-envelope-o" aria-hidden="true"></i>
+      <i *ngIf="email.messageStatus === 'delivered'" class="fa fa-envelope-open-o" aria-hidden="true"></i>
+      <i *ngIf="email.messageStatus === 'opened'" class="fa fa-envelope-o" aria-hidden="true"></i>
     </span>
 
     <span
-      *ngIf="!email.forward_to_user && conversationPosition()"
+      *ngIf="conversationPosition()"
       class="link-text ms-3"
       (click)="handleClickSentToUser()"
     >
