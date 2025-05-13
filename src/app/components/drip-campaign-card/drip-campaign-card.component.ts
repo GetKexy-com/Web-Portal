@@ -137,10 +137,6 @@ export class DripCampaignCardComponent implements OnInit {
     return this.deleteLoading;
   };
 
-  // handleShowDripCampaignContacts = () => {
-  //   this.showDripCampaignContacts();
-  // }
-
   protected readonly constants = constants;
 
 }

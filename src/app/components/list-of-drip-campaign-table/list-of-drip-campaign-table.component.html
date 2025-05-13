@@ -83,21 +83,21 @@
 
         <!-- body - start -->
         <ng-container *ngIf="!isWaitingFlag && cardData.length > 0">
-          <tr class="n-product" [class.selected]="row.is_selected" *ngFor="let row of cardData; let i = index">
+          <tr class="n-product" [class.selected]="row.isSelected" *ngFor="let row of cardData; let i = index">
             <ng-container *ngFor="let column of columnList">
               <td
                 class="n-cell"
                 [style.width]="column.width ? column.width+'px' : ''"
               >
-                <span *ngIf="column.key === 'date_created'">{{ row.created_at | date : "medium" }}</span>
+                <span *ngIf="column.key === 'date_created'">{{ row.createdAt | date : "medium" }}</span>
 
                 <span *ngIf="column.key == 'drip_campaign_title'" class="text-link"
-                      (click)="redirectToEditPage(row)">{{ getCampaignTitle(row.drip_campaign_detail.drip_campaign_title_id) }}</span>
+                      (click)="redirectToEditPage(row)">{{ row.details.title.title }}</span>
 
                 <span *ngIf="column.key == 'number_of_emails'"
-                      class="w-100 d-inline-block text-center">{{ row.drip_campaign_detail.number_of_emails }}</span>
+                      class="w-100 d-inline-block text-center">{{ row.details.numberOfEmails }}</span>
 
-                <span *ngIf="column.key == 'email_tone'">{{ row.drip_campaign_detail.email_tone }}</span>
+                <span *ngIf="column.key == 'email_tone'">{{ row.details.emailTone }}</span>
 
                 <span *ngIf="column.key == 'status'" class="text-capitalize">
                   <ng-container *ngIf="row.status === constants.INACTIVE">Draft</ng-container>
@@ -106,9 +106,9 @@
 
                 <span *ngIf="column.key === 'label'">
                   <span
-                    *ngIf="getList(row.drip_campaign_kexy_labels)"
-                    [style.background-color]="list.bg_color"
-                    [style.color]="list.text_color"
+                    *ngIf="getList(row.lists)"
+                    [style.background-color]="list.bgColor"
+                    [style.color]="list.textColor"
                     class="label-tag"
                   >
                     {{ list.label }}
@@ -116,7 +116,7 @@
                   <span
                     *ngIf="enrolledLists.length > 1"
                     class="see-more-label-text"
-                    (click)="openShowAllLabelModal(row.drip_campaign_kexy_labels)"
+                    (click)="openShowAllLabelModal(row.lists)"
                   >
                     +{{ enrolledLists.length - 1 }} more
                   </span>

@@ -11,6 +11,7 @@ export class DripCampaign {
   emails: ICampaignEmail[];
   settings: ICampaignSetting[];
   lists: ICampaignList[];
+  isSelected?: boolean;
 
   constructor(rawData: IRawDripCampaign) {
     this.id = rawData.id;
