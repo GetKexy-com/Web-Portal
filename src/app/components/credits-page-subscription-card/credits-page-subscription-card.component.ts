@@ -178,12 +178,13 @@ export class CreditsPageSubscriptionCardComponent implements OnInit {
   userData = computed(() => this.authService.userTokenValue);
 
   async ngOnInit() {
-    this.discountPercent.set(
-      await this.subscriptionService.getSubscriptionDiscount(
-        this.subscription().id,
-        this.userData().supplier_id
-      )
-    );
+    console.log('subscription', this._subscription());
+    // this.discountPercent.set(
+    //   await this.subscriptionService.getSubscriptionDiscount(
+    //     this.subscription().id,
+    //     this.userData().supplier_id
+    //   )
+    // );
 
     this.getPricePerMonthForAUser();
 
@@ -204,26 +205,27 @@ export class CreditsPageSubscriptionCardComponent implements OnInit {
   }
 
   private updateProductDetails() {
-    const paymentsLength = this.subscription().subscription_payments.length - 1;
-    this.productDetails.set(this.subscription().subscription_payments[paymentsLength]);
+    // const paymentsLength = this.subscription().subscription_payments.length - 1;
+    this.productDetails.set(this.subscription().subscription_payments[0]);
+    console.log('productDetails', this.productDetails());
   }
 
   getPricePerMonthForAUser() {
-    if (this.productDetails().subscription_product.name === constants.NOVICE) {
+    if (this.productDetails().subscriptionProduct.name === constants.NOVICE) {
       this.pricePerUser.set('0');
       return;
     }
 
     if (
-      this.productDetails().subscription_product.type === constants.BRAND_299_MONTH_PER_USER ||
-      this.productDetails().subscription_product.type === constants.BRAND_PRESALE_LIFETIME
+      this.productDetails().subscriptionProduct.type === constants.BRAND_299_MONTH_PER_USER ||
+      this.productDetails().subscriptionProduct.type === constants.BRAND_PRESALE_LIFETIME
     ) {
       this.pricePerUser.set(this.productDetails().amount.toString());
       return;
     }
 
-    const stripeDetails = this.productDetails()['stripe_details']
-      ? JSON.parse(this.productDetails()['stripe_details'])
+    const stripeDetails = this.productDetails()['stripeDetails']
+      ? JSON.parse(this.productDetails()['stripeDetails'])
       : [];
 
     let price = stripeDetails[stripeDetails.length - 1]["unit_amount"];
@@ -233,7 +235,7 @@ export class CreditsPageSubscriptionCardComponent implements OnInit {
       price = price - discountedAmount;
     }
 
-    if (this.subscription().product_name === constants.SUBSCRIPTION_YEAR) {
+    if (this.subscription().productName === constants.SUBSCRIPTION_YEAR) {
       price = price / 12;
       if (!this.discountPercent()) {
         const discountedAmount = price * 0.2;

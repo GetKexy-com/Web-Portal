@@ -62,7 +62,7 @@
     </div>
     @if (!isLoading()) {
       <div class="right-side d-flex">
-        @if (productDetails().subscription_product.type !== constants.BRAND_NOVICE) {
+        @if (productDetails().subscriptionProduct.type !== constants.BRAND_NOVICE) {
           <app-kexy-button
             label="Update Payment Method"
             [iconLeft]="isLoading() ? 'fa-refresh fa-spin' : 'fa-credit-card'"
@@ -94,13 +94,13 @@
     <div class="content-area">
       <div class="left-side-content">
         <div class="img-wrap">
-          <img src="/assets/icon/double-star-blue-icon.svg" />
+          <img src="/assets/icon/double-star-blue-icon.svg" alt="subscription-icon"/>
         </div>
         <div class="text-content">
-          <p>{{productDetails().subscription_product.name}} plan</p>
+          <p>{{productDetails().subscriptionProduct.name}} plan</p>
           <p class="mb-0">
             {{pricePerUser() | currency}}
-            @if (recurringType() && (productDetails().subscription_product.type !== constants.BRAND_299_MONTH_PER_USER && productDetails().subscription_product.type !== constants.BRAND_PRESALE_LIFETIME)) {
+            @if (recurringType() && (productDetails().subscriptionProduct.type !== constants.BRAND_299_MONTH_PER_USER && productDetails().subscriptionProduct.type !== constants.BRAND_PRESALE_LIFETIME)) {
               <span>{{recurringType()}}</span>
             }
           </p>
@@ -109,12 +109,12 @@
       <div class="right-side-content">
         <div>
           <p>Number of users</p>
-          <p class="mb-0">{{subscription().total_seats}}</p>
+          <p class="mb-0">{{subscription().totalSeats}}</p>
         </div>
         @if (creditsInfo()) {
           <div>
             <p>Monthly credits</p>
-            <p class="mb-0">{{creditsInfo().allowed_credit_limit}}</p>
+            <p class="mb-0">{{creditsInfo().allowedCreditLimit}}</p>
           </div>
         }
       </div>
