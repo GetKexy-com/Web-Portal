@@ -223,16 +223,17 @@ export class BrandConversationSentComponent {
   };
 
   forwardToCampaignUserApiLoadig = false;
-  forwardToCampaignUser = async (conv) => {
-    console.log(conv);
-    console.log(this.selectedConversation);
+  forwardToCampaignUser = async (conv, emailAddress, messageContent) => {
+    console.log('conv', conv);
     const data = {
-      conversationId: this.selectedConversation.id,
-      conversationMessageId: conv.id,
-      receiverEmail: this.selectedConversation.receiverEmail,
-      messageContent: conv.messageContent
+      prospectingConversationId: conv.prospecting_conversation_id,
+      prospectingConversationMessageId: conv.id,
+      receiverEmail: emailAddress,
+      messageContent: messageContent,
     };
-    console.log("data", data);
+    console.log('payload', data);
+    return;
+
     try {
       this.forwardToCampaignUserApiLoadig = true;
       await this.dripCampaignService.forwardToCampaignUser(data);
