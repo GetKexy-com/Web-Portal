@@ -18,7 +18,7 @@ import {CommonModule} from '@angular/common';
   templateUrl: './add-or-delete-contact-label.component.html',
   styleUrl: './add-or-delete-contact-label.component.scss'
 })
-export class AddOrDeleteContactLabelComponent {
+export class AddOrDeleteContactLabelComponent implements OnInit, OnDestroy {
   primaryForm: FormGroup;
   userData;
   supplierId;
@@ -62,11 +62,11 @@ export class AddOrDeleteContactLabelComponent {
         this.selectedLabel?.value ? this.selectedLabel.value : "",
         Validators.compose([Validators.required, Validators.minLength(0)])
       ),
-      bg_color: new FormControl(
+      bgColor: new FormControl(
         this.selectedLabel?.itemBgColor ? this.selectedLabel.itemBgColor : "",
         Validators.compose([Validators.required, Validators.minLength(0)])
       ),
-      text_color: new FormControl(
+      textColor: new FormControl(
         this.selectedLabel?.itemTextColor ? this.selectedLabel.itemTextColor : "",
         Validators.compose([Validators.required, Validators.minLength(0)])
       ),
@@ -82,8 +82,8 @@ export class AddOrDeleteContactLabelComponent {
   selectedColor;
   handleColorSelect = (item) => {
     this.selectedColor = item;
-    this.primaryForm.patchValue({ bg_color: this.selectedColor.labelBgColor });
-    this.primaryForm.patchValue({ text_color: this.selectedColor.labelTextColor });
+    this.primaryForm.patchValue({ bgColor: this.selectedColor.labelBgColor });
+    this.primaryForm.patchValue({ textColor: this.selectedColor.labelTextColor });
   }
 
   handleSubmit = async () => {
@@ -96,27 +96,26 @@ export class AddOrDeleteContactLabelComponent {
 
     const formData = this.primaryForm.getRawValue();
     const payload = {
-      supplier_id: this.supplierId,
+      companyId: this.supplierId,
       label: formData.label,
-      bg_color: formData.bg_color,
-      text_color: formData.text_color
+      bgColor: formData.bgColor,
+      textColor: formData.textColor
     };
     try {
       // Api call here
       if (this.selectedLabel?.value) {
-        payload["label_id"] = this.selectedLabel.id;
+        payload["labelId"] = this.selectedLabel.id;
         await this.prospectingService.updateLabel(payload);
       } else {
-        await this.prospectingService.addLabel(payload);
+        await this.prospectingService.createNewList(payload);
       }
 
       const getLabelApiPostData = {
-        supplier_id: this.supplierId,
+        companyId: this.supplierId,
         page: this.prospectingService.manageListCurrentPage || 1,
         limit: this.prospectingService.manageListLimit || 100,
-        get_total_count: true
       }
-      await this.prospectingService.getLabels(getLabelApiPostData);
+      await this.prospectingService.getLists(getLabelApiPostData);
 
       this.activeCanvas.dismiss("Cross click");
       this.isLoading = false;
@@ -237,10 +236,10 @@ export class AddOrDeleteContactLabelComponent {
 //         Object.assign(payload, { label_id: this.selectedLabel.id });
 //         await this.prospectingService.updateLabel(payload);
 //       } else {
-//         await this.prospectingService.addLabel(payload);
+//         await this.prospectingService.createNewList(payload);
 //       }
 //
-//       await this.prospectingService.getLabels({
+//       await this.prospectingService.getLists({
 //         supplier_id: this.supplierId,
 //         page: this.prospectingService.manageListCurrentPage || 1,
 //         limit: this.prospectingService.manageListLimit || 100,

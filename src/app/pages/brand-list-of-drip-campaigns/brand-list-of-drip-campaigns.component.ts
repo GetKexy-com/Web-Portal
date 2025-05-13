@@ -57,7 +57,7 @@
 //
 //     await this.getAndSetDripCampaignTitleSubscription();
 //     await this.getListOfDripCampaigns();
-//     await this.getLabels();
+//     await this.getLists();
 //
 //     this.isWaitingFlag = false;
 //     this.initialLoads = false;
@@ -67,9 +67,9 @@
 //     if (this.dripCampaignTitlesSubscription) this.dripCampaignTitlesSubscription.unsubscribe();
 //   }
 //
-//   getLabels = async () => {
+//   getLists = async () => {
 //     // Get Label
-//     await this.prospectingService.getLabels({ supplier_id: this.userData.supplier_id });
+//     await this.prospectingService.getLists({ supplier_id: this.userData.supplier_id });
 //   };
 //
 //   getListOfDripCampaigns = async () => {
@@ -398,9 +398,10 @@ export class BrandListOfDripCampaignsComponent implements OnInit {
     this.initialLoads.set(false);
   }
 
-  // getLabels = async () => {
-  //   await this.prospectingService.getLabels({ supplier_id: this.userData().supplier_id });
-  // }
+  async getLabels() {
+    await this.prospectingService.getLists({ supplier_id: this.userData().supplier_id });
+  }
+
 
   getListOfDripCampaigns = async ()=> {
     const data = await this.dripCampaignService.getListOfDripCampaigns(

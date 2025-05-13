@@ -1,14 +1,14 @@
-import { Component, Input, Output, EventEmitter, OnInit, OnDestroy } from "@angular/core";
-import {CommonModule, Location} from "@angular/common";
-import { AuthService } from "../../services/auth.service";
-import Papa from "papaparse";
-import { AddOrDeleteContactLabelComponent } from "../add-or-delete-contact-label/add-or-delete-contact-label.component";
-import { NgbOffcanvas } from "@ng-bootstrap/ng-bootstrap";
-import { ProspectingService } from "../../services/prospecting.service";
-import { Subscription } from "rxjs";
-import {FileDropComponent} from '../file-drop/file-drop.component';
-import {KexyButtonComponent} from '../kexy-button/kexy-button.component';
-import {KexySelectDropdownComponent} from '../kexy-select-dropdown/kexy-select-dropdown.component';
+import { Component, Input, Output, EventEmitter, OnInit, OnDestroy } from '@angular/core';
+import { CommonModule, Location } from '@angular/common';
+import { AuthService } from '../../services/auth.service';
+import Papa from 'papaparse';
+import { AddOrDeleteContactLabelComponent } from '../add-or-delete-contact-label/add-or-delete-contact-label.component';
+import { NgbOffcanvas } from '@ng-bootstrap/ng-bootstrap';
+import { ProspectingService } from '../../services/prospecting.service';
+import { Subscription } from 'rxjs';
+import { FileDropComponent } from '../file-drop/file-drop.component';
+import { KexyButtonComponent } from '../kexy-button/kexy-button.component';
+import { KexySelectDropdownComponent } from '../kexy-select-dropdown/kexy-select-dropdown.component';
 
 @Component({
   selector: 'upload-file-modal-content',
@@ -19,9 +19,9 @@ import {KexySelectDropdownComponent} from '../kexy-select-dropdown/kexy-select-d
     CommonModule,
   ],
   templateUrl: './upload-file-modal-content.component.html',
-  styleUrl: './upload-file-modal-content.component.scss'
+  styleUrl: './upload-file-modal-content.component.scss',
 })
-export class UploadFileModalContentComponent {
+export class UploadFileModalContentComponent implements OnInit, OnDestroy {
   @Input() closeModal;
   @Input() sampleCsvUrl;
   @Input() isLoading = false;
@@ -37,7 +37,6 @@ export class UploadFileModalContentComponent {
   labelsSubscription: Subscription;
 
   constructor(
-    private location: Location,
     private _authService: AuthService,
     private prospectingService: ProspectingService,
     private ngbOffcanvas: NgbOffcanvas,
@@ -55,14 +54,14 @@ export class UploadFileModalContentComponent {
   }
 
   setLabelsSubscription = () => {
-    this.labelsSubscription = this.prospectingService.labels.subscribe((labels) => {
+    this.labelsSubscription = this.prospectingService.lists.subscribe((labels) => {
       this.labelOptions = [];
       labels.forEach(i => {
         const labelObj = {
           key: i.label,
           value: i.label,
-          itemBgColor: i.bg_color,
-          itemTextColor: i.text_color,
+          itemBgColor: i.bgColor,
+          itemTextColor: i.textColor,
           id: i.id,
         };
         this.labelOptions.push(labelObj);
@@ -77,7 +76,7 @@ export class UploadFileModalContentComponent {
   fileInfo;
   getSelectedFile = (file, fileInfo) => {
     this.fileInfo = fileInfo;
-    const base64Data = file.split(",")[1];
+    const base64Data = file.split(',')[1];
     const decodedString = atob(base64Data);
     Papa.parse(decodedString, {
       header: true,  // Set to true if the first contact contains headers
@@ -89,13 +88,13 @@ export class UploadFileModalContentComponent {
   };
 
   removeSelectedFile = () => {
-    this.fileInfo = "";
+    this.fileInfo = '';
   };
 
   parsedData = [];
   submitted: boolean = false;
   saveBtnClicked = async () => {
-    if (this.selectedLabel?.["id"]) {
+    if (this.selectedLabel?.['id']) {
       this.selectedLists.emit(this.selectedLabel);
     }
     this.parsedFileData.emit(this.parsedData);
@@ -120,9 +119,9 @@ export class UploadFileModalContentComponent {
 
   openContactLabelCanvas = () => {
     this.ngbOffcanvas.open(AddOrDeleteContactLabelComponent, {
-      panelClass: "attributes-bg csv-label-create-offcanvas-panel",
-      backdropClass: "edit-rep-canvas-backdrop csv-label-create-offcanvas-backdrop",
-      position: "end",
+      panelClass: 'attributes-bg csv-label-create-offcanvas-panel',
+      backdropClass: 'edit-rep-canvas-backdrop csv-label-create-offcanvas-backdrop',
+      position: 'end',
       scroll: false,
     });
   };

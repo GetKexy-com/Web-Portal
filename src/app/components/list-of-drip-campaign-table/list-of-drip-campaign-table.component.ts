@@ -53,6 +53,11 @@ export class ListOfDripCampaignTableComponent implements OnInit, AfterViewChecke
   }
 
   ngOnInit(): void {
+    // Set Label Subscription
+    this.contactLabelsSubscription = this.prospectingService.lists.subscribe((labels) => {
+      // Set label dropdown options
+      this.labelOptions = labels;
+    });
     this.getListViewData();
     this.calcWidth();
   }

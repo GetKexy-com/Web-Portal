@@ -7,13 +7,13 @@ import {DripCampaign, IRawDripCampaign} from '../models/DripCampaign';
 import {EnrollmentTriggers, IRawEnrollmentTrigger} from '../models/EnrollmentTriggers';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class DripCampaignService {
   private _loading = new BehaviorSubject(false);
   loading = this._loading.asObservable();
 
-  private _dripCampaignStatus = new BehaviorSubject("");
+  private _dripCampaignStatus = new BehaviorSubject('');
   dripCampaignStatus = this._dripCampaignStatus.asObservable();
 
   private _dripCampaignProspects = new BehaviorSubject([]);
@@ -28,7 +28,7 @@ export class DripCampaignService {
   private _dripCampaignSuppressionList = new BehaviorSubject([]);
   dripCampaignSuppressionList = this._dripCampaignSuppressionList.asObservable();
 
-  private emailLength = "";
+  private emailLength = '';
 
   public editDripCampaignTitleItem;
   public emailEditItem;
@@ -123,7 +123,7 @@ export class DripCampaignService {
   createDripCampaign = (postData) => {
     delete postData.dripCampaignId;
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("drip-campaigns", postData).subscribe((res) => {
+      this.httpService.post('drip-campaigns', postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             this._loading.next(false);
@@ -135,7 +135,7 @@ export class DripCampaignService {
         }
       });
     });
-  }
+  };
 
   updateDripCampaign = (postData) => {
     return new Promise(async (resolve, reject) => {
@@ -153,7 +153,7 @@ export class DripCampaignService {
         }
       });
     });
-  }
+  };
 
   updateDripCampaignEmail = async (postData) => {
     return new Promise(async (resolve, reject) => {
@@ -174,7 +174,7 @@ export class DripCampaignService {
 
   deleteDripCampaignEmail = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("drip-campaigns/emailDelete", postData).subscribe((res) => {
+      this.httpService.post('drip-campaigns/emailDelete', postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -204,7 +204,7 @@ export class DripCampaignService {
 
   publishDripCampaign = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("drip-campaigns/publish", postData).subscribe((res) => {
+      this.httpService.post('drip-campaigns/publish', postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -220,14 +220,14 @@ export class DripCampaignService {
   addDripCampaignTitle = async (postData) => {
     let campaignTitles = [...this._dripCampaignTitles.getValue()];
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("titles", postData).subscribe((res) => {
-        console.log("res", res);
+      this.httpService.post('titles', postData).subscribe((res) => {
+        console.log('res', res);
         if (!res.success) {
           if (res.error) {
             reject(res.error);
           }
         } else {
-          let item = {...res.data};
+          let item = { ...res.data };
           campaignTitles.push(item);
           resolve(true);
           this._dripCampaignTitles.next(campaignTitles);
@@ -284,7 +284,7 @@ export class DripCampaignService {
       return null;
     }
     return new Promise(async (resolve, reject) => {
-      this.httpService.get("titles").subscribe((res) => {
+      this.httpService.get('titles').subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -335,7 +335,7 @@ export class DripCampaignService {
 
   deleteOrPauseDripCampaign = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("drip-campaigns/delete", postData).subscribe((res) => {
+      this.httpService.post('drip-campaigns/delete', postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -353,7 +353,7 @@ export class DripCampaignService {
         resolve(this.allDripCampaigns);
         return;
       }
-      this.httpService.get("drip-campaigns").subscribe((res) => {
+      this.httpService.get('drip-campaigns').subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -380,7 +380,7 @@ export class DripCampaignService {
   assignProspectApi = async (postData) => {
     this._loading.next(true);
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("drip-campaigns/assignProspects", postData).subscribe((res) => {
+      this.httpService.post('drip-campaigns/assignProspects', postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             this._loading.next(false);
@@ -398,7 +398,7 @@ export class DripCampaignService {
   saveSearch = async (postData) => {
     this._loading.next(true);
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("drip-campaigns/saveSearch", postData).subscribe((res) => {
+      this.httpService.post('contacts/searches', postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             this._loading.next(false);
@@ -415,7 +415,7 @@ export class DripCampaignService {
 
   deleteSaveSearch = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("drip-campaigns/deleteSearch", postData).subscribe((res) => {
+      this.httpService.post('drip-campaigns/deleteSearch', postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -429,7 +429,8 @@ export class DripCampaignService {
 
   getSavedSearchList = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("drip-campaigns/getAllSavedSearch", postData).subscribe((res) => {
+      const url = `contacts/searches?companyId=${postData.companyId}`;
+      this.httpService.get(url).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -445,8 +446,8 @@ export class DripCampaignService {
   addDripCampaignSuppressionUsers = async (postData) => {
     // let suppressionList = [...this._dripCampaignSuppressionList.getValue()];
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("supplier/addSuppressionUser", postData).subscribe((res) => {
-        console.log("res", res);
+      this.httpService.post('supplier/addSuppressionUser', postData).subscribe((res) => {
+        console.log('res', res);
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -465,7 +466,7 @@ export class DripCampaignService {
 
   getSuppressionList = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("supplier/getSuppressionUsers", postData).subscribe((res) => {
+      this.httpService.post('supplier/getSuppressionUsers', postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -481,7 +482,7 @@ export class DripCampaignService {
 
   deleteSuppressionUser = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("supplier/deleteSuppressionUser", postData).subscribe((res) => {
+      this.httpService.post('supplier/deleteSuppressionUser', postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -503,7 +504,7 @@ export class DripCampaignService {
 
   assignContactsAndLabelsInCampaign = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("drip-campaigns/assignContactsAndLabelsInCampaign", postData).subscribe((res) => {
+      this.httpService.post('drip-campaigns/assignContactsAndLabelsInCampaign', postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -555,7 +556,7 @@ export class DripCampaignService {
 
   unEnrollProspects = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("drip-campaigns/unEnrollProspects", postData).subscribe((res) => {
+      this.httpService.post('drip-campaigns/unEnrollProspects', postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -586,7 +587,7 @@ export class DripCampaignService {
 
   getApolloOrganizations = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("drip-campaigns/getOrganizations", postData).subscribe((res) => {
+      this.httpService.post('drip-campaigns/getOrganizations', postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -601,7 +602,7 @@ export class DripCampaignService {
 
   getSupportedTechnologies = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("drip-campaigns/getSupportedTechnologies", postData).subscribe((res) => {
+      this.httpService.post('drip-campaigns/getSupportedTechnologies', postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -616,7 +617,7 @@ export class DripCampaignService {
 
   testSmtpConnection = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("drip-campaigns/testSmtpConnection", postData).subscribe((res) => {
+      this.httpService.post('drip-campaigns/testSmtpConnection', postData).subscribe((res) => {
         resolve(res);
       });
     });
@@ -624,7 +625,7 @@ export class DripCampaignService {
 
   getSmtpDetails = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("drip-campaigns/getSmtpDetails", postData).subscribe((res) => {
+      this.httpService.post('drip-campaigns/getSmtpDetails', postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -639,7 +640,7 @@ export class DripCampaignService {
 
   deleteSmtp = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("drip-campaigns/deleteSmtp", postData).subscribe((res) => {
+      this.httpService.post('drip-campaigns/deleteSmtp', postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -670,7 +671,7 @@ export class DripCampaignService {
 
   getDripCampaignTitle = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("drip-campaigns/getTitle", postData).subscribe((res) => {
+      this.httpService.post('drip-campaigns/getTitle', postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -685,7 +686,7 @@ export class DripCampaignService {
 
   getSettings = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("drip-campaigns/getSettings", postData).subscribe((res) => {
+      this.httpService.post('drip-campaigns/getSettings', postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -762,7 +763,7 @@ export class DripCampaignService {
 
   forwardToCampaignUser = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("drip-campaigns/forwardToCampaignUser", postData).subscribe((res) => {
+      this.httpService.post('drip-campaigns/forwardToCampaignUser', postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);

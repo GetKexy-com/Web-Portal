@@ -52,11 +52,11 @@
 //     this.userData = this._authService.userTokenValue;
 //
 //     // Set Label subscription
-//     this.prospectingService.getLabels({ supplier_id: this.userData.supplier_id });
-//     this.contactLabelsSubscription = this.prospectingService.labels.subscribe((labels) => {
+//     this.prospectingService.getLists({ supplier_id: this.userData.supplier_id });
+//     this.contactLabelsSubscription = this.prospectingService.lists.subscribe((lists) => {
 //       // Set label dropdown options
 //       this.labelOptions = [];
-//       labels.map(i => this.labelOptions.push({
+//       lists.map(i => this.labelOptions.push({
 //         key: i.label,
 //         value: i.label,
 //         itemBgColor: i.bg_color,
@@ -80,8 +80,8 @@
 //     const filterData = this.prospectingService.searchContactFilterData;
 //     if (activeFilterCount && filterData) {
 //       // Labels
-//       if (filterData.labels && filterData.labels.length) {
-//         filterData.labels.forEach(label => {
+//       if (filterData.lists && filterData.lists.length) {
+//         filterData.lists.forEach(label => {
 //           const index = this.labelOptions.findIndex(l => l.id === label.id);
 //           if (index > -1) {
 //             this.labelOptions[index].isSelected = true;
@@ -172,7 +172,7 @@
 //       emailStatus = this.emailStatusOptions.find(status => status.value === this.selectedEmailStatus).key;
 //     }
 //     const data = {
-//       labels: this.labelOptions.filter(l => l.isSelected),
+//       lists: this.labelOptions.filter(l => l.isSelected),
 //       name: this.contactName,
 //       companyName: this.companyName,
 //       email: this.contactEmail,
@@ -187,13 +187,13 @@
 //   };
 // }
 
-import {Component, DestroyRef, inject, Input, OnInit, Signal, signal, WritableSignal} from '@angular/core';
-import { AuthService } from "../../services/auth.service";
-import { constants } from "src/app/helpers/constants";
-import { ProspectingService } from "../../services/prospecting.service";
-import { usaStates } from "src/assets/usaStates";
-import { canadaStates } from "src/assets/canadaStates";
-import { PageUiService } from "../../services/page-ui.service";
+import { Component, DestroyRef, inject, Input, OnInit, Signal, signal, WritableSignal } from '@angular/core';
+import { AuthService } from '../../services/auth.service';
+import { constants } from 'src/app/helpers/constants';
+import { ProspectingService } from '../../services/prospecting.service';
+import { usaStates } from 'src/assets/usaStates';
+import { canadaStates } from 'src/assets/canadaStates';
+import { PageUiService } from '../../services/page-ui.service';
 import { KexyButtonComponent } from '../kexy-button/kexy-button.component';
 import { KexySelectDropdownComponent } from '../kexy-select-dropdown/kexy-select-dropdown.component';
 import { FormsModule } from '@angular/forms';
@@ -206,10 +206,10 @@ import { toSignal } from '@angular/core/rxjs-interop';
   imports: [
     KexyButtonComponent,
     KexySelectDropdownComponent,
-    FormsModule
+    FormsModule,
   ],
   templateUrl: './search-contact-modal-content.component.html',
-  styleUrl: './search-contact-modal-content.component.scss'
+  styleUrl: './search-contact-modal-content.component.scss',
 })
 export class SearchContactModalContentComponent implements OnInit {
   // Inputs
@@ -247,18 +247,23 @@ export class SearchContactModalContentComponent implements OnInit {
   async ngOnInit() {
     const userData = this.authService.userTokenValue;
 
-    // Load labels
-    this.prospectingService.getLabels({ supplier_id: userData.supplier_id });
+    // Load lists
+    const getLabelApiPostData = {
+      companyId: userData.supplier_id,
+      page: this.prospectingService.manageListCurrentPage || 1,
+      limit: this.prospectingService.manageListLimit || 100,
+    };
+    await this.prospectingService.getLabelsOnly(getLabelApiPostData);
 
-    // Subscribe to labels changes
-    this.prospectingService.labels
+    // Subscribe to lists changes
+    this.prospectingService.labelsOnly
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((labels) => {
         this.labelOptions.set(labels.map(i => ({
           key: i.label,
           value: i.label,
-          itemBgColor: i.bg_color,
-          itemTextColor: i.text_color,
+          itemBgColor: i.bgColor,
+          itemTextColor: i.textColor,
           id: i.id,
           isSelected: false,
         })));
@@ -276,8 +281,8 @@ export class SearchContactModalContentComponent implements OnInit {
       this.labelOptions.update(options =>
         options.map(option => ({
           ...option,
-          isSelected: filterData.labels.some((l: any) => l.id === option.id)
-        }))
+          isSelected: filterData.labels.some((l: any) => l.id === option.id),
+        })),
       );
     }
 
@@ -338,17 +343,16 @@ export class SearchContactModalContentComponent implements OnInit {
         this.usaStatesWithKeyValuePair = usaStates.map(i => ({
           key: i.name,
           value: i.name,
-          code: i.code
+          code: i.code,
         }));
       }
       this.statesOptions.set([...this.usaStatesWithKeyValuePair].sort((a, b) => a.value.localeCompare(b.value)));
-    }
-    else if (this.selectedCountry() === constants.CANADA) {
+    } else if (this.selectedCountry() === constants.CANADA) {
       if (!this.canadaStatesWithKeyValuePair.length) {
         this.canadaStatesWithKeyValuePair = canadaStates.map(i => ({
           key: i.name,
           value: i.name,
-          code: i.code
+          code: i.code,
         }));
       }
       this.statesOptions.set([...this.canadaStatesWithKeyValuePair].sort((a, b) => a.value.localeCompare(b.value)));

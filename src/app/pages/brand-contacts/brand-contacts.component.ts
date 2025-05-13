@@ -47,7 +47,7 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
   totalContactsCount = 0;
   isWaitingFlag: boolean = true;
   isLoading: boolean = false;
-  selectedContacts = [];
+  selectedContacts: Contact[] = [];
   page = 1;
   limit = 100;
   totalPage;
@@ -172,6 +172,7 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
   setContactSubscription = () => {
     this.contactListSubscription = this.prospectingService.contactRes.subscribe((data) => {
       if (data) {
+        console.log(data);
         this.contactList = this.prospectingService.setLabelsInContactsList(data.contacts);
         this.totalContactsCount = data.total;
         this.totalPage = Math.ceil(this.totalContactsCount / this.limit);
@@ -186,10 +187,10 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
 
   getLabels = async () => {
     // Get Label
-    await this.prospectingService.getLabels({ companyId: this.supplierId, page: 1, limit: 9999999 });
+    await this.prospectingService.getLists({ companyId: this.supplierId, page: 1, limit: 9999999 });
 
     // Set Label Subscription
-    this.contactLabelsSubscription = this.prospectingService.labels.subscribe((labels) => {
+    this.contactLabelsSubscription = this.prospectingService.lists.subscribe((labels) => {
       // Set label dropdown options
       this.labelOptions = [];
       labels.map(i => {
@@ -473,95 +474,73 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
     this.isLoading = true;
     const contacts = [];
 
-    data.map(contact => {
-      contacts.push({
-        id: '',
-        first_name: contact['First Name'],
-        last_name: contact['Last Name'],
-        name: `${contact['First Name']} ${contact['Last Name']}`,
-        linkedin_url: contact['Linkedin'],
-        title: contact['Job Title'],
-        email_status: null,
-        photo_url: null,
-        twitter_url: null,
-        github_url: null,
-        facebook_url: null,
-        headline: contact['Job Title'],
-        email: contact['Email'],
-        organization_id: '',
-        employment_history: [{}],
-        state: contact['State'],
-        city: contact['City'],
-        country: contact['Country'],
-        organization: {
-          name: contact['Company Name'],
-          website_url: null,
-          blog_url: null,
-          angellist_url: null,
-          linkedin_url: null,
-          twitter_url: null,
-          facebook_url: null,
-          logo_url: null,
-          phone: contact['Phone Number'],
-          industry: null,
-          founded_year: null,
-          estimated_num_employees: null,
-          street_address: '',
-          city: contact['City'],
-          state: contact['State'],
-          postal_code: '',
-          country: contact['Country'],
-        },
-        is_likely_to_engage: true,
-      });
+    data.map((contact: any) => {
+      const c: Contact = Contact.empty();
+      c.email = contact['Email'];
+      c.state = contact['State'];
+      c.city = contact['City'];
+      c.country = contact['Country'];
+      c.details.firstName = contact['First Name'];
+      c.details.lastName = contact['Last Name'];
+      c.details.name = `${contact['First Name']} ${contact['Last Name']}`;
+      c.details.linkedinUrl = contact['Linkedin'];
+      c.details.title = contact['Job Title'];
+      c.details.headline = contact['Job Title'];
+      c.details.organization.name = contact['Company Name'];
+      c.details.organization.phone = contact['Phone Number'];
+      c.details.organization.city = contact['City'];
+      c.details.organization.state = contact['State'];
+      c.details.organization.country = contact['Country'];
+      contacts.push(Contact.contactPostDto(c));
     });
 
     const labelId = this.selectedLabel?.id?.toString();
     const payload = {
-      supplier_id: this.supplierId,
+      companyId: this.supplierId,
       contacts: contacts,
-      label_ids: labelId ? [labelId] : [],
+      listIds: labelId ? [labelId] : [],
     };
 
     if (this.zerobounceBypass) {
-      payload['bypass_zerobounce'] = 'true';
+      payload['bypassZerobounce'] = true;
     }
 
     try {
       await this.prospectingService.addContacts(payload);
 
       if (labelId) {
-        const notifyApiPostData = {
-          supplier_id: this.userData.supplier_id,
-          label_id: labelId,
-        };
-        const notifyApiRes = await this.prospectingService.notifyAddContactsInDrip(notifyApiPostData);
-        if (notifyApiRes && notifyApiRes['drip_campaign_id']) {
-          const dripCampaign = await this.dripCampaignService.getDripCampaignTitle({ drip_campaign_id: notifyApiRes['drip_campaign_id'] });
-          let isConfirm = await Swal.fire({
-            title: 'Are you sure?',
-            text: `Selected "${this.selectedLabel['value']}" is connected to a drip campaign "${dripCampaign['title']}". Do you want to add these contacts to this drip campaign?`,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            allowOutsideClick: false,
-            allowEscapeKey: false,
-            confirmButtonText: 'Yes, do it!',
-            showLoaderOnConfirm: true,
-          });
-
-          if (!isConfirm.dismiss) {
-            const assignApiPostData = {
-              supplier_id: this.userData.supplier_id,
-              contacts,
-              label_ids: [labelId],
-              notify: false,
-              drip_campaign_id: notifyApiRes['drip_campaign_id'],
-            };
-            await this.dripCampaignService.assignContactsAndLabelsInCampaign(assignApiPostData);
-          }
-        }
+        // TODO - Later
+        // const notifyApiPostData = {
+        //   companyId: this.userData.supplier_id,
+        //   listId: labelId,
+        // };
+        // const notifyApiRes = await this.prospectingService.notifyAddContactsInDrip(notifyApiPostData);
+        // if (notifyApiRes && notifyApiRes['drip_campaign_id']) {
+        //   const dripCampaign = await this.dripCampaignService.getDripCampaignTitle({ drip_campaign_id: notifyApiRes['drip_campaign_id'] });
+        //   let isConfirm = await Swal.fire({
+        //     title: 'Are you sure?',
+        //     text: `Selected "${this.selectedLabel['value']}" is connected to a drip campaign "${dripCampaign['title']}". Do you want to add these contacts to this drip campaign?`,
+        //     icon: 'warning',
+        //     showCancelButton: true,
+        //     confirmButtonColor: '#3085d6',
+        //     cancelButtonColor: '#d33',
+        //     allowOutsideClick: false,
+        //     allowEscapeKey: false,
+        //     confirmButtonText: 'Yes, do it!',
+        //     showLoaderOnConfirm: true,
+        //   });
+        //
+        //   if (!isConfirm.dismiss) {
+        //     const assignApiPostData = {
+        //       companyId: this.userData.supplier_id,
+        //       contacts,
+        //       listIds: [labelId],
+        //       notify: false,
+        //       dripCampaignId: notifyApiRes['drip_campaign_id'],
+        //     };
+        //     await this.dripCampaignService.assignContactsAndLabelsInCampaign(assignApiPostData);
+        //   }
+        // }
       }
 
       await this.getContacts(true);
@@ -634,14 +613,21 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
     Swal.showLoading();
 
     const contactIds = [];
-    this.selectedContacts.map(i => contactIds.push(i.id));
+    this.selectedContacts.map((contact: Contact) => contactIds.push({
+      id: contact.id,
+      email: contact.email,
+      firstName: contact.details.firstName,
+      lastName: contact.details.lastName,
+      name: contact.contactName,
+      title: contact.jobTitle,
+    }));
     const postData = {
-      supplier_id: this.supplierId,
+      companyId: this.supplierId,
       contacts: contactIds,
     };
     if (this.selectAllContacts) {
-      postData['selected_all_contacts'] = 'true';
-      postData['selected_all_contacts_payload'] = this.getContactsApiPostData();
+      postData['selectedAllContacts'] = true;
+      postData['selectedAllContactsPayload'] = this.getContactsApiPostData();
       postData['contacts'] = [];
     }
     try {

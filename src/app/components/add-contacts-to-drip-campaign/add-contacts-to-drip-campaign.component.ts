@@ -1,16 +1,17 @@
-import { Component, OnDestroy, OnInit } from "@angular/core";
-import { NgbActiveOffcanvas, NgbOffcanvas } from "@ng-bootstrap/ng-bootstrap";
-import { AuthService } from "../../services/auth.service";
-import { ProspectingService } from "../../services/prospecting.service";
-import { Subscription } from "rxjs";
-import Swal from "sweetalert2";
-import { constants } from "src/app/helpers/constants";
-import { DripCampaignService } from "../../services/drip-campaign.service";
-import { ActivatedRoute } from "@angular/router";
-import {FormsModule} from '@angular/forms';
-import {KexySelectDropdownComponent} from '../kexy-select-dropdown/kexy-select-dropdown.component';
-import {ErrorMessageCardComponent} from '../error-message-card/error-message-card.component';
-import {CommonModule} from '@angular/common';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { NgbActiveOffcanvas, NgbOffcanvas } from '@ng-bootstrap/ng-bootstrap';
+import { AuthService } from '../../services/auth.service';
+import { ProspectingService } from '../../services/prospecting.service';
+import { Subscription } from 'rxjs';
+import Swal from 'sweetalert2';
+import { constants } from 'src/app/helpers/constants';
+import { DripCampaignService } from '../../services/drip-campaign.service';
+import { ActivatedRoute } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+import { KexySelectDropdownComponent } from '../kexy-select-dropdown/kexy-select-dropdown.component';
+import { ErrorMessageCardComponent } from '../error-message-card/error-message-card.component';
+import { CommonModule } from '@angular/common';
+import { Contact } from '../../models/Contact';
 
 @Component({
   selector: 'add-contacts-to-drip-campaign',
@@ -21,16 +22,16 @@ import {CommonModule} from '@angular/common';
     CommonModule,
   ],
   templateUrl: './add-contacts-to-drip-campaign.component.html',
-  styleUrl: './add-contacts-to-drip-campaign.component.scss'
+  styleUrl: './add-contacts-to-drip-campaign.component.scss',
 })
-export class AddContactsToDripCampaignComponent {
+export class AddContactsToDripCampaignComponent implements OnInit, OnDestroy {
   isLoading: boolean = false;
   labels = [];
   userData;
   dripCampaignDropDownList = [];
   dripCampaignList;
   dripCampaignTitles;
-  selectedDripCampaign = "";
+  selectedDripCampaign = '';
   addToDripCampaignId;
   submitted: boolean = false;
   selectedContacts;
@@ -52,8 +53,8 @@ export class AddContactsToDripCampaignComponent {
     this.selectedContacts = this.prospectingService.selectedContactsInContactsPage;
 
     this.route.queryParams.subscribe((params) => {
-      if (params["addToDripCampaignId"]) {
-        this.addToDripCampaignId = params["addToDripCampaignId"];
+      if (params['addToDripCampaignId']) {
+        this.addToDripCampaignId = params['addToDripCampaignId'];
       }
     });
 
@@ -67,18 +68,17 @@ export class AddContactsToDripCampaignComponent {
     if (this.dripCampaignTitlesSubscription) this.dripCampaignTitlesSubscription.unsubscribe();
   }
 
-  getAndSetLabels = () => {
+  getAndSetLabels = async () => {
     // Get Label
     const getLabelApiPostData = {
-      supplier_id: this.userData.supplier_id,
+      companyId: this.userData.supplier_id,
       page: this.prospectingService.manageListCurrentPage || 1,
       limit: this.prospectingService.manageListLimit || 100,
-      get_total_count: true,
     };
-    this.prospectingService.getLabels(getLabelApiPostData);
+    await this.prospectingService.getLabelsOnly(getLabelApiPostData);
 
     // Set Label Subscription
-    this.contactLabelsSubscription = this.prospectingService.labels.subscribe((labels) => {
+    this.contactLabelsSubscription = this.prospectingService.labelsOnly.subscribe((labels) => {
       // Set label dropdown options
       this.labels = labels;
     });
@@ -86,18 +86,19 @@ export class AddContactsToDripCampaignComponent {
 
   getDripCampaignsApiCall = async () => {
     this.dripCampaignList = await this.dripCampaignService.getListOfDripCampaignsWithoutPagination(true);
+    console.log(this.dripCampaignList);
     if (this.dripCampaignList.length) {
       this.dripCampaignList = this.dripCampaignList.filter(i => {
         return (i.status === constants.ACTIVE || i.status === constants.PAUSE);
       });
     }
-
+    console.log(this.dripCampaignList);
     this.dripCampaignList.forEach(cam => {
       this.dripCampaignDropDownList.push({
         key: cam.id,
         id: cam.id,
-        lists: cam.drip_campaign_kexy_labels,
-        value: this.getCampaignTitle(cam.drip_campaign_detail.drip_campaign_title_id),
+        lists: cam.lists,
+        value: cam.details.title.title,
       });
     });
 
@@ -122,106 +123,59 @@ export class AddContactsToDripCampaignComponent {
     this.dripCampaignTitlesSubscription = this.dripCampaignService.dripCampaignTitles.subscribe((dripCampaignTitles) => {
       this.dripCampaignTitles = dripCampaignTitles;
       this.dripCampaignTitles.map((i) => {
-        i.value = i.title.length > 100 ? i.title.slice(0, 100) + "..." : i.title;
+        i.value = i.title.length > 100 ? i.title.slice(0, 100) + '...' : i.title;
       });
     });
   };
 
   onDripCampaignSelect = async (selectedValue, index = 0, rowIndex = 0) => {
-    console.log("labels", selectedValue);
+    console.log('labels', selectedValue);
     this.selectedDripCampaign = selectedValue;
     this.addToDripCampaignId = selectedValue.id;
   };
 
-  parseContactDetails = (data) => {
-    console.log("data", data);
-    const contacts = [];
-    data.forEach(contact => {
-      const details = JSON.parse(contact.details);
-      details["id"] = contact.id;
-      contacts.push({ ...contact, details: details });
-      console.log("details", details);
-    });
-    return contacts;
-  };
+  // parseContactDetails = (data) => {
+  //   console.log('data', data);
+  //   const contacts = [];
+  //   data.forEach((contact: Contact) => {
+  //     const details = contact.details;
+  //     details['id'] = contact.id;
+  //     contacts.push({ ...contact, details: details });
+  //     console.log('details', details);
+  //   });
+  //   return contacts;
+  // };
 
   setAndGetEditMultipleContactApiPayload = () => {
-    const contacts = [];
-    this.selectedContacts.forEach(contact => {
-      const contactDetails = JSON.parse(contact.details);
-      const apolloContactId = contactDetails.id;
-      const contactObj = {
-        id: contact.id,
-        apollo_contact_id: apolloContactId,
-        first_name: contactDetails.first_name,
-        last_name: contactDetails.last_name,
-        name: `${contactDetails.first_name} ${contactDetails.last_name}`,
-        linkedin_url: contactDetails.linkedin,
-        title: contactDetails.title,
-        marketing_status: contact.marketing_status,
-        email_status: null,
-        photo_url: null,
-        twitter_url: null,
-        github_url: null,
-        facebook_url: null,
-        headline: contactDetails.title,
-        email: contactDetails.email,
-        organization_id: "",
-        employment_history: [{}],
-        state: contactDetails.state,
-        city: contactDetails.city,
-        country: contactDetails.country,
-        notes: contactDetails.notes,
-        organization: {
-          name: contactDetails.organization.name,
-          website_url: null,
-          blog_url: null,
-          angellist_url: null,
-          linkedin_url: contactDetails.linkedin,
-          twitter_url: null,
-          facebook_url: null,
-          logo_url: null,
-          phone: contactDetails.organization.phone,
-          industry: null,
-          founded_year: null,
-          estimated_num_employees: null,
-          street_address: "",
-          city: contactDetails.city,
-          state: contactDetails.state,
-          postal_code: "",
-          country: contactDetails.country,
-        },
-        is_likely_to_engage: true,
-      };
-      contacts.push(contactObj);
+    const contacts = this.selectedContacts.map((c: Contact) => {
+      return Contact.contactPostDto(c);
     });
     return {
-      supplier_id: this.userData.supplier_id,
-      contacts: contacts,
-      label_ids: this.selectedLabelIds,
+      companyId: this.userData.supplier_id,
+      contacts,
+      listIds: this.selectedLabelIds,
     };
   };
 
   getContactsApiPayload = () => {
     return {
-      supplier_id: this.userData.supplier_id,
+      companyId: this.userData.supplier_id,
+      dripCampaignId: '',
+      listIds: [],
+      contactName: '',
+      companyName: '',
+      jobTitle: '',
+      emailStatus: '',
+      marketingStatus: '',
+      city: '',
+      state: '',
+      country: '',
       page: this.prospectingService.brandContactCurrentPage,
       limit: this.prospectingService.brandContactContactLimit,
-      drip_campaign_id: "",
-      label_ids: [],
-      contact_name: "",
-      company_name: "",
-      job_title: "",
-      marketing_status: "",
-      email_status: "",
-      email: "",
-      city: "",
-      state: "",
-      country: "",
-      get_total_count: true,
-      sort_by: "",
-      sort_type: "",
+      sortBy: '',
+      sortType: '',
     };
+
   };
 
   handleSubmit = async () => {
@@ -229,30 +183,31 @@ export class AddContactsToDripCampaignComponent {
     // this.setSelectedLabelIds();
 
     // Validation
-    if (!this.selectedDripCampaign["value"]) return;
+    if (!this.selectedDripCampaign['value']) return;
 
     let postData;
     const getContactApiPostData = this.getContactsApiPayload();
     this.isLoading = true;
     try {
-      let contacts: any = [];
-      contacts = this.parseContactDetails(this.selectedContacts);
+      let contacts: Contact[] = [];
+      contacts = this.selectedContacts;
+      console.log(contacts);
 
       // Edit Contact(s)
       postData = this.setAndGetEditMultipleContactApiPayload();
       if (this.prospectingService.selectedAllContacts) {
-        postData["selected_all_contacts"] = "true";
-        postData["selected_all_contacts_payload"] = getContactApiPostData;
-        postData["contacts"] = [];
+        postData['selectedAllContacts'] = true;
+        postData['selectedAllContactsPayload'] = getContactApiPostData;
+        postData['contacts'] = [];
       }
       await this.prospectingService.editContacts(postData);
 
       const assignApiPostData = {
-        supplier_id: this.userData.supplier_id,
+        companyId: this.userData.supplier_id,
         contacts,
-        label_ids: [],
+        listIds: [],
         notify: false,
-        drip_campaign_id: this.addToDripCampaignId,
+        dripCampaignId: this.addToDripCampaignId,
       };
       await this.dripCampaignService.assignContactsAndLabelsInCampaign(assignApiPostData);
 
@@ -260,11 +215,11 @@ export class AddContactsToDripCampaignComponent {
       await this.prospectingService.getContacts(getContactApiPostData, true);
       this.prospectingService.selectedContactsInContactsPage = [];
 
-      Swal.fire("Done!", "Contact(s) added successfully!", "success");
+      Swal.fire('Done!', 'Contact(s) added successfully!', 'success');
 
-      this.activeCanvas.dismiss("Cross click");
+      this.activeCanvas.dismiss('Cross click');
     } catch (e) {
-      await Swal.fire("Error", e.message);
+      await Swal.fire('Error', e.message);
     } finally {
       this.isLoading = false;
     }

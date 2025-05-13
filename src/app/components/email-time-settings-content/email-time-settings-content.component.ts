@@ -520,10 +520,9 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
   getAndSetLabels = async () => {
     // Get Label
     const getLabelApiPostData = {
-      supplier_id: this.userData.supplier_id,
+      companyId: this.userData.supplier_id,
       page: 1,
       limit: 1000,
-      get_total_count: true,
     };
     await this.prospectingService.getLabelsOnly(getLabelApiPostData);
 
