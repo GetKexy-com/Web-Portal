@@ -830,7 +830,7 @@ export class ProspectingService {
 
   deleteConversations = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post('prospect/deleteConversations', postData).subscribe((res) => {
+      this.httpService.delete('messages', postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
