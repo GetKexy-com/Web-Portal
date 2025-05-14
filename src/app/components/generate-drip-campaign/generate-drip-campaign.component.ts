@@ -26,6 +26,8 @@ import {DelayDetailsContentComponent} from '../delay-details-content/delay-detai
 import {ActiveContactsInCampaignComponent} from '../active-contacts-in-campaign/active-contacts-in-campaign.component';
 import {EmailTimeSettingsContentComponent} from '../email-time-settings-content/email-time-settings-content.component';
 import {CommonModule} from '@angular/common';
+import {PageUiService} from '../../services/page-ui.service';
+import {ExportToCsv} from '../../helpers/CSVHelper';
 
 @Component({
   selector: 'generate-drip-campaign',
@@ -87,6 +89,7 @@ export class GenerateDripCampaignComponent implements OnInit {
     private dripCampaignService: DripCampaignService,
     private prospectingService: ProspectingService,
     private campaignService: CampaignService,
+    private pageUiService: PageUiService,
     private _authService: AuthService,
     private route: ActivatedRoute,
   ) {
@@ -619,5 +622,169 @@ export class GenerateDripCampaignComponent implements OnInit {
     if (index > -1) {
       this.emails.splice(index, 1);
     }
+  };
+
+  exportInsights = async () => {
+    const swal = this.pageUiService.showSweetAlertLoading();
+    try {
+      const insightsPromises = this.emails.map(async (email) => {
+        const postData = {
+          drip_campaign_id: parseInt(this.dripCampaignId),
+          drip_campaign_email_id: email.id,
+          supplier_id: this.userData.supplier_id,
+        };
+
+        const insightsData = await this.dripCampaignService.insights(postData);
+        return insightsData["insights"] || [];
+      });
+
+      const allInsights = await Promise.all(insightsPromises);
+      const insightsArray = allInsights
+        .filter(insights => insights.length > 0)
+        .map((insights, index) =>
+          this.processInsights(insights, this.emails[index]),
+        );
+
+      await this.exportCSV(insightsArray);
+    } finally {
+      swal.close();
+    }
+  };
+
+  processInsights = (insights, email: any) => {
+    const { clickedInsights, openedInsights } = this.categorizeInsights(insights, email);
+
+    const topClickedContacts = this.aggregateContacts(clickedInsights);
+    const topOpenedContacts = this.aggregateContacts(openedInsights);
+
+    return this.mergeContacts(topOpenedContacts, topClickedContacts);
+  };
+
+  categorizeInsights = (insights, email: any) => {
+    const clickedInsights = [];
+    const openedInsights = [];
+    const repliedInsights = [];
+
+    insights.forEach(insight => {
+      const enrichedInsight = {
+        ...insight,
+        emailSequence: email.emailSequence,
+        emailSubject: email.emailSubject,
+      };
+
+      switch (insight.insight_type) {
+        case constants.CLICK:
+          clickedInsights.push(enrichedInsight);
+          break;
+        case constants.OPEN:
+          openedInsights.push(enrichedInsight);
+          break;
+        case constants.REPLY:
+          repliedInsights.push(enrichedInsight);
+          break;
+      }
+    });
+
+    return { clickedInsights, openedInsights, repliedInsights };
+  };
+
+  aggregateContacts = (insights) => {
+    const contactsMap = {};
+
+    insights.forEach(insight => {
+      const contact = insight.kexy_contact;
+      if (!contact) return;
+
+      const contactId = contact.id;
+      if (contactsMap[contactId]) {
+        contactsMap[contactId].count += 1;
+      } else {
+        contactsMap[contactId] = {
+          ...contact,
+          emailSequence: insight.emailSequence!,
+          emailSubject: insight.emailSubject!,
+          createdAt: insight.createdAt,
+          count: 1,
+        };
+      }
+    });
+
+    return Object.values(contactsMap).sort((a, b) => b["count"] - a["count"]);
+  };
+
+  mergeContacts = (
+    openedContacts,
+    clickedContacts,
+  ) => {
+    const mergedContacts = {};
+
+    openedContacts.forEach(contact => {
+      mergedContacts[contact.id] = {
+        ...contact,
+        openCount: contact.count,
+        clickCount: 0,
+      };
+    });
+
+    clickedContacts.forEach(contact => {
+      if (mergedContacts[contact.id]) {
+        mergedContacts[contact.id].clickCount = contact.count;
+      } else {
+        mergedContacts[contact.id] = {
+          ...contact,
+          clickCount: contact.count,
+          openCount: 0,
+        };
+      }
+    });
+
+    return mergedContacts;
+  };
+
+  exportCSV = async (contactsData) => {
+    const headers = [
+      "First Name", "Last Name", "Email Number in Campaign",
+      "Email Subject Line", "Number of Opens", "Number of Clicks",
+      "Email", "Job Title", "Company Name", "Phone Number",
+      "Linkedin Url", "City", "State", "Country", "Date/Time Clicked",
+    ].join(",");
+
+    const rows = contactsData.flatMap(contacts =>
+      Object.values(contacts).map(contact => {
+        const details = JSON.parse(contact["details"]) as {
+          first_name?: string;
+          last_name?: string;
+          email?: string;
+          organization?: { phone?: string };
+          linkedin_url?: string;
+          city?: string;
+          state?: string;
+          country?: string;
+        };
+
+        const escapeCsv = (value: any) =>
+          value?.toString().replace(/,/g, " ") || "";
+
+        return [
+          escapeCsv(details["firstName"]),
+          escapeCsv(details["lastName"]),
+          escapeCsv(contact["emailSequence"]),
+          escapeCsv(contact["emailSubject"]),
+          escapeCsv(contact["openCount"]),
+          escapeCsv(contact["clickCount"]),
+          escapeCsv(details.email),
+          escapeCsv(contact["jobTitle"]),
+          escapeCsv(contact["companyName"]),
+          escapeCsv(details.organization?.phone),
+          escapeCsv(details.linkedin_url),
+          escapeCsv(details.city),
+          escapeCsv(details.state),
+          escapeCsv(details.country),
+          escapeCsv(contact["createdAt"]),
+        ].join(",");
+      }),
+    ).join("\n");
+
+    await ExportToCsv.download("insights.csv", `${headers}\n${rows}`);
   };
 }

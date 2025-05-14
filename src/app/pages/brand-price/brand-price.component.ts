@@ -474,20 +474,20 @@ export class BrandPriceComponent implements OnInit {
     }
 
     const postData = {
-      product_type: this.selectedSubscriptionCardData.subscriptionType,
-      supplier_id: this.userData.supplier_id,
-      number_of_user: this.usersCount,
-      previous_product_type: this.currentSubscriptionPlan.type,
-      proration_date: this.selectedSubscriptionCardData.title === constants.NOVICE ? Math.floor(new Date().getTime() / 1000) : this.prorationDate,
+      productType: this.selectedSubscriptionCardData.subscriptionType,
+      companyId: this.userData.supplier_id,
+      numberOfUser: this.usersCount,
+      previousProductType: this.currentSubscriptionPlan.type,
+      prorationDate: this.selectedSubscriptionCardData.title === constants.NOVICE ? Math.floor(new Date().getTime() / 1000) : this.prorationDate,
       recurring: this.isMonthlySelected ? constants.MONTHLY.toLowerCase() : constants.ANNUAL.toLowerCase(),
-      invoice_now: this.prorationPrice ? "true" : "false",
+      invoiceNow: !!this.prorationPrice,
     };
     await this.switchSubscriptionForBrandsApi(postData);
   };
 
   makePaymentForSubscriptionApi = async (postData) => {
     this.proratedPriceInfoComponentLoading = true;
-    this.httpService.post("payment/makePaymentForSubscription", postData).subscribe(res => {
+    this.httpService.post("subscriptions/checkout", postData).subscribe(res => {
       if (res.success) {
         window.location.href = res.data;
       } else {
@@ -499,7 +499,7 @@ export class BrandPriceComponent implements OnInit {
 
   switchSubscriptionForBrandsApi = async (postData) => {
     this.proratedPriceInfoComponentLoading = true;
-    this.httpService.post("payment/switchSubscriptionForBrands", postData).subscribe(res => {
+    this.httpService.post("subscriptions/switch", postData).subscribe(res => {
       if (res.success) {
         Swal.fire("Congrats!", "Your subscription has been updated.", "success").then(() => {
           this.sendSlackNotification(postData).then(() => {
@@ -654,31 +654,31 @@ export class BrandPriceComponent implements OnInit {
   proratedPriceInfoComponentLoading = false;
   getProratedSubscriptionPrice = (data) => {
     const postData = {
-      product_type: data.subscriptionType,
-      supplier_id: this.userData.supplier_id,
-      number_of_user: this.usersCount,
-      previous_product_type: this.currentSubscriptionPlan.type,
+      productType: data.subscriptionType,
+      companyId: this.userData.supplier_id,
+      numberOfUser: this.usersCount,
+      previousProductType: this.currentSubscriptionPlan.type,
       recurring: this.isMonthlySelected ? constants.MONTHLY.toLowerCase() : constants.ANNUAL.toLowerCase(),
     };
 
     this.proratedPriceInfoComponentLoading = true;
-    this.httpService.post("payment/getProratedSubscriptionPrice", postData).subscribe(res => {
+    this.httpService.post("subscriptions/prorate", postData).subscribe(res => {
       if (res.success) {
         this.proratedApiResponse = res.data;
-        this.prorationDate = res.proration_date;
+        this.prorationDate = this.proratedApiResponse.prorationDate;
 
         //Get user stripe balance api for get and calculate any pending downgrade subscription price in order to upgrade subscription.
-        this.httpService.post("payment/getUserStripeBalance", { supplier_id: this.userData.supplier_id }).subscribe(userBalanceApiRes => {
+        this.httpService.get(`subscriptions/balance/${this.userData.supplier_id}`).subscribe(userBalanceApiRes => {
           let endingBalance = 0;
           if (userBalanceApiRes.success) {
             endingBalance = userBalanceApiRes.data.ending_balance;
           }
 
-          if (res.data.total < 0) {
+          if (this.proratedApiResponse.invoice.total < 0) {
             this.prorationPrice = 0;
           } else {
             // Because we receive price as cents. So we convert it to $.
-            this.prorationPrice = res.data.total / 100;
+            this.prorationPrice = this.proratedApiResponse.invoice.total / 100;
 
             // If user has ending balance which means user
             if (endingBalance < 0) {

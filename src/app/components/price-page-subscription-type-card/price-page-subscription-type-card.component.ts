@@ -19,6 +19,7 @@ export class PricePageSubscriptionTypeCardComponent {
   @Input() isCurrentPlan;
 
   subscriptionCardClicked = () => {
+    console.log('subscriptionDetails', this.subscriptionDetails);
     this.toggleSubscriptionSelectedBox(this.subscriptionDetails);
   };
 

@@ -3,7 +3,18 @@
     <div class="title-and-shortener-wrap">
       <p class="title">Drip Campaign Emails</p>
 
-      <div class="kexy-boost-toogle d-flex align-items-center">
+      <div class="kexy-boost-toogle d-flex align-items-end">
+        <app-kexy-button
+          (click)="exportInsights()"
+          class="me-3"
+          label="Export Insights"
+          [disabled]="isContentLoading || isSendEmailLoading"
+          [iconLeft]="isContentLoading ? 'fa-refresh fa-spin' : 'fa-cloud-download'"
+          radius="8px"
+          bgColor="#e7f6fe"
+          textColor="#2847cc"
+        ></app-kexy-button>
+
         <kexy-select-dropdown
           style="margin-right: 10px"
           label="Email Tone"
