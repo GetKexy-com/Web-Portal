@@ -235,7 +235,6 @@ export class CategoryProductListCardComponent {
 
   newProduct = signal({
     name: "",
-    category_id: 1,
     descriptions: [""],
     isOpened: true,
     isEditClicked: true,
@@ -312,13 +311,10 @@ export class CategoryProductListCardComponent {
 
     const newProd = {
       ...product,
-      category_id: 1,
-      supplier_id: this.supplierId(),
-      user_id: this.userData().id,
-      product_name: product.name,
+      companyId: this.supplierId(),
+      name: product.name,
     };
 
-    delete newProd.name;
     delete newProd.isEditClicked;
     delete newProd.isOpened;
 
@@ -341,7 +337,6 @@ export class CategoryProductListCardComponent {
   private resetNewProduct() {
     this.newProduct.set({
       name: "",
-      category_id: 1,
       descriptions: [""],
       isOpened: true,
       isEditClicked: true,
@@ -351,14 +346,14 @@ export class CategoryProductListCardComponent {
   async updateProduct(product: any) {
     const p = {
       ...product,
-      product_id: product.id,
-      product_name: product.name
+      id: product.id,
+      name: product.name
     };
 
-    delete p.id;
-    delete p.name;
     delete p.isEditClicked;
     delete p.isOpened;
+    delete p.status;
+    delete p.createdAt;
 
     try {
       await this.prospectingService.updateProduct(p);
@@ -377,8 +372,7 @@ export class CategoryProductListCardComponent {
     this.products.update(products => products.filter(p => p.id !== product.id));
 
     const data = {
-      product_id: product.id,
-      supplier_id: product.supplier_id,
+      id: product.id,
     };
 
     try {

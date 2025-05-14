@@ -181,7 +181,10 @@ export class ProspectingService {
 
   addMessageToConversation = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post('prospect/addMessageToConversation', postData).subscribe((res) => {
+      const url = `messages/conversations/${postData.prospectingConversationId}`;
+      delete postData.prospectingConversationId;
+
+      this.httpService.post(url, postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -195,7 +198,6 @@ export class ProspectingService {
 
   getAllConversation = async (postData, overWrite = false) => {
     return new Promise(async (resolve, reject) => {
-      console.log({ overWrite });
       if (this.conversationCache.length && !overWrite) {
         const index = this.conversationCache.findIndex(i => i.page === postData.page);
         if (index > -1) {
@@ -203,15 +205,26 @@ export class ProspectingService {
           return resolve(true);
         }
       }
-      this.httpService.post('prospect/getAllConversation', postData).subscribe((res) => {
+
+      const companyId = postData.companyId;
+      delete postData.companyId;
+
+      const queryString = Object.entries(postData)
+        .filter(([_, value]) => value !== '') // Filter out empty values
+        .map(([key, value]: [string, string]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+        .join('&');
+      const url = `messages/company/${companyId}?${queryString}`;
+      console.log(url);
+
+      this.httpService.get(url).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
           }
         } else {
           resolve(true);
-          this.prospectContactConversations = res.data;
-          this.totalConversationCount = res.total;
+          this.prospectContactConversations = res.data.conversations;
+          this.totalConversationCount = res.data.total;
           const cacheObj = {
             page: postData.page,
             data: this.prospectContactConversations,
@@ -401,10 +414,10 @@ export class ProspectingService {
   getSalesLeadNameInitials = (contact) => {
     let c1 = '',
       c2 = '';
-    if (contact.first_name) {
+    if (contact?.first_name) {
       c1 = contact.first_name[0];
     }
-    if (contact.last_name) {
+    if (contact?.last_name) {
       c2 = contact.last_name[0];
     }
     return c1 + c2;
@@ -817,7 +830,7 @@ export class ProspectingService {
 
   deleteConversations = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post('prospect/deleteConversations', postData).subscribe((res) => {
+      this.httpService.delete('messages', postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);

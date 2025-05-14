@@ -763,7 +763,8 @@ export class DripCampaignService {
 
   forwardToCampaignUser = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post('drip-campaigns/forwardToCampaignUser', postData).subscribe((res) => {
+      const url = `drip-campaigns/forward`;
+      this.httpService.post(url, postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);

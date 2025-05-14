@@ -1,23 +1,23 @@
-import { AfterViewChecked, Component, ElementRef, OnDestroy, OnInit, ViewChild } from "@angular/core";
-import { AuthService } from "src/app/services/auth.service";
-import { ActivatedRoute, Router } from "@angular/router";
-import { routeConstants } from "src/app/helpers/routeConstants";
-import { PageUiService } from "src/app/services/page-ui.service";
-import { ProspectingService } from "src/app/services/prospecting.service";
-import { lastValueFrom, Subscription } from "rxjs";
-import { ProspectContact } from "src/app/models/ProspectContact";
-import { NgbModal } from "@ng-bootstrap/ng-bootstrap";
-import Swal from "sweetalert2";
-import { HttpService } from "src/app/services/http.service";
-import { PhoneNumberFormatter } from "src/app/helpers/phoneNumberValidator";
-import {BrandLayoutComponent} from '../../layouts/brand-layout/brand-layout.component';
-import {FormsModule} from '@angular/forms';
-import {KexyButtonComponent} from '../../components/kexy-button/kexy-button.component';
-import {BrandConvoAvatarComponent} from '../../components/brand-convo-avatar/brand-convo-avatar.component';
-import {KexyRichEditorComponent} from '../../components/kexy-rich-editor/kexy-rich-editor.component';
-import {BrandConvoCardComponent} from '../../components/brand-convo-card/brand-convo-card.component';
-import {BrandConvoEmailComponent} from '../../components/brand-convo-email/brand-convo-email.component';
-import {CommonModule} from '@angular/common';
+import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { ProspectContact } from 'src/app/models/ProspectContact';
+import { routeConstants } from 'src/app/helpers/routeConstants';
+import { lastValueFrom, Subscription } from 'rxjs';
+import { AuthService } from 'src/app/services/auth.service';
+import { HttpService } from 'src/app/services/http.service';
+import { ActivatedRoute, Router } from '@angular/router';
+import { NgbDropdown, NgbDropdownMenu, NgbDropdownToggle, NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { PageUiService } from 'src/app/services/page-ui.service';
+import { ProspectingService } from 'src/app/services/prospecting.service';
+import Swal from 'sweetalert2';
+import { DripCampaignService } from 'src/app/services/drip-campaign.service';
+import { BrandLayoutComponent } from '../../layouts/brand-layout/brand-layout.component';
+import { FormsModule } from '@angular/forms';
+import { KexyButtonComponent } from '../../components/kexy-button/kexy-button.component';
+import { BrandConvoCardComponent } from '../../components/brand-convo-card/brand-convo-card.component';
+import { BrandConvoAvatarComponent } from '../../components/brand-convo-avatar/brand-convo-avatar.component';
+import { BrandConvoEmailComponent } from '../../components/brand-convo-email/brand-convo-email.component';
+import { KexyRichEditorComponent } from '../../components/kexy-rich-editor/kexy-rich-editor.component';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-brand-conversations',
@@ -25,19 +25,22 @@ import {CommonModule} from '@angular/common';
     BrandLayoutComponent,
     FormsModule,
     KexyButtonComponent,
-    BrandConvoAvatarComponent,
-    KexyRichEditorComponent,
     BrandConvoCardComponent,
+    BrandConvoAvatarComponent,
     BrandConvoEmailComponent,
-    CommonModule
+    KexyRichEditorComponent,
+    CommonModule,
+    NgbDropdown,
+    NgbDropdownMenu,
+    NgbDropdownToggle,
   ],
   templateUrl: './brand-conversations.component.html',
-  styleUrl: './brand-conversations.component.scss'
+  styleUrl: './brand-conversations.component.scss',
 })
-export class BrandConversationsComponent {
-  conversations: ProspectContact[];
-  filteredConversations: ProspectContact[] = [];
-  selectedConversation: ProspectContact;
+export class BrandConversationsComponent implements OnInit, OnDestroy {
+  conversations = [];
+  filteredConversations = [];
+  selectedConversation;
   userData;
   isLoading: boolean = false;
   isPaginationLoading: boolean = false;
@@ -46,9 +49,11 @@ export class BrandConversationsComponent {
   paginationLimit: number = 20;
   totalConversationCount;
   unsubscribed = false;
-  paginationUrl = routeConstants.BASE_URL + routeConstants.BRAND.PROSPECTING_CONV_ALL;
   selectedContacts: object[] = [];
+  paginationUrl = routeConstants.BASE_URL + routeConstants.BRAND.PROSPECTING_CONV_ALL;
   conversationsSubscription: Subscription;
+
+  // @ViewChild("conversationView") private conversationView: ElementRef;
 
   constructor(
     private _authService: AuthService,
@@ -58,16 +63,17 @@ export class BrandConversationsComponent {
     private modal: NgbModal,
     private pageUiService: PageUiService,
     private prospectingService: ProspectingService,
+    private dripCampaignService: DripCampaignService,
   ) {
   }
 
   async ngOnInit() {
-    document.title = "Inbox Messages - KEXY Brand Portal";
+    document.title = 'Sent Messages - KEXY Brand Portal';
     this.userData = this._authService.userTokenValue;
 
     this.route.queryParams.subscribe((params) => {
-      if (params["page"]) {
-        this.page = parseInt(params["page"]);
+      if (params['page']) {
+        this.page = parseInt(params['page']);
       }
       if (this.prospectingService.totalConversationCount) this.totalConversationCount = this.prospectingService.totalConversationCount;
     });
@@ -90,6 +96,23 @@ export class BrandConversationsComponent {
   }
 
   scrolledToBottom = false;
+
+  // ngAfterViewChecked() {
+  //   this.scrollToBottom();
+  // }
+
+  // scrollToBottom(): void {
+  //   try {
+  //     if (!this.scrolledToBottom) {
+  //       this.conversationView.nativeElement.scrollTop = this.conversationView.nativeElement.scrollHeight;
+  //     }
+  //   } catch (err) {
+  //   }
+  // }
+
+  // onScroll() {
+  //   this.scrolledToBottom = true;
+  // }
 
   setConversation = async (conversations) => {
     this.filteredConversations = this.conversations = conversations;
@@ -120,12 +143,11 @@ export class BrandConversationsComponent {
   totalPage;
   getAllConversation = async (overWrite = false) => {
     const data = {
-      supplier_id: this.userData.supplier_id,
+      companyId: this.userData.supplier_id,
       page: this.page,
       limit: this.paginationLimit,
-      get_total_count: "false",
-      pin: this.pinedConversation ? "true" : "false",
-      inbox: "true",
+      pin: this.pinedConversation,
+      inbox: true,
     };
 
     try {
@@ -140,8 +162,8 @@ export class BrandConversationsComponent {
   };
 
   pinedConversation = false;
-  unreadConversation = false;
-  needFollowUpConversation = false;
+  // unreadConversation = false;
+  // needFollowUpConversation = false;
   getPinndedOrUnreadConversations = async () => {
     this.isLoading = true;
     this.prospectingService.conversationCache = [];
@@ -160,13 +182,13 @@ export class BrandConversationsComponent {
   };
 
   sendNextEmailTapped = async (modalContent) => {
-    this.modal.open(modalContent, { size: "lg" });
+    this.modal.open(modalContent, { size: 'lg' });
   };
 
-  emailContent = "";
+  emailContent = '';
   sendBtnClicked = false;
 
-  updatedEmailContent = "";
+  updatedEmailContent = '';
   onEmailContentChange = (editor) => {
     this.updatedEmailContent = editor.getData();
   };
@@ -176,29 +198,80 @@ export class BrandConversationsComponent {
     this.sendBtnClicked = true;
     if (!this.updatedEmailContent) return;
     const data = {
-      prospecting_conversation_id: this.selectedConversation.id,
-      sender_email: this.userData.email,
-      receiver_email: this.selectedConversation.receiver_email,
-      email_subject: this.selectedConversation.email_subject,
-      receiver_details: this.selectedConversation.receiver_details,
-      message_content: this.updatedEmailContent,
+      prospectingConversationId: this.selectedConversation.id,
+      senderEmail: this.userData.email,
+      receiverEmail: this.selectedConversation.receiverEmail,
+      emailSubject: this.selectedConversation.emailSubject,
+      receiverDetails: this.selectedConversation.receiverDetails,
+      messageContent: this.updatedEmailContent,
     };
     try {
       this.isLoading = true;
       await this.prospectingService.addMessageToConversation(data);
       await this.getAllConversation(true);
-      this.emailContent = "";
+      this.emailContent = '';
       this.modal.dismissAll();
       // this.scrollToBottom();
     } catch (e) {
       // Handle error here
       const message = e.message;
-      await Swal.fire("Error", message);
+      await Swal.fire('Error', message);
     } finally {
       this.isLoading = false;
       this.sendBtnClicked = false;
     }
   };
+
+  forwardToCampaignUserApiLoadig = false;
+  forwardToCampaignUser = async (conv) => {
+    const forwardEmail = localStorage.getItem('forwardEmail');
+    if (!forwardEmail) {
+      await Swal.fire('Error', 'Email address is missing!');
+      return;
+    }
+    const data = {
+      conversationId: this.selectedConversation.id,
+      conversationMessageId: conv.id,
+      receiverEmail: forwardEmail,
+      messageContent: this.extractUserReply(conv.messageContent),
+    };
+    try {
+      this.forwardToCampaignUserApiLoadig = true;
+      await this.dripCampaignService.forwardToCampaignUser(data);
+      await this.getAllConversation(true);
+    } catch (e) {
+      // Handle error here
+      const message = e.message;
+      await Swal.fire('Error', message);
+    } finally {
+      this.forwardToCampaignUserApiLoadig = false;
+    }
+  };
+
+  extractUserReply(emailHtml: string): string {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(emailHtml, 'text/html');
+
+    // Remove quoted reply sections (e.g., previous emails)
+    const quotes = doc.querySelectorAll('.gmail_quote, blockquote');
+    quotes.forEach(q => q.remove());
+
+    // Remove Gmail signature
+    const signatures = doc.querySelectorAll('.gmail_signature');
+    signatures.forEach(s => s.remove());
+
+    // Remove invisible tracking images (e.g., width/height 0)
+    const invisibleImgs = doc.querySelectorAll('img[width="0"][height="0"]');
+    invisibleImgs.forEach(img => img.remove());
+
+    // Remove all HTML tables
+    const tables = doc.querySelectorAll('table');
+    tables.forEach(table => table.remove());
+
+    // Extract the cleaned inner text or HTML
+    const body = doc.body;
+    return body?.innerHTML.trim() || '';
+  }
 
 
   conversationTapped = async (conv) => {
@@ -214,24 +287,23 @@ export class BrandConversationsComponent {
           companyName: conv.receiver_details.organization?.name,
           companyWebsite: conv.receiver_details.organization?.website_url,
           companyPhone: conv.receiver_details.organization?.phone,
-          companyInfo: "",
+          companyInfo: '',
         },
       };
     } else {
       this.selectedConversation = conv;
     }
+    console.log(this.selectedConversation);
 
     // Reversing conversations
-    this.selectedConversation["prospecting_conversations_messages"] =
-      this.selectedConversation["prospecting_conversations_messages"].sort((a, b) => {
-        return new Date(b["message_sent_at"]).getTime() - new Date(a["message_sent_at"]).getTime();
-      });
-
-    console.log(conv);
-    this.getProspectInfoApi({ contact_id: conv.receiver_details.id });
+    // this.selectedConversation["prospecting_conversations_messages"] =
+    //   this.selectedConversation["prospecting_conversations_messages"].sort((a, b) => {
+    //     return new Date(b["message_sent_at"]).getTime() - new Date(a["message_sent_at"]).getTime();
+    //   });
+    // this.getProspectInfoApi({ contact_id: conv.receiverDetails.id });
 
     // Update "unread" messages to read.
-    await this.httpService.post("prospect/updateConversation", {
+    await this.httpService.patch(`messages/${this.selectedConversation.id}`, {
       conversation_id: this.selectedConversation.id,
     }).toPromise();
 
@@ -240,12 +312,12 @@ export class BrandConversationsComponent {
     this.scrolledToBottom = false;
   };
 
-  formatPhoneNUmber = (number) => {
-    return PhoneNumberFormatter(number);
-  };
+  // formatPhoneNUmber = (number) => {
+  //   return PhoneNumberFormatter(number);
+  // };
 
   getProspectInfoApi = (postData) => {
-    const getProspectResponse = this.httpService.post("drip-campaigns/getProspectInfo", postData);
+    const getProspectResponse = this.httpService.post('drip-campaigns/getProspectInfo', postData);
     lastValueFrom(getProspectResponse).then(value => {
       if (value.data?.unsubscribe) this.unsubscribed = true;
     });
@@ -259,39 +331,37 @@ export class BrandConversationsComponent {
   //   });
   // };
 
-  convSearchText = "";
+  convSearchText = '';
   filterConversation = () => {
-    const postData = {
-      search_string: this.convSearchText,
-      supplier_id: this.userData.supplier_id,
-    };
     this.searchLoading = true;
-    const response = this.httpService.post("prospect/searchConversations", postData);
+    const companyId = this.userData.supplier_id;
+    const url = `messages/conversations/${companyId}?searchString=${this.convSearchText}`;
+    const response = this.httpService.get(url);
     lastValueFrom(response).then(res => {
       if (res.success) {
-        this.filteredConversations = res.data;
+        this.filteredConversations = res.data.conversations;
       }
       this.searchLoading = false;
     });
   };
 
   handleConvSearchInputChange = (ev) => {
-    if (ev.target.value === "") this.filteredConversations = this.conversations;
+    if (ev.target.value === '') this.filteredConversations = this.conversations;
   };
 
-  startAConversationBtnClick = () => {
-    this.router.navigate([routeConstants.BRAND.CREATE_DRIP_CAMPAIGN]);
-  };
+  // startAConversationBtnClick = () => {
+  //   this.router.navigate([routeConstants.BRAND.CREATE_DRIP_CAMPAIGN]);
+  // };
 
   unsubscribeBtnClick = async () => {
     let isConfirm = await Swal.fire({
-      title: "Are you sure?",
-      text: "You won't be able to revert this!",
-      icon: "warning",
+      title: 'Are you sure?',
+      text: 'You won\'t be able to revert this!',
+      icon: 'warning',
       showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Yes",
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes',
     });
 
     if (isConfirm.dismiss) {
@@ -303,7 +373,7 @@ export class BrandConversationsComponent {
       email: this.selectedConversation.receiver_email,
     };
 
-    const unsubscripbeApiResponse = this.httpService.post("email/unsubscribeFromDripCampaignViaBrandUser", postData);
+    const unsubscripbeApiResponse = this.httpService.post('email/unsubscribeFromDripCampaignViaBrandUser', postData);
     lastValueFrom(unsubscripbeApiResponse).then(value => {
       console.log(value);
       if (value.success) {
@@ -312,20 +382,18 @@ export class BrandConversationsComponent {
     });
   };
 
-  onSelectContact = (contact) => {
-    const index = this.selectedContacts.indexOf(contact);
-    if (index > -1) {
-      this.selectedContacts.splice(index, 1);
-    } else {
-      this.selectedContacts.push(contact);
-    }
-  };
-
   isContactSelected = (contact) => {
     return this.selectedContacts.indexOf(contact) > -1;
   };
 
   isAllContactSelected = () => {
+    // for (const conv of this.conversations) {
+    //   if (this.selectedContacts.indexOf(conv) === -1) {
+    //     return false;
+    //   }
+    // }
+    // return true;
+
     return this.conversations.every(conv => {
       return this.selectedContacts.indexOf(conv) > -1;
     });
@@ -345,17 +413,26 @@ export class BrandConversationsComponent {
     }
   };
 
+  onSelectContact = (contact) => {
+    const index = this.selectedContacts.indexOf(contact);
+    if (index > -1) {
+      this.selectedContacts.splice(index, 1);
+    } else {
+      this.selectedContacts.push(contact);
+    }
+  };
+
   deleteConversations = async () => {
     let isConfirm = await Swal.fire({
-      title: "Are you sure?",
-      text: "You won't be able to revert this!",
-      icon: "warning",
+      title: 'Are you sure?',
+      text: 'You won\'t be able to revert this!',
+      icon: 'warning',
       showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
       allowOutsideClick: false,
       allowEscapeKey: false,
-      confirmButtonText: "Yes, delete it!",
+      confirmButtonText: 'Yes, delete it!',
       showLoaderOnConfirm: true,
     });
 
@@ -363,22 +440,13 @@ export class BrandConversationsComponent {
       return;
     }
 
-
-    Swal.fire({
-      title: "",
-      text: "Please wait...",
-      showConfirmButton: false,
-      showCancelButton: false,
-      allowOutsideClick: false,
-      allowEscapeKey: false,
-    });
-    Swal.showLoading();
+    const swal = this.pageUiService.showSweetAlertLoading();
+    swal.showLoading();
 
     const contactIds = [];
-    this.selectedContacts.map(i => contactIds.push(i["id"]));
+    this.selectedContacts.map(i => contactIds.push(i['id']));
     const postData = {
-      supplier_id: this.userData.supplier_id,
-      conversation_ids: contactIds,
+      conversationIds: contactIds,
     };
 
     try {
@@ -386,10 +454,10 @@ export class BrandConversationsComponent {
       await this.getAllConversation(true);
       this.selectedContacts = [];
 
-      Swal.close();
+      swal.close();
     } catch (e) {
-      Swal.close();
-      await Swal.fire("Error", e.message);
+      swal.close();
+      await Swal.fire('Error', e.message);
     }
   };
 }
