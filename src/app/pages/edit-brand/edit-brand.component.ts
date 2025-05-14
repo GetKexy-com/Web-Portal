@@ -23,7 +23,7 @@ import {CommonModule} from '@angular/common';
   templateUrl: './edit-brand.component.html',
   styleUrl: './edit-brand.component.scss'
 })
-export class EditBrandComponent {
+export class EditBrandComponent implements OnInit {
   primaryForm: FormGroup;
   imageUrl: any = null;
   submitted = false;
@@ -46,14 +46,11 @@ export class EditBrandComponent {
   };
 
   supplier_id: number;
-  // zip_code_list: [];
   zip_code: string;
-  side: string;
 
   constructor(
     private _authService: AuthService,
     private httpService: HttpService,
-    private router: Router,
     private fb: FormBuilder
   ) {}
 
@@ -75,13 +72,11 @@ export class EditBrandComponent {
 
     this.zip_code = this.userData.zip_code;
 
-    if (!this.userData.supplier_country || this.userData.supplier_country == null) {
+    if (!this.userData.supplier_country) {
       this.userData.supplier_country = "US";
     }
-    this.side = this.userData.side;
 
     this.primaryForm = new FormGroup({
-      side: new FormControl('BOH', Validators.compose([Validators.required])),
       name: new FormControl(
         this.userData.supplier_name,
         Validators.compose([Validators.required, Validators.minLength(0), Validators.maxLength(64)])
@@ -95,17 +90,13 @@ export class EditBrandComponent {
           Validators.pattern(/^\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$/),
         ])
       ),
-      street_address: new FormControl(
-        this.userData.supplier_street_address,
-        Validators.compose([Validators.required, Validators.minLength(0), Validators.maxLength(64)])
-      ),
       country: new FormControl(
         { value: this.userData.supplier_country, disabled: true },  // Initially disabled
         [Validators.required, Validators.minLength(0), Validators.maxLength(21)]
       ),
       city: new FormControl(
         this.userData.supplier_city,
-        Validators.compose([Validators.required, Validators.minLength(0), Validators.maxLength(21)])
+        Validators.compose([Validators.minLength(0), Validators.maxLength(21)])
       ),
       zip_code: new FormControl(
         this.zip_code,
@@ -113,12 +104,12 @@ export class EditBrandComponent {
       ),
       state: new FormControl(
         this.userData.supplier_state,
-        Validators.compose([Validators.required, Validators.minLength(0), Validators.maxLength(21)])
+        Validators.compose([Validators.minLength(0), Validators.maxLength(21)])
       ),
     });
     this.getCountryList();
 
-    if (!this.userData.supplier_country || this.userData.supplier_country == null) {
+    if (!this.userData.supplier_country) {
       this.userData.supplier_country = "US";
     }
     this.getStateList(this.userData.supplier_country);
@@ -129,7 +120,6 @@ export class EditBrandComponent {
     this.geolocationDetails.state = "";
     this.states = states.filter((s) => s.countryCode === country);
     this.states = this.states.sort((a, b) => a.name.localeCompare(b.name));
-    console.log("states", this.states);
 
     const userCountry = this.countries.filter((c) => {
       return c.isoCode == country;
@@ -204,66 +194,55 @@ export class EditBrandComponent {
   async primaryFormSubmitted() {
     this.submitted = true;
 
-    console.log("submitted data", this.primaryForm);
 
     if (!this.primaryForm.valid) {
+      console.log("submitted data", this.primaryForm);
       return;
     }
 
     const data = {
-      supplier_id: "",
-      logo_image: this.imageUrl,
-      phone_country_code: this.phoneCode,
+      logoImage: this.imageUrl,
+      phoneCountryCode: this.phoneCode,
       zip_code: "",
-      zip_code_list: [{}],
+      zipCodeList: [{}],
     };
 
     Object.assign(data, this.primaryForm.getRawValue());
     // let data = this.primaryForm.value;
     // zip code list changed
-    const zip_code_data = [{ zip_code: data.zip_code }];
-    data.zip_code_list = zip_code_data;
-    data.supplier_id = this.userData.supplier_id;
+    data.zipCodeList = [data.zip_code];
 
     delete data.zip_code;
 
     if (this.newImageUploaded) {
-      data.logo_image = this.imageUrl;
+      data.logoImage = this.imageUrl;
     } else {
-      delete data.logo_image;
+      delete data.logoImage;
     }
 
-    console.log("edit company", data);
-
     this.isWaitingFlag = true;
-    this.httpService.post("supplier/edit", data).subscribe((response) => {
+    this.httpService.patch(`company/${this.userData.supplier_id}`, data).subscribe((response) => {
       if (response.success) {
-        const companyResponseData = response.data.company;
+        console.log("success", response);
+        const companyResponseData = response.data;
         this.isWaitingFlag = false;
 
-        if (companyResponseData.side) {
-          localStorage.setItem("side", companyResponseData.side);
-        }
-
-        this.userData.side = companyResponseData.side;
-        this.side = this.userData.side;
         this.userData.supplier_name = companyResponseData.name;
         this.userData.supplier_phone = companyResponseData.phone;
         this.userData.supplier_country = companyResponseData.country;
         this.userData.supplier_city = companyResponseData.city;
         this.userData.supplier_state = companyResponseData.state;
         this.userData.supplier_street_address = companyResponseData.street_address;
-        this.userData.zip_code_list = companyResponseData.zip_code_list;
+        this.userData.zip_code = companyResponseData.zipCodeList[0];
 
-        if (companyResponseData.logo_image_url) {
-          this.userData.supplier_logo = companyResponseData.logo_image_url;
+        if (companyResponseData.logoImage) {
+          this.userData.supplier_logo = companyResponseData.logoImage.name;
         }
 
         localStorage.setItem("userToken", JSON.stringify(this.userData));
 
         Swal.fire("Done!", "Saved successfully!", "success");
 
-        this.httpService.post("user/setUsersActionLog", { actionType: "Edited company info" }).toPromise();
       } else {
         this.isWaitingFlag = false;
         let message = "There was an error!";

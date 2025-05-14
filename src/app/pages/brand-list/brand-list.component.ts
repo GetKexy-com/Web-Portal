@@ -238,11 +238,25 @@ export class BrandListComponent implements OnInit {
       subscription = company.subscription[company.subscription.length - 1];
     }
 
+    let zipCode;
+    if (company.zipCodeList) {
+      if (typeof company.zipCodeList === 'string') {
+        zipCode = JSON.parse(company.zipCodeList);
+        zipCode = zipCode[0];
+        if (typeof zipCode === 'object') {
+          zipCode = zipCode?.zip_code
+        }
+
+      } else {
+        zipCode = company.zipCodeList[0]?.zip_code;
+      }
+    }
+
     // Update user data
     const updatedUserData = {
       ...userData,
       supplier_id: company.id,
-      zip_code: company.zip_code_list?.[0]?.zip_code ?? '',
+      zip_code: zipCode ?? '',
       job_title: data["jobTitle"] ?? '',
       role: data.role ?? '',
       isAdmin: data.role === constants.ADMIN,

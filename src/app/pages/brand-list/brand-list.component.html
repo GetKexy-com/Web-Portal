@@ -81,7 +81,7 @@
                       >
                         <div class="row organization-row">
                           <div class="organization-logo">
-                            @if (row["company"]["logoImage"]["name"]) {
+                            @if (row["company"]["logoImage"]) {
                               <img [src]="baseImageUrl() + row['company']['logoImage']['name']" alt="" />
                             } @else {
                               <img src="/assets/images/no-image.jpg" alt="" />
