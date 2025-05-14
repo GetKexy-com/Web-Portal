@@ -333,15 +333,13 @@ export class BrandConversationsComponent implements OnInit, OnDestroy {
 
   convSearchText = '';
   filterConversation = () => {
-    const postData = {
-      search_string: this.convSearchText,
-      supplier_id: this.userData.supplier_id,
-    };
     this.searchLoading = true;
-    const response = this.httpService.post('prospect/searchConversations', postData);
+    const companyId = this.userData.supplier_id;
+    const url = `messages/conversations/${companyId}?searchString=${this.convSearchText}`;
+    const response = this.httpService.get(url);
     lastValueFrom(response).then(res => {
       if (res.success) {
-        this.filteredConversations = res.data;
+        this.filteredConversations = res.data.conversations;
       }
       this.searchLoading = false;
     });
