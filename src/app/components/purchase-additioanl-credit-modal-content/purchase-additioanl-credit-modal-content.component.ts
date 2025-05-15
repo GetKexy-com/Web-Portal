@@ -107,7 +107,7 @@
 //   };
 // }
 
-import { Component, inject, signal } from '@angular/core';
+import {Component, inject, OnInit, signal} from '@angular/core';
 import { NgxSliderModule, Options } from "@angular-slider/ngx-slider";
 import { lastValueFrom } from "rxjs";
 import { constants } from "../../helpers/constants";
@@ -136,7 +136,7 @@ interface CreditPrice {
   templateUrl: './purchase-additioanl-credit-modal-content.component.html',
   styleUrl: './purchase-additioanl-credit-modal-content.component.scss'
 })
-export class PurchaseAdditioanlCreditModalContentComponent {
+export class PurchaseAdditioanlCreditModalContentComponent implements OnInit {
   // Services
   private httpService = inject(HttpService);
   private authService = inject(AuthService);
@@ -190,13 +190,14 @@ export class PurchaseAdditioanlCreditModalContentComponent {
   private async userOrganisationApiCall(): Promise<void> {
     const subscriptionData = await this.authService.getSubscriptionData(true);
     this.subscription.set(subscriptionData);
+    console.log('subscriptionData', subscriptionData);
 
     this.additionalCreditUsage.set({
       ...this.additionalCreditUsage(),
-      ...subscriptionData.subscription_additional_credits
+      ...subscriptionData.additionalCredits
     });
 
-    const lastCreditInfo = subscriptionData.subscription_credits.at(-1);
+    const lastCreditInfo = subscriptionData.credits.at(-1);
     this.creditsInfo.set(lastCreditInfo);
   }
 

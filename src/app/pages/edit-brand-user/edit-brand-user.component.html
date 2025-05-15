@@ -15,15 +15,15 @@
     <div class="form-group">
       <input
         [class.error]="
-          (submitted || primaryForm.controls['first_name'].dirty) && primaryForm.controls['first_name'].invalid
+          (submitted || primaryForm.controls['firstName'].dirty) && primaryForm.controls['firstName'].invalid
         "
         type="text"
-        formControlName="first_name"
+        formControlName="firstName"
         class="form-control"
         placeholder="First Name"
       />
       <div
-        *ngIf="primaryForm.controls['first_name'].invalid && (submitted || primaryForm.controls['first_name'].dirty)"
+        *ngIf="primaryForm.controls['firstName'].invalid && (submitted || primaryForm.controls['firstName'].dirty)"
       >
         <span class="text-danger">Please enter a valid First Name.</span>
       </div>
@@ -31,14 +31,14 @@
     <div class="form-group">
       <input
         [class.error]="
-          (submitted || primaryForm.controls['last_name'].dirty) && primaryForm.controls['last_name'].invalid
+          (submitted || primaryForm.controls['lastName'].dirty) && primaryForm.controls['lastName'].invalid
         "
         type="text"
-        formControlName="last_name"
+        formControlName="lastName"
         class="form-control"
         placeholder="Last Name"
       />
-      <div *ngIf="primaryForm.controls['last_name'].invalid && (submitted || primaryForm.controls['last_name'].dirty)">
+      <div *ngIf="primaryForm.controls['lastName'].invalid && (submitted || primaryForm.controls['lastName'].dirty)">
         <span class="text-danger">Please enter a valid Last Name.</span>
       </div>
     </div>

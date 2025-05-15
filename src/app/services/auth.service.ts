@@ -123,8 +123,8 @@ export class AuthService {
         subscription.subscription_payments = subscription.payments.filter(p => {
           return p.success === true && p.reccuring !== "day";
         });
-        const paymentsLength = subscription.subscription_payments.length - 1;
-        let productDetails = subscription.subscription_payments[paymentsLength].subscriptionProduct;
+        // const paymentsLength = subscription.subscription_payments.length - 1;
+        let productDetails = subscription.subscription_payments[0].subscriptionProduct;
         if (!productDetails) {
           productDetails = {
             name: constants.NOVICE,

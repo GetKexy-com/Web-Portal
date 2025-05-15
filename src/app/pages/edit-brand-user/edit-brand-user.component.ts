@@ -19,15 +19,15 @@ import {CommonModule} from '@angular/common';
   templateUrl: './edit-brand-user.component.html',
   styleUrl: './edit-brand-user.component.scss'
 })
-export class EditBrandUserComponent {
+export class EditBrandUserComponent implements OnInit {
   primaryForm: FormGroup;
   imageUrl: any = null;
   submitted: boolean = false;
   error;
   isWaitingFlag: boolean = false;
   email: string;
-  first_name: string;
-  last_name: string;
+  firstName: string;
+  lastName: string;
   phone: string;
   userData;
   private emailBackup = null;
@@ -35,7 +35,7 @@ export class EditBrandUserComponent {
   private jobTitleBackup = null;
   private newImageUploaded = false;
 
-  constructor(private _authService: AuthService, private httpService: HttpService, private router: Router) {
+  constructor(private _authService: AuthService, private httpService: HttpService) {
   }
 
   ngOnInit() {
@@ -43,17 +43,18 @@ export class EditBrandUserComponent {
     document.title = "Edit Profile - KEXY Brand Webportal";
 
     this.userData = this._authService.userTokenValue;
+    console.log('userData', this.userData);
     this.emailBackup = this.userData.email;
     this.phoneBackup = this.userData.phone;
     this.jobTitleBackup = this.userData.job_title;
 
-    if (this.userData.logo_image_url) {
-      this.imageUrl = environment.imageUrl + this.userData.logo_image_url;
+    if (this.userData.logoImage) {
+      this.imageUrl = environment.imageUrl + this.userData.logoImage.name;
     }
 
     this.primaryForm = new FormGroup({
-      first_name: new FormControl(
-        this.userData.first_name,
+      firstName: new FormControl(
+        this.userData.firstName,
         Validators.compose([
           Validators.required,
           Validators.minLength(0),
@@ -61,8 +62,8 @@ export class EditBrandUserComponent {
           Validators.pattern("^[a-zA-Z- ]+$"),
         ]),
       ),
-      last_name: new FormControl(
-        this.userData.last_name,
+      lastName: new FormControl(
+        this.userData.lastName,
         Validators.compose([
           Validators.required,
           Validators.minLength(0),
@@ -89,7 +90,7 @@ export class EditBrandUserComponent {
     this.isWaitingFlag = true;
     let form = this.primaryForm.value;
     if (this.newImageUploaded) {
-      form.profile_photo = this.imageUrl;
+      form.profilePhoto = this.imageUrl;
     }
 
     delete form.role;
@@ -97,13 +98,14 @@ export class EditBrandUserComponent {
 
     if (form.phone != undefined) form.phone = form.phone.replace(/\D/g, "");
 
-    this.httpService.post("user/editProfile", form).subscribe((response) => {
+    this.httpService.patch("users", form).subscribe((response) => {
       if (response.success) {
         this.isWaitingFlag = false;
 
-        this.userData.first_name = form.first_name;
-        this.userData.last_name = form.last_name;
-        if (response.data.user.logo_image_url) this.userData.logo_image_url = response.data.user.logo_image_url;
+        this.userData.firstName = form.firstName;
+        this.userData.lastName = form.lastName;
+        if (response.data.logoImage.name) this.userData.logoImage = response.data.logoImage;
+        console.log('patch user', this.userData);
 
         localStorage.setItem("userToken", JSON.stringify(this.userData));
 

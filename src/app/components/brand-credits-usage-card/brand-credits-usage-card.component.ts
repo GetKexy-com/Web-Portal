@@ -1,5 +1,5 @@
 import { Component, ElementRef, OnInit, ViewChild } from "@angular/core";
-import { NgbModal } from "@ng-bootstrap/ng-bootstrap";
+import {NgbModal, NgbTooltip} from "@ng-bootstrap/ng-bootstrap";
 import { AuthService } from "../../services/auth.service";
 import { constants } from "../../helpers/constants";
 import Swal from "sweetalert2";
@@ -21,11 +21,12 @@ import {
     CreditsUsageContentComponent,
     CreditsPageSubscriptionCardComponent,
     CommonModule,
+    NgbTooltip,
   ],
   templateUrl: './brand-credits-usage-card.component.html',
   styleUrl: './brand-credits-usage-card.component.scss'
 })
-export class BrandCreditsUsageCardComponent {
+export class BrandCreditsUsageCardComponent implements OnInit {
   monthlyCreditUsage = constants.MONTHLY_CREDIT_INFO;
   additionalCreditUsage = constants.ADDITIONAL_CREDIT_INFO;
   isLoading: boolean = false;
