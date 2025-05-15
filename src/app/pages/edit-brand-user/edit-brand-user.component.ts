@@ -94,35 +94,44 @@ export class EditBrandUserComponent implements OnInit {
     }
 
     delete form.role;
-    delete form.email;
+    // delete form.email;
 
     if (form.phone != undefined) form.phone = form.phone.replace(/\D/g, "");
 
-    this.httpService.patch("users", form).subscribe((response) => {
-      if (response.success) {
-        this.isWaitingFlag = false;
+    this.isWaitingFlag = true;
 
-        this.userData.firstName = form.firstName;
-        this.userData.lastName = form.lastName;
-        if (response.data.logoImage.name) this.userData.logoImage = response.data.logoImage;
-        console.log('patch user', this.userData);
+    this.httpService.patch("users", form).subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.isWaitingFlag = false;
 
-        localStorage.setItem("userToken", JSON.stringify(this.userData));
+          this.userData.firstName = form.firstName;
+          this.userData.lastName = form.lastName;
+          this.userData.email = form.email;
+          if (response.data.logoImage?.name) {
+            this.userData.logoImage = response.data.logoImage;
+          }
 
-        Swal.fire("Done!", "Saved successfully!", "success");
-      } else {
+          localStorage.setItem("userToken", JSON.stringify(this.userData));
+
+          Swal.fire("Done!", "Saved successfully!", "success");
+        }
+      },
+      error: (e) => {
         this.isWaitingFlag = false;
         let message = "There was an error!";
-        if (response.error && response.error.code && response.error.message) {
-          message = response.error.message;
+        if (e?.error) {
+          message = e.error;
         }
+
         Swal.fire({
           icon: "error",
           title: "Oops...",
           text: message,
         });
-      }
+      },
     });
+
   }
 
   openFileDialog() {
