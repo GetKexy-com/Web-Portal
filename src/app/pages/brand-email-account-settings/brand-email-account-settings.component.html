@@ -43,7 +43,7 @@
 
         <div class="d-flex gap-3 mt-3">
           <app-kexy-button
-            label="Connect with gmail"
+            label="Connect with Gmail"
             type="button"
             iconLeft="fa-google"
             bgColor="transparent"
@@ -54,7 +54,7 @@
           ></app-kexy-button>
 
           <app-kexy-button
-            label="Connect with smtp"
+            label="Connect with Smtp"
             type="button"
             bgColor="transparent"
             [borderColor]="smtpConnectionType === constants.SMTP ? '#0047cc' : 'black'"
@@ -73,9 +73,9 @@
                     From name
                     <i class="fa fa-asterisk" aria-hidden="true"></i>
                   </label>
-                  <input type="text" class="form-control" placeholder="Enter your name" name="name"
-                         formControlName="from_name" />
-                  <div *ngIf="formValidationErrorCheck('from_name')">
+                  <input type="text" class="form-control" placeholder="Enter your name" name="smtpFromName"
+                         formControlName="smtpFromName" />
+                  <div *ngIf="formValidationErrorCheck('smtpFromName')">
                     <error-message-card message="Field is required!"></error-message-card>
                   </div>
                 </div>
@@ -86,9 +86,9 @@
                   </label>
                   <input type="email" class="form-control"
                          placeholder="Enter email address"
-                         name="smtp_email_username"
-                         formControlName="smtp_email_username" />
-                  <div *ngIf="formValidationErrorCheck('smtp_email_username')">
+                         name="smtpUsername"
+                         formControlName="smtpUsername" />
+                  <div *ngIf="formValidationErrorCheck('smtpUsername')">
                     <error-message-card message="Field is required!"></error-message-card>
                   </div>
                 </div>
@@ -97,24 +97,24 @@
                     Host
                     <i class="fa fa-asterisk" aria-hidden="true"></i>
                   </label>
-                  <input type="text" class="form-control" placeholder="Enter SMTP host" name="host"
-                         formControlName="host" />
-                  <div *ngIf="formValidationErrorCheck('host')">
+                  <input type="text" class="form-control" placeholder="Enter SMTP host" name="smtpHost"
+                         formControlName="smtpHost" />
+                  <div *ngIf="formValidationErrorCheck('smtpHost')">
                     <error-message-card message="Field is required!"></error-message-card>
                   </div>
                 </div>
                 <div class="col-12 mt-3 ps-0">
                   <div class="d-flex align-items-center gap-3">
                     <div>
-                      <input type="radio" id="tls" name="smtp_security" value="tls" formControlName="smtp_security">
+                      <input type="radio" id="tls" name="smtpSecurityType" value="tls" formControlName="smtpSecurityType">
                       <label for="tls" class="ms-1">TLS</label><br>
                     </div>
                     <div>
-                      <input type="radio" id="ssl" name="smtp_security" value="ssl" formControlName="smtp_security">
+                      <input type="radio" id="ssl" name="smtpSecurityType" value="ssl" formControlName="smtpSecurityType">
                       <label for="ssl" class="ms-1">SSL</label><br>
                     </div>
                     <div>
-                      <input type="radio" id="none" name="smtp_security" value="none" formControlName="smtp_security">
+                      <input type="radio" id="none" name="smtpSecurityType" value="none" formControlName="smtpSecurityType">
                       <label for="none" class="ms-1">None</label>
                     </div>
                   </div>
@@ -145,9 +145,9 @@
                     From email
                     <i class="fa fa-asterisk" aria-hidden="true"></i>
                   </label>
-                  <input type="email" class="form-control" placeholder="Enter email address" name="email"
-                         formControlName="from_email" />
-                  <div *ngIf="formValidationErrorCheck('from_email')">
+                  <input type="email" class="form-control" placeholder="Enter email address" name="smtpFromEmail"
+                         formControlName="smtpFromEmail" />
+                  <div *ngIf="formValidationErrorCheck('smtpFromEmail')">
                     <error-message-card message="Field is required!"></error-message-card>
                   </div>
                 </div>
@@ -157,9 +157,9 @@
                     <i class="fa fa-asterisk" aria-hidden="true"></i>
                   </label>
                   <input type="password" class="form-control" placeholder="Enter password"
-                         name="password"
-                         formControlName="password" />
-                  <div *ngIf="formValidationErrorCheck('password')">
+                         name="smtpPassword"
+                         formControlName="smtpPassword" />
+                  <div *ngIf="formValidationErrorCheck('smtpPassword')">
                     <error-message-card message="Field is required!"></error-message-card>
                   </div>
                 </div>
