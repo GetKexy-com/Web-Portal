@@ -62,7 +62,7 @@
     </div>
     @if (!isLoading()) {
       <div class="right-side d-flex">
-        @if (productDetails().subscriptionProduct.type !== constants.BRAND_NOVICE) {
+        @if (productDetails()?.subscriptionProduct.type !== constants.BRAND_NOVICE) {
           <app-kexy-button
             label="Update Payment Method"
             [iconLeft]="isLoading() ? 'fa-refresh fa-spin' : 'fa-credit-card'"

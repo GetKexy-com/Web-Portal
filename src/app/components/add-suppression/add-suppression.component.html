@@ -103,12 +103,12 @@
                   }
                   <input
                     class="form-control"
-                    [(ngModel)]="user.contact_first_name"
+                    [(ngModel)]="user.contactFirstName"
                     [ngModelOptions]="{ standalone: true }"
                     type="text"
                     placeholder="John"
                   />
-                  @if (submitted() && !user.contact_first_name) {
+                  @if (submitted() && !user.contactFirstName) {
                     <error-message-card message="Field is required!" />
                   }
                 </div>
@@ -122,12 +122,12 @@
                   }
                   <input
                     class="form-control"
-                    [(ngModel)]="user.contact_last_name"
+                    [(ngModel)]="user.contactLastName"
                     [ngModelOptions]="{ standalone: true }"
                     type="text"
                     placeholder="Doe"
                   />
-                  @if (submitted() && !user.contact_last_name) {
+                  @if (submitted() && !user.contactLastName) {
                     <error-message-card message="Field is required!" />
                   }
                 </div>
@@ -141,12 +141,12 @@
                   }
                   <input
                     class="form-control"
-                    [(ngModel)]="user.contact_email"
+                    [(ngModel)]="user.contactEmail"
                     [ngModelOptions]="{ standalone: true }"
                     type="email"
                     placeholder="john@email.com"
                   />
-                  @if (submitted() && !user.contact_email) {
+                  @if (submitted() && !user.contactEmail) {
                     <error-message-card message="Field is required!" />
                   }
                 </div>

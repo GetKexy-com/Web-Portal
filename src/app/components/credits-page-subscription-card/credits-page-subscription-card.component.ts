@@ -186,16 +186,16 @@ export class CreditsPageSubscriptionCardComponent implements OnInit {
     //   )
     // );
 
-    this.getPricePerMonthForAUser();
-
     if (!this.productDetails()) {
       this.productDetails.set({
-        subscription_product: {
+        subscriptionProduct: {
           name: "Novice",
           price: 0,
         }
       });
     }
+
+    this.getPricePerMonthForAUser();
 
     this.creditsInfo.set(
       this.subscription().subscription_credits[

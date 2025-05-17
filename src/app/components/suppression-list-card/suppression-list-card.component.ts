@@ -13,7 +13,7 @@ import {FormsModule} from '@angular/forms';
   templateUrl: './suppression-list-card.component.html',
   styleUrl: './suppression-list-card.component.scss'
 })
-export class SuppressionListCardComponent {
+export class SuppressionListCardComponent implements OnInit, OnDestroy {
   @Input() tableHeaderBg;
   @Input() tableHeaderColor;
   @Input() cardData = [];
@@ -62,9 +62,9 @@ export class SuppressionListCardComponent {
     let columnList: any;
     columnList = [
       { name: "", key: "action", width: 50 },
-      { name: "First Name", key: "contact_first_name", width: 120 },
-      { name: "Last Name", key: "contact_last_name", width: 120 },
-      { name: "Email", key: "contact_email", width: 120 },
+      { name: "First Name", key: "contactFirstName", width: 120 },
+      { name: "Last Name", key: "contactLastName", width: 120 },
+      { name: "Email", key: "contactEmail", width: 120 },
     ];
     this.columnList = columnList;
   };

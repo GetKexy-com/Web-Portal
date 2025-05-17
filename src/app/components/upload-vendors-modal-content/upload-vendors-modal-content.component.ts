@@ -6,6 +6,12 @@ import { DripCampaignService } from "../../services/drip-campaign.service";
 import {KexyButtonComponent} from '../kexy-button/kexy-button.component';
 import {FileDropComponent} from '../file-drop/file-drop.component';
 
+interface SuppressionUser {
+  contactFirstName: string;
+  contactLastName: string;
+  contactEmail: string;
+}
+
 @Component({
   selector: 'upload-vendors-modal-content',
   imports: [
@@ -16,7 +22,7 @@ import {FileDropComponent} from '../file-drop/file-drop.component';
   templateUrl: './upload-vendors-modal-content.component.html',
   styleUrl: './upload-vendors-modal-content.component.scss'
 })
-export class UploadVendorsModalContentComponent {
+export class UploadVendorsModalContentComponent implements OnInit {
   @Input() closeModal;
   userData;
 
@@ -56,23 +62,23 @@ export class UploadVendorsModalContentComponent {
     this.fileInfo = "";
   };
 
-  userObjList = [];
+  userObjList: SuppressionUser[] = [];
   submitted: boolean = false;
   isLoading: boolean = false;
   saveBtnClicked = async () => {
     this.submitted = true;
 
     // Set matching key value pair from parsed file data
-    if (this.userObjList.length) {
-      this.userObjList.map(i => {
-        i.contact_first_name = i["First Name"];
-        i.contact_last_name = i["Last Name"];
-        i.contact_email = i["Email"];
-      });
-    }
+    // if (this.userObjList.length) {
+    //   this.userObjList.map(i => {
+    //     i.contactFirstName = i["First Name"];
+    //     i.contactLastName = i["Last Name"];
+    //     i.contactEmail = i["Email"];
+    //   });
+    // }
 
     // Validation check
-    if (!this.userObjList.length && !this.userObjList.some((i) => i.contact_first_name && i.contact_last_name && i.contact_email)) {
+    if (!this.userObjList.length && !this.userObjList.some((i) => i.contactFirstName && i.contactLastName && i.contactEmail)) {
       console.log(this.userObjList);
       await Swal.fire("Error", "Validation error!");
       return;
@@ -81,9 +87,11 @@ export class UploadVendorsModalContentComponent {
     this.isLoading = true;
 
     const payload = {
-      supplier_id: this.userData.supplier_id,
-      suppression_users: this.userObjList,
+      companyId: this.userData.supplier_id,
+      suppressionUsers: this.userObjList,
     };
+    console.log(payload);
+    return;
     try {
       await this.dripCampaignService.addDripCampaignSuppressionUsers(payload);
       const suppressionListApiPostData = this.dripCampaignService.suppressionListApiPostData;

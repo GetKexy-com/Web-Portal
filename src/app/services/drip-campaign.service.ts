@@ -446,8 +446,8 @@ export class DripCampaignService {
   addDripCampaignSuppressionUsers = async (postData) => {
     // let suppressionList = [...this._dripCampaignSuppressionList.getValue()];
     return new Promise(async (resolve, reject) => {
-      this.httpService.post('supplier/addSuppressionUser', postData).subscribe((res) => {
-        console.log('res', res);
+      this.httpService.post("suppression-list", postData).subscribe((res) => {
+        console.log("res", res);
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -466,7 +466,8 @@ export class DripCampaignService {
 
   getSuppressionList = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post('supplier/getSuppressionUsers', postData).subscribe((res) => {
+      const url = `suppression-list/company/${postData.supplier_id}`;
+      this.httpService.get(url).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -482,7 +483,9 @@ export class DripCampaignService {
 
   deleteSuppressionUser = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post('supplier/deleteSuppressionUser', postData).subscribe((res) => {
+      const url = `suppression-list/${postData.companyId}`;
+      delete postData.companyId;
+      this.httpService.delete(url, postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);

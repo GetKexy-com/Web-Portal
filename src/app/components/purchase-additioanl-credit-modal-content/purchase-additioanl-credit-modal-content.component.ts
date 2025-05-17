@@ -118,6 +118,8 @@ import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { KexyButtonComponent } from '../kexy-button/kexy-button.component';
 import { CurrencyPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import {environment} from '../../../environments/environment';
+import {routeConstants} from '../../helpers/routeConstants';
 
 interface CreditPrice {
   credit: number;
@@ -219,18 +221,21 @@ export class PurchaseAdditioanlCreditModalContentComponent implements OnInit {
     }
 
     const postData = {
-      credits_type: creditsType,
-      supplier_id: this.authService.userTokenValue.supplier_id,
-      subscription_id: this.subscription()?.id,
-      promotion_code: this.couponCode(),
+      creditsType: creditsType,
+      companyId: this.authService.userTokenValue.supplier_id,
+      subscriptionId: this.subscription()?.id,
+      promotionCode: this.couponCode(),
+      successUrl: environment.siteUrl + routeConstants.BASE_URL + routeConstants.BRAND.SUBSCRIPTION,
+      cancelUrl: environment.siteUrl + routeConstants.BASE_URL + routeConstants.BRAND.SUBSCRIPTION
     };
 
     this.isLoading.set(true);
 
     try {
       const paymentResponse = await lastValueFrom(
-        this.httpService.post("payment/makePaymentForAdditionalCredits", postData)
+        this.httpService.post("subscriptions/checkout-additional-credits", postData)
       );
+      console.log(paymentResponse)
 
       if (paymentResponse.success) {
         localStorage.setItem(constants.ADDITIONAL_CREDIT_PURCHASE, "true");
@@ -240,7 +245,7 @@ export class PurchaseAdditioanlCreditModalContentComponent implements OnInit {
         );
 
         this.activeModal.close();
-        window.open(paymentResponse.data, "_blank");
+        window.open(paymentResponse.data.session.url, "_blank");
       } else {
         Swal.fire("Error", paymentResponse.error?.message || 'Payment failed');
       }

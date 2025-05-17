@@ -646,6 +646,7 @@ export class GenerateDripCampaignComponent implements OnInit {
         );
 
       await this.exportCSV(insightsArray);
+
     } finally {
       swal.close();
     }
@@ -672,7 +673,7 @@ export class GenerateDripCampaignComponent implements OnInit {
         emailSubject: email.emailSubject,
       };
 
-      switch (insight.insight_type) {
+      switch (insight.insightType) {
         case constants.CLICK:
           clickedInsights.push(enrichedInsight);
           break;
@@ -692,7 +693,7 @@ export class GenerateDripCampaignComponent implements OnInit {
     const contactsMap = {};
 
     insights.forEach(insight => {
-      const contact = insight.kexy_contact;
+      const contact = insight.contact;
       if (!contact) return;
 
       const contactId = contact.id;
@@ -766,8 +767,8 @@ export class GenerateDripCampaignComponent implements OnInit {
           value?.toString().replace(/,/g, " ") || "";
 
         return [
-          escapeCsv(details["firstName"]),
-          escapeCsv(details["lastName"]),
+          escapeCsv(details["first_name"]),
+          escapeCsv(details["last_name"]),
           escapeCsv(contact["emailSequence"]),
           escapeCsv(contact["emailSubject"]),
           escapeCsv(contact["openCount"]),
