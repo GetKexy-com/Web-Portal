@@ -42,7 +42,12 @@ export class UploadVendorsModalContentComponent implements OnInit {
     this.fileInfo = fileInfo;
     const base64Data = file.split(",")[1];
     const decodedString = atob(base64Data);
-    this.userObjList = this.parseCSV(decodedString);
+    const rows = this.parseCSV(decodedString);
+    this.userObjList = rows.map((row: any) => ({
+      contactFirstName: row["First Name"],
+      contactLastName: row["Last Name"],
+      contactEmail: row["Email"],
+    }));
   };
 
   parseCSV(csvContent: string): any[] {
@@ -68,15 +73,6 @@ export class UploadVendorsModalContentComponent implements OnInit {
   saveBtnClicked = async () => {
     this.submitted = true;
 
-    // Set matching key value pair from parsed file data
-    // if (this.userObjList.length) {
-    //   this.userObjList.map(i => {
-    //     i.contactFirstName = i["First Name"];
-    //     i.contactLastName = i["Last Name"];
-    //     i.contactEmail = i["Email"];
-    //   });
-    // }
-
     // Validation check
     if (!this.userObjList.length && !this.userObjList.some((i) => i.contactFirstName && i.contactLastName && i.contactEmail)) {
       console.log(this.userObjList);
@@ -90,8 +86,6 @@ export class UploadVendorsModalContentComponent implements OnInit {
       companyId: this.userData.supplier_id,
       suppressionUsers: this.userObjList,
     };
-    console.log(payload);
-    return;
     try {
       await this.dripCampaignService.addDripCampaignSuppressionUsers(payload);
       const suppressionListApiPostData = this.dripCampaignService.suppressionListApiPostData;
