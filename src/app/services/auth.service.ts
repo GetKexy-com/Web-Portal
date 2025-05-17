@@ -124,7 +124,7 @@ export class AuthService {
           return p.success === true && p.reccuring !== "day";
         });
         // const paymentsLength = subscription.subscription_payments.length - 1;
-        let productDetails = subscription.subscription_payments[0].subscriptionProduct;
+        let productDetails = subscription.subscription_payments[0]?.subscriptionProduct;
         if (!productDetails) {
           productDetails = {
             name: constants.NOVICE,
@@ -157,6 +157,7 @@ export class AuthService {
             subscription.subscription_additional_credits = additionalCreditsInfo;
           }
         }
+        console.log('subscription from auth service', subscription);
         return subscription;
       }
     }

@@ -94,9 +94,9 @@ import Swal from 'sweetalert2';
 import {ErrorMessageCardComponent} from '../error-message-card/error-message-card.component';
 
 interface SuppressionUser {
-  contact_first_name: string;
-  contact_last_name: string;
-  contact_email: string;
+  contactFirstName: string;
+  contactLastName: string;
+  contactEmail: string;
 }
 
 @Component({
@@ -125,9 +125,9 @@ export class AddSuppressionComponent {
   // User list
   userObjList = signal<SuppressionUser[]>([
     {
-      contact_first_name: "",
-      contact_last_name: "",
-      contact_email: "",
+      contactFirstName: "",
+      contactLastName: "",
+      contactEmail: "",
     }
   ]);
 
@@ -140,9 +140,9 @@ export class AddSuppressionComponent {
     this.userObjList.update(users => [
       ...users,
       {
-        contact_first_name: "",
-        contact_last_name: "",
-        contact_email: "",
+        contactFirstName: "",
+        contactLastName: "",
+        contactEmail: "",
       }
     ]);
   }
@@ -157,9 +157,9 @@ export class AddSuppressionComponent {
 
     // Validate at least one complete user entry
     const hasValidEntry = this.userObjList().some(user =>
-      user.contact_first_name &&
-      user.contact_last_name &&
-      user.contact_email
+      user.contactFirstName &&
+      user.contactLastName &&
+      user.contactEmail
     );
 
     if (!hasValidEntry) {
@@ -169,8 +169,8 @@ export class AddSuppressionComponent {
     this.isLoading.set(true);
 
     const payload = {
-      supplier_id: this.supplierId(),
-      suppression_users: this.userObjList(),
+      companyId: this.supplierId(),
+      suppressionUsers: this.userObjList(),
     };
 
     try {

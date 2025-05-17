@@ -297,39 +297,38 @@ export class SuppressionListComponent {
     this.getSuppressionList();
   }
 
-  getSuppressionListApiPostData() {
-    return {
-      supplier_id: this.supplierId(),
-      page: this.page(),
-      limit: this.limit(),
-      get_total_count: true,
-    };
-  }
+  getSuppressionListApiPostData = () => ({
+    supplier_id: this.supplierId(),
+    page: this.page(),
+    limit: this.limit(),
+    get_total_count: true,
+  });
 
-  async getSuppressionList() {
+  getSuppressionList = async () => {
     const postData = this.getSuppressionListApiPostData();
     await this.dripCampaignService.getSuppressionList(postData);
 
     this.dripCampaignService.dripCampaignSuppressionList
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(data => {
-        this.suppressionList.set(data["suppression_list"]);
+        console.log('data From suppression api', data);
+        this.suppressionList.set(data["suppressionLists"]);
         this.totalContactsCount.set(data["total"]);
         this.totalPage.set(Math.ceil(data["total"] / this.limit()));
         this.isWaitingFlag.set(false);
       });
-  }
+  };
 
-  importBtnClick(content: any) {
+  importBtnClick = (content: any) => {
     this.dripCampaignService.suppressionListApiPostData = this.getSuppressionListApiPostData();
     this.modalReference = this.modal.open(content, { size: "md" });
-  }
+  };
 
-  closeModal() {
+  closeModal = () => {
     this.modalReference.close();
-  }
+  };
 
-  addNewRepClick() {
+  addNewRepClick = () => {
     this.dripCampaignService.suppressionListApiPostData = this.getSuppressionListApiPostData();
     this.ngbOffcanvas.open(AddSuppressionComponent, {
       panelClass: "email-content edit-rep-canvas",
@@ -337,9 +336,9 @@ export class SuppressionListComponent {
       position: "end",
       scroll: false,
     });
-  }
+  };
 
-  handleContactSelect(selectedRow: any, isSelectAll: boolean) {
+  handleContactSelect = (selectedRow: any, isSelectAll: boolean) => {
     if (isSelectAll) {
       const hasSelected = this.suppressionList().some(i => i.is_selected);
 
@@ -375,9 +374,9 @@ export class SuppressionListComponent {
     }
 
     this.selectAllContacts.set(false);
-  }
+  };
 
-  async receivedLimitNumber(limit: number) {
+  receivedLimitNumber = async (limit: number) => {
     this.limit.set(limit);
     localStorage.setItem(constants.SUPPRESSION_TABLE_PAGINATION_LIMIT, limit.toString());
     this.page.set(1);
@@ -386,29 +385,29 @@ export class SuppressionListComponent {
     await this.getSuppressionList();
     this.isWaitingFlag.set(false);
     this.selectAllContacts.set(false);
-  }
+  };
 
-  async paginationRightArrowClick() {
+  paginationRightArrowClick = async () => {
     if (this.page() === this.totalPage()) return;
 
     this.page.update(p => p + 1);
     await this.getSuppressionList();
     this.selectAllContacts.set(false);
-  }
+  };
 
-  async paginationLeftArrowClick() {
+  paginationLeftArrowClick = async () => {
     if (this.page() === 1) return;
 
     this.page.update(p => p - 1);
     await this.getSuppressionList();
     this.selectAllContacts.set(false);
-  }
+  };
 
-  toggleSelectAllContactSelection() {
+  toggleSelectAllContactSelection = () => {
     this.selectAllContacts.update(v => !v);
-  }
+  };
 
-  async deleteClick() {
+  deleteClick = async () => {
     const isConfirm = await Swal.fire({
       title: "Are you sure?",
       text: "You won't be able to revert this!",
@@ -422,12 +421,13 @@ export class SuppressionListComponent {
 
     const selectedContactIds = this.selectedContacts().map(i => i.id);
     const payLoad: any = {
-      supplier_id: this.supplierId(),
-      suppression_user_ids: selectedContactIds,
+      companyId: this.userData().supplier_id,
+      ids: selectedContactIds,
     };
 
     if (this.selectAllContacts()) {
-      payLoad.selected_all_suppression_user = "true";
+      payLoad['ids'] = [];
+      payLoad['selectedAll'] = true;
     }
 
     const swal = this.pageUiService.showSweetAlertLoading();
@@ -443,5 +443,6 @@ export class SuppressionListComponent {
       swal.close();
       this.selectAllContacts.set(false);
     }
-  }
+  };
 }
+

@@ -488,8 +488,9 @@ export class BrandPriceComponent implements OnInit {
   makePaymentForSubscriptionApi = async (postData) => {
     this.proratedPriceInfoComponentLoading = true;
     this.httpService.post("subscriptions/checkout", postData).subscribe(res => {
+      console.log('makePaymentForSubscriptionApi', res);
       if (res.success) {
-        window.location.href = res.data;
+        window.location.href = res.data.session.url;
       } else {
         Swal.fire("Error", res.error.message);
       }
