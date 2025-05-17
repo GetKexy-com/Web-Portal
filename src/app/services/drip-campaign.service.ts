@@ -1,10 +1,10 @@
-import {Injectable} from "@angular/core";
-import {BehaviorSubject} from "rxjs";
-import {HttpService} from "./http.service";
-import {CampaignService} from "./campaign.service";
-import {SseService} from "./sse.service";
-import {DripCampaign, IRawDripCampaign} from '../models/DripCampaign';
-import {EnrollmentTriggers, IRawEnrollmentTrigger} from '../models/EnrollmentTriggers';
+import { Injectable } from '@angular/core';
+import { BehaviorSubject } from 'rxjs';
+import { HttpService } from './http.service';
+import { CampaignService } from './campaign.service';
+import { SseService } from './sse.service';
+import { DripCampaign, IRawDripCampaign } from '../models/DripCampaign';
+import { EnrollmentTriggers, IRawEnrollmentTrigger } from '../models/EnrollmentTriggers';
 
 @Injectable({
   providedIn: 'root',
@@ -320,14 +320,14 @@ export class DripCampaignService {
           let totalPageCounts = Math.ceil(res.data.total / limit);
           let totalRecordsCount = res.data.total;
 
-          res.data.dripCampaigns.sort(function (a, b) {
+          res.data.dripCampaigns.sort(function(a, b) {
             const a1 = a.id,
               b1 = b.id;
             if (a1 == b1) return 0;
             return a1 < b1 ? 1 : -1;
           });
 
-          resolve({dripCampaigns: res.data.dripCampaigns, totalPageCounts, totalRecordsCount});
+          resolve({ dripCampaigns: res.data.dripCampaigns, totalPageCounts, totalRecordsCount });
         }
       });
     });
@@ -368,8 +368,8 @@ export class DripCampaignService {
           });
 
           res.data.dripCampaigns.forEach((rawData: IRawDripCampaign) => {
-            this.allDripCampaigns.push(new DripCampaign(rawData))
-          })
+            this.allDripCampaigns.push(new DripCampaign(rawData));
+          });
 
           resolve(this.allDripCampaigns);
         }
@@ -617,7 +617,7 @@ export class DripCampaignService {
 
   testSmtpConnection = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post('drip-campaigns/testSmtpConnection', postData).subscribe((res) => {
+      this.httpService.post('smtp', postData).subscribe((res) => {
         resolve(res);
       });
     });
@@ -625,7 +625,8 @@ export class DripCampaignService {
 
   getSmtpDetails = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post('drip-campaigns/getSmtpDetails', postData).subscribe((res) => {
+      const url = `smtp?companyId=${postData.companyId}`;
+      this.httpService.get(url).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -640,7 +641,8 @@ export class DripCampaignService {
 
   deleteSmtp = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post('drip-campaigns/deleteSmtp', postData).subscribe((res) => {
+      const url = `smtp/${postData.id}`;
+      this.httpService.delete(url).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
@@ -705,7 +707,7 @@ export class DripCampaignService {
     this.setDripCampaign(dripCampaign);
     this._dripCampaignStatus.next(campaign.status);
     this.sseService.addToDripBulkEmails(dripCampaign.emails);
-  }
+  };
 
   updateSettings = async (postData) => {
     return new Promise(async (resolve, reject) => {
