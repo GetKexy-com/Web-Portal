@@ -36,7 +36,6 @@ export class ProspectingCompanyDescriptionComponent implements OnInit {
 
   ngOnInit() {
     this.userData = this.authService.userTokenValue;
-    console.log(this.httpService);
     this.supplierId = this.userData.supplier_id;
     this.setCompanyDescriptionValue();
   }
@@ -50,7 +49,6 @@ export class ProspectingCompanyDescriptionComponent implements OnInit {
     const payload = {
       companyDescription: description,
     };
-    console.log(this.httpService);
     try {
       const url = `company/${this.supplierId}`;
       const res = await this.httpService.patch(url, payload).toPromise();
