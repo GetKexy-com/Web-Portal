@@ -1,69 +1,12 @@
-// import { Component, OnInit } from "@angular/core";
-// import { AuthService } from "src/app/services/auth.service";
-// import { Router } from "@angular/router";
-// import { HttpService } from "src/app/services/http.service";
-// import { constants } from "src/app/helpers/constants";
-// import {BrandLayoutComponent} from '../../layouts/brand-layout/brand-layout.component';
-// import {
-//   ProspectingCommonCardComponent
-// } from '../../components/prospecting-common-card/prospecting-common-card.component';
-//
-// @Component({
-//   selector: 'app-prospecting-company-description',
-//   imports: [
-//     BrandLayoutComponent,
-//     ProspectingCommonCardComponent
-//   ],
-//   templateUrl: './prospecting-company-description.component.html',
-//   styleUrl: './prospecting-company-description.component.scss'
-// })
-// export class ProspectingCompanyDescriptionComponent {
-//   userData;
-//   supplierId;
-//
-//   constructor(private router: Router, private httpService: HttpService, private _authService: AuthService) {}
-//
-//   companyDescription = ``;
-//
-//   ngOnInit() {
-//     document.title = "Prospecting Company Description - KEXY Brand Portal";
-//     this.userData = this._authService.userTokenValue;
-//     this.supplierId = this.userData.supplier_id;
-//     this.setCompanyDescriptionValue();
-//   }
-//
-//   setCompanyDescriptionValue = () => {
-//     let userToken = JSON.parse(localStorage.getItem(constants.USERTOKEN));
-//     this.companyDescription = userToken && userToken.company_description ? userToken.company_description : "";
-//   };
-//
-//   saveCompanyDescription = async (description) => {
-//     const payload = {
-//       supplier_id: this.supplierId,
-//       company_description: description,
-//     };
-//
-//     let res = await this.httpService.post("supplier/edit", payload).toPromise();
-//     if (res.success) {
-//       let userToken = JSON.parse(localStorage.getItem(constants.USERTOKEN));
-//       userToken.company_description = description;
-//
-//       localStorage.setItem(constants.USERTOKEN, JSON.stringify(userToken));
-//
-//       alert("Saved successfully!");
-//     }
-//   };
-// }
-
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from 'src/app/services/auth.service';
 import { HttpService } from 'src/app/services/http.service';
 import { constants } from 'src/app/helpers/constants';
 import Swal from 'sweetalert2';
-import {BrandLayoutComponent} from '../../layouts/brand-layout/brand-layout.component';
+import { BrandLayoutComponent } from '../../layouts/brand-layout/brand-layout.component';
 import {
-  ProspectingCommonCardComponent
+  ProspectingCommonCardComponent,
 } from '../../components/prospecting-common-card/prospecting-common-card.component';
 
 @Component({
@@ -73,53 +16,55 @@ import {
     BrandLayoutComponent,
     ProspectingCommonCardComponent,
     BrandLayoutComponent,
-    ProspectingCommonCardComponent
+    ProspectingCommonCardComponent,
   ],
   templateUrl: './prospecting-company-description.component.html',
-  styleUrl: './prospecting-company-description.component.scss'
+  styleUrl: './prospecting-company-description.component.scss',
 })
-export class ProspectingCompanyDescriptionComponent {
-  // Services
-  private router = inject(Router);
-  private httpService = inject(HttpService);
-  private authService = inject(AuthService);
-
+export class ProspectingCompanyDescriptionComponent implements OnInit {
   // State
-  userData = signal<any>(null);
-  supplierId = signal<string>('');
-  companyDescription = signal<string>('');
+  userData;
+  supplierId;
+  companyDescription;
 
-  constructor() {
-    document.title = "Prospecting Company Description - KEXY Brand Portal";
-    this.userData.set(this.authService.userTokenValue);
-    this.supplierId.set(this.userData().supplier_id);
+  constructor(
+    private httpService: HttpService,
+    private authService: AuthService,
+  ) {
+    document.title = 'Prospecting Company Description - KEXY Brand Portal';
+  }
+
+  ngOnInit() {
+    this.userData = this.authService.userTokenValue;
+    console.log(this.httpService);
+    this.supplierId = this.userData.supplier_id;
     this.setCompanyDescriptionValue();
   }
 
   private setCompanyDescriptionValue() {
     const userToken = JSON.parse(localStorage.getItem(constants.USERTOKEN) || '{}');
-    this.companyDescription.set(userToken?.company_description || '');
+    this.companyDescription = userToken?.company_description || '';
   }
 
-  async saveCompanyDescription(description: string) {
+  saveCompanyDescription = async (description: string) => {
     const payload = {
-      supplier_id: this.supplierId(),
-      company_description: description,
+      companyDescription: description,
     };
-
+    console.log(this.httpService);
     try {
-      const res = await this.httpService.post("supplier/edit", payload).toPromise();
+      const url = `company/${this.supplierId}`;
+      const res = await this.httpService.patch(url, payload).toPromise();
       if (res?.success) {
         const userToken = JSON.parse(localStorage.getItem(constants.USERTOKEN) || '{}');
         userToken.company_description = description;
         localStorage.setItem(constants.USERTOKEN, JSON.stringify(userToken));
 
         // Modern alert alternative
-        const alert = await Swal.fire({
+        await Swal.fire({
           title: 'Success!',
           text: 'Saved successfully!',
           icon: 'success',
-          confirmButtonText: 'OK'
+          confirmButtonText: 'OK',
         });
       }
     } catch (error) {
@@ -128,8 +73,8 @@ export class ProspectingCompanyDescriptionComponent {
         title: 'Error!',
         text: 'Failed to save description',
         icon: 'error',
-        confirmButtonText: 'OK'
+        confirmButtonText: 'OK',
       });
     }
-  }
+  };
 }
