@@ -76,7 +76,7 @@ export class CreateCampaignVideoUrlComponent {
     let payload = {
       videoUrl: formData.url,
     };
-    if (this.videoUrl.id) {
+    if (this.videoUrl?.id) {
       payload['id'] = this.videoUrl.id;
     }
     try {

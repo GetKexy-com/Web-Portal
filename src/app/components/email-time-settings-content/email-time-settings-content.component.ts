@@ -145,6 +145,12 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
         campaignArray.forEach(campaign => {
           campaign["fromOptions"] = [...constants.EMAIL_SETTINGS_TIMES];
           campaign["toOptions"] = [...constants.EMAIL_SETTINGS_TIMES];
+
+          // Setting options based on selected value
+          const fromTimeIndex = campaign["fromOptions"].findIndex(i => i.value === campaign.from);
+          if (fromTimeIndex > -1) {
+            campaign["toOptions"] = campaign["toOptions"].slice(fromTimeIndex + 1);
+          }
         });
         this.runCampaignArray = campaignArray;
       }

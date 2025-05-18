@@ -11,7 +11,6 @@ import { DripEmail } from "../../models/DripEmail";
 import { SseService } from "../../services/sse.service";
 import { ProspectingService } from "../../services/prospecting.service";
 import { CampaignService } from "../../services/campaign.service";
-import { DUMMY_PROSPECT } from "../../models/ProspectContact";
 import {KexySelectDropdownComponent} from '../kexy-select-dropdown/kexy-select-dropdown.component';
 import {KexyButtonComponent} from '../kexy-button/kexy-button.component';
 import {ErrorMessageCardComponent} from '../error-message-card/error-message-card.component';
