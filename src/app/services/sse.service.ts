@@ -197,6 +197,132 @@ export class SseService {
   };
 
 
+  async processEmailStream(stream: ReadableStream<Uint8Array>): Promise<DripEmail[]> {
+    const emails: DripEmail[] = [];
+    let emailSequence = 1;
+    const defaultDelay: EmailDelay = { days: 3, hours: 0, minutes: 0 };
+
+    let buffer = '';
+    let currentEmail: { subject: string; content: string } | null = null;
+    let reader: ReadableStreamDefaultReader<Uint8Array>;
+
+    try {
+      reader = stream.getReader();
+
+      while (true) {
+        const { done, value } = await reader.read();
+
+        if (done) {
+          // Process any remaining content in buffer for the last email
+          if (currentEmail && buffer) {
+            currentEmail.content += buffer;
+            buffer = '';
+          }
+          break;
+        }
+
+        // Decode the chunk and add to buffer
+        buffer += new TextDecoder().decode(value);
+
+        // Process the buffer until no more complete patterns are found
+        while (true) {
+          if (!currentEmail) {
+            // Looking for start of a new email (^^subject$$)
+            const subjectStart = buffer.indexOf('^^');
+            if (subjectStart === -1) break; // No subject start found
+
+            const subjectEnd = buffer.indexOf('$$', subjectStart + 2);
+            if (subjectEnd === -1) break; // No subject end found yet
+
+            // Extract subject and create new email
+            const subject = buffer.substring(subjectStart + 2, subjectEnd);
+            currentEmail = {
+              subject,
+              content: ''
+            };
+
+            // Remove processed part from buffer
+            buffer = buffer.substring(subjectEnd + 2);
+          } else {
+            // Looking for email separator (~~) or end of stream
+            const emailSeparator = buffer.indexOf('~~');
+
+            if (emailSeparator !== -1) {
+              // Add content before separator to current email
+              currentEmail.content += buffer.substring(0, emailSeparator);
+
+              // Complete the current email
+              emails.push({
+                emailSequence: emailSequence++,
+                emailSubject: currentEmail.subject,
+                emailContent: currentEmail.content,
+                delayBetweenPreviousEmail: defaultDelay
+              });
+
+              // Reset for next email
+              currentEmail = null;
+              buffer = buffer.substring(emailSeparator + 2);
+            } else {
+              // No separator found, add entire buffer to content
+              currentEmail.content += buffer;
+              buffer = '';
+              break;
+            }
+          }
+        }
+      }
+
+      // If we have a current email when stream ends, add it
+      if (currentEmail) {
+        emails.push({
+          emailSequence: emailSequence++,
+          emailSubject: currentEmail.subject,
+          emailContent: currentEmail.content,
+          delayBetweenPreviousEmail: defaultDelay
+        });
+      }
+
+      return emails;
+    } finally {
+      reader?.releaseLock();
+    }
+  }
+
+
+  async fetchAndProcessEmails() {
+    try {
+      this._dripBulkEmailLoading.next(true);
+
+      const response = await fetch('your-api-endpoint', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ /* your request data */ }),
+      });
+
+      if (!response.ok) {
+        this._dripBulkEmailLoading.next(false);
+
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      if (!response.body) {
+        this._dripBulkEmailLoading.next(false);
+
+        throw new Error('No response body');
+      }
+
+      const emails = await this.processEmailStream(response.body);
+      console.log('Processed emails:', emails);
+      return emails;
+    } catch (error) {
+      console.error('Error processing email stream:', error);
+      throw error;
+    }
+  }
+
+
+
   dripBulkEmailContentStream = async (data) => {
     let emails: DripEmail[] = [];
     let emailSequence = 1;

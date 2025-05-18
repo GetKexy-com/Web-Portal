@@ -470,7 +470,6 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
   };
 
   getImportedFileData = async (data) => {
-    console.log('data', data);
     this.isLoading = true;
     const contacts = [];
 
