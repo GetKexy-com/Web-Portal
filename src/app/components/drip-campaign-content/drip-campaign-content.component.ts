@@ -444,7 +444,7 @@ export class DripCampaignContentComponent implements OnInit {
     }
 
     const payload = {
-      dripCampaignId: this.dripCampaignId || "",
+      dripCampaignId: parseInt(this.dripCampaignId) || "",
       companyId: this.userData.supplier_id,
       dripCampaignTitleId: this.selectedTitleId,
       numberOfEmails: this.numberOfEmail,
@@ -457,8 +457,8 @@ export class DripCampaignContentComponent implements OnInit {
       audienceType: this.selectedDripCampaignType,
     };
     if (this.dripCampaignDuplicate) {
-      // payload["dripCampaignDuplicate"] = true;
-      payload.dripCampaignId = "";
+      payload["dripCampaignDuplicate"] = true;
+      // payload.dripCampaignId = this.dripCampaignId;
     }
     if (this.selectedCalendlyLinkKey) {
       payload["calendlyLink"] = this.selectedCalendlyLinkKey;

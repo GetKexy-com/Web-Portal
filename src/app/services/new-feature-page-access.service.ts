@@ -33,8 +33,7 @@ export class NewFeaturePageAccessService {
 
   public async setPageAccessDataForUser(from) {
     if (from === routeConstants.BRAND.CREATE_DRIP_CAMPAIGN) {
-      // this.dripCampaignPage.next(true);
-      this.businessOperationPage.next(true);
+      this.dripCampaignPage.next(true);
     }
     if (from === routeConstants.BRAND.LANDING_PAGES) {
       this.promotionPage.next(true);

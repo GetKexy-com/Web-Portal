@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import { NgbActiveOffcanvas } from "@ng-bootstrap/ng-bootstrap";
 import { AuthService } from "src/app/services/auth.service";
 import { DripEmail, EmailDelay } from "../../models/DripEmail";
@@ -19,7 +19,7 @@ import {CommonModule} from '@angular/common';
   templateUrl: './delay-details-content.component.html',
   styleUrl: './delay-details-content.component.scss'
 })
-export class DelayDetailsContentComponent {
+export class DelayDetailsContentComponent implements OnInit {
   userData;
   supplierId;
   isLoading: boolean = false;
@@ -72,12 +72,10 @@ export class DelayDetailsContentComponent {
       return;
     }
     const postData = {
-      supplier_id: "",
-      drip_campaign_id: this.dripEmail.drip_campaign_id,
       drip_campaign_email_id: this.dripEmail.id,
-      email_subject: this.dripEmail.emailSubject,
-      email_content: this.dripEmail.emailContent,
-      delay_between_previous_email: JSON.stringify(this.dripEmail.delayBetweenPreviousEmail),
+      emailSubject: this.dripEmail.emailSubject,
+      emailContent: this.dripEmail.emailContent,
+      delayBetweenPreviousEmail: JSON.stringify(this.dripEmail.delayBetweenPreviousEmail),
     };
     try {
       await this.dripCampaignService.updateDripCampaignEmail(postData);

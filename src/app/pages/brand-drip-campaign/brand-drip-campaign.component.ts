@@ -98,7 +98,7 @@ export class BrandDripCampaignComponent implements OnInit, OnDestroy {
     });
 
     await this._newFeaturePageAccessService.getPageAccessDataForUser(this.userData.id);
-    this.dripCampaignInitialModalSubscription = this._newFeaturePageAccessService.businessOperationPage.subscribe((hidePopup) => {
+    this.dripCampaignInitialModalSubscription = this._newFeaturePageAccessService.dripCampaignPage.subscribe((hidePopup) => {
       if (!hidePopup) {
         if (window.innerWidth < 992) {
           this.modal.open(KexyTutorialModalContentComponent, { size: "sm" });

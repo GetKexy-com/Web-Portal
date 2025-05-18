@@ -36,6 +36,7 @@ export class DripCampaignCardComponent implements OnInit {
   dripCampaignStatusSubscription: Subscription;
   dripCampaignStatus: string = "";
   disableTitle: string = "";
+  dripCampaign;
 
   constructor(
     private dripCampaignService: DripCampaignService,
@@ -45,6 +46,7 @@ export class DripCampaignCardComponent implements OnInit {
 
   ngOnInit(): void {
     this.userData = this._authService.userTokenValue;
+    this.dripCampaign = this.dripCampaignService.getDripCampaignContentPageData();
     this.dripCampaignStatusSubscription = this.dripCampaignService.dripCampaignStatus.subscribe(status => {
       this.dripCampaignStatus = status;
     });
@@ -83,7 +85,7 @@ export class DripCampaignCardComponent implements OnInit {
 
     // After deleting an email, we get all emails from server to update the view.
     const postData = {
-      drip_campaign_id: this.email.drip_campaign_id,
+      drip_campaign_id: this.dripCampaign.id,
       supplier_id: this.userData.supplier_id,
     };
     await this.dripCampaignService.getCampaign(postData);
@@ -92,9 +94,10 @@ export class DripCampaignCardComponent implements OnInit {
 
   __deleteEmail = async () => {
     const postData = {
-      drip_campaign_id: this.email.drip_campaign_id,
+      dripCampaignId: this.dripCampaign.id,
       drip_campaign_email_id: this.email.id,
     };
+    console.log('email', this.email);
     try {
       await this.dripCampaignService.deleteDripCampaignEmail(postData);
       await Swal.fire({

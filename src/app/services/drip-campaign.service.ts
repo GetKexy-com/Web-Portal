@@ -113,6 +113,11 @@ export class DripCampaignService {
 
   createOrUpdateDripCampaign = async (postData) => {
     this._loading.next(true);
+
+    if (postData.dripCampaignDuplicate) {
+      return this.createDripCampaign(postData);
+    }
+
     if (!postData.dripCampaignId) {
       return this.createDripCampaign(postData);
     } else {
@@ -121,7 +126,9 @@ export class DripCampaignService {
   };
 
   createDripCampaign = (postData) => {
-    delete postData.dripCampaignId;
+    if (!postData.dripCampaignDuplicate) {
+      delete postData.dripCampaignId;
+    }
     return new Promise(async (resolve, reject) => {
       this.httpService.post('drip-campaigns', postData).subscribe((res) => {
         if (!res.success) {
@@ -174,7 +181,9 @@ export class DripCampaignService {
 
   deleteDripCampaignEmail = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post('drip-campaigns/emailDelete', postData).subscribe((res) => {
+      const url = `drip-campaigns/email/${postData.drip_campaign_email_id}`;
+      delete postData.drip_campaign_email_id;
+      this.httpService.delete(url, postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);
