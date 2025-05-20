@@ -1,6 +1,7 @@
 export const environment = {
   production: true,
-  baseUrl: "https://api.getkexy.com/kexyapi/v1/",
+  secondaryBaseUrl: "https://api.getkexy.com/kexyapi/v1/",
+  baseUrl: "https://apiv2.getkexy.com/v2/",
   imageUrl: "https://cdn.getkexy.com/",
   externalAssetUrl: "https://cdn.getkexy.com/KEXY_Connect_assets/",
   siteUrl: "https://client.getkexy.com",

@@ -74,6 +74,7 @@ export class CreateCampaignVideoUrlComponent {
 
     const formData = this.primaryForm.getRawValue();
     let payload = {
+      companyId: this.userData.supplier_id,
       videoUrl: formData.url,
     };
     if (this.videoUrl?.id) {

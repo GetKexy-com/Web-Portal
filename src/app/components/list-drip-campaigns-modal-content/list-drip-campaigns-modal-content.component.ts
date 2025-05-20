@@ -11,7 +11,7 @@ import {CommonModule} from '@angular/common';
   templateUrl: './list-drip-campaigns-modal-content.component.html',
   styleUrl: './list-drip-campaigns-modal-content.component.scss'
 })
-export class ListDripCampaignsModalContentComponent {
+export class ListDripCampaignsModalContentComponent implements OnInit {
   activeModal = inject(NgbActiveModal);
   dripCampaigns;
   dripCampaignTitlesSubscription: Subscription;
@@ -23,13 +23,13 @@ export class ListDripCampaignsModalContentComponent {
     console.log('list drip campaigns',this.prospectingService.listDripCampaigns);
     this.dripCampaigns = this.prospectingService.listDripCampaigns;
 
-    this.dripCampaignTitlesSubscription = this.dripCampaignService.dripCampaignTitles.subscribe((campaignTitles) => {
-      this.dripCampaigns.forEach(dripCampaign => {
-        const index = campaignTitles.findIndex(c => c.id === dripCampaign.drip_campaign_title_id);
-        if (index > -1) {
-          dripCampaign["title"] = campaignTitles[index].title;
-        }
-      })
-    });
+    // this.dripCampaignTitlesSubscription = this.dripCampaignService.dripCampaignTitles.subscribe((campaignTitles) => {
+    //   this.dripCampaigns.forEach(dripCampaign => {
+    //     const index = campaignTitles.findIndex(c => c.id === dripCampaign.drip_campaign_title_id);
+    //     if (index > -1) {
+    //       dripCampaign["title"] = campaignTitles[index].title;
+    //     }
+    //   })
+    // });
   }
 }

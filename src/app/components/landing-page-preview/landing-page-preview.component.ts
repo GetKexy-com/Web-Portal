@@ -150,9 +150,9 @@ export class LandingPagePreviewComponent implements OnInit {
     // Api call
     this.setWaitingFlagToTrue();
     const postData = {
-      campaign_id: this.campaignId,
+      campaignId: this.campaignId,
     };
-    let see = await this.campaignService.campaignActivate(postData);
+    await this.campaignService.campaignActivate(postData);
     // When campaign is submitted, we no longer need campaign id in localstorage.
     // localStorage.removeItem(constants.TEMP_CAMPAIGN_ID);
 

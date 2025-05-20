@@ -308,7 +308,8 @@ export class CampaignService {
   public campaignActivate = async (payload) => {
     this._loading.next(true);
     return new Promise(async (resolve, reject) => {
-      this.httpService.post('campaigns/activate', payload).subscribe((res) => {
+      const url = `landing-pages/${payload.campaignId}/activate`;
+      this.httpService.patch(url, payload).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             this._loading.next(false);
