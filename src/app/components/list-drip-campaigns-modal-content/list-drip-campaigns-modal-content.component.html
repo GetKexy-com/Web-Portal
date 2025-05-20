@@ -6,8 +6,8 @@
 
   <section class="middle-area">
     <div *ngIf="dripCampaigns.length">
-      <div *ngFor="let campaign of dripCampaigns; let i = index">
-        <p>{{i + 1}}. <span class="link-text">{{campaign.title}}</span></p>
+      <div *ngFor="let item of dripCampaigns; let i = index">
+        <p>{{i + 1}}. <span class="link-text">{{item.dripCampaign.details.title.title}}</span></p>
       </div>
     </div>
     <div *ngIf="!dripCampaigns.length" class="text-center">

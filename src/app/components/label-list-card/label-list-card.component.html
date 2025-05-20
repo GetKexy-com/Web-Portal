@@ -77,7 +77,7 @@
               >
                 <span *ngIf="column.key === 'date_created'">{{row.createdAt | date : "medium"}}</span>
 
-                <span *ngIf="column.key === 'list_size'" class="w-100 d-inline-block text-center link-text" (click)="redirectListContactsPage(row)">{{row.contactList.length}}</span>
+                <span *ngIf="column.key === 'list_size'" class="w-100 d-inline-block text-center link-text" (click)="redirectListContactsPage(row)">{{row.contactListCount}}</span>
 
                 <span *ngIf="column.key === 'creator'">{{userData.firstName}} {{userData.lastName}}</span>
 
@@ -95,7 +95,7 @@
                   *ngIf="column.key === 'used_in'"
                   class="see-more-label-text"
                   style="cursor: pointer"
-                  (click)="openShowAllLabelModal($event, row.drip_campaign_kexy_labels)"
+                  (click)="openShowAllLabelModal($event, row.dripCampaignList)"
                 >
                   {{row.dripCampaignList.length}} - Drip Campaign(s)
                 </span>
@@ -104,8 +104,6 @@
                   <i *ngIf="!row.isSelected" aria-hidden="true" class="fa fa-square-o checkbox-icon"></i>
                   <i *ngIf="row.isSelected" aria-hidden="true" class="fa fa-check-square checkbox-icon selected"></i>
                 </span>
-
-                <!--                <span *ngIf="column.key === 'edit'" class="link-text" (click)="editLabel(contact)">Edit</span>-->
 
               </td>
             </ng-container>
