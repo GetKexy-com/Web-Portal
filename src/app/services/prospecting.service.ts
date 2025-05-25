@@ -469,16 +469,33 @@ export class ProspectingService {
     });
   };
 
+  // addContacts = async (postData) => {
+  //   return new Promise(async (resolve, reject) => {
+  //     this.httpService.post('contacts', postData).subscribe((res) => {
+  //       if (!res.success) {
+  //         if (res.error) {
+  //           reject(res.error);
+  //         }
+  //       } else {
+  //         let contacts = res.data;
+  //         resolve(contacts);
+  //       }
+  //     });
+  //   });
+  // };
+
   addContacts = async (postData) => {
-    return new Promise(async (resolve, reject) => {
-      this.httpService.post('contacts', postData).subscribe((res) => {
-        if (!res.success) {
-          if (res.error) {
-            reject(res.error);
+    return new Promise((resolve, reject) => {
+      this.httpService.post('contacts', postData).subscribe({
+        next: (res) => {
+          if (!res.success) {
+            reject(res.error || 'Unknown error');
+          } else {
+            resolve(res.data);
           }
-        } else {
-          let contacts = res.data;
-          resolve(contacts);
+        },
+        error: (err) => {
+          reject(err); // Handles HTTP/network errors
         }
       });
     });
@@ -500,7 +517,9 @@ export class ProspectingService {
 
   removeContactsFromList = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post('contacts/labels/removeContacts', postData).subscribe((res) => {
+      const url = `contacts/removeContactsFromList/${postData.listId}`;
+      delete postData.listId;
+      this.httpService.delete(url, postData).subscribe((res) => {
         if (!res.success) {
           if (res.error) {
             reject(res.error);

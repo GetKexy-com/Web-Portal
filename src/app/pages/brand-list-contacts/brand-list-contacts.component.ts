@@ -45,7 +45,7 @@ export class BrandListContactsComponent implements OnInit, OnDestroy {
   contactListSubscription: Subscription;
   totalContactsCount = 0;
   totalPage;
-  selectedContacts = [];
+  selectedContacts: Contact[] = [];
   sortBy = '';
   sortType = '';
   selectAllContacts = false;
@@ -237,9 +237,9 @@ export class BrandListContactsComponent implements OnInit, OnDestroy {
 
   handleContactSelect = (selectedRow, isSelectAll) => {
     if (isSelectAll) {
-      if (this.contactList.some((i) => i.is_selected)) {
+      if (this.contactList.some((i) => i.isSelected)) {
         this.contactList.map((i) => {
-          i.is_selected = false;
+          i.isSelected = false;
           const index = this.selectedContacts.findIndex((j) => j.id === i.id);
           if (index > -1) {
             this.selectedContacts.splice(index, 1);
@@ -247,7 +247,7 @@ export class BrandListContactsComponent implements OnInit, OnDestroy {
         });
       } else {
         this.contactList.map((i) => {
-          i.is_selected = true;
+          i.isSelected = true;
           const index = this.selectedContacts.findIndex((j) => j.id === i.id);
           if (index === -1) {
             this.selectedContacts.push(i);
@@ -256,9 +256,9 @@ export class BrandListContactsComponent implements OnInit, OnDestroy {
       }
     } else {
       const rowIndex = this.contactList.findIndex((i) => i.id === selectedRow.id);
-      this.contactList[rowIndex].is_selected = !this.contactList[rowIndex].is_selected;
+      this.contactList[rowIndex].isSelected = !this.contactList[rowIndex].isSelected;
 
-      if (this.contactList[rowIndex].is_selected) {
+      if (this.contactList[rowIndex].isSelected) {
         const index = this.selectedContacts.findIndex((j) => j.id === this.contactList[rowIndex].id);
         if (index === -1) {
           this.selectedContacts.push(this.contactList[rowIndex]);
@@ -324,19 +324,21 @@ export class BrandListContactsComponent implements OnInit, OnDestroy {
   deleteContactsFromList = async () => {
     const confirmed = await this.__isConfirmed();
     if (!confirmed) return;
-
+    console.log(this.selectedContacts);
+    const contactIds = [];
     this.selectedContacts.forEach(c => {
-      let labelIds = JSON.parse(c.label_ids);
+      let labelIds = c.listIds;
       const index = labelIds.indexOf(this.listId);
       if (index > -1) {
         labelIds.splice(index, 1);
       }
-      c.label_ids = labelIds;
+      c.listIds = labelIds;
+      contactIds.push({id: c.id});
     });
     const postData = {
-      supplier_id: this.userData.supplier_id,
-      contacts: this.selectedContacts,
-      label_id_to_delete: this.listId,
+      companyId: this.userData.supplier_id,
+      contacts: contactIds,
+      listId: this.listId,
     };
     if (this.selectAllContacts) {
       postData['selected_all_contacts'] = 'true';
@@ -466,13 +468,13 @@ export class BrandListContactsComponent implements OnInit, OnDestroy {
 
     try {
       await this.prospectingService.addContacts(payload);
-      await this.getContacts(true);
       await this.prospectingService.getLists({ supplier_id: this.userData.supplier_id });
+      await this.getContacts(true);
       this.isLoading = false;
       this.closeModal();
     } catch (e) {
       this.isLoading = false;
-      await Swal.fire('Error', e.message);
+      await Swal.fire('Error', e.error);
     }
   };
 
