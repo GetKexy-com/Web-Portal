@@ -379,23 +379,23 @@ export class DripCampaignService {
     });
   };
 
-  assignProspectApi = async (postData) => {
-    this._loading.next(true);
-    return new Promise(async (resolve, reject) => {
-      this.httpService.post('drip-campaigns/assignProspects', postData).subscribe({
-        next: () => {
-          this._loading.next(false);
-          resolve(true);
-        },
-        error: (err) => {
-          this._loading.next(false);
-          if (err.error) {
-            reject(err.error);
-          }
-        }
-      });
-    });
-  };
+  // assignProspectApi = async (postData) => {
+  //   this._loading.next(true);
+  //   return new Promise(async (resolve, reject) => {
+  //     this.httpService.post('drip-campaigns/assignProspects', postData).subscribe({
+  //       next: () => {
+  //         this._loading.next(false);
+  //         resolve(true);
+  //       },
+  //       error: (err) => {
+  //         this._loading.next(false);
+  //         if (err.error) {
+  //           reject(err.error);
+  //         }
+  //       }
+  //     });
+  //   });
+  // };
 
   saveSearch = async (postData) => {
     this._loading.next(true);
