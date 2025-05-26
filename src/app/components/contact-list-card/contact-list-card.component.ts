@@ -194,6 +194,7 @@ export class ContactListCardComponent implements OnInit, OnDestroy, AfterViewIni
 
   onCheckboxClicked = (event, data) => {
     this.stopPropagation(event);
+    console.log('contact', data);
     this.checkboxClicked(data);
   };
 

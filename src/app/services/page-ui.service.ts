@@ -8,7 +8,7 @@ import Swal from "sweetalert2";
   providedIn: "root",
 })
 export class PageUiService {
-  private purchaseOrderPageViewType = "";
+  // private purchaseOrderPageViewType = "";
   private selectedProspectingConv: ProspectContact;
   private prospectingSalesLeadCurrentStep: number = 1;
 
@@ -19,9 +19,9 @@ export class PageUiService {
     return this.router.url;
   };
 
-  getPurchaseSalesLearCurrentStep() {
-    return this.prospectingSalesLeadCurrentStep;
-  }
+  // getPurchaseSalesLearCurrentStep() {
+  //   return this.prospectingSalesLeadCurrentStep;
+  // }
 
   setProspectingSalesLeadCurrentStep(step) {
     this.prospectingSalesLeadCurrentStep = step;
@@ -56,9 +56,9 @@ export class PageUiService {
     this.selectedProspectingConv = conv;
   }
 
-  public getSelectedProspectingConv() {
-    return this.selectedProspectingConv;
-  }
+  // public getSelectedProspectingConv() {
+  //   return this.selectedProspectingConv;
+  // }
 
   public updateGleapIcon(shouldShow) {
     setTimeout(() => {
@@ -81,13 +81,13 @@ export class PageUiService {
     return string.charAt(0).toUpperCase() + string.slice(1);
   };
 
-  public customEmailValidator(): ValidatorFn {
-    return (control: AbstractControl): { [key: string]: any } | null => {
-      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/; // Ensures a valid TLD
-      const valid = emailRegex.test(control.value);
-      return valid ? null : { invalidEmail: true };
-    };
-  }
+  // public customEmailValidator(): ValidatorFn {
+  //   return (control: AbstractControl): { [key: string]: any } | null => {
+  //     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/; // Ensures a valid TLD
+  //     const valid = emailRegex.test(control.value);
+  //     return valid ? null : { invalidEmail: true };
+  //   };
+  // }
 
   public showSweetAlertLoading = () => {
     Swal.fire({

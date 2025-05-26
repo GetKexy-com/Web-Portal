@@ -81,11 +81,25 @@ export class BrandListContactsComponent implements OnInit, OnDestroy {
       }
     });
 
+    await this.getLists();
+    await this.getContacts(true);
+    this.setContactSubscription();
+    this.isWaitingFlag = false;
+  }
+
+  ngOnDestroy() {
+    if (this.contactLabelsSubscription) this.contactLabelsSubscription.unsubscribe();
+    if (this.contactListSubscription) this.contactListSubscription.unsubscribe();
+    this.prospectingService.selectedAllContacts = false;
+  }
+
+  getLists = async () => {
+    const cachedLabels = this.prospectingService.cachedLabels;
+    if (!Object.keys(cachedLabels).length) {
+      await this.prospectingService.getLists({});
+    }
+
     this.contactLabelsSubscription = this.prospectingService.lists.subscribe(async (labels) => {
-      if (labels.length < 1) {
-        await this.prospectingService.getLists({});
-        return;
-      }
       if (this.listId) {
         const index = labels.findIndex(l => l.id.toString() === this.listId.toString());
         if (index > -1) {
@@ -94,16 +108,6 @@ export class BrandListContactsComponent implements OnInit, OnDestroy {
         }
       }
     });
-
-    this.setContactSubscription();
-    await this.getContacts(true);
-    this.isWaitingFlag = false;
-  }
-
-  ngOnDestroy() {
-    if (this.contactLabelsSubscription) this.contactLabelsSubscription.unsubscribe();
-    if (this.contactListSubscription) this.contactListSubscription.unsubscribe();
-    this.prospectingService.selectedAllContacts = false;
   }
 
   getContactApiPostData = () => {
