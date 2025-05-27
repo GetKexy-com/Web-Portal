@@ -87,7 +87,7 @@ export class DripCampaignService {
           if (err.error) {
             reject(err.error);
           }
-        }
+        },
       });
     });
   };
@@ -137,7 +137,7 @@ export class DripCampaignService {
           if (err.error) {
             reject(err.error);
           }
-        }
+        },
       });
     });
   };
@@ -156,7 +156,7 @@ export class DripCampaignService {
           if (err.error) {
             reject(err.error);
           }
-        }
+        },
       });
     });
   };
@@ -171,7 +171,7 @@ export class DripCampaignService {
           if (err.error) {
             reject(err.error);
           }
-        }
+        },
       });
     });
   };
@@ -186,7 +186,7 @@ export class DripCampaignService {
           if (err.error) {
             reject(err.error);
           }
-        }
+        },
       });
     });
   };
@@ -201,7 +201,7 @@ export class DripCampaignService {
           if (err.error) {
             reject(err.error);
           }
-        }
+        },
       });
     });
   };
@@ -214,7 +214,7 @@ export class DripCampaignService {
           if (err.error) {
             reject(err.error);
           }
-        }
+        },
       });
     });
   };
@@ -233,7 +233,7 @@ export class DripCampaignService {
           if (err.error) {
             reject(err.error);
           }
-        }
+        },
       });
     });
   };
@@ -245,7 +245,7 @@ export class DripCampaignService {
     return new Promise(async (resolve, reject) => {
       this.httpService.patch(`titles/${title_id}`, postData).subscribe({
         next: () => {
-          let editedItemIndex = campaignTitles.findIndex(i => i.id === title_id);
+          let editedItemIndex = campaignTitles.findIndex((i) => i.id === title_id);
           campaignTitles[editedItemIndex].title = postData.title;
           resolve(true);
           this._dripCampaignTitles.next(campaignTitles);
@@ -254,7 +254,7 @@ export class DripCampaignService {
           if (err.error) {
             reject(err.error);
           }
-        }
+        },
       });
     });
   };
@@ -265,7 +265,7 @@ export class DripCampaignService {
         next: () => {
           let titleId = postData.title_id;
           let campaignTitles = [...this._dripCampaignTitles.getValue()];
-          let index = campaignTitles.findIndex(i => i.id === titleId);
+          let index = campaignTitles.findIndex((i) => i.id === titleId);
           campaignTitles.splice(index, 1);
           resolve(true);
           this._dripCampaignTitles.next(campaignTitles);
@@ -274,7 +274,7 @@ export class DripCampaignService {
           if (err.error) {
             reject(err.error);
           }
-        }
+        },
       });
     });
   };
@@ -296,7 +296,7 @@ export class DripCampaignService {
           if (err.error) {
             reject(err.error);
           }
-        }
+        },
       });
     });
   };
@@ -318,7 +318,7 @@ export class DripCampaignService {
           let totalPageCounts = Math.ceil(res.data.total / limit);
           let totalRecordsCount = res.data.total;
 
-          res.data.dripCampaigns.sort(function(a, b) {
+          res.data.dripCampaigns.sort(function (a, b) {
             const a1 = a.id,
               b1 = b.id;
             if (a1 == b1) return 0;
@@ -331,7 +331,7 @@ export class DripCampaignService {
           if (err.error) {
             reject(err.error);
           }
-        }
+        },
       });
     });
   };
@@ -344,7 +344,7 @@ export class DripCampaignService {
           if (err.error) {
             reject(err.error);
           }
-        }
+        },
       });
     });
   };
@@ -357,7 +357,7 @@ export class DripCampaignService {
       }
       this.httpService.get('drip-campaigns').subscribe({
         next: (res) => {
-          res.data.dripCampaigns.sort(function(a, b) {
+          res.data.dripCampaigns.sort(function (a, b) {
             const a1 = a.id,
               b1 = b.id;
             if (a1 == b1) return 0;
@@ -374,7 +374,7 @@ export class DripCampaignService {
           if (err.error) {
             reject(err.error);
           }
-        }
+        },
       });
     });
   };
@@ -410,7 +410,7 @@ export class DripCampaignService {
           if (err.error) {
             reject(err.error);
           }
-        }
+        },
       });
     });
   };
@@ -423,7 +423,7 @@ export class DripCampaignService {
           if (err.error) {
             reject(err.error);
           }
-        }
+        },
       });
     });
   };
@@ -437,20 +437,20 @@ export class DripCampaignService {
           if (err.error) {
             reject(err.error);
           }
-        }
+        },
       });
     });
   };
 
   addDripCampaignSuppressionUsers = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post("suppression-list", postData).subscribe({
+      this.httpService.post('suppression-list', postData).subscribe({
         next: () => resolve(true),
         error: (err) => {
           if (err.error) {
             reject(err.error);
           }
-        }
+        },
       });
     });
   };
@@ -468,7 +468,7 @@ export class DripCampaignService {
           if (err.error) {
             reject(err.error);
           }
-        }
+        },
       });
     });
   };
@@ -483,7 +483,7 @@ export class DripCampaignService {
           if (err.error) {
             reject(err.error);
           }
-        }
+        },
       });
     });
   };
@@ -498,14 +498,16 @@ export class DripCampaignService {
 
   assignContactsAndLabelsInCampaign = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post('drip-campaigns/assignContactsAndLabelsInCampaign', postData).subscribe({
-        next: () => resolve(true),
-        error: (err) => {
-          if (err.error) {
-            reject(err.error);
-          }
-        }
-      });
+      this.httpService
+        .post('drip-campaigns/assignContactsAndLabelsInCampaign', postData)
+        .subscribe({
+          next: () => resolve(true),
+          error: (err) => {
+            if (err.error) {
+              reject(err.error);
+            }
+          },
+        });
     });
   };
 
@@ -524,7 +526,7 @@ export class DripCampaignService {
           if (err.error) {
             reject(err.error);
           }
-        }
+        },
       });
     });
   };
@@ -541,7 +543,7 @@ export class DripCampaignService {
           if (err.error) {
             reject(err.error);
           }
-        }
+        },
       });
     });
   };
@@ -554,7 +556,7 @@ export class DripCampaignService {
           if (err.error) {
             reject(err.error);
           }
-        }
+        },
       });
     });
   };
@@ -568,7 +570,7 @@ export class DripCampaignService {
           if (err.error) {
             reject(err.error);
           }
-        }
+        },
       });
     });
   };
@@ -581,7 +583,7 @@ export class DripCampaignService {
           if (err.error) {
             reject(err.error);
           }
-        }
+        },
       });
     });
   };
@@ -594,7 +596,7 @@ export class DripCampaignService {
           if (err.error) {
             reject(err.error);
           }
-        }
+        },
       });
     });
   };
@@ -603,7 +605,7 @@ export class DripCampaignService {
     return new Promise(async (resolve, reject) => {
       this.httpService.post('smtp', postData).subscribe({
         next: (res) => resolve(res),
-        error: (err) => reject(err)
+        error: (err) => reject(err),
       });
     });
   };
@@ -617,7 +619,7 @@ export class DripCampaignService {
           if (err.error) {
             reject(err.error);
           }
-        }
+        },
       });
     });
   };
@@ -631,7 +633,35 @@ export class DripCampaignService {
           if (err.error) {
             reject(err.error);
           }
-        }
+        },
+      });
+    });
+  };
+
+  googleSmtp = async (postData) => {
+    return new Promise(async (resolve, reject) => {
+      const url = `smtp/google`;
+      this.httpService.post(url, postData).subscribe({
+        next: (res) => resolve(res.data),
+        error: (err) => {
+          if (err.error) {
+            reject(err.error);
+          }
+        },
+      });
+    });
+  };
+
+  googleSmtpTokens = async (postData) => {
+    return new Promise(async (resolve, reject) => {
+      const url = `smtp/google/tokens`;
+      this.httpService.post(url, postData).subscribe({
+        next: (res) => resolve(res),
+        error: (err) => {
+          if (err.error) {
+            reject(err.error);
+          }
+        },
       });
     });
   };
@@ -645,7 +675,7 @@ export class DripCampaignService {
           if (err.error) {
             reject(err.error);
           }
-        }
+        },
       });
     });
   };
@@ -658,7 +688,7 @@ export class DripCampaignService {
           if (err.error) {
             reject(err.error);
           }
-        }
+        },
       });
     });
   };
@@ -671,7 +701,7 @@ export class DripCampaignService {
           if (err.error) {
             reject(err.error);
           }
-        }
+        },
       });
     });
   };
@@ -697,7 +727,7 @@ export class DripCampaignService {
           if (err.error) {
             reject(err.error);
           }
-        }
+        },
       });
     });
   };
@@ -715,7 +745,7 @@ export class DripCampaignService {
           if (err.error) {
             reject(err.error);
           }
-        }
+        },
       });
     });
   };
@@ -733,7 +763,7 @@ export class DripCampaignService {
           if (err.error) {
             reject(err.error);
           }
-        }
+        },
       });
     });
   };
@@ -747,7 +777,7 @@ export class DripCampaignService {
           if (err.error) {
             reject(err.error);
           }
-        }
+        },
       });
     });
   };
