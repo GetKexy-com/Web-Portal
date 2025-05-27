@@ -83,7 +83,6 @@ export class BrandEmailAccountSettingsComponent implements OnInit {
       const smtp = this.smtpDetails.smtp;
       if (smtp) {
         this.isSmtpConnected = true;
-        this.showSmtpForm = true;
         this.setPrimaryForm();
         this.selectedPort = this.smtpDetails.smtpPort;
       }
@@ -94,36 +93,37 @@ export class BrandEmailAccountSettingsComponent implements OnInit {
         if (provider === constants.GOOGLE) {
           this.isGmailConnected = true;
         }
+      } else {
+        // If only smtp data found then show smtp form
+        this.showSmtpForm = true;
       }
       this.setSmtpConnectionStatus(false, true, 'SMTP connection is successful!');
     }
   };
 
   setPrimaryForm = () => {
+    const smtp = this.smtpDetails?.smtp;
     this.primaryForm = new FormGroup({
       smtpFromName: new FormControl(
-        this.smtpDetails?.smtpFromName ? this.smtpDetails.smtpFromName : '',
+        smtp?.smtpFromName ? smtp?.smtpFromName : '',
         Validators.compose([Validators.required]),
       ),
       smtpFromEmail: new FormControl(
-        this.smtpDetails?.smtpFromEmail ? this.smtpDetails.smtpFromEmail : '',
+        smtp?.smtpFromEmail ? smtp?.smtpFromEmail : '',
         Validators.compose([Validators.required, Validators.email]),
       ),
       smtpUsername: new FormControl(
-        this.smtpDetails?.smtpUsername ? this.smtpDetails.smtpUsername : '',
+        smtp?.smtpUsername ? smtp?.smtpUsername : '',
         Validators.compose([Validators.required]),
       ),
       smtpPassword: new FormControl('', Validators.compose([Validators.required])),
       smtpHost: new FormControl(
-        this.smtpDetails?.smtpHost ? this.smtpDetails.smtpHost : '',
+        smtp?.smtpHost ? smtp?.smtpHost : '',
         Validators.compose([Validators.required]),
       ),
-      smtpPort: new FormControl(
-        this.smtpDetails?.smtpPort ? this.smtpDetails.smtpPort : '',
-        Validators.compose([]),
-      ),
+      smtpPort: new FormControl(smtp?.smtpPort ? smtp?.smtpPort : '', Validators.compose([])),
       smtpSecurityType: new FormControl(
-        this.smtpDetails?.smtpSecurityType ? this.smtpDetails.smtpSecurityType : 'tls',
+        smtp?.smtpSecurityType ? smtp?.smtpSecurityType : 'tls',
         Validators.compose([]),
       ),
     });
