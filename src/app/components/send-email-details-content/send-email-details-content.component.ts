@@ -1,20 +1,20 @@
-import { Component, OnDestroy, OnInit, ViewChild } from "@angular/core";
-import { NgbActiveOffcanvas, NgbModal } from "@ng-bootstrap/ng-bootstrap";
-import { AuthService } from "src/app/services/auth.service";
-import { constants } from "../../helpers/constants";
-import { DripCampaignService } from "../../services/drip-campaign.service";
-import { DripEmail } from "../../models/DripEmail";
-import Swal from "sweetalert2";
-import { Subscription } from "rxjs";
-import { SseService } from "../../services/sse.service";
-import { PageUiService } from "../../services/page-ui.service";
-import {ModalComponent} from '../modal/modal.component';
-import {KexyButtonComponent} from '../kexy-button/kexy-button.component';
-import {ErrorMessageCardComponent} from '../error-message-card/error-message-card.component';
-import {KexySelectDropdownComponent} from '../kexy-select-dropdown/kexy-select-dropdown.component';
-import {FormsModule} from '@angular/forms';
-import {KexyRichEditorComponent} from '../kexy-rich-editor/kexy-rich-editor.component';
-import {CommonModule} from '@angular/common';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { NgbActiveOffcanvas, NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { AuthService } from 'src/app/services/auth.service';
+import { constants } from '../../helpers/constants';
+import { DripCampaignService } from '../../services/drip-campaign.service';
+import { DripEmail } from '../../models/DripEmail';
+import Swal from 'sweetalert2';
+import { Subscription } from 'rxjs';
+import { SseService } from '../../services/sse.service';
+import { PageUiService } from '../../services/page-ui.service';
+import { ModalComponent } from '../modal/modal.component';
+import { KexyButtonComponent } from '../kexy-button/kexy-button.component';
+import { ErrorMessageCardComponent } from '../error-message-card/error-message-card.component';
+import { KexySelectDropdownComponent } from '../kexy-select-dropdown/kexy-select-dropdown.component';
+import { FormsModule } from '@angular/forms';
+import { KexyRichEditorComponent } from '../kexy-rich-editor/kexy-rich-editor.component';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'send-email-details-content',
@@ -28,7 +28,7 @@ import {CommonModule} from '@angular/common';
     CommonModule,
   ],
   templateUrl: './send-email-details-content.component.html',
-  styleUrl: './send-email-details-content.component.scss'
+  styleUrl: './send-email-details-content.component.scss',
 })
 export class SendEmailDetailsContentComponent implements OnInit, OnDestroy {
   public userData;
@@ -44,14 +44,14 @@ export class SendEmailDetailsContentComponent implements OnInit, OnDestroy {
   public singleEmailSubjectSubscription: Subscription;
   public singleEmailLoadingSubscription: Subscription;
   dripCampaignStatusSubscription: Subscription;
-  dripCampaignStatus: string = "";
-  disableTitle: string = "";
+  dripCampaignStatus: string = '';
+  disableTitle: string = '';
   public emailLengthKeys = constants.EMAIL_LENGTH_KEYS;
   // Set first index which is "short" by default.
   public selectedEmailLength;
   public hasPromotion;
   public dripCampaign;
-
+  public isCheckedAddUnsubscribeLink = true;
 
   constructor(
     public activeCanvas: NgbActiveOffcanvas,
@@ -59,8 +59,7 @@ export class SendEmailDetailsContentComponent implements OnInit, OnDestroy {
     private _authService: AuthService,
     private dripCampaignService: DripCampaignService,
     private sseService: SseService,
-  ) {
-  }
+  ) {}
 
   ngOnInit(): void {
     this.userData = this._authService.userTokenValue;
@@ -68,44 +67,60 @@ export class SendEmailDetailsContentComponent implements OnInit, OnDestroy {
     this.dripEmail = this.dripCampaignService.getEditEmail();
     this.hasPromotion = this.dripCampaignService.getHasPromotion();
     console.log(this.dripEmail);
-    this.emailContent = this.dripEmail["emailContent"];
-    this.emailSubject = this.dripEmail["emailSubject"];
+    this.emailContent = this.dripEmail['emailContent'];
+    this.emailSubject = this.dripEmail['emailSubject'];
 
-    this.dripCampaignStatusSubscription = this.dripCampaignService.dripCampaignStatus.subscribe(status => {
-      this.dripCampaignStatus = status;
-    });
+    this.dripCampaignStatusSubscription = this.dripCampaignService.dripCampaignStatus.subscribe(
+      (status) => {
+        this.dripCampaignStatus = status;
+      },
+    );
 
-    this.singleEmailLoadingSubscription = this.sseService.dripSingleEmailLoading.subscribe((loading) => {
-      this.isLoading = loading;
-    });
+    this.singleEmailLoadingSubscription = this.sseService.dripSingleEmailLoading.subscribe(
+      (loading) => {
+        this.isLoading = loading;
+      },
+    );
 
-    this.singleEmailContentSubscription = this.sseService.dripSingleEmailContent.subscribe((content) => {
-      if (content) {
-        this.emailContent = content;
-      }
-    });
-    this.singleEmailSubjectSubscription = this.sseService.dripSingleEmailSubject.subscribe((content) => {
-      if (content) {
-        this.emailSubject = content;
-      }
-    });
+    this.singleEmailContentSubscription = this.sseService.dripSingleEmailContent.subscribe(
+      (content) => {
+        if (content) {
+          this.emailContent = content;
+        }
+      },
+    );
+    this.singleEmailSubjectSubscription = this.sseService.dripSingleEmailSubject.subscribe(
+      (content) => {
+        if (content) {
+          this.emailSubject = content;
+        }
+      },
+    );
 
     // Set email tone
-    const emailTone = this.dripEmail["emailTone"];
+    const emailTone = this.dripEmail['emailTone'];
     if (emailTone) {
-      const index = this.emailTones.findIndex(i => i.value === emailTone);
+      const index = this.emailTones.findIndex((i) => i.value === emailTone);
       this.onEmailToneSelect(this.emailTones[index]);
     } else {
       this.onEmailToneSelect(this.emailTones[0]);
     }
 
     // Set email length
-    const emailLength = this.dripEmail["emailLength"];
+    const emailLength = this.dripEmail['emailLength'];
     if (emailLength) {
-      const index = this.emailLengthKeys.findIndex(i => i.value === emailLength);
+      const index = this.emailLengthKeys.findIndex((i) => i.value === emailLength);
       this.onEmailLengthSelect(this.emailLengthKeys[index]);
     } else {
       this.onEmailLengthSelect(this.emailLengthKeys[0]);
+    }
+
+    const isAddUnsubscribeLink = this.dripEmail['isAddUnsubscribeLink'];
+    console.log('isAddUnsubscribeLink', isAddUnsubscribeLink);
+    if (isAddUnsubscribeLink) {
+      this.isCheckedAddUnsubscribeLink = true;
+    } else {
+      this.isCheckedAddUnsubscribeLink = false;
     }
   }
 
@@ -129,10 +144,9 @@ export class SendEmailDetailsContentComponent implements OnInit, OnDestroy {
     if (this.dripEmail.is_email_sent) {
       return true;
     }
-    this.disableTitle = "";
+    this.disableTitle = '';
     return this.isLoading;
   };
-
 
   updatedEmailContent;
   onEmailContentChange = (editor) => {
@@ -148,10 +162,11 @@ export class SendEmailDetailsContentComponent implements OnInit, OnDestroy {
   handleSubmit = async () => {
     this.submitted = true;
     this.isLoading = true;
-    this.dripEmail["emailSubject"] = this.emailSubject;
-    this.dripEmail["emailContent"] = this.updatedEmailContent || this.emailContent;
-    this.dripEmail["emailTone"] = this.selectedEmailToneKey;
-    this.dripEmail["emailLength"] = this.selectedEmailLength.value;
+    this.dripEmail['emailSubject'] = this.emailSubject;
+    this.dripEmail['emailContent'] = this.updatedEmailContent || this.emailContent;
+    this.dripEmail['emailTone'] = this.selectedEmailToneKey;
+    this.dripEmail['emailLength'] = this.selectedEmailLength.value;
+    this.dripEmail['isAddUnsubscribeLink'] = this.isCheckedAddUnsubscribeLink ? 1 : 0;
     // If drip email does not have an ID, it means user did not save it yet.
     // So we avoid calling the update api and only update local data and hide the canvas
     if (!this.dripEmail.id) {
@@ -166,6 +181,7 @@ export class SendEmailDetailsContentComponent implements OnInit, OnDestroy {
       emailTone: this.selectedEmailToneKey,
       emailLength: this.selectedEmailLength.value,
       delayBetweenPreviousEmail: JSON.stringify(this.dripEmail.delayBetweenPreviousEmail),
+      isAddUnsubscribeLink: this.isCheckedAddUnsubscribeLink,
     };
     try {
       await this.dripCampaignService.updateDripCampaignEmail(postData);
@@ -174,14 +190,14 @@ export class SendEmailDetailsContentComponent implements OnInit, OnDestroy {
       await Swal.fire({
         title: `Error`,
         text: e.getMessages(),
-        icon: "warning",
+        icon: 'warning',
       });
     }
   };
 
   hideCanvas = () => {
     this.sseService.updateDripBulkEmail(this.dripEmail);
-    this.activeCanvas.dismiss("Cross click");
+    this.activeCanvas.dismiss('Cross click');
   };
 
   generateEmailContent = async () => {
@@ -196,14 +212,17 @@ export class SendEmailDetailsContentComponent implements OnInit, OnDestroy {
     await this.sseService.getDripFollowUpEmailContentStream(data);
   };
 
-  @ViewChild("personalizationTagsModal") private personalizationTagsModal;
+  @ViewChild('personalizationTagsModal') private personalizationTagsModal;
 
   showPersonalizationTagsInfoPopup = (ev) => {
     ev.preventDefault();
     this.modal.open(this.personalizationTagsModal);
   };
-}
 
+  handleCheckboxClick = () => {
+    this.isCheckedAddUnsubscribeLink = !this.isCheckedAddUnsubscribeLink;
+  };
+}
 
 // import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 // import { NgbActiveOffcanvas } from '@ng-bootstrap/ng-bootstrap';

@@ -82,9 +82,23 @@
               [onContentUpdate]="onEmailContentChange">
             </kexy-rich-editor>
           </div>
-
         </div>
 
+        <div class="label-and-input">
+          <div class="form-check checkbox-and-label">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              value=""
+              [checked]="isCheckedAddUnsubscribeLink"
+              (change)="handleCheckboxClick()"
+              id="purchase"
+            />
+            <label class="form-check-label purchase-info-label" for="purchase">
+              Add unsubscribe link
+            </label>
+          </div>
+        </div>
       </div>
 
       <div class="bottom-buttons">
