@@ -134,7 +134,6 @@ export class LabelListCardComponent implements OnInit, OnDestroy, AfterViewInit 
   };
 
   openShowAllLabelModal = (event, dripCampaignsArray) => {
-    console.log('is it here', this.cardData);
     this.stopPropagation(event);
     this.prospectingService.listDripCampaigns = dripCampaignsArray;
     this.modal.open(ListDripCampaignsModalContentComponent);

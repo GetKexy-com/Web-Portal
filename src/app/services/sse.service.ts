@@ -289,39 +289,37 @@ export class SseService {
   }
 
 
-  async fetchAndProcessEmails() {
-    try {
-      this._dripBulkEmailLoading.next(true);
-
-      const response = await fetch('your-api-endpoint', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ /* your request data */ }),
-      });
-
-      if (!response.ok) {
-        this._dripBulkEmailLoading.next(false);
-
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      if (!response.body) {
-        this._dripBulkEmailLoading.next(false);
-
-        throw new Error('No response body');
-      }
-
-      const emails = await this.processEmailStream(response.body);
-      console.log('Processed emails:', emails);
-      return emails;
-    } catch (error) {
-      console.error('Error processing email stream:', error);
-      throw error;
-    }
-  }
-
-
+  // async fetchAndProcessEmails() {
+  //   try {
+  //     this._dripBulkEmailLoading.next(true);
+  //
+  //     const response = await fetch('your-api-endpoint', {
+  //       method: 'POST',
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //       },
+  //       body: JSON.stringify({ /* your request data */ }),
+  //     });
+  //
+  //     if (!response.ok) {
+  //       this._dripBulkEmailLoading.next(false);
+  //
+  //       throw new Error(`HTTP error! status: ${response.status}`);
+  //     }
+  //     if (!response.body) {
+  //       this._dripBulkEmailLoading.next(false);
+  //
+  //       throw new Error('No response body');
+  //     }
+  //
+  //     const emails = await this.processEmailStream(response.body);
+  //     console.log('Processed emails:', emails);
+  //     return emails;
+  //   } catch (error) {
+  //     console.error('Error processing email stream:', error);
+  //     throw error;
+  //   }
+  // }
 
   dripBulkEmailContentStream = async (data) => {
     let emails: DripEmail[] = [];
@@ -485,11 +483,11 @@ export class SseService {
     this._dripBulkEmails.next(emails);
   }
 
-  addToDripBulkEmailError(chunk) {
-    let content = this._dripBulkEmailError.getValue();
-    content += chunk;
-    this._dripBulkEmailError.next(content);
-  }
+  // addToDripBulkEmailError(chunk) {
+  //   let content = this._dripBulkEmailError.getValue();
+  //   content += chunk;
+  //   this._dripBulkEmailError.next(content);
+  // }
 
   removeDripBulkEmailData = () => {
     this._dripBulkEmails.next([]);
@@ -531,10 +529,10 @@ export class SseService {
     this._dripSingleEmailError.next(content);
   }
 
-  removeEmailData = () => {
-    this._prospectEmailContent.next("");
-    this._prospectEmailSubject.next("");
-  };
+  // removeEmailData = () => {
+  //   this._prospectEmailContent.next("");
+  //   this._prospectEmailSubject.next("");
+  // };
 
   removeSingleEmailData = () => {
     this._dripSingleEmailContent.next("");

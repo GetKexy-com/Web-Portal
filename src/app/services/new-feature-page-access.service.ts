@@ -1,7 +1,5 @@
 import { Injectable } from '@angular/core';
 import { HttpService } from "./http.service";
-import { environment } from "../../environments/environment";
-import { constants } from "../helpers/constants";
 import { BehaviorSubject } from "rxjs";
 import { routeConstants } from "../helpers/routeConstants";
 
@@ -47,41 +45,51 @@ export class NewFeaturePageAccessService {
       promotions: this.promotionPage.getValue(),
     };
 
-    return new Promise( (resolve, reject) => {
-      this.httpService.post("users/setNewFeaturePageAccessData", postData).subscribe((response) => {
-        let data = response.data;
-        this.reportsPage.next(data.reports);
-        this.menuPerformancePage.next(data.menuPerformance);
-        this.businessOperationPage.next(data.businessOperations);
-        this.purchaseOrderPage.next(data.purchaseOrders);
-        this.dripCampaignPage.next(data.dripCampaign);
-        this.promotionPage.next(data.promotions);
-        this.apiCalled = true;
-        resolve(true);
-      });
-    });
-  }
-
-  public async getPageAccessDataForUser(user_id) {
-    if (!this.apiCalled) {
-      return new Promise( (resolve, reject) => {
-        this.httpService.get("users/getNewFeaturePageAccessData").subscribe(async (response) => {
+    return new Promise((resolve, reject) => {
+      this.httpService.post("users/setNewFeaturePageAccessData", postData).subscribe({
+        next: (response) => {
           let data = response.data;
-          if (!data) {
-            await this.setPageAccessDataForUser(null);
-            resolve(true);
-            return;
-          }
           this.reportsPage.next(data.reports);
           this.menuPerformancePage.next(data.menuPerformance);
           this.businessOperationPage.next(data.businessOperations);
           this.purchaseOrderPage.next(data.purchaseOrders);
           this.dripCampaignPage.next(data.dripCampaign);
           this.promotionPage.next(data.promotions);
-
           this.apiCalled = true;
-
           resolve(true);
+        },
+        error: (err) => {
+          reject(err);
+        }
+      });
+    });
+  }
+
+  public async getPageAccessDataForUser(user_id) {
+    if (!this.apiCalled) {
+      return new Promise((resolve, reject) => {
+        this.httpService.get("users/getNewFeaturePageAccessData").subscribe({
+          next: async (response) => {
+            let data = response.data;
+            if (!data) {
+              await this.setPageAccessDataForUser(null);
+              resolve(true);
+              return;
+            }
+            this.reportsPage.next(data.reports);
+            this.menuPerformancePage.next(data.menuPerformance);
+            this.businessOperationPage.next(data.businessOperations);
+            this.purchaseOrderPage.next(data.purchaseOrders);
+            this.dripCampaignPage.next(data.dripCampaign);
+            this.promotionPage.next(data.promotions);
+
+            this.apiCalled = true;
+
+            resolve(true);
+          },
+          error: (err) => {
+            reject(err);
+          }
         });
       });
     }
@@ -96,7 +104,7 @@ export class NewFeaturePageAccessService {
     this.dripCampaignPage.next(value);
   }
 
-  public setBusinessOperationPageData = (value) => {
-    this.businessOperationPage.next(value);
-  }
+  // public setBusinessOperationPageData = (value) => {
+  //   this.businessOperationPage.next(value);
+  // }
 }

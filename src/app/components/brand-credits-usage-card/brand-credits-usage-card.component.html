@@ -6,8 +6,10 @@
       <u>{{subscription.expireDate | date}}</u> to keep access to your account.
     </p>
   </div>
-  <div class="message"
-       *ngIf="subscription.status === 'past_due' || subscription.status === 'unpaid' || subscription.status === 'inactive'">
+  <div
+    class="message"
+    *ngIf="subscription.status === 'past_due' || subscription.status === 'unpaid' || subscription.status === 'inactive'"
+  >
     <p class="m-0">
       <i class="fa fa-exclamation-triangle" aria-hidden="true"></i>
       Payment Failure. Please correct your billing information before <u>{{subscription.expireDate | date}}</u> to keep
@@ -30,13 +32,15 @@
     </div>
     <div class="right-side">
       <p>
-        <img src="/assets/icon/blue-clock-icon.svg" class="clock-img" />
+        <img src="/assets/icon/blue-clock-icon.svg" class="clock-img" alt="clock-icon"/>
         Estimated Credit Renewal on: <span *ngIf="subscription">{{subscription.expireDate | date}}</span>
         <img
           class="info-img tooltip-question tooltip-btn"
           ngbTooltip="The time it takes to process your credit renewal is an estimate and can vary. We'll update your account as soon as everything is confirmed."
           tooltipClass="custom-tooltip-class"
-          src="/assets/icon/grey-circle-info-icon.svg" />
+          src="/assets/icon/grey-circle-info-icon.svg"
+          alt="info-icon"
+        />
       </p>
     </div>
   </div>

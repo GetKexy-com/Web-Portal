@@ -1183,14 +1183,14 @@ export class SearchApolloContactsComponent {
       return;
     }
 
-    await this.updateDripCampaignApi();
-    const payload = {
-      drip_campaign_id: this.selectedDripCampaign["key"],
-      prospects: [],
-    };
-    // We call this API here to trigger the email notification to the user about launching
-    // the drip campaign. This has nothing to do with assigning prospects here
-    await this.dripCampaignService.assignProspectApi(payload);
+    // await this.updateDripCampaignApi();
+    // const payload = {
+    //   drip_campaign_id: this.selectedDripCampaign["key"],
+    //   prospects: [],
+    // };
+    // // We call this API here to trigger the email notification to the user about launching
+    // // the drip campaign. This has nothing to do with assigning prospects here
+    // await this.dripCampaignService.assignProspectApi(payload);
   };
 
   saveSearchName = "";
@@ -1227,52 +1227,52 @@ export class SearchApolloContactsComponent {
     this.saveSearchModalReference.close();
   };
 
-  updateDripCampaignApi = async () => {
-    const searchData = this.campaignService.getSearchFilters();
-
-    this.campaignService.setDripCampaignId(this.selectedDripCampaign["key"]);
-
-    const selectedDripCampaignIndex = this.dripCampaignList.findIndex(i => i.id.toString() === this.selectedDripCampaign["key"].toString());
-    const drip_campaign = this.dripCampaignList[selectedDripCampaignIndex];
-
-    const payload = {
-      drip_campaign_id: this.selectedDripCampaign["key"],
-      supplier_id: this.userData.supplier_id,
-      allowed_credit_limit: this.creditNumber || 1,
-      drip_campaign_title_id: drip_campaign.drip_campaign_detail.drip_campaign_title_id,
-      number_of_emails: drip_campaign.drip_campaign_detail.number_of_emails,
-      email_tone: drip_campaign.drip_campaign_detail.email_tone,
-      website_url: drip_campaign.drip_campaign_detail.website_url,
-      calendly_link: drip_campaign.drip_campaign_detail.calendly_link,
-      campaign_id: drip_campaign.drip_campaign_detail.campaign_id,
-      supplier_side: this.userData.side,
-      status: constants.ACTIVE,
-      establishment_search_type: this.selectedRestaurantSearchType,
-      establishment_search_value: JSON.stringify(searchData),
-      target_audience: drip_campaign.target_audience,
-      email_about: drip_campaign.email_about,
-      audience_type: drip_campaign.audience_type,
-    };
-
-    try {
-      await this.dripCampaignService.createOrUpdateDripCampaign(payload);
-
-      let isConfirm = await Swal.fire({
-        title: `Success`,
-        text: "Campaign launched successfully",
-        icon: "success",
-        confirmButtonColor: "#3085d6",
-        confirmButtonText: "Ok",
-      });
-
-      if (!isConfirm.dismiss) {
-        await this.router.navigate([routeConstants.BRAND.LIST_DRIP_CAMPAIGN]);
-      }
-
-    } catch (e) {
-      Swal.fire("Error", e.message, "error");
-    }
-  };
+  // updateDripCampaignApi = async () => {
+  //   const searchData = this.campaignService.getSearchFilters();
+  //
+  //   this.campaignService.setDripCampaignId(this.selectedDripCampaign["key"]);
+  //
+  //   const selectedDripCampaignIndex = this.dripCampaignList.findIndex(i => i.id.toString() === this.selectedDripCampaign["key"].toString());
+  //   const drip_campaign = this.dripCampaignList[selectedDripCampaignIndex];
+  //
+  //   const payload = {
+  //     drip_campaign_id: this.selectedDripCampaign["key"],
+  //     supplier_id: this.userData.supplier_id,
+  //     allowed_credit_limit: this.creditNumber || 1,
+  //     drip_campaign_title_id: drip_campaign.drip_campaign_detail.drip_campaign_title_id,
+  //     number_of_emails: drip_campaign.drip_campaign_detail.number_of_emails,
+  //     email_tone: drip_campaign.drip_campaign_detail.email_tone,
+  //     website_url: drip_campaign.drip_campaign_detail.website_url,
+  //     calendly_link: drip_campaign.drip_campaign_detail.calendly_link,
+  //     campaign_id: drip_campaign.drip_campaign_detail.campaign_id,
+  //     supplier_side: this.userData.side,
+  //     status: constants.ACTIVE,
+  //     establishment_search_type: this.selectedRestaurantSearchType,
+  //     establishment_search_value: JSON.stringify(searchData),
+  //     target_audience: drip_campaign.target_audience,
+  //     email_about: drip_campaign.email_about,
+  //     audience_type: drip_campaign.audience_type,
+  //   };
+  //
+  //   try {
+  //     await this.dripCampaignService.createOrUpdateDripCampaign(payload);
+  //
+  //     let isConfirm = await Swal.fire({
+  //       title: `Success`,
+  //       text: "Campaign launched successfully",
+  //       icon: "success",
+  //       confirmButtonColor: "#3085d6",
+  //       confirmButtonText: "Ok",
+  //     });
+  //
+  //     if (!isConfirm.dismiss) {
+  //       await this.router.navigate([routeConstants.BRAND.LIST_DRIP_CAMPAIGN]);
+  //     }
+  //
+  //   } catch (e) {
+  //     Swal.fire("Error", e.message, "error");
+  //   }
+  // };
 
   // handleCreditInputChange = (e) => {
   //   this.creditNumber = parseInt(e.replaceAll(",", ""));
@@ -1280,12 +1280,12 @@ export class SearchApolloContactsComponent {
   //   }
   // };
 
-  getCampaignTitle = (title_id) => {
-    const index = this.dripCampaignTitles && this.dripCampaignTitles.findIndex(i => i.id.toString() === title_id.toString());
-    if (index < 0) return;
-
-    return this.dripCampaignTitles[index].title;
-  };
+  // getCampaignTitle = (title_id) => {
+  //   const index = this.dripCampaignTitles && this.dripCampaignTitles.findIndex(i => i.id.toString() === title_id.toString());
+  //   if (index < 0) return;
+  //
+  //   return this.dripCampaignTitles[index].title;
+  // };
 
   isOpenRevenueAccordion: boolean = false;
   // handleToggleRevenueAccordion = () => {

@@ -47,9 +47,9 @@
             type="button"
             iconLeft="fa-google"
             bgColor="transparent"
-            [borderColor]="smtpConnectionType === constants.GMAIL ? '#0047cc' : 'black'"
-            [textColor]="smtpConnectionType === constants.GMAIL ? '#0047cc' : 'black'"
-            (click)="setSmtpSendingType(constants.GMAIL)"
+            [borderColor]="isGmailConnected ? '#0047cc' : 'black'"
+            [textColor]="isGmailConnected ? '#0047cc' : 'black'"
+            (click)="handleCallGoogleSmtpApi()"
             [disabled]="isLoading"
           ></app-kexy-button>
 
@@ -57,14 +57,14 @@
             label="Connect with Smtp"
             type="button"
             bgColor="transparent"
-            [borderColor]="smtpConnectionType === constants.SMTP ? '#0047cc' : 'black'"
-            [textColor]="smtpConnectionType === constants.SMTP ? '#0047cc' : 'black'"
-            (click)="setSmtpSendingType(constants.SMTP)"
+            [borderColor]="isSmtpConnected ? '#0047cc' : 'black'"
+            [textColor]="isSmtpConnected ? '#0047cc' : 'black'"
+            (click)="handleClickConnectSmtpBtn()"
             [disabled]="isLoading"
           ></app-kexy-button>
         </div>
 
-        <form *ngIf="smtpConnectionType === constants.SMTP" [formGroup]="primaryForm" (ngSubmit)="handleSubmit()">
+        <form *ngIf="showSmtpForm" [formGroup]="primaryForm" (ngSubmit)="handleSubmit()">
           <div class="container-fluid">
             <div class="row">
               <div class="col-12 col-md-6 ps-0">

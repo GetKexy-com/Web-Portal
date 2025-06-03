@@ -6,7 +6,7 @@ import { BehaviorSubject } from "rxjs";
 })
 export class PreviewService {
   private _showPreview = new BehaviorSubject(false);
-  showPreview = this._showPreview.asObservable();
+  // showPreview = this._showPreview.asObservable();
 
   constructor() {}
 

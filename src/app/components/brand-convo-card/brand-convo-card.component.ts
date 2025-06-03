@@ -73,11 +73,11 @@ export class BrandConvoCardComponent implements OnInit {
   handlePinbarClick = () => {
     const postData = {
       pin: this.conversation.isPinned ? constants.NO : constants.YES,
-      conversation_id: this.conversation.id,
+      conversationId: this.conversation.id,
     };
     console.log(postData);
 
-    const response = this.httpService.post('prospect/pinConversation', postData);
+    const response = this.httpService.patch('messages/conversation/pin', postData);
     lastValueFrom(response).then(res => {
       if (res.success) {
         if (this.conversation.isPinned) {

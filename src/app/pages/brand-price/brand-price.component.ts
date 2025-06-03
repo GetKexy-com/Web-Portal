@@ -1,20 +1,18 @@
-import { Component, OnInit } from "@angular/core";
-import { constants } from "src/app/helpers/constants";
-import { AuthService } from "src/app/services/auth.service";
-import { environment } from "src/environments/environment";
-import { routeConstants } from "src/app/helpers/routeConstants";
-import { HttpService } from "src/app/services/http.service";
-import { Router } from "@angular/router";
-import Swal from "sweetalert2";
-import { SubscriptionService } from "src/app/services/subscription.service";
-import {BrandLayoutComponent} from '../../layouts/brand-layout/brand-layout.component';
-import {CommonModule, NgClass} from '@angular/common';
-import {KexyButtonComponent} from '../../components/kexy-button/kexy-button.component';
-import {FormsModule} from '@angular/forms';
-import {
-  PricePageSubscriptionTypeCardComponent
-} from '../../components/price-page-subscription-type-card/price-page-subscription-type-card.component';
-import {ProratedPriceInfoComponent} from '../../components/prorated-price-info/prorated-price-info.component';
+import { Component, OnInit } from '@angular/core';
+import { constants } from 'src/app/helpers/constants';
+import { AuthService } from 'src/app/services/auth.service';
+import { environment } from 'src/environments/environment';
+import { routeConstants } from 'src/app/helpers/routeConstants';
+import { HttpService } from 'src/app/services/http.service';
+import { Router } from '@angular/router';
+import Swal from 'sweetalert2';
+import { SubscriptionService } from 'src/app/services/subscription.service';
+import { BrandLayoutComponent } from '../../layouts/brand-layout/brand-layout.component';
+import { CommonModule, NgClass } from '@angular/common';
+import { KexyButtonComponent } from '../../components/kexy-button/kexy-button.component';
+import { FormsModule } from '@angular/forms';
+import { PricePageSubscriptionTypeCardComponent } from '../../components/price-page-subscription-type-card/price-page-subscription-type-card.component';
+import { ProratedPriceInfoComponent } from '../../components/prorated-price-info/prorated-price-info.component';
 
 @Component({
   selector: 'app-brand-price',
@@ -25,10 +23,10 @@ import {ProratedPriceInfoComponent} from '../../components/prorated-price-info/p
     FormsModule,
     PricePageSubscriptionTypeCardComponent,
     ProratedPriceInfoComponent,
-    CommonModule
+    CommonModule,
   ],
   templateUrl: './brand-price.component.html',
-  styleUrl: './brand-price.component.scss'
+  styleUrl: './brand-price.component.scss',
 })
 export class BrandPriceComponent implements OnInit {
   public initialLoading: boolean = true;
@@ -52,17 +50,14 @@ export class BrandPriceComponent implements OnInit {
   public latestSubscriptionPayments;
   public discountPercent;
 
-
   constructor(
     private authService: AuthService,
     private httpService: HttpService,
-    private subscriptionService: SubscriptionService,
     private router: Router,
-  ) {
-  }
+  ) {}
 
   async ngOnInit() {
-    document.title = "Subscription Price - KEXY Brand Portal";
+    document.title = 'Subscription Price - KEXY Brand Portal';
     this.userData = this.authService.userTokenValue;
     // this.getUsersList();
     await this.userOrganisationApiCall();
@@ -76,7 +71,7 @@ export class BrandPriceComponent implements OnInit {
     this.latestSubscriptionPayments = subscriptionPayments.length && subscriptionPayments[0];
 
     // this.latestSubscriptionPayments.amount = this.latestSubscriptionPayments.amount;
-    console.log("latestSubscription", this.latestSubscriptionPayments);
+    console.log('latestSubscription', this.latestSubscriptionPayments);
 
     if (!this.latestSubscriptionPayments.subscriptionProduct) {
       this.currentSubscriptionPlan = {
@@ -124,13 +119,12 @@ export class BrandPriceComponent implements OnInit {
       this.selectedSubscriptionCardData = constants.LIFETIME_SUBSCRIPTION_DATA;
     }
     this.changePriceBasedOnRecuringType();
-
   };
 
   getRecurringType = () => {
     let type = this.isMonthlySelected ? constants.MONTHLY : constants.ANNUAL;
     if (this.currentSubscriptionPlan.name === constants.LIFETIME) {
-      type = "";
+      type = '';
     }
     return type;
   };
@@ -138,8 +132,9 @@ export class BrandPriceComponent implements OnInit {
   reduceTwentyPercentPrice = (data) => {
     let price = this.latestSubscriptionPayments.subscriptionProduct.price;
     let discountedAmount = price * 0.2; //20% discount
-    data["original_price"] = price - discountedAmount;
-  }
+    data['original_price'] = price - discountedAmount;
+    return price - discountedAmount;
+  };
 
   toggleSubscriptionRecurringType = async () => {
     this.isMonthlySelected = !this.isMonthlySelected;
@@ -152,25 +147,30 @@ export class BrandPriceComponent implements OnInit {
       // If user applied coupon when purchasing then we need to adjust the price
       if (this.currentSubscriptionPlan.name === constants.AMATEUR) {
         this.amateurSubscriptionData.price = price;
-        this.amateurSubscriptionData["original_price"] = this.latestSubscriptionPayments.subscriptionProduct.price;
+        this.amateurSubscriptionData['original_price'] =
+          this.latestSubscriptionPayments.subscriptionProduct.price;
 
-        if(!this.isMonthlySelected) {
-          this.reduceTwentyPercentPrice(this.amateurSubscriptionData);
+        if (!this.isMonthlySelected) {
+          const reducedPrice = this.reduceTwentyPercentPrice(this.amateurSubscriptionData);
+          this.amateurSubscriptionData.price = reducedPrice.toString();
         }
       }
       if (this.currentSubscriptionPlan.name === constants.PRO) {
         this.proSubscriptionData.price = price;
-        this.proSubscriptionData["original_price"] = this.latestSubscriptionPayments.subscriptionProduct.price;
+        this.proSubscriptionData['original_price'] =
+          this.latestSubscriptionPayments.subscriptionProduct.price;
 
-        if(!this.isMonthlySelected) {
-          this.reduceTwentyPercentPrice(this.proSubscriptionData);
+        if (!this.isMonthlySelected) {
+          const reducedPrice = this.reduceTwentyPercentPrice(this.proSubscriptionData);
+          this.proSubscriptionData.price = reducedPrice.toString();
         }
       }
       if (this.currentSubscriptionPlan.name === constants.STARTER) {
         this.starterSubscriptionData.price = price;
-        this.starterSubscriptionData["original_price"] = this.latestSubscriptionPayments.subscriptionProduct.price;
+        this.starterSubscriptionData['original_price'] =
+          this.latestSubscriptionPayments.subscriptionProduct.price;
 
-        if(!this.isMonthlySelected) {
+        if (!this.isMonthlySelected) {
           this.reduceTwentyPercentPrice(this.starterSubscriptionData);
         }
       }
@@ -187,15 +187,14 @@ export class BrandPriceComponent implements OnInit {
     }
   };
 
-
   getPricePerMonthForAUser = (productDetails) => {
     console.log(productDetails);
-    if(
+    if (
       productDetails.subscriptionProduct.type === constants.BRAND_NOVICE ||
       productDetails.subscriptionProduct.type === constants.BRAND_299_MONTH_PER_USER ||
       productDetails.subscriptionProduct.type === constants.BRAND_PRESALE_LIFETIME
     ) {
-      return "0";
+      return '0';
     }
     const stripeDetails = JSON.parse(productDetails.stripeDetails);
     console.log({ stripeDetails });
@@ -215,10 +214,9 @@ export class BrandPriceComponent implements OnInit {
       price = price / 12;
     }
 
-
     // If no coupon was applied and user select annual then we must apply 20% discount
     if (!this.isMonthlySelected && !this.discountPercent) {
-      price = price - (price * 0.2);
+      price = price - price * 0.2;
     }
 
     return price.toString();
@@ -266,7 +264,10 @@ export class BrandPriceComponent implements OnInit {
         ...this.amateurSubscriptionData,
         price: constants.AMATEUR_SUBSCRIPTION_PRICE_MONTH,
       };
-      this.proSubscriptionData = { ...this.proSubscriptionData, price: constants.PRO_SUBSCRIPTION_PRICE_MONTH };
+      this.proSubscriptionData = {
+        ...this.proSubscriptionData,
+        price: constants.PRO_SUBSCRIPTION_PRICE_MONTH,
+      };
       this.starterSubscriptionData = {
         ...this.starterSubscriptionData,
         price: constants.STARTER_SUBSCRIPTION_PRICE_MONTH,
@@ -275,53 +276,65 @@ export class BrandPriceComponent implements OnInit {
       if (this.currentSubscriptionPlan.name === constants.AMATEUR) {
         // this.amateurSubscriptionData.price = this.latestSubscriptionPayments.amount;
         this.amateurSubscriptionData.price = price;
-        this.amateurSubscriptionData["original_price"] = this.latestSubscriptionPayments.subscriptionProduct.price;
+        this.amateurSubscriptionData['original_price'] =
+          this.latestSubscriptionPayments.subscriptionProduct.price;
       }
       if (this.currentSubscriptionPlan.name === constants.PRO) {
         this.proSubscriptionData.price = price;
-        this.proSubscriptionData["original_price"] = this.latestSubscriptionPayments.subscriptionProduct.price;
+        this.proSubscriptionData['original_price'] =
+          this.latestSubscriptionPayments.subscriptionProduct.price;
+        console.log('should be here', this.proSubscriptionData);
       }
       if (this.currentSubscriptionPlan.name === constants.STARTER) {
         this.starterSubscriptionData.price = price;
-        this.starterSubscriptionData["original_price"] = this.latestSubscriptionPayments.subscriptionProduct.price;
+        this.starterSubscriptionData['original_price'] =
+          this.latestSubscriptionPayments.subscriptionProduct.price;
       }
-
     } else {
       this.amateurSubscriptionData = {
         ...this.amateurSubscriptionData,
         price: constants.AMATEUR_SUBSCRIPTION_PRICE_YEAR,
       };
-      this.proSubscriptionData = { ...this.proSubscriptionData, price: constants.PRO_SUBSCRIPTION_PRICE_YEAR };
+      this.proSubscriptionData = {
+        ...this.proSubscriptionData,
+        price: constants.PRO_SUBSCRIPTION_PRICE_YEAR,
+      };
       this.starterSubscriptionData = {
         ...this.starterSubscriptionData,
         price: constants.STARTER_SUBSCRIPTION_PRICE_YEAR,
       };
 
       if (this.currentSubscriptionPlan.name === constants.AMATEUR) {
-        this.amateurSubscriptionData.price = price;
-        this.reduceTwentyPercentPrice(this.amateurSubscriptionData);
-        // this.amateurSubscriptionData["original_price"] = this.latestSubscriptionPayments.subscription_product.price;
+        // this.amateurSubscriptionData.price = price;
+        const reducedPrice = this.reduceTwentyPercentPrice(this.amateurSubscriptionData);
+        this.amateurSubscriptionData.price = reducedPrice.toString();
       }
       if (this.currentSubscriptionPlan.name === constants.PRO) {
-        this.proSubscriptionData.price = price;
-        this.proSubscriptionData["original_price"] = this.latestSubscriptionPayments.subscriptionProduct.price;
-        this.reduceTwentyPercentPrice(this.proSubscriptionData);
-      }
-      if (this.currentSubscriptionPlan.name === constants.STARTER) {
-        this.starterSubscriptionData.price = price;
-        this.starterSubscriptionData["original_price"] = this.latestSubscriptionPayments.subscriptionProduct.price;
-        this.reduceTwentyPercentPrice(this.starterSubscriptionData);
+        // this.proSubscriptionData.price = price;
+        // this.proSubscriptionData['original_price'] =
+        //   this.latestSubscriptionPayments.subscriptionProduct.price;
+        const reducedPrice = this.reduceTwentyPercentPrice(this.proSubscriptionData);
+        this.proSubscriptionData.price = reducedPrice.toString();
       }
     }
 
     if (toggleSubscription) {
-      if (this.selectedSubscriptionCardData.subscriptionType === this.amateurSubscriptionData.subscriptionType) {
+      if (
+        this.selectedSubscriptionCardData.subscriptionType ===
+        this.amateurSubscriptionData.subscriptionType
+      ) {
         this.selectedSubscriptionCardData = this.amateurSubscriptionData;
       }
-      if (this.selectedSubscriptionCardData.subscriptionType === this.proSubscriptionData.subscriptionType) {
+      if (
+        this.selectedSubscriptionCardData.subscriptionType ===
+        this.proSubscriptionData.subscriptionType
+      ) {
         this.selectedSubscriptionCardData = this.proSubscriptionData;
       }
-      if (this.selectedSubscriptionCardData.subscriptionType === this.starterSubscriptionData.subscriptionType) {
+      if (
+        this.selectedSubscriptionCardData.subscriptionType ===
+        this.starterSubscriptionData.subscriptionType
+      ) {
         this.selectedSubscriptionCardData = this.starterSubscriptionData;
       }
     }
@@ -335,12 +348,14 @@ export class BrandPriceComponent implements OnInit {
     this.__calculatePriceForUserCount(false);
   };
 
-
   __calculatePriceForUserCount = (increment = true) => {
     // We prevent "lifetime" from increment/decrement user count to avoid getProratedPrice API call
-    if (this.selectedSubscriptionCardData.subscriptionType === constants.LIFETIME_SUBSCRIPTION_DATA.subscriptionType) {
+    if (
+      this.selectedSubscriptionCardData.subscriptionType ===
+      constants.LIFETIME_SUBSCRIPTION_DATA.subscriptionType
+    ) {
       Swal.fire({
-        icon: "error",
+        icon: 'error',
         text: `Please select a plan first.`,
       });
       return;
@@ -352,7 +367,7 @@ export class BrandPriceComponent implements OnInit {
       // Do not proceed if users count is equal to invited users count.
       if (this.invitedUsersListCount === this.usersCount) {
         Swal.fire({
-          icon: "error",
+          icon: 'error',
           text: `This plan requires at least ${this.invitedUsersListCount} user(s)`,
         });
         return;
@@ -364,18 +379,17 @@ export class BrandPriceComponent implements OnInit {
       }
     }
 
-    const isUserCurrentRecurringMonthly = this.subscription.productName === constants.SUBSCRIPTION_MONTH;
+    const isUserCurrentRecurringMonthly =
+      this.subscription.productName === constants.SUBSCRIPTION_MONTH;
 
     // Point 1 - If user is on "Novice" then we will create new subscription, so we do not need proration data
     // Point 2 - If user has a paid subscription and want to get another paid one then we prorate.
     if (
       this.currentSubscriptionPlan.name !== constants.NOVICE &&
       this.currentSubscriptionPlan.name !== constants.LIFETIME &&
-      (
-        this.selectedSubscriptionCardData.title === constants.PRO ||
+      (this.selectedSubscriptionCardData.title === constants.PRO ||
         this.selectedSubscriptionCardData.title === constants.AMATEUR ||
-        this.selectedSubscriptionCardData.title === constants.STARTER
-      )
+        this.selectedSubscriptionCardData.title === constants.STARTER)
     ) {
       // Set proration price = 0 because user toggle back to their current plan and users count is also unchanged
       if (
@@ -387,13 +401,11 @@ export class BrandPriceComponent implements OnInit {
       } else {
         this.getProratedSubscriptionPrice(this.selectedSubscriptionCardData);
       }
-
     }
 
     // If user is on "Novice" then we will create new subscription, so we do not need proration data.
     // Which is why we set prorate price to 0
     this.__calculateProratedPrice();
-
   };
 
   __calculateProratedPrice = () => {
@@ -414,7 +426,7 @@ export class BrandPriceComponent implements OnInit {
     if (this.invitedUsersListCount > this.usersCount) {
       this.usersCount = this.subscription.totalSeats;
       Swal.fire({
-        icon: "error",
+        icon: 'error',
         text: `This plan requires at least ${this.invitedUsersListCount} user(s)`,
       });
       return;
@@ -436,16 +448,15 @@ export class BrandPriceComponent implements OnInit {
     let isConfirm = await Swal.fire({
       title: `Note!`,
       text: "Your current 'Lifetime' plan will be lost and won't be able to revert.",
-      icon: "warning",
+      icon: 'warning',
       showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Yes, change it!",
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, change it!',
     });
 
     return !isConfirm.dismiss;
   };
-
 
   changePlanBtnClick = async () => {
     const currentPlanName = this.currentSubscriptionPlan.name.toLowerCase();
@@ -453,7 +464,6 @@ export class BrandPriceComponent implements OnInit {
       currentPlanName === constants.NOVICE.toLowerCase() ||
       currentPlanName === constants.LIFETIME.toLowerCase()
     ) {
-
       if (currentPlanName === constants.LIFETIME.toLowerCase()) {
         const confirmed = await this.__isSubscriptionChangeForLifetimeConfirmed();
         if (!confirmed) return;
@@ -464,8 +474,10 @@ export class BrandPriceComponent implements OnInit {
         companyId: this.userData.supplier_id,
         recuring: this.isMonthlySelected ? constants.MONTH : constants.YEAR,
         paymentFor: constants.SUBSCRIPTION,
-        successUrl: environment.siteUrl + routeConstants.BASE_URL + routeConstants.BRAND.SUBSCRIPTION,
-        cancelUrl: environment.siteUrl + routeConstants.BASE_URL + routeConstants.BRAND.SUBSCRIPTION,
+        successUrl:
+          environment.siteUrl + routeConstants.BASE_URL + routeConstants.BRAND.SUBSCRIPTION,
+        cancelUrl:
+          environment.siteUrl + routeConstants.BASE_URL + routeConstants.BRAND.SUBSCRIPTION,
         promotionCode: this.couponCode,
         seats: this.usersCount,
       };
@@ -478,8 +490,13 @@ export class BrandPriceComponent implements OnInit {
       companyId: this.userData.supplier_id,
       numberOfUser: this.usersCount,
       previousProductType: this.currentSubscriptionPlan.type,
-      prorationDate: this.selectedSubscriptionCardData.title === constants.NOVICE ? Math.floor(new Date().getTime() / 1000) : this.prorationDate,
-      recurring: this.isMonthlySelected ? constants.MONTHLY.toLowerCase() : constants.ANNUAL.toLowerCase(),
+      prorationDate:
+        this.selectedSubscriptionCardData.title === constants.NOVICE
+          ? Math.floor(new Date().getTime() / 1000)
+          : this.prorationDate,
+      recurring: this.isMonthlySelected
+        ? constants.MONTHLY.toLowerCase()
+        : constants.ANNUAL.toLowerCase(),
       invoiceNow: !!this.prorationPrice,
     };
     await this.switchSubscriptionForBrandsApi(postData);
@@ -487,12 +504,12 @@ export class BrandPriceComponent implements OnInit {
 
   makePaymentForSubscriptionApi = async (postData) => {
     this.proratedPriceInfoComponentLoading = true;
-    this.httpService.post("subscriptions/checkout", postData).subscribe(res => {
+    this.httpService.post('subscriptions/checkout', postData).subscribe((res) => {
       console.log('makePaymentForSubscriptionApi', res);
       if (res.success) {
         window.location.href = res.data.session.url;
       } else {
-        Swal.fire("Error", res.error.message);
+        Swal.fire('Error', res.error.message);
       }
       this.proratedPriceInfoComponentLoading = false;
     });
@@ -500,15 +517,15 @@ export class BrandPriceComponent implements OnInit {
 
   switchSubscriptionForBrandsApi = async (postData) => {
     this.proratedPriceInfoComponentLoading = true;
-    this.httpService.post("subscriptions/switch", postData).subscribe(res => {
+    this.httpService.post('subscriptions/switch', postData).subscribe((res) => {
       if (res.success) {
-        Swal.fire("Congrats!", "Your subscription has been updated.", "success").then(() => {
+        Swal.fire('Congrats!', 'Your subscription has been updated.', 'success').then(() => {
           this.sendSlackNotification(postData).then(() => {
             this.router.navigate([routeConstants.BRAND.SUBSCRIPTION]);
           });
         });
       } else {
-        Swal.fire("Failed!", res.error.message, "error").then(() => {
+        Swal.fire('Failed!', res.error.message, 'error').then(() => {
           this.router.navigate([routeConstants.BRAND.SUBSCRIPTION]);
         });
       }
@@ -518,16 +535,18 @@ export class BrandPriceComponent implements OnInit {
 
   sendSlackNotification = async (slackNotification) => {
     if (environment.production) {
-      let message = "==================\n";
+      let message = '==================\n';
       message += `Supplier Subscription Change\n`;
       message += `Supplier Company Name - ${this.userData.supplier_name}\n`;
       message += `Name of the person - ${this.userData.firstName} ${this.userData.lastName}\n`;
       message += `Email Address of the person - ${this.userData.email}\n`;
-      message += `Previous Subscription - ${slackNotification.previous_product_type.replaceAll("BRAND_", "")}\n`;
-      message += `Current Subscription - ${slackNotification.product_type.replaceAll("BRAND_", "")}\n`;
+      message += `Previous Subscription - ${slackNotification.previous_product_type.replaceAll('BRAND_', '')}\n`;
+      message += `Current Subscription - ${slackNotification.product_type.replaceAll('BRAND_', '')}\n`;
       message += `Previous Number of User - ${this.subscription.totalSeats}\n`;
       message += `Current Number of User - ${slackNotification.number_of_user}\n`;
-      await this.httpService.post("supplier/postSubscriptionChangeNotificationToSlack", { message }).toPromise();
+      await this.httpService
+        .post('supplier/postSubscriptionChangeNotificationToSlack', { message })
+        .toPromise();
     }
   };
 
@@ -562,10 +581,12 @@ export class BrandPriceComponent implements OnInit {
       // If user applied coupon when purchasing then we need to adjust the price
       if (this.currentSubscriptionPlan.name === constants.AMATEUR) {
         this.amateurSubscriptionData.price = price;
-        this.amateurSubscriptionData["original_price"] = this.latestSubscriptionPayments.subscriptionProduct.price;
+        this.amateurSubscriptionData['original_price'] =
+          this.latestSubscriptionPayments.subscriptionProduct.price;
 
-        if(!this.isMonthlySelected) {
-          this.reduceTwentyPercentPrice(this.amateurSubscriptionData);
+        if (!this.isMonthlySelected) {
+          const reducedPrice = this.reduceTwentyPercentPrice(this.amateurSubscriptionData);
+          this.amateurSubscriptionData.price = reducedPrice.toString();
         }
       }
       if (this.__shouldCallProrate()) {
@@ -599,10 +620,12 @@ export class BrandPriceComponent implements OnInit {
       // If user applied coupon when purchasing then we need to adjust the price
       if (this.currentSubscriptionPlan.name === constants.PRO) {
         this.proSubscriptionData.price = price;
-        this.proSubscriptionData["original_price"] = this.latestSubscriptionPayments.subscriptionProduct.price;
+        this.proSubscriptionData['original_price'] =
+          this.latestSubscriptionPayments.subscriptionProduct.price;
 
-        if(!this.isMonthlySelected) {
-          this.reduceTwentyPercentPrice(this.proSubscriptionData);
+        if (!this.isMonthlySelected) {
+          const reducedPrice = this.reduceTwentyPercentPrice(this.proSubscriptionData);
+          this.proSubscriptionData.price = reducedPrice.toString();
         }
       }
       if (this.__shouldCallProrate()) {
@@ -629,7 +652,6 @@ export class BrandPriceComponent implements OnInit {
     // Which is why we calculate price without proration.
     this.__calculateProratedPrice();
   };
-
 
   __shouldCallProrate = () => {
     if (
@@ -659,41 +681,45 @@ export class BrandPriceComponent implements OnInit {
       companyId: this.userData.supplier_id,
       numberOfUser: this.usersCount,
       previousProductType: this.currentSubscriptionPlan.type,
-      recurring: this.isMonthlySelected ? constants.MONTHLY.toLowerCase() : constants.ANNUAL.toLowerCase(),
+      recurring: this.isMonthlySelected
+        ? constants.MONTHLY.toLowerCase()
+        : constants.ANNUAL.toLowerCase(),
     };
 
     this.proratedPriceInfoComponentLoading = true;
-    this.httpService.post("subscriptions/prorate", postData).subscribe(res => {
+    this.httpService.post('subscriptions/prorate', postData).subscribe((res) => {
       if (res.success) {
         this.proratedApiResponse = res.data;
         this.prorationDate = this.proratedApiResponse.prorationDate;
 
         //Get user stripe balance api for get and calculate any pending downgrade subscription price in order to upgrade subscription.
-        this.httpService.get(`subscriptions/balance/${this.userData.supplier_id}`).subscribe(userBalanceApiRes => {
-          let endingBalance = 0;
-          if (userBalanceApiRes.success) {
-            endingBalance = userBalanceApiRes.data.ending_balance;
-          }
-
-          if (this.proratedApiResponse.invoice.total < 0) {
-            this.prorationPrice = 0;
-          } else {
-            // Because we receive price as cents. So we convert it to $.
-            this.prorationPrice = this.proratedApiResponse.invoice.total / 100;
-
-            // If user has ending balance which means user
-            if (endingBalance < 0) {
-              this.prorationPrice = this.prorationPrice + (endingBalance / 100);
+        this.httpService
+          .get(`subscriptions/balance/${this.userData.supplier_id}`)
+          .subscribe((userBalanceApiRes) => {
+            let endingBalance = 0;
+            if (userBalanceApiRes.success) {
+              endingBalance = userBalanceApiRes.data.ending_balance;
             }
-          }
 
-          // If for some reason "prorationPrice" is still negative then we make it 0
-          if (this.prorationPrice < 0) {
-            this.prorationPrice = 0;
-          }
+            if (this.proratedApiResponse.invoice.total < 0) {
+              this.prorationPrice = 0;
+            } else {
+              // Because we receive price as cents. So we convert it to $.
+              this.prorationPrice = this.proratedApiResponse.invoice.total / 100;
 
-          this.proratedPriceInfoComponentLoading = false;
-        });
+              // If user has ending balance which means user
+              if (endingBalance < 0) {
+                this.prorationPrice = this.prorationPrice + endingBalance / 100;
+              }
+            }
+
+            // If for some reason "prorationPrice" is still negative then we make it 0
+            if (this.prorationPrice < 0) {
+              this.prorationPrice = 0;
+            }
+
+            this.proratedPriceInfoComponentLoading = false;
+          });
       } else {
         this.proratedPriceInfoComponentLoading = false;
       }
@@ -712,18 +738,18 @@ export class BrandPriceComponent implements OnInit {
 
   async getUsersList() {
     let data = {
-      restaurant_id: "",
-      distributor_id: "",
+      restaurant_id: '',
+      distributor_id: '',
       supplier_id: this.userData.supplier_id,
     };
 
-    let response = await this.httpService.post("user/listInvitations", data).toPromise();
+    let response = await this.httpService.post('user/listInvitations', data).toPromise();
     if (response.success) {
       this.invitedUsersListCount = response.data.employee.length + 1;
     }
   }
 
-  couponCode = "";
+  couponCode = '';
   handlecouponInputChange = (value) => {
     this.couponCode = value;
   };

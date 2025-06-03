@@ -80,12 +80,8 @@ export class ProspectingService {
   getProducts = async (postData) => {
     return new Promise(async (resolve, reject) => {
       const url = `prospecting-products?page=${postData.page}&limit=${postData.limit}`;
-      this.httpService.get(url).subscribe((res) => {
-        if (!res.success) {
-          if (res.error) {
-            reject(res.error);
-          }
-        } else {
+      this.httpService.get(url).subscribe({
+        next: (res) => {
           let products = res.data;
           products.forEach((item) => {
             item.isOpened = false;
@@ -93,6 +89,11 @@ export class ProspectingService {
           });
           resolve(products);
           this._products.next(products);
+        },
+        error: (err) => {
+          if (err.error) {
+            reject(err.error);
+          }
         }
       });
     });
@@ -101,18 +102,19 @@ export class ProspectingService {
   createProduct = async (postData) => {
     let products = [...this._products.getValue()];
     return new Promise(async (resolve, reject) => {
-      this.httpService.post('prospecting-products', postData).subscribe((res) => {
-        if (!res.success) {
-          if (res.error) {
-            reject(res.error);
-          }
-        } else {
+      this.httpService.post('prospecting-products', postData).subscribe({
+        next: (res) => {
           let item = { ...res.data };
           item.isOpened = false;
           item.isEditClicked = false;
           products.push(item);
           resolve(true);
           this._products.next(products);
+        },
+        error: (err) => {
+          if (err.error) {
+            reject(err.error);
+          }
         }
       });
     });
@@ -124,12 +126,8 @@ export class ProspectingService {
       const productId = postData.id;
       delete postData.id;
       const url = `prospecting-products/${productId}`;
-      this.httpService.patch(url, postData).subscribe((res) => {
-        if (!res.success) {
-          if (res.error) {
-            reject(res.error);
-          }
-        } else {
+      this.httpService.patch(url, postData).subscribe({
+        next: (res) => {
           products.forEach((p, index) => {
             if (p.id === productId) {
               products[index] = res.data;
@@ -137,6 +135,11 @@ export class ProspectingService {
           });
           resolve(true);
           this._products.next(products);
+        },
+        error: (err) => {
+          if (err.error) {
+            reject(err.error);
+          }
         }
       });
     });
@@ -146,16 +149,16 @@ export class ProspectingService {
     let products = [...this._products.getValue()];
     return new Promise(async (resolve, reject) => {
       const url = `prospecting-products/${postData.id}`;
-      this.httpService.delete(url).subscribe((res) => {
-        if (!res.success) {
-          if (res.error) {
-            reject(res.error);
-          }
-        } else {
+      this.httpService.delete(url).subscribe({
+        next: (res) => {
           products = products.filter((p) => p.id !== postData.id);
-          console.log(products);
           resolve(true);
           this._products.next(products);
+        },
+        error: (err) => {
+          if (err.error) {
+            reject(err.error);
+          }
         }
       });
     });
@@ -164,16 +167,17 @@ export class ProspectingService {
   createConversation = async (postData) => {
     let conversation = [...this._conversation.getValue()];
     return new Promise(async (resolve, reject) => {
-      this.httpService.post('prospect/createConversation', postData).subscribe((res) => {
-        if (!res.success) {
-          if (res.error) {
-            reject(res.error);
-          }
-        } else {
+      this.httpService.post('prospect/createConversation', postData).subscribe({
+        next: (res) => {
           let item = { ...res.data };
           conversation.push(item);
           resolve(true);
           this._conversation.next(conversation);
+        },
+        error: (err) => {
+          if (err.error) {
+            reject(err.error);
+          }
         }
       });
     });
@@ -184,13 +188,14 @@ export class ProspectingService {
       const url = `messages/conversations/${postData.prospectingConversationId}`;
       delete postData.prospectingConversationId;
 
-      this.httpService.post(url, postData).subscribe((res) => {
-        if (!res.success) {
-          if (res.error) {
-            reject(res.error);
-          }
-        } else {
+      this.httpService.post(url, postData).subscribe({
+        next: () => {
           resolve(true);
+        },
+        error: (err) => {
+          if (err.error) {
+            reject(err.error);
+          }
         }
       });
     });
@@ -210,19 +215,13 @@ export class ProspectingService {
       delete postData.companyId;
 
       const queryString = Object.entries(postData)
-        .filter(([_, value]) => value !== '') // Filter out empty values
+        .filter(([_, value]) => value !== '')
         .map(([key, value]: [string, string]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
         .join('&');
       const url = `messages/company/${companyId}?${queryString}`;
-      console.log(url);
 
-      this.httpService.get(url).subscribe((res) => {
-        if (!res.success) {
-          if (res.error) {
-            reject(res.error);
-          }
-        } else {
-          resolve(true);
+      this.httpService.get(url).subscribe({
+        next: (res) => {
           this.prospectContactConversations = res.data.conversations;
           this.totalConversationCount = res.data.total;
           const cacheObj = {
@@ -231,6 +230,12 @@ export class ProspectingService {
           };
           this.conversationCache.push(cacheObj);
           this._conversation.next(this.prospectContactConversations);
+          resolve(true);
+        },
+        error: (err) => {
+          if (err.error) {
+            reject(err.error);
+          }
         }
       });
     });
@@ -241,14 +246,15 @@ export class ProspectingService {
       return this.jobTitles;
     }
     return new Promise(async (resolve, reject) => {
-      this.httpService.get('supplier/getProspectingJobTitles').subscribe((res) => {
-        if (!res.success) {
-          if (res.error) {
-            reject(res.error);
-          }
-        } else {
+      this.httpService.get('supplier/getProspectingJobTitles').subscribe({
+        next: (res) => {
           this.jobTitles = res.data;
           resolve(this.jobTitles);
+        },
+        error: (err) => {
+          if (err.error) {
+            reject(err.error);
+          }
         }
       });
     });
@@ -275,7 +281,7 @@ export class ProspectingService {
         .then((response) => {
           resolve(response);
         })
-        .catch((err) => console.error(err));
+        .catch((err) => reject(err));
     });
   };
 
@@ -334,19 +340,12 @@ export class ProspectingService {
     });
   };
 
-  /**
-   *
-   * @param page - To get data for the specified page
-   * @param resetOldData - Whether we should keep old prospect to the array or if wipe out old prospects.
-   * @param from
-   */
   getSalesLeadContacts = async (page = 1, resetOldData = true) => {
     const payload = this.campaignService.getSearchFilters();
 
     payload['page'] = page;
     payload['searchFrom'] = constants.CAMPAIGN;
 
-    // Check if data is present in cache
     if (this.cachedSaledLeadSearchContacts.length) {
       const index = this.cachedSaledLeadSearchContacts.findIndex(i => i.page === payload['page']);
       if (index > -1) {
@@ -358,7 +357,6 @@ export class ProspectingService {
     if (response.success) {
       if (response.data.contacts.length) {
         await this.setSalesLeadSearchContacts(response.data.contacts, resetOldData);
-        // Set data for cache
         const obj = {
           ...payload,
           data: this.salesLeadSearchContacts,
@@ -381,8 +379,6 @@ export class ProspectingService {
 
   getCalendlyLinks = () => {
     let calendlyLinksData: any = localStorage.getItem(constants.PROSPECTING_CALENDLY_LINKS);
-    console.log(calendlyLinksData);
-
     if (!calendlyLinksData) {
       this._calendlyLinks.next([]);
       return;
@@ -412,14 +408,9 @@ export class ProspectingService {
   };
 
   getSalesLeadNameInitials = (contact) => {
-    let c1 = '',
-      c2 = '';
-    if (contact?.first_name) {
-      c1 = contact.first_name[0];
-    }
-    if (contact?.last_name) {
-      c2 = contact.last_name[0];
-    }
+    let c1 = '', c2 = '';
+    if (contact?.first_name) c1 = contact.first_name[0];
+    if (contact?.last_name) c2 = contact.last_name[0];
     return c1 + c2;
   };
 
@@ -457,13 +448,12 @@ export class ProspectingService {
 
   getProductById = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post('prospect/getProduct', postData).subscribe((res) => {
-        if (!res.success) {
-          if (res.error) {
-            reject(res.error);
+      this.httpService.post('prospect/getProduct', postData).subscribe({
+        next: (res) => resolve(res.data),
+        error: (err) => {
+          if (err.error) {
+            reject(err.error);
           }
-        } else {
-          resolve(res.data);
         }
       });
     });
@@ -471,14 +461,12 @@ export class ProspectingService {
 
   addContacts = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post('contacts', postData).subscribe((res) => {
-        if (!res.success) {
-          if (res.error) {
-            reject(res.error);
+      this.httpService.post('contacts', postData).subscribe({
+        next: (res) => resolve(res.data),
+        error: (err) => {
+          if (err.error) {
+            reject(err.error);
           }
-        } else {
-          let contacts = res.data;
-          resolve(contacts);
         }
       });
     });
@@ -486,13 +474,12 @@ export class ProspectingService {
 
   editContacts = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.patch('contacts', postData).subscribe((res) => {
-        if (!res.success) {
-          if (res.error) {
-            reject(res.error);
+      this.httpService.patch('contacts', postData).subscribe({
+        next: () => resolve(true),
+        error: (err) => {
+          if (err.error) {
+            reject(err.error);
           }
-        } else {
-          resolve(true);
         }
       });
     });
@@ -500,27 +487,24 @@ export class ProspectingService {
 
   removeContactsFromList = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post('contacts/labels/removeContacts', postData).subscribe((res) => {
-        if (!res.success) {
-          if (res.error) {
-            reject(res.error);
+      this.httpService.post('contacts/labels/removeContacts', postData).subscribe({
+        next: () => resolve(true),
+        error: (err) => {
+          if (err.error) {
+            reject(err.error);
           }
-        } else {
-          resolve(true);
         }
       });
     });
   };
 
   getContacts = async (postData, overwrite = false) => {
-    // Returned from cache if found
     const { page, limit } = postData;
     if (!overwrite) {
       if (Object.keys(this.cachedContactPages).length) {
         const key = `${page}${limit}`;
         if (this.cachedContactPages[key]) {
-          // this._contacts.next(this.cachedContactPages[key]["data"]);
-          setTimeout(() => { // 🔹 Defer change detection
+          setTimeout(() => {
             this._contactRes.next(this.cachedContactPages[key]);
           }, 0);
           return null;
@@ -534,27 +518,26 @@ export class ProspectingService {
     const contacts: Contact[] = [];
     return new Promise(async (resolve, reject) => {
       const queryString = Object.entries(postData)
-        .filter(([_, value]) => value !== '') // Filter out empty values
+        .filter(([_, value]) => value !== '')
         .map(([key, value]: [string, string]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
         .join('&');
       const url = `contacts?${queryString}`;
-      this.httpService.get(url).subscribe((res) => {
-        if (!res.success) {
-          if (res.error) {
-            reject(res.error);
-          }
-        } else {
-          resolve(true);
+      this.httpService.get(url).subscribe({
+        next: (res) => {
           res.data.contacts.forEach((contact: IRawContact) => {
             contacts.push(new Contact(contact));
           });
-          // Set Data In Cache
           if (!overwrite) {
             const key = `${page}${limit}`;
             this.cachedContactPages[key] = { contacts, total: res.data.totalContacts };
           }
-
           this._contactRes.next({ contacts, total: res.data.totalContacts });
+          resolve(true);
+        },
+        error: (err) => {
+          if (err.error) {
+            reject(err.error);
+          }
         }
       });
     });
@@ -562,13 +545,12 @@ export class ProspectingService {
 
   getContact = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post('contacts/get', postData).subscribe((res) => {
-        if (!res.success) {
-          if (res.error) {
-            reject(res.error);
+      this.httpService.post('contacts/get', postData).subscribe({
+        next: (res) => resolve(res.data),
+        error: (err) => {
+          if (err.error) {
+            reject(err.error);
           }
-        } else {
-          resolve(res.data);
         }
       });
     });
@@ -576,13 +558,12 @@ export class ProspectingService {
 
   createNewList = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post('lists', postData).subscribe((res) => {
-        if (!res.success) {
-          if (res.error) {
-            reject(res.error);
+      this.httpService.post('lists', postData).subscribe({
+        next: () => resolve(true),
+        error: (err) => {
+          if (err.error) {
+            reject(err.error);
           }
-        } else {
-          resolve(true);
         }
       });
     });
@@ -591,19 +572,19 @@ export class ProspectingService {
   deleteLabel = async (postData) => {
     let labels = [...this._labels.getValue()];
     return new Promise(async (resolve, reject) => {
-      this.httpService.post('contacts/labels/delete', postData).subscribe((res) => {
-        if (!res.success) {
-          if (res.error) {
-            reject(res.error);
-          }
-        } else {
-          // lists = lists.filter((p) => p.id !== postData.label_id);
+      this.httpService.post('contacts/labels/delete', postData).subscribe({
+        next: () => {
           labels = labels.filter((p) => {
             const index = postData.label_ids.findIndex(l => l === p.id);
             return index === -1;
           });
           resolve(true);
           this._labels.next(labels);
+        },
+        error: (err) => {
+          if (err.error) {
+            reject(err.error);
+          }
         }
       });
     });
@@ -611,13 +592,12 @@ export class ProspectingService {
 
   updateLabel = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post('contacts/labels/update', postData).subscribe((res) => {
-        if (!res.success) {
-          if (res.error) {
-            reject(res.error);
+      this.httpService.post('contacts/labels/update', postData).subscribe({
+        next: () => resolve(true),
+        error: (err) => {
+          if (err.error) {
+            reject(err.error);
           }
-        } else {
-          resolve(true);
         }
       });
     });
@@ -625,13 +605,12 @@ export class ProspectingService {
 
   duplicateLabel = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post('contacts/labels/duplicateWithContacts', postData).subscribe((res) => {
-        if (!res.success) {
-          if (res.error) {
-            reject(res.error);
+      this.httpService.post('contacts/labels/duplicateWithContacts', postData).subscribe({
+        next: () => resolve(true),
+        error: (err) => {
+          if (err.error) {
+            reject(err.error);
           }
-        } else {
-          resolve(true);
         }
       });
     });
@@ -639,12 +618,8 @@ export class ProspectingService {
 
   getLists = async (postData, overwrite = true) => {
     const { page, limit } = postData;
-    if (page) {
-      this.manageListCurrentPage = page;
-    }
-    if (limit) {
-      this.manageListLimit = limit;
-    }
+    if (page) this.manageListCurrentPage = page;
+    if (limit) this.manageListLimit = limit;
 
     if (!overwrite) {
       if (Object.keys(this.cachedLabels).length) {
@@ -658,23 +633,19 @@ export class ProspectingService {
 
     return new Promise(async (resolve, reject) => {
       const url = `lists/contacts?page=${this.manageListCurrentPage}&limit=${this.manageListLimit}`;
-      this.httpService.get(url).subscribe((res) => {
-        if (!res.success) {
-          if (res.error) {
-            reject(res.error);
-          }
-        } else {
-          resolve(true);
+      this.httpService.get(url).subscribe({
+        next: (res) => {
           let labels = res.data.lists;
-
-          // Set Data In Cache
-          // if (!overwrite) {
           const key = `${page ? page : this.manageListCurrentPage}${limit ? limit : this.manageListLimit}`;
           this.cachedLabels[key] = { data: labels };
-          // }
-
           this.totalListCount = res.total;
           this._labels.next(labels);
+          resolve(true);
+        },
+        error: (err) => {
+          if (err.error) {
+            reject(err.error);
+          }
         }
       });
     });
@@ -697,18 +668,18 @@ export class ProspectingService {
 
     return new Promise(async (resolve, reject) => {
       const url = `lists?page=${postData.page}&limit=${postData.limit}`;
-      this.httpService.get(url).subscribe((res) => {
-        if (!res.success) {
-          if (res.error) {
-            reject(res.error);
-          }
-        } else {
+      this.httpService.get(url).subscribe({
+        next: (res) => {
           const key = `${page ? page : this.manageListCurrentPage}${limit ? limit : this.manageListLimit}`;
           this.cachedLabelsOnly[key] = { data: res.data.lists };
-
           this.totalListCount = res.data.total;
           this._labelsOnly.next(res.data.lists);
           resolve(true);
+        },
+        error: (err) => {
+          if (err.error) {
+            reject(err.error);
+          }
         }
       });
     });
@@ -716,13 +687,12 @@ export class ProspectingService {
 
   deleteContacts = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.delete('contacts', postData).subscribe((res) => {
-        if (!res.success) {
-          if (res.error) {
-            reject(res.error);
+      this.httpService.delete('contacts', postData).subscribe({
+        next: () => resolve(true),
+        error: (err) => {
+          if (err.error) {
+            reject(err.error);
           }
-        } else {
-          resolve(true);
         }
       });
     });
@@ -736,20 +706,21 @@ export class ProspectingService {
       this._loading_all_contacts.next(true);
 
       const queryString = Object.entries(postData)
-        .filter(([_, value]) => value !== '') // Filter out empty values
+        .filter(([_, value]) => value !== '')
         .map(([key, value]: [string, string]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
         .join('&');
       const url = `/contacts?${queryString}`;
-      this.httpService.get(url).subscribe((res) => {
-        if (!res.success) {
-          if (res.error) {
-            this._loading_all_contacts.next(false);
-            reject(res.error);
-          }
-        } else {
+      this.httpService.get(url).subscribe({
+        next: (res) => {
           this._loading_all_contacts.next(false);
           this.allContacts = this.setLabelsInContactsList(res.data.contacts);
           resolve(this.allContacts);
+        },
+        error: (err) => {
+          this._loading_all_contacts.next(false);
+          if (err.error) {
+            reject(err.error);
+          }
         }
       });
     });
@@ -757,13 +728,12 @@ export class ProspectingService {
 
   saveContactsFromApollo = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post('contacts/apollo-save-contacts', postData).subscribe((res) => {
-        if (!res.success) {
-          if (res.error) {
-            reject(res.error);
+      this.httpService.post('contacts/apollo-save-contacts', postData).subscribe({
+        next: () => resolve(true),
+        error: (err) => {
+          if (err.error) {
+            reject(err.error);
           }
-        } else {
-          resolve(true);
         }
       });
     });
@@ -771,13 +741,12 @@ export class ProspectingService {
 
   notifyAddContactsInDrip = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post('contacts/notifyAddContactsInDrip', postData).subscribe((res) => {
-        if (!res.success) {
-          if (res.error) {
-            reject(res.error);
+      this.httpService.post('contacts/notifyAddContactsInDrip', postData).subscribe({
+        next: (res) => resolve(res.data),
+        error: (err) => {
+          if (err.error) {
+            reject(err.error);
           }
-        } else {
-          resolve(res.data);
         }
       });
     });
@@ -785,6 +754,8 @@ export class ProspectingService {
 
   setLabelsInContactsList = (contactList) => {
     const lists = this._labels.getValue();
+    console.log('contactList', contactList);
+    console.log('labels', lists);
     contactList.forEach((contact: Contact) => {
       let contactLists = [];
       if (contact.listIds) {
@@ -802,13 +773,12 @@ export class ProspectingService {
 
   getContactDripCampaigns = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post('contacts/getDripCampaigns', postData).subscribe((res) => {
-        if (!res.success) {
-          if (res.error) {
-            reject(res.error);
+      this.httpService.post('contacts/getDripCampaigns', postData).subscribe({
+        next: (res) => resolve(res.data),
+        error: (err) => {
+          if (err.error) {
+            reject(err.error);
           }
-        } else {
-          resolve(res.data);
         }
       });
     });
@@ -816,13 +786,12 @@ export class ProspectingService {
 
   removeDripCampaignFromContact = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post('contacts/removeDripCampaignFromContact', postData).subscribe((res) => {
-        if (!res.success) {
-          if (res.error) {
-            reject(res.error);
+      this.httpService.post('contacts/removeDripCampaignFromContact', postData).subscribe({
+        next: (res) => resolve(res.data),
+        error: (err) => {
+          if (err.error) {
+            reject(err.error);
           }
-        } else {
-          resolve(res.data);
         }
       });
     });
@@ -830,13 +799,12 @@ export class ProspectingService {
 
   deleteConversations = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.delete('messages', postData).subscribe((res) => {
-        if (!res.success) {
-          if (res.error) {
-            reject(res.error);
+      this.httpService.delete('messages', postData).subscribe({
+        next: (res) => resolve(res.data),
+        error: (err) => {
+          if (err.error) {
+            reject(err.error);
           }
-        } else {
-          resolve(res.data);
         }
       });
     });

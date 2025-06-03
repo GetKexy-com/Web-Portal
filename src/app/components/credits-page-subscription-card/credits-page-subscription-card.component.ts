@@ -142,18 +142,14 @@ import { CurrencyPipe } from '@angular/common';
 @Component({
   selector: 'credits-page-subscription-card',
   standalone: true,
-  imports: [
-    KexyButtonComponent,
-    CurrencyPipe
-  ],
+  imports: [KexyButtonComponent, CurrencyPipe],
   templateUrl: './credits-page-subscription-card.component.html',
-  styleUrl: './credits-page-subscription-card.component.scss'
+  styleUrl: './credits-page-subscription-card.component.scss',
 })
 export class CreditsPageSubscriptionCardComponent implements OnInit {
   // Services
   private router = inject(Router);
   private httpService = inject(HttpService);
-  private subscriptionService = inject(SubscriptionService);
   private authService = inject(AuthService);
 
   // Input signal
@@ -189,18 +185,16 @@ export class CreditsPageSubscriptionCardComponent implements OnInit {
     if (!this.productDetails()) {
       this.productDetails.set({
         subscriptionProduct: {
-          name: "Novice",
+          name: 'Novice',
           price: 0,
-        }
+        },
       });
     }
 
     this.getPricePerMonthForAUser();
 
     this.creditsInfo.set(
-      this.subscription().subscription_credits[
-      this.subscription().subscription_credits.length - 1
-        ]
+      this.subscription().subscription_credits[this.subscription().subscription_credits.length - 1],
     );
   }
 
@@ -228,7 +222,9 @@ export class CreditsPageSubscriptionCardComponent implements OnInit {
       ? JSON.parse(this.productDetails()['stripeDetails'])
       : [];
 
-    let price = stripeDetails[stripeDetails.length - 1]["unit_amount"];
+    console.log('stripeDetails', stripeDetails);
+
+    let price = stripeDetails[stripeDetails.length - 1]['unit_amount'];
 
     if (this.discountPercent()) {
       const discountedAmount = price * this.discountPercent()!;
@@ -254,7 +250,7 @@ export class CreditsPageSubscriptionCardComponent implements OnInit {
 
   private async __hasPermission(): Promise<boolean> {
     if (this.userData().role !== constants.ADMIN) {
-      await Swal.fire("Error", "You are not authorized for this action.", "warning");
+      await Swal.fire('Error', 'You are not authorized for this action.', 'warning');
       return false;
     }
     return true;
@@ -266,19 +262,21 @@ export class CreditsPageSubscriptionCardComponent implements OnInit {
 
     this.isLoading.set(true);
     const postData = {
-      success_url: environment.siteUrl + "/brand/subscriptions",
-      cancel_url: environment.siteUrl + "/brand/subscriptions",
+      success_url: environment.siteUrl + '/brand/subscriptions',
+      cancel_url: environment.siteUrl + '/brand/subscriptions',
     };
 
     try {
-      const paymentForSubscriptionResponse = this.httpService
-        .post("payment/changePaymentMethod", postData);
+      const paymentForSubscriptionResponse = this.httpService.post(
+        'payment/changePaymentMethod',
+        postData,
+      );
       const res = await lastValueFrom(paymentForSubscriptionResponse);
 
       if (res.success) {
         window.open(res.data);
       } else {
-        Swal.fire("Error", res.error.message);
+        Swal.fire('Error', res.error.message);
       }
     } finally {
       this.isLoading.set(false);
