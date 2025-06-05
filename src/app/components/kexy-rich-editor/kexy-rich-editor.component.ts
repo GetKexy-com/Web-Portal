@@ -63,6 +63,11 @@ export class KexyRichEditorComponent {
     ],
     toolbar: [
       'sourceEditing', '|',
+      {
+        label: 'Fonts',
+        items: [ 'fontSize', 'fontFamily', 'fontColor', 'fontBackgroundColor' ]
+      },
+      '|',
       'undo',
       'redo',
       '|',
@@ -71,6 +76,9 @@ export class KexyRichEditorComponent {
       'bold',
       'italic',
       'underline',
+      'strikethrough',
+      '|',
+      'alignment',
       '|',
       'link',
       'uploadImage',
@@ -78,8 +86,11 @@ export class KexyRichEditorComponent {
       'blockQuote',
       'mediaEmbed',
       '|',
-      'bulletedList',
-      'numberedList',
+      {
+        label: 'Lists',
+        icon: false,
+        items: [ 'bulletedList', 'numberedList', 'todoList' ]
+      },
       '|',
       'outdent',
       'indent',
