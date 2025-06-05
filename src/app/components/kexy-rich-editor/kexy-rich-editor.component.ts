@@ -1,14 +1,24 @@
-import { Component, Input } from '@angular/core';
-import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
-// import ImageResize from '@ckeditor/ckeditor5-image/src/imageresize';
+import { Component, Input, ViewEncapsulation } from '@angular/core';
 import { CKEditorModule } from '@ckeditor/ckeditor5-angular';
 import { environment } from '../../../environments/environment';
+import {
+  Autoformat,
+  BlockQuote,
+  Bold,
+  Image,
+  ClassicEditor,
+  CloudServices,
+  Essentials, Heading, ImageCaption, ImageResize, ImageStyle, ImageToolbar, ImageUpload, Indent, IndentBlock,
+  Italic, Link, List, MediaEmbed, Mention,
+  Paragraph, PasteFromOffice, PictureEditing, Table, TableColumnResize, TableToolbar, TextTransformation,
+  Underline, SourceEditing,
+} from 'ckeditor5';
 
 @Component({
   selector: 'kexy-rich-editor',
-  imports: [
-    CKEditorModule,
-  ],
+  encapsulation: ViewEncapsulation.None,
+  imports: [CKEditorModule],
+  standalone: true,
   templateUrl: './kexy-rich-editor.component.html',
   styleUrl: './kexy-rich-editor.component.scss',
 })
@@ -17,25 +27,98 @@ export class KexyRichEditorComponent {
   @Input() border = false;
   @Input() onContentUpdate;
 
-  public editor = ClassicEditor;
-  ckEditorConfig = {
+  public Editor = ClassicEditor;
+  public config = {
+    licenseKey: 'GPL', // Or 'GPL'.
     extraPlugins: [CustomUploadAdapterPlugin],
-    toolbar: {
-      items: [
-        'bold', 'italic', 'underline', 'strikethrough', 'code', 'superscript', 'subscript',
-        'alignment:left', 'alignment:center', 'alignment:right', 'alignment:justify',
-        'bulletedList', 'numberedList', 'todoList',
-        'outdent', 'indent',
-        'link', 'blockQuote', 'imageUpload', 'insertTable', 'mediaEmbed',
-        'undo', 'redo',
-        'heading', 'fontFamily', 'fontSize', 'fontColor', 'fontBackgroundColor',
-        'highlight', 'horizontalLine', 'removeFormat',
-        'specialCharacters', 'codeBlock', 'htmlEmbed',
-        'restrictedEditingException', 'pageBreak',
-        'sourceEditing', 'findAndReplace', 'selectAll',
-        'style', 'textPartLanguage',
+    plugins: [
+      Autoformat,
+      BlockQuote,
+      Bold,
+      CloudServices,
+      Essentials,
+      Heading,
+      Image,
+      ImageCaption,
+      ImageResize,
+      ImageStyle,
+      ImageToolbar,
+      ImageUpload,
+      Indent,
+      IndentBlock,
+      Italic,
+      Link,
+      List,
+      MediaEmbed,
+      Mention,
+      Paragraph,
+      PasteFromOffice,
+      PictureEditing,
+      Table,
+      TableColumnResize,
+      TableToolbar,
+      TextTransformation,
+      Underline,
+      SourceEditing,
+    ],
+    toolbar: [
+      'sourceEditing', '|',
+      'undo',
+      'redo',
+      '|',
+      'heading',
+      '|',
+      'bold',
+      'italic',
+      'underline',
+      '|',
+      'link',
+      'uploadImage',
+      'insertTable',
+      'blockQuote',
+      'mediaEmbed',
+      '|',
+      'bulletedList',
+      'numberedList',
+      '|',
+      'outdent',
+      'indent',
+    ],
+    image: {
+      resizeOptions: [
+        {
+          name: 'resizeImage:original',
+          label: 'Default image width',
+          value: null,
+        },
+        {
+          name: 'resizeImage:50',
+          label: '50% page width',
+          value: '50',
+        },
+        {
+          name: 'resizeImage:75',
+          label: '75% page width',
+          value: '75',
+        },
       ],
-      shouldNotGroupWhenFull: true,
+      toolbar: [
+        'imageTextAlternative',
+        'toggleImageCaption',
+        '|',
+        'imageStyle:inline',
+        'imageStyle:wrapText',
+        'imageStyle:breakText',
+        '|',
+        'resizeImage',
+      ],
+    },
+    link: {
+      addTargetToExternalLinks: true,
+      defaultProtocol: 'https://',
+    },
+    table: {
+      contentToolbar: ['tableColumn', 'tableRow', 'mergeTableCells'],
     },
   };
 
@@ -54,9 +137,7 @@ function CustomUploadAdapterPlugin(editor: any) {
 
 class CustomUploadAdapter {
   private loader;
-  private url: string = environment.baseUrl;
-  private maxWidth: number = 800; // Set your maximum width
-  private maxHeight: number = 600; // Set your maximum height
+  private url: string = environment.baseUrl + `landing-pages/save-image`;
 
   constructor(loader: any) {
     this.loader = loader;
@@ -64,26 +145,53 @@ class CustomUploadAdapter {
 
   async upload(): Promise<any> {
     const file = await this.loader.file;
-    return this.sendFile(file);
+    return await this.sendFile(file);
   }
 
   private async sendFile(file: File): Promise<any> {
-    const formData = new FormData();
-    formData.append('upload', file); // Adjust field name as per your API
-    console.log(formData);
-    return {
-      default: 'https://yt3.ggpht.com/mjUV8siVwH2jbHOu5NmLlJXo4bsenPFf8E1RAyOM-vGuqBYQWk7mpubRgLYp2iU0pDcguA7ZFCgYAw=s400-c-fcrop64=1,2ae10000de14ffff-nd-v1',
+    const based64String = await this.getBase64FromFile(file);
+    const userToken = localStorage.getItem('userToken');
+    if (!userToken) {
+      throw new Error('Unauthorized');
+      return;
+    }
+    const authToken = JSON.parse(userToken);
+    const payload = {
+      imageData: based64String,
     };
-    // const response = await fetch(this.url, {
-    //   method: 'POST',
-    //   body: formData,
-    // });
-    //
-    // if (!response.ok) {
-    //   throw new Error('Upload failed');
-    // }
 
-    // return response.json();
+    return new Promise(async (resolve, reject) => {
+      const response: Response = await fetch(this.url, {
+        method: 'PATCH',
+        body: JSON.stringify(payload),
+        headers: {
+          'Authorization': `Bearer ${authToken.token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      // Parse JSON response
+      const responseData = await response.json();
+      return resolve({
+        default: environment.imageUrl + responseData['data'].name,
+      });
+    });
+  }
+
+  private getBase64FromFile(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+
+      reader.onload = () => {
+        // `reader.result` is a Base64 string (data URL)
+        resolve(reader.result as string);
+      };
+
+      reader.onerror = (error) => {
+        reject(error);
+      };
+
+      reader.readAsDataURL(file); // Converts file to base64
+    });
   }
 
   abort(): void {

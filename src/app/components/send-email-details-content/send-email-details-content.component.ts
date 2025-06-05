@@ -152,6 +152,7 @@ export class SendEmailDetailsContentComponent implements OnInit, OnDestroy {
   onEmailContentChange = (editor) => {
     setTimeout(() => {
       this.updatedEmailContent = editor.getData();
+      console.log(this.updatedEmailContent);
     }, 10);
   };
 
@@ -173,7 +174,6 @@ export class SendEmailDetailsContentComponent implements OnInit, OnDestroy {
       this.hideCanvas();
       return;
     }
-
     const postData = {
       drip_campaign_email_id: this.dripEmail.id,
       emailSubject: this.dripEmail.emailSubject,
