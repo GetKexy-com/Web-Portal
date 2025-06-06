@@ -61,13 +61,12 @@ export class KexyRichEditorComponent {
       Underline,
       SourceEditing,
     ],
+
     toolbar: [
       'sourceEditing', '|',
-      {
-        label: 'Fonts',
-        items: [ 'fontSize', 'fontFamily', 'fontColor', 'fontBackgroundColor' ]
-      },
+      'fontSize', 'fontFamily', 'fontColor', 'fontBackgroundColor',
       '|',
+      'bulletedList', 'numberedList', 'todoList', '|',
       'undo',
       'redo',
       '|',
@@ -85,12 +84,6 @@ export class KexyRichEditorComponent {
       'insertTable',
       'blockQuote',
       'mediaEmbed',
-      '|',
-      {
-        label: 'Lists',
-        icon: false,
-        items: [ 'bulletedList', 'numberedList', 'todoList' ]
-      },
       '|',
       'outdent',
       'indent',
