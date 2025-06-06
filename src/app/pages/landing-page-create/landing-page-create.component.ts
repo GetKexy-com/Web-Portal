@@ -10,18 +10,10 @@ import { promotionInitialModalData } from 'src/app/helpers/demoData';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { BrandLayoutComponent } from '../../layouts/brand-layout/brand-layout.component';
 import { ProgressCountComponent } from '../../components/progress-count/progress-count.component';
-import {
-  KexyProTipsModalContentComponent,
-} from '../../components/kexy-pro-tips-modal-content/kexy-pro-tips-modal-content.component';
-import {
-  LandingPageDetailsComponent,
-} from '../../components/landing-page-details/landing-page-details.component';
-import {
-  LandingPageContactComponent,
-} from '../../components/landing-page-contact/landing-page-contact.component';
-import {
-  LandingPagePreviewComponent,
-} from '../../components/landing-page-preview/landing-page-preview.component';
+import { KexyProTipsModalContentComponent } from '../../components/kexy-pro-tips-modal-content/kexy-pro-tips-modal-content.component';
+import { LandingPageDetailsComponent } from '../../components/landing-page-details/landing-page-details.component';
+import { LandingPageContactComponent } from '../../components/landing-page-contact/landing-page-contact.component';
+import { LandingPagePreviewComponent } from '../../components/landing-page-preview/landing-page-preview.component';
 import { CommonModule } from '@angular/common';
 import { LandingPage } from '../../models/LandingPage';
 
@@ -102,13 +94,15 @@ export class LandingPageCreateComponent implements OnInit, OnDestroy {
       }
     });
 
-    this._authService.sendSlackNotification();
+    // this._authService.sendSlackNotification();
   }
 
   ngOnDestroy(): void {
     if (this.loadingSubscription) this.loadingSubscription.unsubscribe();
-    if (this.promotionInitialModalSubscription) this.promotionInitialModalSubscription.unsubscribe();
-    if (this.removeQueryParams(this.router.url) === '/' + routeConstants.BRAND.LANDING_PAGES) return;
+    if (this.promotionInitialModalSubscription)
+      this.promotionInitialModalSubscription.unsubscribe();
+    if (this.removeQueryParams(this.router.url) === '/' + routeConstants.BRAND.LANDING_PAGES)
+      return;
     this.campaignService.resetCampaignDataToDefault();
   }
 
@@ -138,7 +132,7 @@ export class LandingPageCreateComponent implements OnInit, OnDestroy {
       this.currentStep = 1;
     }
 
-    if(this.campaignDuplicate) {
+    if (this.campaignDuplicate) {
       this.currentStep = 1;
     }
   };
@@ -147,7 +141,9 @@ export class LandingPageCreateComponent implements OnInit, OnDestroy {
     this.currentStep = ++this.currentStep;
     const cId = this.campaignId && !overwrite ? this.campaignId : campaignId;
     if (cId) {
-      await this.router.navigate([routeConstants.BRAND.LANDING_PAGES], { queryParams: { id: cId } });
+      await this.router.navigate([routeConstants.BRAND.LANDING_PAGES], {
+        queryParams: { id: cId },
+      });
     }
   };
 
@@ -158,7 +154,9 @@ export class LandingPageCreateComponent implements OnInit, OnDestroy {
     this.currentStep = --this.currentStep;
     const cId = this.campaignId ? this.campaignId : campaignId;
     if (cId) {
-      await this.router.navigate([routeConstants.BRAND.LANDING_PAGES], { queryParams: { id: cId } });
+      await this.router.navigate([routeConstants.BRAND.LANDING_PAGES], {
+        queryParams: { id: cId },
+      });
     }
   };
 
