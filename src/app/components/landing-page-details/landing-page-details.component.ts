@@ -2,9 +2,20 @@ import { Component, ElementRef, Input, OnDestroy, OnInit, ViewChild } from '@ang
 import { constants } from 'src/app/helpers/constants';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { NgbOffcanvas } from '@ng-bootstrap/ng-bootstrap';
-import { FileSystemDirectoryEntry, FileSystemFileEntry, NgxFileDropEntry, NgxFileDropModule } from 'ngx-file-drop';
+import {
+  FileSystemDirectoryEntry,
+  FileSystemFileEntry,
+  NgxFileDropEntry,
+  NgxFileDropModule,
+} from 'ngx-file-drop';
 import { AuthService } from 'src/app/services/auth.service';
-import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  FormControl,
+  FormGroup,
+  FormsModule,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 import { ProspectingService } from '../../services/prospecting.service';
 import { Subscription } from 'rxjs';
 import { CampaignService } from 'src/app/services/campaign.service';
@@ -83,8 +94,7 @@ export class LandingPageDetailsComponent implements OnInit, OnDestroy {
     private pageUiService: PageUiService,
     private route: ActivatedRoute,
     private prospectingService: ProspectingService,
-  ) {
-  }
+  ) {}
 
   @ViewChild('stateSelectionModal') stateSelectionModalRef: ElementRef;
 
@@ -142,12 +152,16 @@ export class LandingPageDetailsComponent implements OnInit, OnDestroy {
       }
 
       // Setting product if needs to show previous data
-      const index = this.products.findIndex((i) => i.id === this.landingPage.detail.prospectingProduct.id);
+      const index = this.products.findIndex(
+        (i) => i.id === this.landingPage.detail.prospectingProduct.id,
+      );
       if (index > -1) {
         this.onProductNameSelect(this.products[index]);
 
         //Setting product description/knowledge
-        const descIndex = this.productDescription.findIndex((i) => i.key === this.landingPage.detail.productKnowledge);
+        const descIndex = this.productDescription.findIndex(
+          (i) => i.key === this.landingPage.detail.productKnowledge,
+        );
         this.onProductDescriptionSelect(this.productDescription[descIndex]);
       }
     });
@@ -158,37 +172,42 @@ export class LandingPageDetailsComponent implements OnInit, OnDestroy {
     await this.campaignService.getAllCampaignTitle();
 
     // Set campaignTitle subscription
-    this.campaignTitlesSubscription = this.campaignService.campaignTitles.subscribe((campaignTitles) => {
-      this.campaignTitlesDropdownOptions = campaignTitles;
-      this.campaignTitlesDropdownOptions.map((i) => {
-        i.value = i.title.length > 100 ? i.title.slice(0, 100) + '...' : i.title;
-      });
+    this.campaignTitlesSubscription = this.campaignService.campaignTitles.subscribe(
+      (campaignTitles) => {
+        this.campaignTitlesDropdownOptions = campaignTitles;
+        this.campaignTitlesDropdownOptions.map((i) => {
+          i.value = i.title.length > 100 ? i.title.slice(0, 100) + '...' : i.title;
+        });
 
-      // Setting previous data if any
-      let campaignData = this.campaignService.getLandingPageData();
-      console.log(this.campaignTitlesDropdownOptions);
-      console.log({ campaignData });
-      if (Object.keys(campaignData).length) {
-        const index = this.campaignTitlesDropdownOptions.findIndex(
-          (i) => i.id.toString() === campaignData['detail'].title?.id.toString(),
-        );
-        if (index > -1) {
-          this.onCampaignTitleSelect(this.campaignTitlesDropdownOptions[index]);
+        // Setting previous data if any
+        let campaignData = this.campaignService.getLandingPageData();
+        console.log(this.campaignTitlesDropdownOptions);
+        console.log({ campaignData });
+        if (Object.keys(campaignData).length) {
+          const index = this.campaignTitlesDropdownOptions.findIndex(
+            (i) => i.id.toString() === campaignData['detail'].title?.id.toString(),
+          );
+          if (index > -1) {
+            this.onCampaignTitleSelect(this.campaignTitlesDropdownOptions[index]);
+          }
         }
-      }
-    });
+      },
+    );
   };
 
   getAndSetCampaignInnerDetailsSubscription = async () => {
     // Get campaignInnerDetails api call
-    await this.campaignService.getAllCampaignInnerDetail({ supplier_id: this.userData.supplier_id });
+    await this.campaignService.getAllCampaignInnerDetail({
+      supplier_id: this.userData.supplier_id,
+    });
 
     // Set campaignInnerDetails subscription
     this.campaignInnerDetailsSubscription = this.campaignService.campaignInnerDetails.subscribe(
       (campaignInnerDetails) => {
         this.campaignInnerDetailsDropdownOptions = campaignInnerDetails;
         this.campaignInnerDetailsDropdownOptions.map((i) => {
-          i.value = i.innerDetail.length > 100 ? i.innerDetail.slice(0, 100) + '...' : i.innerDetail;
+          i.value =
+            i.innerDetail.length > 100 ? i.innerDetail.slice(0, 100) + '...' : i.innerDetail;
         });
 
         // Setting previous data if any
@@ -199,7 +218,6 @@ export class LandingPageDetailsComponent implements OnInit, OnDestroy {
         if (index > -1) {
           this.onCampaignInnerDetailsSelect(this.campaignInnerDetailsDropdownOptions[index]);
         }
-
       },
     );
   };
@@ -209,25 +227,27 @@ export class LandingPageDetailsComponent implements OnInit, OnDestroy {
     await this.campaignService.getAllCampaignVideoUrl();
 
     // Set campaignVideoUrls subscription
-    this.campaignVideoUrlsSubscription = this.campaignService.campaignVideoUrls.subscribe((videoUrls) => {
-      this.campaignVideoUrlDropdownOptions = videoUrls;
-      this.campaignVideoUrlDropdownOptions.map((i) => {
-        i.value = i.videoUrl;
-      });
+    this.campaignVideoUrlsSubscription = this.campaignService.campaignVideoUrls.subscribe(
+      (videoUrls) => {
+        this.campaignVideoUrlDropdownOptions = videoUrls;
+        this.campaignVideoUrlDropdownOptions.map((i) => {
+          i.value = i.videoUrl;
+        });
 
-      console.log(this.campaignVideoUrlDropdownOptions);
-      // Setting previous data if any
-      let campaignData = this.campaignService.getLandingPageData();
-      if (Object.keys(campaignData).length) {
-        const index = this.campaignVideoUrlDropdownOptions.findIndex(
-          (i) => i.videoUrl.toString() === campaignData['detail']['video'].toString(),
-        );
+        console.log(this.campaignVideoUrlDropdownOptions);
+        // Setting previous data if any
+        let campaignData = this.campaignService.getLandingPageData();
+        if (Object.keys(campaignData).length) {
+          const index = this.campaignVideoUrlDropdownOptions.findIndex(
+            (i) => i.videoUrl.toString() === campaignData['detail']['video'].toString(),
+          );
 
-        if (index > -1) {
-          this.onCampaignVideoUrlSelect(this.campaignVideoUrlDropdownOptions[index]);
+          if (index > -1) {
+            this.onCampaignVideoUrlSelect(this.campaignVideoUrlDropdownOptions[index]);
+          }
         }
-      }
-    });
+      },
+    );
   };
 
   onProductNameSelect = (product, index = null, rowIndex = null) => {
@@ -241,7 +261,9 @@ export class LandingPageDetailsComponent implements OnInit, OnDestroy {
     this.selectedProductDescriptionKey = '';
     this.primaryForm.patchValue({ productKnowledge: '' });
 
-    const descriptions = Array.isArray(product.descriptions) ? product.descriptions : JSON.parse(product.descriptions);
+    const descriptions = Array.isArray(product.descriptions)
+      ? product.descriptions
+      : JSON.parse(product.descriptions);
     descriptions.forEach((d) => {
       this.productDescription.push({
         key: d,
@@ -291,8 +313,7 @@ export class LandingPageDetailsComponent implements OnInit, OnDestroy {
         this.selectedCampaignTitle = '';
         this.primaryForm.patchValue({ campaignTitle: '' });
       }
-    } catch (e) {
-    }
+    } catch (e) {}
   };
 
   handleDeleteCampaignDetails = async (data, event: Event) => {
@@ -339,8 +360,7 @@ export class LandingPageDetailsComponent implements OnInit, OnDestroy {
         this.selectedCampaignVideoUrl = '';
         this.primaryForm.patchValue({ productVideo: '' });
       }
-    } catch (e) {
-    }
+    } catch (e) {}
   };
 
   handleDeleteProduct = async (data, event: Event) => {
@@ -392,12 +412,11 @@ export class LandingPageDetailsComponent implements OnInit, OnDestroy {
       await this.prospectingService.updateProduct(payload);
 
       // If selected details gets deleted then we need to empty selected field
-      if (productDescriptions.findIndex(pd => pd === this.selectedProductDescriptionKey) === -1) {
+      if (productDescriptions.findIndex((pd) => pd === this.selectedProductDescriptionKey) === -1) {
         this.selectedProductDescriptionKey = '';
         this.primaryForm.patchValue({ productKnowledge: '' });
       }
-    } catch (e) {
-    }
+    } catch (e) {}
   };
 
   handleClickEditIconInVideoUrl = (data, event: Event) => {
@@ -457,7 +476,7 @@ export class LandingPageDetailsComponent implements OnInit, OnDestroy {
 
   getProductByIdAndSetProductInService = () => {
     const productId = this.primaryForm.get('product').value;
-    const productIndex = this.products.findIndex(i => i.id === productId);
+    const productIndex = this.products.findIndex((i) => i.id === productId);
     this.prospectingService.setSelectedProduct(this.products[productIndex]);
   };
 
@@ -507,7 +526,7 @@ export class LandingPageDetailsComponent implements OnInit, OnDestroy {
   __isDeleteConfirmed = async () => {
     let isConfirm = await Swal.fire({
       title: `Are you sure?`,
-      text: 'You won\'t be able to revert this!',
+      text: "You won't be able to revert this!",
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#3085d6',
@@ -538,9 +557,12 @@ export class LandingPageDetailsComponent implements OnInit, OnDestroy {
   public isCheckedCallMessageCheckbox: boolean = false;
   public isCheckedCustomBtnCheckbox: boolean = false;
   handleCheckboxClick = (value) => {
-    if (value === constants.PURCHASE) this.isCheckedPurchaseCheckbox = !this.isCheckedPurchaseCheckbox;
-    if (value === constants.VISIT_WEBSITE) this.isCheckedVisitWebsiteCheckbox = !this.isCheckedVisitWebsiteCheckbox;
-    if (value === constants.CUSTOM_BTN) this.isCheckedCustomBtnCheckbox = !this.isCheckedCustomBtnCheckbox;
+    if (value === constants.PURCHASE)
+      this.isCheckedPurchaseCheckbox = !this.isCheckedPurchaseCheckbox;
+    if (value === constants.VISIT_WEBSITE)
+      this.isCheckedVisitWebsiteCheckbox = !this.isCheckedVisitWebsiteCheckbox;
+    if (value === constants.CUSTOM_BTN)
+      this.isCheckedCustomBtnCheckbox = !this.isCheckedCustomBtnCheckbox;
   };
 
   validateUrl = (value) => {
@@ -592,10 +614,9 @@ export class LandingPageDetailsComponent implements OnInit, OnDestroy {
       this.customButtonLabel = landingPageDetail.customButtonLabel;
     }
 
-
     // Setting environment imageurl if edit or duplicate
     let campaignImage;
-    if (landingPageDetail && this.landingPageId || this.campaignDuplicate) {
+    if ((landingPageDetail && this.landingPageId) || this.campaignDuplicate) {
       campaignImage = environment.imageUrl + landingPageDetail.image;
     }
 
@@ -607,7 +628,11 @@ export class LandingPageDetailsComponent implements OnInit, OnDestroy {
       productVideo: new FormControl(landingPageDetail.video),
       product: new FormControl(
         landingPageDetail.prospectingProduct.id,
-        Validators.compose([Validators.required, Validators.minLength(0), Validators.maxLength(30)]),
+        Validators.compose([
+          Validators.required,
+          Validators.minLength(0),
+          Validators.maxLength(30),
+        ]),
       ),
       campaignTitle: new FormControl(
         landingPageDetail.title.title,
@@ -623,26 +648,20 @@ export class LandingPageDetailsComponent implements OnInit, OnDestroy {
       ),
       productKnowledge: new FormControl(
         landingPageDetail.productKnowledge,
-        Validators.compose([
-          Validators.required,
-          Validators.minLength(0),
-        ]),
+        Validators.compose([Validators.required, Validators.minLength(0)]),
       ),
-      price: new FormControl(
-        landingPageDetail.price,
-        Validators.compose([
-          Validators.required,
-        ]),
-      ),
+      price: new FormControl(landingPageDetail.price, Validators.compose([Validators.required])),
       estimatedSavings: new FormControl(
         landingPageDetail.estimatedSavings,
-        Validators.compose([
-          Validators.required,
-        ]),
+        Validators.compose([Validators.required]),
       ),
       category: new FormControl(
         '1',
-        Validators.compose([Validators.required, Validators.minLength(0), Validators.maxLength(100)]),
+        Validators.compose([
+          Validators.required,
+          Validators.minLength(0),
+          Validators.maxLength(100),
+        ]),
       ),
       size: new FormControl(landingPageDetail.size),
       amount: new FormControl(landingPageDetail.amount),
@@ -650,17 +669,20 @@ export class LandingPageDetailsComponent implements OnInit, OnDestroy {
       sellSheet: new FormControl(landingPageDetail.salesSheet),
       typeOfCampaign: new FormControl(
         this.selectedCampaignType,
-        Validators.compose([Validators.required, Validators.minLength(0), Validators.maxLength(100)]),
+        Validators.compose([
+          Validators.required,
+          Validators.minLength(0),
+          Validators.maxLength(100),
+        ]),
       ),
       purchase: new FormControl(''),
     });
-
-
   };
 
   formValidationErrorCheck = (fieldName: string) => {
     return (
-      this.primaryForm.controls[fieldName].invalid && (this.submitted || this.primaryForm.controls[fieldName].dirty)
+      this.primaryForm.controls[fieldName].invalid &&
+      (this.submitted || this.primaryForm.controls[fieldName].dirty)
     );
   };
 
@@ -743,11 +765,22 @@ export class LandingPageDetailsComponent implements OnInit, OnDestroy {
       console.log(this.primaryForm);
       return;
     }
-    if ((!this.isCheckedPurchaseCheckbox && !this.isCheckedVisitWebsiteCheckbox && !this.isCheckedCustomBtnCheckbox) || (!this.purchaseUrl && !this.visitWebsite && !this.customButtonUrl) || (this.customButtonLabel && !this.customButtonUrl) || (!this.customButtonLabel && this.customButtonUrl)) {
+    if (
+      (!this.isCheckedPurchaseCheckbox &&
+        !this.isCheckedVisitWebsiteCheckbox &&
+        !this.isCheckedCustomBtnCheckbox) ||
+      (!this.purchaseUrl && !this.visitWebsite && !this.customButtonUrl) ||
+      (this.customButtonLabel && !this.customButtonUrl) ||
+      (!this.customButtonLabel && this.customButtonUrl)
+    ) {
       console.log(this.purchaseUrl, this.visitWebsite, this.customButtonUrl);
       return;
     }
-    if ((this.isCheckedPurchaseCheckbox && !this.purchaseUrl) || (this.isCheckedVisitWebsiteCheckbox && !this.visitWebsite) || (this.isCheckedCustomBtnCheckbox && (!this.customButtonUrl || !this.customButtonLabel))) {
+    if (
+      (this.isCheckedPurchaseCheckbox && !this.purchaseUrl) ||
+      (this.isCheckedVisitWebsiteCheckbox && !this.visitWebsite) ||
+      (this.isCheckedCustomBtnCheckbox && (!this.customButtonUrl || !this.customButtonLabel))
+    ) {
       return;
     }
     if (!this.isCheckedCustomBtnCheckbox) {
@@ -774,7 +807,6 @@ export class LandingPageDetailsComponent implements OnInit, OnDestroy {
       prospectingProductId: data.product,
       productKnowledge: data.productKnowledge,
       image: campaignImage,
-      video: data.productVideo,
       estimatedSavings: data.estimatedSavings,
       price: data.price,
       size: data.size,
@@ -792,12 +824,13 @@ export class LandingPageDetailsComponent implements OnInit, OnDestroy {
       payload['landingPageId'] = this.landingPageId;
     }
 
+    if (data.productVideo) payload['video'] = data.productVideo;
+
     try {
       const campaignId = await this.campaignService.campaignCreateApi(payload);
 
       // Proceed to next page
       this.nextBtnClick(campaignId, true);
-
     } catch (e) {
       Swal.fire({
         title: `Error`,
@@ -819,8 +852,7 @@ export class LandingPageDetailsComponent implements OnInit, OnDestroy {
     this.campaignService.changeLandingPageType(data.typeOfCampaign);
   };
 
-  primaryFormSubmitted = () => {
-  };
+  primaryFormSubmitted = () => {};
   protected readonly environment = environment;
   protected readonly personSeniorities = personSeniorities;
 }

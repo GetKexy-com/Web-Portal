@@ -1,15 +1,21 @@
-import { Component, ElementRef, HostListener, Input, OnDestroy, OnInit, ViewChild } from "@angular/core";
-import {FormsModule} from '@angular/forms';
-import {CommonModule} from '@angular/common';
+import {
+  ChangeDetectorRef,
+  Component,
+  ElementRef,
+  HostListener,
+  Input,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+} from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'kexy-select-dropdown',
-  imports: [
-    FormsModule,
-    CommonModule,
-  ],
+  imports: [FormsModule, CommonModule],
   templateUrl: './kexy-select-dropdown.component.html',
-  styleUrl: './kexy-select-dropdown.component.scss'
+  styleUrl: './kexy-select-dropdown.component.scss',
 })
 export class KexySelectDropdownComponent {
   @Input() allOptions: any[];
@@ -17,25 +23,25 @@ export class KexySelectDropdownComponent {
   @Input() onAddNewClick: any;
   @Input() label: string;
   @Input() selectedOption: any;
-  @Input() placeholder = "";
+  @Input() placeholder = '';
   @Input() onSelectSingleItem: any;
   @Input() onOpenDropdown;
   @Input() onSelectAll: any;
   @Input() selectAllBtn: any;
-  @Input() optionStyle = "button"; // "checkbox, button
-  @Input() dropdownStyle = "outline"; // "outline, non-outline
+  @Input() optionStyle = 'button'; // "checkbox, button
+  @Input() dropdownStyle = 'outline'; // "outline, non-outline
   @Input() addNewBtn: any;
   @Input() rowIndex: any;
   @Input() required = false;
-  @Input() backgroundColor = "#f8fcff";
+  @Input() backgroundColor = '#f8fcff';
   @Input() deleteIcon = false;
-  @Input() deleteIconColor = "black";
+  @Input() deleteIconColor = 'black';
   @Input() onDeleteClick: any;
   @Input() editIcon = false;
-  @Input() editIconColor = "black";
-  @Input() actionTextColor = "black";
+  @Input() editIconColor = 'black';
+  @Input() actionTextColor = 'black';
   @Input() onEditClick: any;
-  @Input() shortNoteBesideLabel = "";
+  @Input() shortNoteBesideLabel = '';
   @Input() isSearchAble = false;
   @Input() showTypeAndPress = false;
   @Input() isClearable = true;
@@ -43,20 +49,21 @@ export class KexySelectDropdownComponent {
   @Input() isLoading = false;
   @Input() isUseSearchQueryAsOption = true;
   filteredOptions = [];
-  queryString = "";
+  queryString = '';
 
   public isOpen: boolean = false;
-  outline = "outline";
-  nonOutline = "non-outline";
+  outline = 'outline';
+  nonOutline = 'non-outline';
   areSelectedAll = false;
   dropdownPositionBottom = true;
   minGapFromBottom = 2;
 
-  constructor(private eRef: ElementRef) {
-  }
+  constructor(
+    private eRef: ElementRef,
+    private cdRef: ChangeDetectorRef,
+  ) {}
 
-  ngOnInit(): void {
-  }
+  ngOnInit(): void {}
 
   getSelectedAll() {
     this.areSelectedAll = this.options.every((o) => o.isSelected);
@@ -73,16 +80,23 @@ export class KexySelectDropdownComponent {
   };
 
   showPlaceholder = () => {
-    if (this.optionStyle == "checkbox") {
+    if (this.optionStyle == 'checkbox') {
       return this.options.some((item) => item.isSelected);
-    } else if (this.optionStyle == "button") {
+    } else if (this.optionStyle == 'button') {
       return this.selectedOption;
     }
   };
 
-  @HostListener("document:click", ["$event"])
+  @HostListener('document:click', ['$event'])
   clickOutside(event) {
-    const externalAllowedSection = ["swal2-backdrop-hide", "offcanvas-backdrop fade", "swal2-styled", "non-hide-from-toggle", "swal2-container", "swal-modal"];
+    const externalAllowedSection = [
+      'swal2-backdrop-hide',
+      'offcanvas-backdrop fade',
+      'swal2-styled',
+      'non-hide-from-toggle',
+      'swal2-container',
+      'swal-modal',
+    ];
     let allowedSectionClicked = false;
     externalAllowedSection.forEach((s) => {
       if (!Array.isArray(event.target.className)) {
@@ -96,16 +110,16 @@ export class KexySelectDropdownComponent {
     // console.log("allowed?", allowedSectionClicked);
     if (allowedSectionClicked) return;
 
-    if(Array.isArray(event.target.className)) {
-      const innerItemClicked = event.target.className.includes("non-hide-from-toggle");
+    if (Array.isArray(event.target.className)) {
+      const innerItemClicked = event.target.className.includes('non-hide-from-toggle');
       if (innerItemClicked) return;
     }
 
-    this.queryString = "";
+    this.queryString = '';
 
     let labelClicked = false;
     if (Array.isArray(event.target.className)) {
-      labelClicked = event.target.className.includes("kexy-drop-label-wrap");
+      labelClicked = event.target.className.includes('kexy-drop-label-wrap');
     }
     if (this.eRef.nativeElement.contains(event.target) && !labelClicked) {
       this.isOpen = true;
@@ -125,12 +139,13 @@ export class KexySelectDropdownComponent {
   onSelectItem(option: any, index, ev) {
     ev.preventDefault();
     this.onSelectSingleItem(option, index, this.rowIndex);
-    if (this.optionStyle !== "checkbox") {
+    if (this.optionStyle !== 'checkbox') {
       this.isOpen = false;
+      this.cdRef.detectChanges();
     }
     this.areSelectedAll = this.options.every((o) => o.isSelected);
     // Remove query string as user select an option
-    this.queryString = "";
+    this.queryString = '';
   }
 
   onFormSubmit = (ev) => {
@@ -147,9 +162,8 @@ export class KexySelectDropdownComponent {
     };
     this.onSelectSingleItem(option, 0, this.rowIndex);
     // Remove query string as user select an option
-    this.queryString = "";
+    this.queryString = '';
   };
-
 
   addNewBtnClick = (distributorOrRep, event) => {
     event.preventDefault();
@@ -169,7 +183,7 @@ export class KexySelectDropdownComponent {
     if (this.onSelectAll) this.onSelectAll(this.options);
 
     // Remove query string as user select an option
-    this.queryString = "";
+    this.queryString = '';
   };
 
   handleChangeSearchInput = (e) => {
@@ -177,13 +191,15 @@ export class KexySelectDropdownComponent {
 
     this.queryString = e.target.value;
     if (this.queryString) {
-      this.filteredOptions = this.allOptions.filter(i => i.value.toLowerCase().startsWith(this.queryString.toLowerCase()));
+      this.filteredOptions = this.allOptions.filter((i) =>
+        i.value.toLowerCase().startsWith(this.queryString.toLowerCase()),
+      );
     }
   };
 
   clearSelectedOption = () => {
     // Here We set {value: ""} because
     // In parent function onSelectSingleItem we tried to set the specific variable equal to the valueWePassed.value .
-    this.onSelectSingleItem({ value: "", id: "", key: "" }, 0, this.rowIndex || 0);
+    this.onSelectSingleItem({ value: '', id: '', key: '' }, 0, this.rowIndex || 0);
   };
 }
