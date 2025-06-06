@@ -11,7 +11,7 @@ import {
   Essentials, Heading, ImageCaption, ImageResize, ImageStyle, ImageToolbar, ImageUpload, Indent, IndentBlock,
   Italic, Link, List, MediaEmbed, Mention,
   Paragraph, PasteFromOffice, PictureEditing, Table, TableColumnResize, TableToolbar, TextTransformation,
-  Underline, SourceEditing,
+  Underline, SourceEditing, Alignment, Font, FontSize, FontFamily, Strikethrough, TodoList,
 } from 'ckeditor5';
 
 @Component({
@@ -29,10 +29,15 @@ export class KexyRichEditorComponent {
 
   public Editor = ClassicEditor;
   public config = {
-    licenseKey: 'GPL', // Or 'GPL'.
+    licenseKey: 'GPL',
     extraPlugins: [CustomUploadAdapterPlugin],
     plugins: [
       Autoformat,
+      Alignment,
+      Font,
+      FontSize,
+      FontFamily,
+      Strikethrough,
       BlockQuote,
       Bold,
       CloudServices,
@@ -48,6 +53,7 @@ export class KexyRichEditorComponent {
       IndentBlock,
       Italic,
       Link,
+      TodoList,
       List,
       MediaEmbed,
       Mention,
@@ -64,11 +70,12 @@ export class KexyRichEditorComponent {
 
     toolbar: [
       'sourceEditing', '|',
-      'fontSize', 'fontFamily', 'fontColor', 'fontBackgroundColor',
       '|',
       'bulletedList', 'numberedList', 'todoList', '|',
       'undo',
       'redo',
+      '|',
+      'uploadImage',
       '|',
       'heading',
       '|',
@@ -79,8 +86,9 @@ export class KexyRichEditorComponent {
       '|',
       'alignment',
       '|',
+      'font', 'fontSize', 'fontFamily', 'fontColor', 'fontBackgroundColor',
+      '|',
       'link',
-      'uploadImage',
       'insertTable',
       'blockQuote',
       'mediaEmbed',

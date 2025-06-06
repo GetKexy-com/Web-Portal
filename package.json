@@ -5,6 +5,7 @@
     "ng": "ng",
     "start": "ng serve --host 0.0.0.0",
     "build": "ng build",
+    "build-prod": "ng build --configuration production --base-href='/' --output-hashing none",
     "start:docker": "docker-compose up --build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
