@@ -116,10 +116,12 @@ export class LandingPage {
       },
     };
 
-    this.contactInfo = {
-      ...rawData.contactInfo,
-      questionReferredData: JSON.parse(rawData.contactInfo.questionReferredData),
-    };
+    if(rawData.contactInfo) {
+      this.contactInfo = {
+        ...rawData.contactInfo,
+        questionReferredData: JSON.parse(rawData.contactInfo.questionReferredData),
+      };
+    }
   }
 
   // Add a static method for empty initialization
