@@ -96,8 +96,10 @@ export class KexySelectDropdownComponent {
     // console.log("allowed?", allowedSectionClicked);
     if (allowedSectionClicked) return;
 
-    const innerItemClicked = event.target.className.includes("non-hide-from-toggle");
-    if (innerItemClicked) return;
+    if(Array.isArray(event.target.className)) {
+      const innerItemClicked = event.target.className.includes("non-hide-from-toggle");
+      if (innerItemClicked) return;
+    }
 
     this.queryString = "";
 

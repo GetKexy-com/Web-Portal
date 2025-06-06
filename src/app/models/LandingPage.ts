@@ -107,12 +107,12 @@ export class LandingPage {
     this.status = rawData.status;
     this.token = rawData.token;
     this.createdAt = rawData.createdAt;
-
+    const desc = rawData.detail.prospectingProduct?.descriptions || '{}';
     this.detail = {
       ...rawData.detail,
       prospectingProduct: {
         ...rawData.detail.prospectingProduct,
-        descriptions: JSON.parse(rawData.detail.prospectingProduct.descriptions),
+        descriptions: JSON.parse(desc),
       },
     };
 

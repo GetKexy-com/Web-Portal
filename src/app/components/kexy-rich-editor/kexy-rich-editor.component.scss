@@ -3,6 +3,7 @@
  There are few CkEditor Specific Styles applied
  in 'styles.scss' around line 500
  *********************************************/
+@import 'ckeditor5/ckeditor5.css';
 
 textarea {
   height: 300px;
