@@ -132,6 +132,7 @@ export class KexyRichEditorComponent {
     table: {
       contentToolbar: ['tableColumn', 'tableRow', 'mergeTableCells'],
     },
+    shouldNotGroupWhenFull: false,
   };
 
   onChange = ({ editor }) => {
