@@ -70,9 +70,7 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
     private dripCampaignService: DripCampaignService,
     private pageUiService: PageUiService,
     private ngbOffcanvas: NgbOffcanvas,
-    private router: Router,
-  ) {
-  }
+  ) {}
 
   ngOnInit(): void {
     this.userData = this._authService.userTokenValue;
@@ -81,14 +79,18 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
     // Get edit data
     if (this.prospectingService.clickedContactInContactPage.length) {
       this.selectedContacts = this.prospectingService.clickedContactInContactPage;
+      console.log('selectedContact', this.selectedContacts);
     }
-    if (!this.prospectingService.isAddNewButtonClickedInContactPage && !this.prospectingService.clickedContactInContactPage.length) {
+    if (
+      !this.prospectingService.isAddNewButtonClickedInContactPage &&
+      !this.prospectingService.clickedContactInContactPage.length
+    ) {
       this.selectedContacts = this.prospectingService.selectedContactsInContactsPage;
     }
 
     // Get label ids for comparing later in assignLabel api for edit single contact
     if (this.selectedContacts?.length && !this.isMultipleContactsSelected) {
-      this.selectedContacts[0].lists.forEach(label => this.labelIds.push(label.id));
+      this.selectedContacts[0].lists.forEach((label) => this.labelIds.push(label.id));
     }
 
     this.isMultipleContactsSelected = this.selectedContacts?.length > 1;
@@ -109,7 +111,8 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
     this.labelIdFromListContactPage = this.prospectingService.selectedLabelIdInListContactPage;
 
     // get labelId from service to check if user is trying to edit contact in a list from list-contact page
-    this.labelIdWhenEditContactFromListContactPage = this.prospectingService.listIdWhenEditContactFromListContactPage;
+    this.labelIdWhenEditContactFromListContactPage =
+      this.prospectingService.listIdWhenEditContactFromListContactPage;
 
     // Checking that if multiple contact is selected or not.If selected than we don't need states list because state field will be hidden.
     if (!this.isMultipleContactsSelected) {
@@ -130,15 +133,23 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
   }
 
   getDripCampaignTitle = async () => {
-    await this.dripCampaignService.getAllDripCampaignTitle({ supplier_id: this.userData.supplier_id }, false);
+    await this.dripCampaignService.getAllDripCampaignTitle(
+      { supplier_id: this.userData.supplier_id },
+      false,
+    );
 
-    this.dripCampaignTitlesSubscription = this.dripCampaignService.dripCampaignTitles.subscribe((campaignTitles) => {
-      this.dripCampaignTitles = campaignTitles;
-    });
+    this.dripCampaignTitlesSubscription = this.dripCampaignService.dripCampaignTitles.subscribe(
+      (campaignTitles) => {
+        this.dripCampaignTitles = campaignTitles;
+      },
+    );
   };
 
   getContactDripCampaign = async () => {
-    if (this.isMultipleContactsSelected || this.prospectingService.isAddNewButtonClickedInContactPage) {
+    if (
+      this.isMultipleContactsSelected ||
+      this.prospectingService.isAddNewButtonClickedInContactPage
+    ) {
       this.initialLoading = false;
       return;
     }
@@ -170,7 +181,7 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
   };
 
   setLabelForListContactAdd = () => {
-    this.labelOptions.forEach(label => {
+    this.labelOptions.forEach((label) => {
       if (label.id.toString() === this.labelIdFromListContactPage.toString()) {
         label.isSelected = true;
         return;
@@ -192,7 +203,7 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
     this.contactLabelsSubscription = this.prospectingService.lists.subscribe((labels) => {
       // Set label dropdown options
       this.labelOptions = [];
-      labels.forEach(i => {
+      labels.forEach((i) => {
         const labelObj = {
           key: i.label,
           value: i.label,
@@ -204,7 +215,9 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
 
         // Set selected lists for edit for single contact
         if (!this.isMultipleContactsSelected && this.selectedContacts?.length) {
-          const index = this.selectedContacts[0].lists.findIndex(label => i.id.toString() === label.id.toString());
+          const index = this.selectedContacts[0].lists.findIndex(
+            (label) => i.id.toString() === label.id.toString(),
+          );
           if (index > -1) {
             labelObj.isSelected = true;
           }
@@ -242,7 +255,9 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
       // set dropdowns data
       this.selectedCountry = contactDetails.country;
       this.selectedState = contactDetails.state;
-      this.selectedMarketingStatus = this.pageUiService.capitalizeFirstLetter(this.contact.marketingStatus);
+      this.selectedMarketingStatus = this.pageUiService.capitalizeFirstLetter(
+        this.contact.marketingStatus,
+      );
     } else {
       this.selectedMarketingStatus = '';
     }
@@ -254,32 +269,38 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
       ),
       firstName: new FormControl(
         contactDetails.firstName,
-        Validators.compose([!this.isMultipleContactsSelected ? Validators.required : null, Validators.minLength(0)]),
+        Validators.compose([
+          !this.isMultipleContactsSelected ? Validators.required : null,
+          Validators.minLength(0),
+        ]),
       ),
       lastName: new FormControl(
         contactDetails.lastName,
-        Validators.compose([!this.isMultipleContactsSelected ? Validators.required : null, Validators.minLength(0)]),
+        Validators.compose([
+          !this.isMultipleContactsSelected ? Validators.required : null,
+          Validators.minLength(0),
+        ]),
       ),
-      linkedinUrl: new FormControl(
-        contactDetails.linkedinUrl,
-      ),
+      linkedinUrl: new FormControl(contactDetails.linkedinUrl),
       // this.pageUiService.customEmailValidator()
       // , !this.isMultipleContactsSelected ? Validators.email : null
       email: new FormControl(
         contactDetails.email,
-        Validators.compose([!this.isMultipleContactsSelected ? Validators.required : null, Validators.email]),
+        Validators.compose([
+          !this.isMultipleContactsSelected ? Validators.required : null,
+          Validators.email,
+        ]),
       ),
-      title: new FormControl(
-        contactDetails.title,
+      title: new FormControl(contactDetails.title),
+      organizationName: new FormControl(
+        contactDetails?.organization?.name ? contactDetails.organization.name : '',
       ),
-      organizationName: new FormControl(contactDetails?.organization?.name ? contactDetails.organization.name : ''),
-      organizationPhone: new FormControl(contactDetails?.organization?.phone ? contactDetails?.organization?.phone : '', Validators.compose([])),
-      city: new FormControl(
-        contactDetails.city,
+      organizationPhone: new FormControl(
+        contactDetails?.organization?.phone ? contactDetails?.organization?.phone : '',
+        Validators.compose([]),
       ),
-      state: new FormControl(
-        contactDetails.state,
-      ),
+      city: new FormControl(contactDetails.city),
+      state: new FormControl(contactDetails.state),
       country: new FormControl(
         contactDetails.country ? contactDetails.country : constants.UNITED_STATES,
       ),
@@ -290,7 +311,8 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
 
   formValidationErrorCheck = (fieldName: string) => {
     return (
-      this.primaryForm.controls[fieldName].invalid && (this.submitted || this.primaryForm.controls[fieldName].dirty)
+      this.primaryForm.controls[fieldName].invalid &&
+      (this.submitted || this.primaryForm.controls[fieldName].dirty)
     );
   };
 
@@ -346,27 +368,38 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
       // set key value pair for state options
       this.setKeyValuePairForStates();
 
-      this.statesOptions = this.usaStatesWithKeyValuePair.sort((a, b) => a.value.localeCompare(b.value));
+      this.statesOptions = this.usaStatesWithKeyValuePair.sort((a, b) =>
+        a.value.localeCompare(b.value),
+      );
     }
     if (this.selectedCountry === constants.CANADA) {
       // set key value pair for state options
       this.setKeyValuePairForStates();
 
-      this.statesOptions = this.canadaStatesWithKeyValuePair.sort((a, b) => a.value.localeCompare(b.value));
+      this.statesOptions = this.canadaStatesWithKeyValuePair.sort((a, b) =>
+        a.value.localeCompare(b.value),
+      );
     }
   };
 
   setKeyValuePairForStates = () => {
     // For USA
-    if (this.selectedCountry === constants.UNITED_STATES && !this.usaStatesWithKeyValuePair.length) {
+    if (
+      this.selectedCountry === constants.UNITED_STATES &&
+      !this.usaStatesWithKeyValuePair.length
+    ) {
       this.usaStatesWithKeyValuePair = [];
-      usaStates.map((i) => this.usaStatesWithKeyValuePair.push({ key: i.name, value: i.name, code: i.code }));
+      usaStates.map((i) =>
+        this.usaStatesWithKeyValuePair.push({ key: i.name, value: i.name, code: i.code }),
+      );
     }
 
     // For Canada
     if (this.selectedCountry === constants.CANADA && !this.canadaStatesWithKeyValuePair.length) {
       this.canadaStatesWithKeyValuePair = [];
-      canadaStates.map((i) => this.canadaStatesWithKeyValuePair.push({ key: i.name, value: i.name, code: i.code }));
+      canadaStates.map((i) =>
+        this.canadaStatesWithKeyValuePair.push({ key: i.name, value: i.name, code: i.code }),
+      );
     }
   };
 
@@ -392,7 +425,7 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
   __isDeleteConfirmed = async (confirmBtnText: string = 'Yes, delete it!') => {
     let isConfirm = await Swal.fire({
       title: `Are you sure?`,
-      text: 'You won\'t be able to revert this!',
+      text: "You won't be able to revert this!",
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#3085d6',
@@ -411,7 +444,7 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
 
     const selectedLabelsId = [];
     if (selectedLabels.length) {
-      selectedLabels.map(i => selectedLabelsId.push(`${i.id}`));
+      selectedLabels.map((i) => selectedLabelsId.push(`${i.id}`));
     }
     this.primaryForm.patchValue({ lists: selectedLabelsId });
   };
@@ -464,7 +497,7 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
   parseContactDetails = (data) => {
     console.log('data', data);
     const contacts = [];
-    data.forEach(contact => {
+    data.forEach((contact) => {
       const details = JSON.parse(contact.details);
       details['id'] = contact.id;
       contacts.push({ ...contact, details: details });
@@ -491,8 +524,10 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
       sortBy: '',
       sortType: '',
     };
-    if (this.labelIdFromListContactPage) getContactApiPostData.listIds = [this.labelIdFromListContactPage];
-    if (this.labelIdWhenEditContactFromListContactPage) getContactApiPostData.listIds = [this.labelIdWhenEditContactFromListContactPage];
+    if (this.labelIdFromListContactPage)
+      getContactApiPostData.listIds = [this.labelIdFromListContactPage];
+    if (this.labelIdWhenEditContactFromListContactPage)
+      getContactApiPostData.listIds = [this.labelIdWhenEditContactFromListContactPage];
 
     if (!this.labelIdFromListContactPage && !this.labelIdWhenEditContactFromListContactPage) {
       const filterCount = this.prospectingService.searchContactActiveFilterCount;
@@ -502,13 +537,16 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
         if (filterData['city']) getContactApiPostData['city'] = filterData['city'];
         if (filterData['state']) getContactApiPostData['state'] = filterData['state'];
         if (filterData['name']) getContactApiPostData['contactName'] = filterData['name'];
-        if (filterData['companyName']) getContactApiPostData['companyName'] = filterData['companyName'];
+        if (filterData['companyName'])
+          getContactApiPostData['companyName'] = filterData['companyName'];
         if (filterData['email']) getContactApiPostData['email'] = filterData['email'].trim();
-        if (filterData['emailStatus']) getContactApiPostData['emailStatus'] = filterData['emailStatus'];
-        if (filterData['marketingStatus']) getContactApiPostData['marketingStatus'] = filterData['marketingStatus'];
+        if (filterData['emailStatus'])
+          getContactApiPostData['emailStatus'] = filterData['emailStatus'];
+        if (filterData['marketingStatus'])
+          getContactApiPostData['marketingStatus'] = filterData['marketingStatus'];
         if (filterData['labels']?.length) {
           const listIds = [];
-          filterData['labels'].forEach(label => listIds.push(label.id));
+          filterData['labels'].forEach((label) => listIds.push(label.id));
           getContactApiPostData.listIds = listIds;
         }
       }
@@ -527,17 +565,14 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
     const getContactApiPostData = this.getContactsApiPayload();
 
     try {
-
       if (!this.selectedContacts?.length) {
         postData = this.setAndGetAddOrEditSingleContactApiPayload(formData);
         // Create Contact
         await this.prospectingService.addContacts(postData);
-
       } else if (this.selectedContacts?.length && !this.isMultipleContactsSelected) {
         // Edit Single Contact
         postData = this.setAndGetAddOrEditSingleContactApiPayload(formData);
         await this.prospectingService.editContacts(postData);
-
       } else {
         // Edit Multiple Contact
         postData = this.setAndGetEditMultipleContactApiPayload(formData);
@@ -604,12 +639,10 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
       if (index > -1) {
         this.contactDripCampaigns.splice(index, 1);
       }
-
     } catch (e) {
       await Swal.fire('Error', e.message);
     } finally {
       this.initialLoading = false;
     }
-
   };
 }

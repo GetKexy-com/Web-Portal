@@ -13,15 +13,9 @@ import { ChangeDetectorRef } from '@angular/core';
 import { BrandLayoutComponent } from '../../layouts/brand-layout/brand-layout.component';
 import { KexyButtonComponent } from '../../components/kexy-button/kexy-button.component';
 import { ContactListCardComponent } from '../../components/contact-list-card/contact-list-card.component';
-import {
-  UploadFileModalContentComponent,
-} from '../../components/upload-file-modal-content/upload-file-modal-content.component';
-import {
-  SearchContactModalContentComponent,
-} from '../../components/search-contact-modal-content/search-contact-modal-content.component';
-import {
-  AddContactsToDripCampaignComponent,
-} from '../../components/add-contacts-to-drip-campaign/add-contacts-to-drip-campaign.component';
+import { UploadFileModalContentComponent } from '../../components/upload-file-modal-content/upload-file-modal-content.component';
+import { SearchContactModalContentComponent } from '../../components/search-contact-modal-content/search-contact-modal-content.component';
+import { AddContactsToDripCampaignComponent } from '../../components/add-contacts-to-drip-campaign/add-contacts-to-drip-campaign.component';
 import { CommonModule } from '@angular/common';
 import { Contact } from '../../models/Contact';
 
@@ -76,7 +70,6 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
   constructor(
     private _authService: AuthService,
     private prospectingService: ProspectingService,
-    private dripCampaignService: DripCampaignService,
     private ngbOffcanvas: NgbOffcanvas,
     private modal: NgbModal,
     private route: ActivatedRoute,
@@ -84,7 +77,7 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
     private cdr: ChangeDetectorRef,
   ) {
     // override the route reuse strategy
-    this.router.routeReuseStrategy.shouldReuseRoute = function() {
+    this.router.routeReuseStrategy.shouldReuseRoute = function () {
       return false;
     };
   }
@@ -172,7 +165,6 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
   setContactSubscription = () => {
     this.contactListSubscription = this.prospectingService.contactRes.subscribe((data) => {
       if (data) {
-        console.log(data);
         this.contactList = this.prospectingService.setLabelsInContactsList(data.contacts);
         this.totalContactsCount = data.total;
         this.totalPage = Math.ceil(this.totalContactsCount / this.limit);
@@ -184,7 +176,6 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
     });
   };
 
-
   getLabels = async () => {
     // Get Label
     await this.prospectingService.getLists({ companyId: this.supplierId, page: 1, limit: 9999999 });
@@ -193,7 +184,7 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
     this.contactLabelsSubscription = this.prospectingService.lists.subscribe((labels) => {
       // Set label dropdown options
       this.labelOptions = [];
-      labels.map(i => {
+      labels.map((i) => {
         const labelObj = {
           key: i.label,
           value: i.label,
@@ -264,7 +255,7 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
     // this.isLoading = false;
 
     this.isLoading = true;
-    this.cdr.detectChanges();  // 🔹 Ensure UI updates before fetching
+    this.cdr.detectChanges(); // 🔹 Ensure UI updates before fetching
     await this.getContacts(overWrite);
     // isLoading is setting false in setContactSubscription
 
@@ -286,10 +277,8 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
   handleSortByCreatedAt = async (column) => {
     if (column === constants.TITLE) {
       this.sortBy = constants.JOB_TITLE;
-
     } else if (column === constants.COMPANY_NAME) {
       this.sortBy = constants.COMPANY_NAME;
-
     } else {
       this.sortBy = constants.CREATED_AT;
     }
@@ -381,7 +370,6 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
             this.selectedContacts.splice(index, 1);
           }
         });
-
       } else {
         this.contactList.map((i) => {
           i.isSelected = true;
@@ -396,12 +384,16 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
       this.contactList[rowIndex].isSelected = !this.contactList[rowIndex].isSelected;
 
       if (this.contactList[rowIndex].isSelected) {
-        const index = this.selectedContacts.findIndex((j) => j.id === this.contactList[rowIndex].id);
+        const index = this.selectedContacts.findIndex(
+          (j) => j.id === this.contactList[rowIndex].id,
+        );
         if (index === -1) {
           this.selectedContacts.push(this.contactList[rowIndex]);
         }
       } else {
-        const index = this.selectedContacts.findIndex((j) => j.id === this.contactList[rowIndex].id);
+        const index = this.selectedContacts.findIndex(
+          (j) => j.id === this.contactList[rowIndex].id,
+        );
         if (index > -1) {
           this.selectedContacts.splice(index, 1);
         }
@@ -434,7 +426,7 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
     // this.searchContactName = "";
     if (searchData.labels) {
       this.searchLabels = searchData.labels;
-      searchData.labels.forEach(l => {
+      searchData.labels.forEach((l) => {
         this.searchLabelIds.push(l.id);
       });
     } else {
@@ -559,7 +551,7 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
     this.allContacts.forEach((contact) => {
       // console.log('contact', contact);
       let labels = [];
-      contact.kexy_contact_labels.forEach(label => {
+      contact.kexy_contact_labels.forEach((label) => {
         labels.push(label.kexy_label.label);
       });
 
@@ -586,7 +578,7 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
   deleteContacts = async () => {
     let isConfirm = await Swal.fire({
       title: 'Are you sure?',
-      text: 'You won\'t be able to revert this!',
+      text: "You won't be able to revert this!",
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#3085d6',
@@ -612,14 +604,16 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
     Swal.showLoading();
 
     const contactIds = [];
-    this.selectedContacts.map((contact: Contact) => contactIds.push({
-      id: contact.id,
-      email: contact.email,
-      firstName: contact.details.firstName,
-      lastName: contact.details.lastName,
-      name: contact.contactName,
-      title: contact.jobTitle,
-    }));
+    this.selectedContacts.map((contact: Contact) =>
+      contactIds.push({
+        id: contact.id,
+        email: contact.email,
+        firstName: contact.details.firstName,
+        lastName: contact.details.lastName,
+        name: contact.contactName,
+        title: contact.jobTitle,
+      }),
+    );
     const postData = {
       companyId: this.supplierId,
       contacts: contactIds,

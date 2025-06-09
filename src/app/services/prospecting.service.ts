@@ -72,10 +72,13 @@ export class ProspectingService {
   public searchContactFilterData;
   public searchContactActiveFilterCount;
   public selectedAllContacts;
-  private companyInfoApiUrl = 'https://l777t7f5reetofkbbji7uq7jsy0oydzw.lambda-url.us-east-1.on.aws/';
+  private companyInfoApiUrl =
+    'https://l777t7f5reetofkbbji7uq7jsy0oydzw.lambda-url.us-east-1.on.aws/';
 
-  constructor(private httpService: HttpService, private campaignService: CampaignService) {
-  }
+  constructor(
+    private httpService: HttpService,
+    private campaignService: CampaignService,
+  ) {}
 
   getProducts = async (postData) => {
     return new Promise(async (resolve, reject) => {
@@ -94,7 +97,7 @@ export class ProspectingService {
           if (err.error) {
             reject(err.error);
           }
-        }
+        },
       });
     });
   };
@@ -115,7 +118,7 @@ export class ProspectingService {
           if (err.error) {
             reject(err.error);
           }
-        }
+        },
       });
     });
   };
@@ -140,7 +143,7 @@ export class ProspectingService {
           if (err.error) {
             reject(err.error);
           }
-        }
+        },
       });
     });
   };
@@ -159,7 +162,7 @@ export class ProspectingService {
           if (err.error) {
             reject(err.error);
           }
-        }
+        },
       });
     });
   };
@@ -178,7 +181,7 @@ export class ProspectingService {
           if (err.error) {
             reject(err.error);
           }
-        }
+        },
       });
     });
   };
@@ -196,7 +199,7 @@ export class ProspectingService {
           if (err.error) {
             reject(err.error);
           }
-        }
+        },
       });
     });
   };
@@ -204,7 +207,7 @@ export class ProspectingService {
   getAllConversation = async (postData, overWrite = false) => {
     return new Promise(async (resolve, reject) => {
       if (this.conversationCache.length && !overWrite) {
-        const index = this.conversationCache.findIndex(i => i.page === postData.page);
+        const index = this.conversationCache.findIndex((i) => i.page === postData.page);
         if (index > -1) {
           this._conversation.next(this.conversationCache[index].data);
           return resolve(true);
@@ -216,7 +219,10 @@ export class ProspectingService {
 
       const queryString = Object.entries(postData)
         .filter(([_, value]) => value !== '')
-        .map(([key, value]: [string, string]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+        .map(
+          ([key, value]: [string, string]) =>
+            `${encodeURIComponent(key)}=${encodeURIComponent(value)}`,
+        )
         .join('&');
       const url = `messages/company/${companyId}?${queryString}`;
 
@@ -236,7 +242,7 @@ export class ProspectingService {
           if (err.error) {
             reject(err.error);
           }
-        }
+        },
       });
     });
   };
@@ -255,7 +261,7 @@ export class ProspectingService {
           if (err.error) {
             reject(err.error);
           }
-        }
+        },
       });
     });
   };
@@ -347,7 +353,7 @@ export class ProspectingService {
     payload['searchFrom'] = constants.CAMPAIGN;
 
     if (this.cachedSaledLeadSearchContacts.length) {
-      const index = this.cachedSaledLeadSearchContacts.findIndex(i => i.page === payload['page']);
+      const index = this.cachedSaledLeadSearchContacts.findIndex((i) => i.page === payload['page']);
       if (index > -1) {
         return this.cachedSaledLeadSearchContacts[index].data;
       }
@@ -408,7 +414,8 @@ export class ProspectingService {
   };
 
   getSalesLeadNameInitials = (contact) => {
-    let c1 = '', c2 = '';
+    let c1 = '',
+      c2 = '';
     if (contact?.first_name) c1 = contact.first_name[0];
     if (contact?.last_name) c2 = contact.last_name[0];
     return c1 + c2;
@@ -454,7 +461,7 @@ export class ProspectingService {
           if (err.error) {
             reject(err.error);
           }
-        }
+        },
       });
     });
   };
@@ -467,7 +474,7 @@ export class ProspectingService {
           if (err.error) {
             reject(err.error);
           }
-        }
+        },
       });
     });
   };
@@ -480,20 +487,22 @@ export class ProspectingService {
           if (err.error) {
             reject(err.error);
           }
-        }
+        },
       });
     });
   };
 
   removeContactsFromList = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post('contacts/labels/removeContacts', postData).subscribe({
+      const url = `contacts/removeContactsFromList/${postData.listId}`;
+      delete postData.listId;
+      this.httpService.delete(url, postData).subscribe({
         next: () => resolve(true),
         error: (err) => {
           if (err.error) {
             reject(err.error);
           }
-        }
+        },
       });
     });
   };
@@ -519,7 +528,10 @@ export class ProspectingService {
     return new Promise(async (resolve, reject) => {
       const queryString = Object.entries(postData)
         .filter(([_, value]) => value !== '')
-        .map(([key, value]: [string, string]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+        .map(
+          ([key, value]: [string, string]) =>
+            `${encodeURIComponent(key)}=${encodeURIComponent(value)}`,
+        )
         .join('&');
       const url = `contacts?${queryString}`;
       this.httpService.get(url).subscribe({
@@ -538,7 +550,7 @@ export class ProspectingService {
           if (err.error) {
             reject(err.error);
           }
-        }
+        },
       });
     });
   };
@@ -551,7 +563,7 @@ export class ProspectingService {
           if (err.error) {
             reject(err.error);
           }
-        }
+        },
       });
     });
   };
@@ -564,7 +576,7 @@ export class ProspectingService {
           if (err.error) {
             reject(err.error);
           }
-        }
+        },
       });
     });
   };
@@ -575,7 +587,7 @@ export class ProspectingService {
       this.httpService.post('contacts/labels/delete', postData).subscribe({
         next: () => {
           labels = labels.filter((p) => {
-            const index = postData.label_ids.findIndex(l => l === p.id);
+            const index = postData.label_ids.findIndex((l) => l === p.id);
             return index === -1;
           });
           resolve(true);
@@ -585,7 +597,7 @@ export class ProspectingService {
           if (err.error) {
             reject(err.error);
           }
-        }
+        },
       });
     });
   };
@@ -598,7 +610,7 @@ export class ProspectingService {
           if (err.error) {
             reject(err.error);
           }
-        }
+        },
       });
     });
   };
@@ -611,7 +623,7 @@ export class ProspectingService {
           if (err.error) {
             reject(err.error);
           }
-        }
+        },
       });
     });
   };
@@ -646,7 +658,7 @@ export class ProspectingService {
           if (err.error) {
             reject(err.error);
           }
-        }
+        },
       });
     });
   };
@@ -680,7 +692,7 @@ export class ProspectingService {
           if (err.error) {
             reject(err.error);
           }
-        }
+        },
       });
     });
   };
@@ -693,7 +705,7 @@ export class ProspectingService {
           if (err.error) {
             reject(err.error);
           }
-        }
+        },
       });
     });
   };
@@ -707,7 +719,10 @@ export class ProspectingService {
 
       const queryString = Object.entries(postData)
         .filter(([_, value]) => value !== '')
-        .map(([key, value]: [string, string]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+        .map(
+          ([key, value]: [string, string]) =>
+            `${encodeURIComponent(key)}=${encodeURIComponent(value)}`,
+        )
         .join('&');
       const url = `/contacts?${queryString}`;
       this.httpService.get(url).subscribe({
@@ -721,7 +736,7 @@ export class ProspectingService {
           if (err.error) {
             reject(err.error);
           }
-        }
+        },
       });
     });
   };
@@ -734,7 +749,7 @@ export class ProspectingService {
           if (err.error) {
             reject(err.error);
           }
-        }
+        },
       });
     });
   };
@@ -747,7 +762,7 @@ export class ProspectingService {
           if (err.error) {
             reject(err.error);
           }
-        }
+        },
       });
     });
   };
@@ -759,8 +774,8 @@ export class ProspectingService {
     contactList.forEach((contact: Contact) => {
       let contactLists = [];
       if (contact.listIds) {
-        contact.listIds.forEach(label => {
-          const index = lists.findIndex(l => l.id?.toString() === label);
+        contact.listIds.forEach((label) => {
+          const index = lists.findIndex((l) => l.id?.toString() === label);
           if (index > -1) {
             contactLists.push(lists[index]);
           }
@@ -779,7 +794,7 @@ export class ProspectingService {
           if (err.error) {
             reject(err.error);
           }
-        }
+        },
       });
     });
   };
@@ -792,7 +807,7 @@ export class ProspectingService {
           if (err.error) {
             reject(err.error);
           }
-        }
+        },
       });
     });
   };
@@ -805,7 +820,7 @@ export class ProspectingService {
           if (err.error) {
             reject(err.error);
           }
-        }
+        },
       });
     });
   };
