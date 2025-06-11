@@ -52,8 +52,8 @@ export class Contact {
     return {
       id: data.id,
       apolloContactId: data.apolloContactId,
-      firstName: data.firstName,
-      lastName: data.lastName,
+      firstName: data.firstName || data.first_name,
+      lastName: data.lastName || data.last_name,
       name: data.name,
       linkedinUrl: data.linkedinUrl || 'https://linkedin.com',
       title: data.title,
@@ -71,25 +71,27 @@ export class Contact {
       city: data.city,
       country: data.country,
       notes: data.notes,
-      organization: data.organization ? {
-        name: data.organization.name,
-        websiteUrl: data.organization.websiteUrl,
-        blogUrl: data.organization.blogUrl,
-        angellistUrl: data.organization.angellistUrl,
-        linkedinUrl: data.organization.linkedinUrl || 'https://linkedin.com',
-        twitterUrl: data.organization.twitter_url,
-        facebookUrl: data.organization.facebook_url,
-        logoUrl: data.organization.logo_url,
-        phone: data.organization.phone,
-        industry: data.organization.industry,
-        foundedYear: data.organization.founded_year,
-        estimatedNumEmployees: data.organization.estimated_num_employees,
-        streetAddress: data.organization.street_address,
-        city: data.organization.city,
-        state: data.organization.state,
-        postalCode: data.organization.postal_code,
-        country: data.organization.country,
-      } : undefined,
+      organization: data.organization
+        ? {
+            name: data.organization.name,
+            websiteUrl: data.organization.websiteUrl,
+            blogUrl: data.organization.blogUrl,
+            angellistUrl: data.organization.angellistUrl,
+            linkedinUrl: data.organization.linkedinUrl || 'https://linkedin.com',
+            twitterUrl: data.organization.twitter_url,
+            facebookUrl: data.organization.facebook_url,
+            logoUrl: data.organization.logo_url,
+            phone: data.organization.phone,
+            industry: data.organization.industry,
+            foundedYear: data.organization.founded_year,
+            estimatedNumEmployees: data.organization.estimated_num_employees,
+            streetAddress: data.organization.street_address,
+            city: data.organization.city,
+            state: data.organization.state,
+            postalCode: data.organization.postal_code,
+            country: data.organization.country,
+          }
+        : undefined,
       isLikelyToEngage: data.is_likely_to_engage,
     };
   }
@@ -238,6 +240,8 @@ export interface ContactDetails {
   apolloContactId?: string;
   firstName?: string;
   lastName?: string;
+  first_name?: string;
+  last_name?: string;
   name?: string;
   linkedinUrl?: string;
   title?: string;
@@ -282,5 +286,5 @@ export interface ContactOrganization {
 export enum MarketingStatus {
   SUBSCRIBED = 'subscribed',
   UNSUBSCRIBED = 'unsubscribed',
-  PENDING = 'pending'
+  PENDING = 'pending',
 }

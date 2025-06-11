@@ -1,26 +1,24 @@
-import {Component, Input, OnInit} from "@angular/core";
-import { constants } from "../../helpers/constants";
-import {CommonModule, DatePipe, NgClass} from "@angular/common";
-import { NgbOffcanvas } from "@ng-bootstrap/ng-bootstrap";
-import {FormControl, FormGroup, FormsModule, Validators} from "@angular/forms";
-import Swal from "sweetalert2";
-import { AuthService } from "../../services/auth.service";
-import { DripCampaignService } from "../../services/drip-campaign.service";
-import { Subscription } from "rxjs";
-import { CampaignService } from "../../services/campaign.service";
-import { ActivatedRoute } from "@angular/router";
-import { ProspectingService } from "../../services/prospecting.service";
-import {KexySelectDropdownComponent} from '../kexy-select-dropdown/kexy-select-dropdown.component';
-import {ErrorMessageCardComponent} from '../error-message-card/error-message-card.component';
-import {
-  DripCampaignPromotionsTableComponent
-} from '../drip-campaign-promotions-table/drip-campaign-promotions-table.component';
-import {CampaignLayoutBottmBtnsComponent} from '../campaign-layout-bottm-btns/campaign-layout-bottm-btns.component';
-import {CreateDripCampaignTitleComponent} from '../create-drip-campaign-title/create-drip-campaign-title.component';
-import {AddCalendlyLinkContentComponent} from '../add-calendly-link-content/add-calendly-link-content.component';
-import {AddWebsiteContentComponent} from '../add-website-content/add-website-content.component';
+import { Component, Input, OnInit } from '@angular/core';
+import { constants } from '../../helpers/constants';
+import { CommonModule, DatePipe, NgClass } from '@angular/common';
+import { NgbOffcanvas } from '@ng-bootstrap/ng-bootstrap';
+import { FormControl, FormGroup, FormsModule, Validators } from '@angular/forms';
+import Swal from 'sweetalert2';
+import { AuthService } from '../../services/auth.service';
+import { DripCampaignService } from '../../services/drip-campaign.service';
+import { Subscription } from 'rxjs';
+import { CampaignService } from '../../services/campaign.service';
+import { ActivatedRoute } from '@angular/router';
+import { ProspectingService } from '../../services/prospecting.service';
+import { KexySelectDropdownComponent } from '../kexy-select-dropdown/kexy-select-dropdown.component';
+import { ErrorMessageCardComponent } from '../error-message-card/error-message-card.component';
+import { DripCampaignPromotionsTableComponent } from '../drip-campaign-promotions-table/drip-campaign-promotions-table.component';
+import { CampaignLayoutBottmBtnsComponent } from '../campaign-layout-bottm-btns/campaign-layout-bottm-btns.component';
+import { CreateDripCampaignTitleComponent } from '../create-drip-campaign-title/create-drip-campaign-title.component';
+import { AddCalendlyLinkContentComponent } from '../add-calendly-link-content/add-calendly-link-content.component';
+import { AddWebsiteContentComponent } from '../add-website-content/add-website-content.component';
 import { LandingPage } from '../../models/LandingPage';
-import {DripCampaign} from '../../models/DripCampaign';
+import { DripCampaign } from '../../models/DripCampaign';
 
 @Component({
   selector: 'drip-campaign-content',
@@ -31,10 +29,10 @@ import {DripCampaign} from '../../models/DripCampaign';
     DripCampaignPromotionsTableComponent,
     NgClass,
     CampaignLayoutBottmBtnsComponent,
-    CommonModule
+    CommonModule,
   ],
   templateUrl: './drip-campaign-content.component.html',
-  styleUrl: './drip-campaign-content.component.scss'
+  styleUrl: './drip-campaign-content.component.scss',
 })
 export class DripCampaignContentComponent implements OnInit {
   @Input() nextBtnClick;
@@ -61,19 +59,18 @@ export class DripCampaignContentComponent implements OnInit {
   public dripCampaignDuplicate: boolean = false;
   public dripCampaignId;
   public calendlyLinkOptions = [];
-  public selectedCalendlyLinkKey = "";
+  public selectedCalendlyLinkKey = '';
   public websitesOptions = [];
-  public selectedWebsiteKey = "";
+  public selectedWebsiteKey = '';
   public selectedDripCampaignType = constants.COMPANIES;
-  public targetAudience = "";
-  public whatDoYouCover = "";
+  public targetAudience = '';
+  public whatDoYouCover = '';
   public emailLengthKeys = constants.EMAIL_LENGTH_KEYS;
   public selectedEmailLength;
 
   public dripCampaignTitlesSubscription: Subscription;
   public calendlyLinkSubscription: Subscription;
   public websiteSubscription: Subscription;
-
 
   constructor(
     private route: ActivatedRoute,
@@ -83,16 +80,15 @@ export class DripCampaignContentComponent implements OnInit {
     private campaignService: CampaignService,
     private prospectingService: ProspectingService,
     // private datePipe: DatePipe,
-  ) {
-  }
+  ) {}
 
   async ngOnInit() {
     // this.selectedDripCampaignType = this.dripCampaignService.selectedDripCampaignType;
     this.route.queryParams.subscribe((params) => {
-      if (params["id"]) {
-        this.dripCampaignId = params["id"];
+      if (params['id']) {
+        this.dripCampaignId = params['id'];
       }
-      if (params["action"] && params["action"] === constants.DUPLICATE) {
+      if (params['action'] && params['action'] === constants.DUPLICATE) {
         this.dripCampaignDuplicate = true;
       }
     });
@@ -114,7 +110,7 @@ export class DripCampaignContentComponent implements OnInit {
     // Set 1st index as the default which is 'short' if not find anything in service for this field
     const emailLength = this.dripCampaignService.getEmailLength();
     if (emailLength) {
-      const index = this.emailLengthKeys.findIndex(i => i.key === emailLength);
+      const index = this.emailLengthKeys.findIndex((i) => i.key === emailLength);
       this.onEmailLengthSelect(this.emailLengthKeys[index]);
     } else {
       this.onEmailLengthSelect(this.emailLengthKeys[0]);
@@ -144,8 +140,8 @@ export class DripCampaignContentComponent implements OnInit {
     this.selectedEmailToneKey = data.emailTone;
     this.numberOfEmail = data.numberOfEmails;
     this.promotionId = data.campaignId;
-    this.selectedWebsiteKey = data.websiteUrl ? data.websiteUrl : "";
-    this.selectedCalendlyLinkKey = data.calendlyLink ? data.calendlyLink : "";
+    this.selectedWebsiteKey = data.websiteUrl ? data.websiteUrl : '';
+    this.selectedCalendlyLinkKey = data.calendlyLink ? data.calendlyLink : '';
     this.whatDoYouCover = dripCampaign.emailAbout;
     this.targetAudience = dripCampaign.targetAudience;
     // this.selectedDripCampaignType = dripCampaign["audience_type"];
@@ -161,13 +157,13 @@ export class DripCampaignContentComponent implements OnInit {
       status: constants.ACTIVE,
     };
     let data = await this.campaignService.getListOfLandingPage(postData);
-    if (!data["landingPages"] || !data["landingPages"].length) return;
+    if (!data['landingPages'] || !data['landingPages'].length) return;
 
     this.promotionTitles = await this.campaignService.getAllCampaignTitle();
 
-    this.totalPageCounts = data["totalPageCounts"];
+    this.totalPageCounts = data['totalPageCounts'];
     this.calculatePages();
-    data["landingPages"].map(item => {
+    data['landingPages'].map((item) => {
       const obj = {
         id: item.id,
         title_of_campaign: item.detail.title.title,
@@ -213,17 +209,29 @@ export class DripCampaignContentComponent implements OnInit {
     // Get dripCampaignTitles api call
     const postData = {
       companyId: this.userData.supplier_id,
-      titleType: "drip"
-    }
+      titleType: 'drip',
+    };
     await this.dripCampaignService.getAllDripCampaignTitle(postData);
 
     // Set campaignTitle subscription
-    this.dripCampaignTitlesSubscription = this.dripCampaignService.dripCampaignTitles.subscribe((campaignTitles) => {
-      this.campaignTitles = campaignTitles;
-      this.campaignTitles.map((i) => {
-        i.value = i.title.length > 100 ? i.title.slice(0, 100) + "..." : i.title;
-      });
-    });
+    this.dripCampaignTitlesSubscription = this.dripCampaignService.dripCampaignTitles.subscribe(
+      (campaignTitles) => {
+        this.campaignTitles = campaignTitles;
+        console.log('campaignTitles', campaignTitles);
+        console.log('selectedTitle', this.selectedTitleId);
+        this.campaignTitles.map((i) => {
+          i.value = i.title.length > 100 ? i.title.slice(0, 100) + '...' : i.title;
+        });
+
+        // Update selected title if that edited
+        if (this.selectedTitleId) {
+          const titleIndex = this.campaignTitles.findIndex((c) => c.id === this.selectedTitleId);
+          if (titleIndex > -1) {
+            this.selectedTitle = this.campaignTitles[titleIndex]?.title;
+          }
+        }
+      },
+    );
   };
 
   onEmailToneSelect = (tone, index = null, rowIndex = null) => {
@@ -252,12 +260,11 @@ export class DripCampaignContentComponent implements OnInit {
 
       // If selected data gets deleted then we need to empty selected field
       if (this.selectedTitle && data.id === this.selectedTitleId) {
-        this.selectedTitle = "";
-        this.selectedTitleId = "";
+        this.selectedTitle = '';
+        this.selectedTitleId = '';
       }
-
     } catch (e) {
-      Swal.fire("Error", e.message, "error");
+      Swal.fire('Error', e.message, 'error');
     }
   };
 
@@ -270,27 +277,25 @@ export class DripCampaignContentComponent implements OnInit {
     this.openCreateDripCampaignTitleCanvas();
   };
 
-
   __isDeleteConfirmed = async () => {
     let isConfirm = await Swal.fire({
       title: `Are you sure?`,
       text: "You won't be able to revert this!",
-      icon: "warning",
+      icon: 'warning',
       showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Yes, delete it!",
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, delete it!',
     });
 
     return !isConfirm.dismiss;
   };
 
-
   __createRightSideSlide = (Component) => {
     this.ngbOffcanvas.open(Component, {
-      panelClass: "attributes-bg edit-rep-canvas",
-      backdropClass: "edit-rep-canvas-backdrop",
-      position: "end",
+      panelClass: 'attributes-bg edit-rep-canvas',
+      backdropClass: 'edit-rep-canvas-backdrop',
+      position: 'end',
       scroll: false,
     });
   };
@@ -304,7 +309,7 @@ export class DripCampaignContentComponent implements OnInit {
 
     this.primaryForm = new FormGroup({
       dripCampaignTitle: new FormControl(
-        "",
+        '',
         Validators.compose([
           Validators.required,
           Validators.minLength(0),
@@ -316,7 +321,7 @@ export class DripCampaignContentComponent implements OnInit {
 
   receivedPromotion = (data) => {
     if (this.promotionId === data.id) {
-      this.promotionId = "";
+      this.promotionId = '';
     } else {
       this.promotionId = data.id;
     }
@@ -358,9 +363,9 @@ export class DripCampaignContentComponent implements OnInit {
 
   openAddCalendlyLinkCanvas = () => {
     this.ngbOffcanvas.open(AddCalendlyLinkContentComponent, {
-      panelClass: "attributes-bg edit-rep-canvas",
-      backdropClass: "edit-rep-canvas-backdrop",
-      position: "end",
+      panelClass: 'attributes-bg edit-rep-canvas',
+      backdropClass: 'edit-rep-canvas-backdrop',
+      position: 'end',
       scroll: false,
     });
   };
@@ -371,9 +376,9 @@ export class DripCampaignContentComponent implements OnInit {
 
   openAddWebsiteCanvas = () => {
     this.ngbOffcanvas.open(AddWebsiteContentComponent, {
-      panelClass: "attributes-bg edit-rep-canvas",
-      backdropClass: "edit-rep-canvas-backdrop",
-      position: "end",
+      panelClass: 'attributes-bg edit-rep-canvas',
+      backdropClass: 'edit-rep-canvas-backdrop',
+      position: 'end',
       scroll: false,
     });
   };
@@ -390,11 +395,11 @@ export class DripCampaignContentComponent implements OnInit {
     let isConfirm = await Swal.fire({
       title: `Do you want to delete this website url?`,
       text: "You won't be able to revert this!",
-      icon: "warning",
+      icon: 'warning',
       showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Yes, delete it!",
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, delete it!',
     });
 
     if (isConfirm.dismiss) {
@@ -405,7 +410,7 @@ export class DripCampaignContentComponent implements OnInit {
 
     // If selected data gets deleted then we need to empty selected field
     if (this.selectedWebsiteKey && data.value === this.selectedWebsiteKey) {
-      this.selectedWebsiteKey = "";
+      this.selectedWebsiteKey = '';
     }
   };
 
@@ -416,11 +421,11 @@ export class DripCampaignContentComponent implements OnInit {
     let isConfirm = await Swal.fire({
       title: `Do you want to delete this link?`,
       text: "You won't be able to revert this!",
-      icon: "warning",
+      icon: 'warning',
       showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Yes, delete it!",
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, delete it!',
     });
 
     if (isConfirm.dismiss) {
@@ -431,7 +436,7 @@ export class DripCampaignContentComponent implements OnInit {
 
     // If selected data gets deleted then we need to empty selected field
     if (this.selectedCalendlyLinkKey && data.value === this.selectedCalendlyLinkKey) {
-      this.selectedCalendlyLinkKey = "";
+      this.selectedCalendlyLinkKey = '';
     }
   };
 
@@ -439,33 +444,39 @@ export class DripCampaignContentComponent implements OnInit {
     this.submitted = true;
 
     // Form validation
-    if (!this.selectedTitle || !this.selectedEmailToneKey || !this.numberOfEmail || !this.selectedWebsiteKey || !this.targetAudience) {
+    if (
+      !this.selectedTitle ||
+      !this.selectedEmailToneKey ||
+      !this.numberOfEmail ||
+      !this.selectedWebsiteKey ||
+      !this.targetAudience
+    ) {
       return;
     }
 
     const payload = {
-      dripCampaignId: parseInt(this.dripCampaignId) || "",
+      dripCampaignId: parseInt(this.dripCampaignId) || '',
       companyId: this.userData.supplier_id,
       dripCampaignTitleId: this.selectedTitleId,
       numberOfEmails: this.numberOfEmail,
       emailTone: this.selectedEmailToneKey,
       emailLength: this.selectedEmailLength.value,
       websiteUrl: this.selectedWebsiteKey,
-      campaignId: this.promotionId || "",
+      campaignId: this.promotionId || '',
       targetAudience: this.targetAudience,
       emailAbout: this.whatDoYouCover,
       audienceType: this.selectedDripCampaignType,
     };
     if (this.dripCampaignDuplicate) {
-      payload["dripCampaignDuplicate"] = true;
+      payload['dripCampaignDuplicate'] = true;
       // payload.dripCampaignId = this.dripCampaignId;
     }
     if (this.selectedCalendlyLinkKey) {
-      payload["calendlyLink"] = this.selectedCalendlyLinkKey;
+      payload['calendlyLink'] = this.selectedCalendlyLinkKey;
     }
     console.log({ payload });
     const dripCampaign = await this.dripCampaignService.createOrUpdateDripCampaign(payload);
-    this.dripCampaignId = dripCampaign["id"];
+    this.dripCampaignId = dripCampaign['id'];
     const postData = {
       drip_campaign_id: this.dripCampaignId,
       supplier_id: this.userData.supplier_id,
@@ -478,7 +489,6 @@ export class DripCampaignContentComponent implements OnInit {
 
   protected readonly constants = constants;
 }
-
 
 // import { Component, Input, OnInit, OnDestroy, signal, computed } from '@angular/core';
 // import { constants } from '../../helpers/constants';
