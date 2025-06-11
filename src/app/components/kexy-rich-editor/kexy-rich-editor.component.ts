@@ -11,7 +11,7 @@ import {
   Essentials, Heading, ImageCaption, ImageResize, ImageStyle, ImageToolbar, ImageUpload, Indent, IndentBlock,
   Italic, Link, List, MediaEmbed, Mention,
   Paragraph, PasteFromOffice, PictureEditing, Table, TableColumnResize, TableToolbar, TextTransformation,
-  Underline, SourceEditing, Alignment, Font, FontSize, FontFamily, Strikethrough, TodoList,
+  Underline, SourceEditing, Alignment, Font, FontSize, FontFamily, Strikethrough, TodoList, LinkImage,
 } from 'ckeditor5';
 
 @Component({
@@ -66,6 +66,7 @@ export class KexyRichEditorComponent {
       TextTransformation,
       Underline,
       SourceEditing,
+      LinkImage
     ],
 
     toolbar: [
@@ -76,6 +77,7 @@ export class KexyRichEditorComponent {
       'redo',
       '|',
       'uploadImage',
+      'linkImage',
       '|',
       'heading',
       '|',
