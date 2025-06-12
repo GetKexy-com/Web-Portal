@@ -557,7 +557,8 @@ export class ProspectingService {
 
   getContact = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post('contacts/get', postData).subscribe({
+      const url = `contacts/${postData.contactId}?companyId=${postData.companyId}`;
+      this.httpService.get(url).subscribe({
         next: (res) => resolve(res.data),
         error: (err) => {
           if (err.error) {
