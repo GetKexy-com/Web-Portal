@@ -66,6 +66,7 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
   sortBy = '';
   activeFilterCount = 0;
   selectAllContacts = false;
+  contactIds;
 
   constructor(
     private _authService: AuthService,
@@ -100,8 +101,9 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
       await this.getAContact();
     } else {
       await this.getContacts(true);
+      this.setContactSubscription();
     }
-    this.setContactSubscription();
+    // this.setContactSubscription();
 
     // set pagination data in service
     this.prospectingService.brandContactCurrentPage = this.page;
@@ -123,6 +125,10 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
       if (params['addToDrip'] && params['contactId']) {
         this.addToDrip = true;
         this.contactId = params['contactId'];
+      }
+      if (params['ids']) {
+        this.contactIds = params['ids'];
+        console.log('contactIds', this.contactIds);
       }
     });
   };
@@ -149,16 +155,20 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
 
   getContacts = async (overwrite = false) => {
     const postData = this.getContactsApiPostData();
+    if (this.contactIds) {
+      postData['ids'] = this.contactIds;
+    }
     await this.prospectingService.getContacts(postData, overwrite);
   };
 
   getAContact = async () => {
     const postData = {
-      supplier_id: this.supplierId,
-      contact_id: this.contactId,
+      companyId: this.supplierId,
+      contactId: this.contactId,
     };
-    const contact = await this.prospectingService.getContact(postData);
-    this.contactList = this.prospectingService.setLabelsInContactsList([contact]);
+    const data = await this.prospectingService.getContact(postData);
+    this.contactList = this.prospectingService.setLabelsInContactsList(data['contacts']);
+    console.log('contactList', this.contactList);
     this.totalPage = '1';
   };
 
@@ -166,6 +176,7 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
     this.contactListSubscription = this.prospectingService.contactRes.subscribe((data) => {
       if (data) {
         this.contactList = this.prospectingService.setLabelsInContactsList(data.contacts);
+        console.log('contactList', this.contactList);
         this.totalContactsCount = data.total;
         this.totalPage = Math.ceil(this.totalContactsCount / this.limit);
 

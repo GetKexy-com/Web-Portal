@@ -1,18 +1,18 @@
-import {inject, Injectable} from "@angular/core";
-import { HttpClient, HttpHeaders } from "@angular/common/http";
-import { BehaviorSubject, Observable } from "rxjs";
-import { map } from "rxjs/operators";
+import { inject, Injectable } from '@angular/core';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 
-import { environment } from "../../environments/environment";
-import { User } from "../models/user";
+import { environment } from '../../environments/environment';
+import { User } from '../models/user';
 
-import { HttpService } from "./http.service";
-import { Router } from "@angular/router";
-import { constants } from "../helpers/constants";
-import { routeConstants } from "../helpers/routeConstants";
-import { PageUiService } from "./page-ui.service";
+import { HttpService } from './http.service';
+import { Router } from '@angular/router';
+import { constants } from '../helpers/constants';
+import { routeConstants } from '../helpers/routeConstants';
+import { PageUiService } from './page-ui.service';
 
-@Injectable({ providedIn: "root" })
+@Injectable({ providedIn: 'root' })
 export class AuthService {
   private userTokenSubject: BehaviorSubject<User>;
   public userToken: Observable<User>;
@@ -26,28 +26,30 @@ export class AuthService {
     private httpService: HttpService,
     private pageUiService: PageUiService,
   ) {
-    this.userTokenSubject = new BehaviorSubject(JSON.parse(localStorage.getItem("userToken")));
+    this.userTokenSubject = new BehaviorSubject(JSON.parse(localStorage.getItem('userToken')));
     this.userToken = this.userTokenSubject.asObservable();
   }
 
   public get userTokenValue() {
-    return JSON.parse(localStorage.getItem("userToken"));
+    return JSON.parse(localStorage.getItem('userToken'));
   }
 
   public get registrationTokenValue() {
-    return localStorage.getItem("registerToken");
+    return localStorage.getItem('registerToken');
   }
 
   secondarylogin(email: string, password: string, presale = false) {
     let apiUrl = `${environment.secondaryBaseUrl}`;
     let headers = this._getHeaders();
 
-    return this.http.post<any>(`${apiUrl}user/login`, { email, password }, { headers: headers }).pipe(
-      map((user) => {
-        console.log("user", user);
-        return user;
-      }),
-    );
+    return this.http
+      .post<any>(`${apiUrl}user/login`, { email, password }, { headers: headers })
+      .pipe(
+        map((user) => {
+          console.log('user', user);
+          return user;
+        }),
+      );
   }
 
   login(email: string, password: string, presale = false) {
@@ -59,10 +61,9 @@ export class AuthService {
 
     return this.http.post(`${apiUrl}auth/login`, { email, password }, { headers: headers }).pipe(
       map((user) => {
-        console.log("user", user);
-        if (user["success"] && user["data"]) {
-          this.saveUserToken(user["data"]).then(() => {
-          });
+        console.log('user', user);
+        if (user['success'] && user['data']) {
+          this.saveUserToken(user['data']).then(() => {});
         }
         return user;
       }),
@@ -76,7 +77,7 @@ export class AuthService {
   }
 
   _getHeaders(): HttpHeaders {
-    return new HttpHeaders({ "Content-Type": "application/json", accept: "application/json" });
+    return new HttpHeaders({ 'Content-Type': 'application/json', accept: 'application/json' });
   }
 
   userOrganisationApiCall = async (overwrite = false) => {
@@ -84,7 +85,7 @@ export class AuthService {
       return this.userOrganisationData;
     }
     try {
-      const response = await this.httpService.post("user/getUserOrganizations", {}).toPromise();
+      const response = await this.httpService.post('user/getUserOrganizations', {}).toPromise();
       if (response.success) {
         this.userOrganisationData = response;
       }
@@ -99,7 +100,7 @@ export class AuthService {
       return this.userOrganisationData;
     }
     try {
-      const response = await this.httpService.get("company/getUserCompanies").toPromise();
+      const response = await this.httpService.get('company/getUserCompanies').toPromise();
       if (response.success) {
         this.userOrganisationData = response;
       }
@@ -120,8 +121,8 @@ export class AuthService {
 
       if (company.subscriptions) {
         const subscription = company.subscriptions[0];
-        subscription.subscription_payments = subscription.payments.filter(p => {
-          return p.success === true && p.reccuring !== "day";
+        subscription.subscription_payments = subscription.payments.filter((p) => {
+          return p.success === true && p.reccuring !== 'day';
         });
         // const paymentsLength = subscription.subscription_payments.length - 1;
         let productDetails = subscription.subscription_payments[0]?.subscriptionProduct;
@@ -133,13 +134,13 @@ export class AuthService {
             allowed_credit_limit: 25,
           };
         }
-        subscription["subscription_product"] = productDetails;
+        subscription['subscription_product'] = productDetails;
 
         const creditsInfo = subscription.credits[0];
         if (creditsInfo) {
           // const currentUserCredits = creditsInfo.findLast(c => c.user_id === userId);
-          creditsInfo["total_credits"] = creditsInfo.allowedCreditLimit;
-          creditsInfo["used_credits"] = creditsInfo.allowedCreditLimit - creditsInfo.currentCredits;
+          creditsInfo['total_credits'] = creditsInfo.allowedCreditLimit;
+          creditsInfo['used_credits'] = creditsInfo.allowedCreditLimit - creditsInfo.currentCredits;
           subscription.subscription_credits = [creditsInfo];
         }
         const additionalCreditsInfo = subscription.additionalCredits;
@@ -147,17 +148,16 @@ export class AuthService {
           let totalCredits = 0;
           let totalAdditionalCredits = 0;
           if (additionalCreditsInfo) {
-            additionalCreditsInfo.forEach(credit => {
+            additionalCreditsInfo.forEach((credit) => {
               totalCredits += credit.additionalCreditLimit;
               totalAdditionalCredits += credit.currentCredits;
             });
-            additionalCreditsInfo["total_credits"] = totalCredits;
-            additionalCreditsInfo["used_credits"] = totalCredits - totalAdditionalCredits;
+            additionalCreditsInfo['total_credits'] = totalCredits;
+            additionalCreditsInfo['used_credits'] = totalCredits - totalAdditionalCredits;
 
             subscription.subscription_additional_credits = additionalCreditsInfo;
           }
         }
-        console.log('subscription from auth service', subscription);
         return subscription;
       }
     }
@@ -167,12 +167,11 @@ export class AuthService {
     let userData = data.user;
     userData.token = data.token;
 
-    localStorage.setItem("userToken", JSON.stringify(userData));
+    localStorage.setItem('userToken', JSON.stringify(userData));
     this.userTokenSubject.next(userData);
 
     const response = await this.userCompaniesApiCall(true);
     if (response.success) {
-
       let createUrl;
       let organizationListUrl;
       let company;
@@ -196,8 +195,8 @@ export class AuthService {
         return;
       }
 
-      console.log("Is it here?");
-      await this.router.navigate([organizationListUrl, { fromPage: "login" }]);
+      console.log('Is it here?');
+      await this.router.navigate([organizationListUrl, { fromPage: 'login' }]);
     }
   }
 
@@ -205,12 +204,11 @@ export class AuthService {
     let userData = data.user;
     userData.token = data.token;
 
-    localStorage.setItem("userToken", JSON.stringify(userData));
+    localStorage.setItem('userToken', JSON.stringify(userData));
     this.userTokenSubject.next(userData);
 
     const response = await this.userOrganisationApiCall(true);
     if (response.success) {
-
       let createUrl;
       let organizationListUrl;
       let company;
@@ -234,32 +232,31 @@ export class AuthService {
         return;
       }
 
-      console.log("Is it here?");
-      await this.router.navigate([organizationListUrl, { fromPage: "login" }]);
+      console.log('Is it here?');
+      await this.router.navigate([organizationListUrl, { fromPage: 'login' }]);
     }
   }
 
   // This function is for supplier
   sendSlackNotification = async () => {
     const subscription = await this.getSubscriptionData();
-    if (environment.production && !this.userTokenValue["slack_notification_sent"]) {
+    if (environment.production && !this.userTokenValue['slack_notification_sent']) {
       const slackData = {
         supplier_id: this.userTokenValue.supplier_id,
         company_name: this.userTokenValue.supplier_name,
         email: this.userTokenValue.email,
         name: `${this.userTokenValue.first_name} ${this.userTokenValue.last_name}`,
-        address: `${this.userTokenValue["supplier_street_address"]},${this.userTokenValue["supplier_city"]},${this.userTokenValue["supplier_state"]}`,
+        address: `${this.userTokenValue['supplier_street_address']},${this.userTokenValue['supplier_city']},${this.userTokenValue['supplier_state']}`,
         subscription: subscription?.subscription_product?.name,
       };
-      await this.httpService.post("supplier/postToSlack", slackData).toPromise();
+      await this.httpService.post('supplier/postToSlack', slackData).toPromise();
     }
   };
 
-
   checkInventory(userData: any) {
-    console.log("CHECK INVENTORY!");
-    let fohData = { restaurant_id: userData.restaurant_id, side: "FOH" };
-    this.httpService.post("restaurant/getWebportalDashboardData", fohData).subscribe((response) => {
+    console.log('CHECK INVENTORY!');
+    let fohData = { restaurant_id: userData.restaurant_id, side: 'FOH' };
+    this.httpService.post('restaurant/getWebportalDashboardData', fohData).subscribe((response) => {
       if (response.is_data_draft) {
         response.data = JSON.parse(response.data.draft_data);
       }
@@ -267,18 +264,22 @@ export class AuthService {
         let productCats = response.data.category_list.filter((cat) => cat.product_list.length > 0);
         userData.is_foh_setup = productCats.length > 0;
 
-        let bohData = { restaurant_id: userData.restaurant_id, side: "BOH" };
-        this.httpService.post("restaurant/getWebportalDashboardData", bohData).subscribe((response) => {
-          if (response.is_data_draft) {
-            response.data = JSON.parse(response.data.draft_data);
-          }
-          let productCats = response.data.category_list.filter((cat) => cat.product_list.length > 0);
-          userData.is_boh_setup = productCats.length > 0;
-          localStorage.setItem("userToken", JSON.stringify(userData));
-          this.userTokenSubject.next(userData);
+        let bohData = { restaurant_id: userData.restaurant_id, side: 'BOH' };
+        this.httpService
+          .post('restaurant/getWebportalDashboardData', bohData)
+          .subscribe((response) => {
+            if (response.is_data_draft) {
+              response.data = JSON.parse(response.data.draft_data);
+            }
+            let productCats = response.data.category_list.filter(
+              (cat) => cat.product_list.length > 0,
+            );
+            userData.is_boh_setup = productCats.length > 0;
+            localStorage.setItem('userToken', JSON.stringify(userData));
+            this.userTokenSubject.next(userData);
 
-          return;
-        });
+            return;
+          });
       }
     });
   }
@@ -297,7 +298,7 @@ export class AuthService {
   }
 
   changeUserData(userData) {
-    localStorage.setItem("userToken", JSON.stringify(userData));
+    localStorage.setItem('userToken', JSON.stringify(userData));
     this.userTokenSubject.next(userData);
   }
 }
