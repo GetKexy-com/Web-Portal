@@ -1758,4 +1758,5 @@ export const constants = {
   GMAIL: 'gmail',
   OLD_USER_TOKEN: 'oldUserToken',
   GOOGLE: 'google',
+  UNSUBSCRIBED: 'Unsubscribed',
 };

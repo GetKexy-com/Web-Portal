@@ -587,28 +587,10 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
         await this.prospectingService.editContacts(postData);
       }
 
-      // for (const labelId of formData.label) {
-      //   const notifyApiPostData = {
-      //     supplier_id: this.userData.supplier_id,
-      //     label_id: labelId,
-      //   };
-      //   const notifyApiRes = await this.prospectingService.notifyAddContactsInDrip(notifyApiPostData);
-      //   if (notifyApiRes && notifyApiRes["drip_campaign_id"]) {
-      //     const assignApiPostData = {
-      //       supplier_id: this.userData.supplier_id,
-      //       contacts,
-      //       label_ids: [labelId],
-      //       notify: false,
-      //       drip_campaign_id: notifyApiRes["drip_campaign_id"],
-      //     };
-      //     if (this.prospectingService.selectedAllContacts) {
-      //       assignApiPostData["selected_all_contacts"] = "true";
-      //       assignApiPostData["selected_all_contacts_payload"] = getContactApiPostData;
-      //       assignApiPostData["contacts"] = [];
-      //     }
-      //     await this.dripCampaignService.assignContactsAndLabelsInCampaign(assignApiPostData);
-      //   }
-      // }
+      // Add contacts to suppression list if marketing status is 'Unsubscribed'
+      if (this.selectedMarketingStatus === constants.UNSUBSCRIBED) {
+        this.addContactsToSuppressionList();
+      }
 
       if (this.labelIdFromListContactPage) {
         this.getAndSetLabels();
@@ -620,6 +602,26 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
       this.isLoading = false;
     } catch (e) {
       await Swal.fire('Error', e.message);
+    }
+  };
+
+  addContactsToSuppressionList = () => {
+    const suppressionContacts = this.selectedContacts.map((c) => {
+      const details = c?.details;
+      return {
+        contactFirstName: details?.firstName,
+        contactLastName: details?.lastName,
+        contactEmail: details?.email,
+      };
+    });
+    const payload = {
+      companyId: this.supplierId,
+      suppressionUsers: suppressionContacts,
+    };
+    try {
+      this.dripCampaignService.addDripCampaignSuppressionUsers(payload);
+    } catch (error: any) {
+      Swal.fire('Error', error.message);
     }
   };
 

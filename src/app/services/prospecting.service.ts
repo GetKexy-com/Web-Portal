@@ -769,8 +769,6 @@ export class ProspectingService {
 
   setLabelsInContactsList = (contactList) => {
     const lists = this._labels.getValue();
-    console.log('contactList', contactList);
-    console.log('labels', lists);
     contactList.forEach((contact: Contact) => {
       let contactLists = [];
       if (contact.listIds) {

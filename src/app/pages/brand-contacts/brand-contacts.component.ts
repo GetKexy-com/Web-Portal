@@ -66,6 +66,7 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
   sortBy = '';
   activeFilterCount = 0;
   selectAllContacts = false;
+  contactIds;
 
   constructor(
     private _authService: AuthService,
@@ -124,6 +125,10 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
         this.addToDrip = true;
         this.contactId = params['contactId'];
       }
+      if (params['ids']) {
+        this.contactIds = params['ids'];
+        console.log('contactIds', this.contactIds);
+      }
     });
   };
 
@@ -149,6 +154,9 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
 
   getContacts = async (overwrite = false) => {
     const postData = this.getContactsApiPostData();
+    if (this.contactIds) {
+      postData['ids'] = this.contactIds;
+    }
     await this.prospectingService.getContacts(postData, overwrite);
   };
 
