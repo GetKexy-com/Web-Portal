@@ -355,6 +355,10 @@ export class DripCampaignService {
         resolve(this.allDripCampaigns);
         return;
       }
+
+      // clear the cache
+      this.allDripCampaigns = [];
+
       this.httpService.get('drip-campaigns').subscribe({
         next: (res) => {
           res.data.dripCampaigns.sort(function (a, b) {
