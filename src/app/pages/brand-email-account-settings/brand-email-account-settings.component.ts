@@ -149,13 +149,8 @@ export class BrandEmailAccountSettingsComponent implements OnInit {
 
   public connectionMessage = '';
   handleSubmit = async () => {
-    // Disconnect or delete smtp
-    if (this.isConnectionSuccessful) {
-      await this.deleteSmtp();
-      return;
-    }
-
     this.submitted = true;
+
     if (!this.primaryForm.valid) {
       console.log('primaryForm', this.primaryForm);
       return false;
@@ -168,33 +163,70 @@ export class BrandEmailAccountSettingsComponent implements OnInit {
     };
 
     this.isLoading = true;
-    const response = await this.dripCampaignService.testSmtpConnection(postData);
-    if (response['success']) {
+
+    try {
+      await this.dripCampaignService.testSmtpConnection(postData);
+      await this.getSmtpDetails();
       this.setSmtpConnectionStatus(false, true, 'SMTP connection is successful!');
       await Swal.fire('Success', 'SMTP details have been saved', 'success');
-    } else {
+    } catch (error) {
       this.setSmtpConnectionStatus(true, false, 'SMTP connection failed!');
-      if (!response['success'] && response['error']['message']) {
-        await Swal.fire('Error', response['error']['message']);
-      }
-      if (response['data']) {
-        this.connectionMessage = response['data'];
-      }
+      await Swal.fire('Error', error['error']);
+      this.connectionMessage = error['data'];
+    } finally {
+      this.isLoading = false;
     }
-    this.isLoading = false;
   };
 
+  // handleSubmit = async () => {
+  //   this.submitted = true;
+  //   if (!this.primaryForm.valid) {
+  //     console.log('primaryForm', this.primaryForm);
+  //     return false;
+  //   }
+  //
+  //   const formData = this.primaryForm.getRawValue();
+  //   const postData = {
+  //     companyId: this.userData.supplier_id,
+  //     ...formData,
+  //   };
+  //
+  //   this.isLoading = true;
+  //   const response = await this.dripCampaignService.testSmtpConnection(postData);
+  //   if (response['success']) {
+  //     this.setSmtpConnectionStatus(false, true, 'SMTP connection is successful!');
+  //     await Swal.fire('Success', 'SMTP details have been saved', 'success');
+  //
+  //     // Disconnect or delete smtp
+  //     if (this.isConnectionSuccessful) {
+  //       await this.deleteSmtp();
+  //     }
+  //   } else {
+  //     console.log('response', response);
+  //     this.setSmtpConnectionStatus(true, false, 'SMTP connection failed!');
+  //     if (response['error']) {
+  //       await Swal.fire('Error', response['error']);
+  //     }
+  //     if (response['data']) {
+  //       this.connectionMessage = response['data'];
+  //     }
+  //   }
+  //   this.isLoading = false;
+  // };
+
+  disconnectedLoading: boolean = false;
   deleteSmtp = async () => {
     try {
-      this.isLoading = true;
-      await this.dripCampaignService.deleteSmtp({ id: this.smtpDetails.id });
+      this.disconnectedLoading = true;
+      await this.dripCampaignService.deleteSmtp({ id: this.smtpDetails?.smtp?.id });
       this.setSmtpConnectionStatus(false, false, '');
       this.primaryForm.reset();
+      this.isSmtpConnected = false;
       Swal.fire('Success', 'Disconnected Successfully', 'success');
     } catch (e) {
       Swal.fire('Error', e.message, 'error');
     } finally {
-      this.isLoading = false;
+      this.disconnectedLoading = false;
     }
   };
 

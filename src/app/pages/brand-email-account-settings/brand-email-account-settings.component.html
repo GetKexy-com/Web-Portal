@@ -119,23 +119,27 @@
                     </div>
                   </div>
                 </div>
-                <div class="col-12 mt-3 ps-0">
-                  <app-kexy-button
-                    *ngIf="!isConnectionSuccessful"
-                    [label]="isLoading ? 'Please wait...' : 'Send a test email to check connection'"
-                    type="submit"
-                    [iconLeft]="isLoading ? 'fa-refresh fa-spin' : ''"
-                    [disabled]="isLoading"
-                  ></app-kexy-button>
+                <div class="col-12 mt-3 d-flex ps-0">
+                  <div style="width: 150px">
+                    <app-kexy-button
+                      [label]="isLoading ? 'Please wait...' : 'Save'"
+                      [iconLeft]="isLoading ? 'fa-refresh fa-spin' : ''"
+                      [disabled]="isLoading || disconnectedLoading"
+                      type="submit"
+                      class="w-100"
+                    ></app-kexy-button>
+                  </div>
 
-                  <app-kexy-button
-                    *ngIf="isConnectionSuccessful"
-                    [label]="isLoading ? 'Please wait...' : 'Disconnect'"
-                    [iconLeft]="isLoading ? 'fa-refresh fa-spin' : ''"
-                    [disabled]="isLoading"
-                    bgColor="#FF3541"
-                    type="submit"
-                  ></app-kexy-button>
+                  <div style="width: 150px; margin-left: 15px">
+                    <app-kexy-button
+                      *ngIf="isConnectionSuccessful"
+                      [label]="disconnectedLoading ? 'Please wait...' : 'Disconnect'"
+                      [iconLeft]="disconnectedLoading ? 'fa-refresh fa-spin' : ''"
+                      [disabled]="isLoading || disconnectedLoading"
+                      (click)="deleteSmtp()"
+                      bgColor="red"
+                    ></app-kexy-button>
+                  </div>
                 </div>
 
               </div>
