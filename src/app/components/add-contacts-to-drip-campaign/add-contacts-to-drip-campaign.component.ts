@@ -15,12 +15,7 @@ import { Contact } from '../../models/Contact';
 
 @Component({
   selector: 'add-contacts-to-drip-campaign',
-  imports: [
-    FormsModule,
-    KexySelectDropdownComponent,
-    ErrorMessageCardComponent,
-    CommonModule,
-  ],
+  imports: [FormsModule, KexySelectDropdownComponent, ErrorMessageCardComponent, CommonModule],
   templateUrl: './add-contacts-to-drip-campaign.component.html',
   styleUrl: './add-contacts-to-drip-campaign.component.scss',
 })
@@ -45,8 +40,7 @@ export class AddContactsToDripCampaignComponent implements OnInit, OnDestroy {
     private prospectingService: ProspectingService,
     private dripCampaignService: DripCampaignService,
     private route: ActivatedRoute,
-  ) {
-  }
+  ) {}
 
   async ngOnInit() {
     this.userData = this._authService.userTokenValue;
@@ -85,15 +79,15 @@ export class AddContactsToDripCampaignComponent implements OnInit, OnDestroy {
   };
 
   getDripCampaignsApiCall = async () => {
-    this.dripCampaignList = await this.dripCampaignService.getListOfDripCampaignsWithoutPagination(true);
-    console.log(this.dripCampaignList);
+    this.dripCampaignList =
+      await this.dripCampaignService.getListOfDripCampaignsWithoutPagination(true);
     if (this.dripCampaignList.length) {
-      this.dripCampaignList = this.dripCampaignList.filter(i => {
-        return (i.status === constants.ACTIVE || i.status === constants.PAUSE);
+      this.dripCampaignList = this.dripCampaignList.filter((i) => {
+        return i.status === constants.ACTIVE || i.status === constants.PAUSE;
       });
     }
-    console.log(this.dripCampaignList);
-    this.dripCampaignList.forEach(cam => {
+
+    this.dripCampaignList.forEach((cam) => {
       this.dripCampaignDropDownList.push({
         key: cam.id,
         id: cam.id,
@@ -103,29 +97,35 @@ export class AddContactsToDripCampaignComponent implements OnInit, OnDestroy {
     });
 
     if (this.addToDripCampaignId) {
-      const index = this.dripCampaignDropDownList.findIndex(d => d.id.toString() === this.addToDripCampaignId);
+      const index = this.dripCampaignDropDownList.findIndex(
+        (d) => d.id.toString() === this.addToDripCampaignId,
+      );
       if (index > -1) {
         this.onDripCampaignSelect(this.dripCampaignDropDownList[index]);
       }
     }
   };
 
-  getCampaignTitle = (title_id) => {
-    const index = this.dripCampaignTitles && this.dripCampaignTitles.findIndex(i => i.id.toString() === title_id.toString());
-    if (index < 0) return;
-
-    return this.dripCampaignTitles[index].title;
-  };
+  // getCampaignTitle = (title_id) => {
+  //   const index = this.dripCampaignTitles && this.dripCampaignTitles.findIndex(i => i.id.toString() === title_id.toString());
+  //   if (index < 0) return;
+  //
+  //   return this.dripCampaignTitles[index].title;
+  // };
 
   getAndSetDripCampaignTitleSubscription = async () => {
-    await this.dripCampaignService.getAllDripCampaignTitle({ supplier_id: this.userData.supplier_id });
-
-    this.dripCampaignTitlesSubscription = this.dripCampaignService.dripCampaignTitles.subscribe((dripCampaignTitles) => {
-      this.dripCampaignTitles = dripCampaignTitles;
-      this.dripCampaignTitles.map((i) => {
-        i.value = i.title.length > 100 ? i.title.slice(0, 100) + '...' : i.title;
-      });
+    await this.dripCampaignService.getAllDripCampaignTitle({
+      supplier_id: this.userData.supplier_id,
     });
+
+    this.dripCampaignTitlesSubscription = this.dripCampaignService.dripCampaignTitles.subscribe(
+      (dripCampaignTitles) => {
+        this.dripCampaignTitles = dripCampaignTitles;
+        this.dripCampaignTitles.map((i) => {
+          i.value = i.title.length > 100 ? i.title.slice(0, 100) + '...' : i.title;
+        });
+      },
+    );
   };
 
   onDripCampaignSelect = async (selectedValue, index = 0, rowIndex = 0) => {
@@ -175,7 +175,6 @@ export class AddContactsToDripCampaignComponent implements OnInit, OnDestroy {
       sortBy: '',
       sortType: '',
     };
-
   };
 
   handleSubmit = async () => {
