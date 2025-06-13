@@ -166,23 +166,30 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
       companyId: this.supplierId,
       contactId: this.contactId,
     };
-    const data = await this.prospectingService.getContact(postData);
-    this.contactList = this.prospectingService.setLabelsInContactsList(data['contacts']);
-    console.log('contactList', this.contactList);
-    this.totalPage = '1';
+    try {
+      const data = await this.prospectingService.getContact(postData);
+      this.contactList = this.prospectingService.setLabelsInContactsList(data['contacts']);
+      this.totalPage = '1';
+    } catch (e) {
+      await Swal.fire('Error', e, 'error');
+    }
   };
 
   setContactSubscription = () => {
     this.contactListSubscription = this.prospectingService.contactRes.subscribe((data) => {
       if (data) {
         this.contactList = this.prospectingService.setLabelsInContactsList(data.contacts);
-        console.log('contactList', this.contactList);
         this.totalContactsCount = data.total;
         this.totalPage = Math.ceil(this.totalContactsCount / this.limit);
 
         this.selectedContacts = [];
         this.isLoading = false;
         // this.cdr.detectChanges();  // 🔹 Force UI update
+
+        // contactIds is present in queryParams but companyId was wrong...
+        if (this.contactIds && !this.contactList.length) {
+          Swal.fire('Error', 'Contact does not belong to this account.', 'error');
+        }
       }
     });
   };
