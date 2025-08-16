@@ -625,11 +625,11 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
     this.selectedContacts.map((contact: Contact) =>
       contactIds.push({
         id: contact.id,
-        // email: contact.email,
-        // firstName: contact.details.firstName,
-        // lastName: contact.details.lastName,
-        // name: contact.contactName,
-        // title: contact.jobTitle,
+        email: contact.email,
+        firstName: contact.details.firstName,
+        lastName: contact.details.lastName,
+        name: contact.contactName,
+        title: contact.jobTitle,
       }),
     );
     const postData = {

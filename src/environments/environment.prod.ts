@@ -22,8 +22,8 @@ export const environment = {
   ADDITIONAL_CREDITS_COUPONS: ["KXY502024", "KXY70CREDITS", "80KXY2024"],
   dripCampaignCreateTutorialUrl: "https://vimeo.com/937954323/803f7f4860?share=copy",
   brandSignupWelcomePageVideoUrl: "https://www.youtube.com/watch?v=Ual9aw-cct0",
-  newEmailGenerateApiUrl: "https://owozderf5udwgqcfbplqhdnbyi0oseqb.lambda-url.us-east-1.on.aws/",
+  newEmailGenerateApiUrl: 'https://bxjqrevsgwgc3o46pc3iyp264u0lhpoh.lambda-url.us-east-1.on.aws/',
   oldConversationEmailGenerateApiUrl: "https://xdkuzewpr6ja5d3p2r6er3ayjm0dyiii.lambda-url.us-east-1.on.aws/",
-  dripBulkEmailApiUrl: "https://zs7hmhpqo7aynkshbcm563todm0bwlvh.lambda-url.us-east-1.on.aws/",
-  dripFollowUpEmailApiUrl: "https://wejj7s3ropawmuvxgqwthj4slm0sqcrr.lambda-url.us-east-1.on.aws/",
+  dripBulkEmailApiUrl: "https://k7xqc2cistnfujk3f2lo4wxbla0qqckr.lambda-url.us-east-1.on.aws/",
+  dripFollowUpEmailApiUrl: "https://jwo3xvetzcedmoxxv3aaufqle40iwwiz.lambda-url.us-east-1.on.aws/",
 };
