@@ -23,7 +23,7 @@ export const environment = {
   dripCampaignCreateTutorialUrl: "https://vimeo.com/937954323/803f7f4860?share=copy",
   brandSignupWelcomePageVideoUrl: "https://www.youtube.com/watch?v=Ual9aw-cct0",
   newEmailGenerateApiUrl: 'https://bxjqrevsgwgc3o46pc3iyp264u0lhpoh.lambda-url.us-east-1.on.aws/',
-  oldConversationEmailGenerateApiUrl: "https://xdkuzewpr6ja5d3p2r6er3ayjm0dyiii.lambda-url.us-east-1.on.aws/",
+  oldConversationEmailGenerateApiUrl: "https://bekkg6xoll3swbz73lyyqmoyry0qrkts.lambda-url.us-east-1.on.aws/",
   dripBulkEmailApiUrl: "https://k7xqc2cistnfujk3f2lo4wxbla0qqckr.lambda-url.us-east-1.on.aws/",
   dripFollowUpEmailApiUrl: "https://jwo3xvetzcedmoxxv3aaufqle40iwwiz.lambda-url.us-east-1.on.aws/",
 };
