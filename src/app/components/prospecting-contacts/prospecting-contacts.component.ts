@@ -438,9 +438,6 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
 
   setLabelFieldToPrimaryForm = () => {
     const selectedLabels = this.labelOptions.filter((i) => i.isSelected);
-    // if (!selectedLabels.length) {
-    //   return;
-    // }
 
     const selectedLabelsId = [];
     if (selectedLabels.length) {
@@ -450,10 +447,11 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
   };
 
   setAndGetAddOrEditSingleContactApiPayload = (formData) => {
+    console.log('formData', formData);
+    
     const contactDetails: ContactDetails = this.contact.details;
     contactDetails.firstName = formData.firstName;
     contactDetails.lastName = formData.lastName;
-    contactDetails.linkedinUrl = formData.linkedinUrl;
     contactDetails.name = `${formData.firstName} ${formData.lastName}`;
     contactDetails.title = formData.title;
     contactDetails.marketingStatus = formData.marketingStatus;
@@ -465,10 +463,14 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
     contactDetails.isLikelyToEngage = true;
     contactDetails.organization.name = formData.organizationName;
     contactDetails.organization.phone = formData.organizationPhone;
-    contactDetails.organization.linkedinUrl = formData.linkedinUrl;
     contactDetails.organization.city = formData.city;
     contactDetails.organization.state = formData.state;
     contactDetails.organization.country = formData.country;
+
+    if (formData.linkedinUrl) {
+      contactDetails.linkedinUrl = formData.linkedinUrl;
+      contactDetails.organization.linkedinUrl = formData.linkedinUrl;
+    }
 
     const payload = {
       companyId: this.supplierId,
@@ -599,9 +601,10 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
       this.prospectingService.selectedContactsInContactsPage = [];
 
       this.activeCanvas.dismiss('Cross click');
-      this.isLoading = false;
     } catch (e) {
       await Swal.fire('Error', e.message);
+    } finally {
+      this.isLoading = false;
     }
   };
 
