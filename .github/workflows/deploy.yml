@@ -36,7 +36,15 @@ jobs:
       - name: Build Angular app
         run: npm run build -- --configuration=production
 
-      # 5. Configure AWS credentials
+      # 5. Verify build output (debugging step)
+      - name: Verify build files
+        run: |
+          echo "Build directory contents:"
+          ls -R ./dist
+          echo "Checking for index.html:"
+          ls ./dist/kexy-brand-portal/browser/index.html || echo "index.html not found!"
+
+      # 6. Configure AWS credentials
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -44,22 +52,27 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      # 6. Sync build to S3 (with proper caching headers)
+      # 7. Sync build to S3 (with proper caching headers)
       - name: Upload build to S3 with cache control
         run: |
+          # Sync all files except those needing special cache handling
           aws s3 sync ./dist/kexy-brand-portal/browser/ s3://${{ secrets.S3_BUCKET }} \
             --delete \
             --cache-control "max-age=31536000" \
             --exclude "index.html" \
             --exclude "asset-manifest.json"
           
-          # Special handling for files that shouldn't be cached long
-          aws s3 cp ./dist/kexy-brand-portal/index.html s3://${{ secrets.S3_BUCKET }} \
+          # Upload index.html with no cache
+          aws s3 cp ./dist/kexy-brand-portal/browser/index.html s3://${{ secrets.S3_BUCKET }} \
             --cache-control "no-cache"
-          aws s3 cp ./dist/kexy-brand-portal/asset-manifest.json s3://${{ secrets.S3_BUCKET }} \
-            --cache-control "no-cache"
+          
+          # Upload asset-manifest.json if it exists
+          if [ -f "./dist/kexy-brand-portal/browser/asset-manifest.json" ]; then
+            aws s3 cp ./dist/kexy-brand-portal/browser/asset-manifest.json s3://${{ secrets.S3_BUCKET }} \
+              --cache-control "no-cache"
+          fi
 
-      # 7. Invalidate CloudFront cache
+      # 8. Invalidate CloudFront cache
       - name: Invalidate CloudFront cache
         run: |
           aws cloudfront create-invalidation \
