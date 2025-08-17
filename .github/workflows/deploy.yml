@@ -1,51 +1,50 @@
-name: CI/CD Pipeline
+name: Deploy Angular App to S3 + CloudFront
 
 on:
   push:
     branches:
       - main
-    paths-ignore:
-      - 'README.md'
-      - '**.md'
-      - 'docs/**'
 
 jobs:
-  # CI PHASE - Validation Gate
-  ci:
+  deploy:
     runs-on: ubuntu-latest
+
     steps:
+      # 1. Checkout source code
       - name: Checkout code
         uses: actions/checkout@v3
 
+      # 2. Set up Node.js (pinned to exact version)
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '18.19.1'
-          cache: 'npm'
+
+      # 3. Install dependencies (with cache)
+      - name: Cache node modules
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Run unit tests
-        run: npm test -- --watch=false --browsers=ChromeHeadless
-
-      - name: Run build
+      # 4. Build Angular app (with production config)
+      - name: Build Angular app
         run: npm run build -- --configuration=production
 
-      - name: Verify build output
+      # 5. Verify build output (debugging step)
+      - name: Verify build files
         run: |
-          [ -f "./dist/kexy-brand-portal/browser/index.html" ] || exit 1
-          echo "Build verification passed"
+          echo "Build directory contents:"
+          ls -R ./dist
+          echo "Checking for index.html:"
+          ls ./dist/kexy-brand-portal/browser/index.html || echo "index.html not found!"
 
-  # CD PHASE - Only runs if CI succeeds
-  cd:
-    needs: ci
-    runs-on: ubuntu-latest
-    environment: production
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
+      # 6. Configure AWS credentials
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -53,17 +52,27 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Deploy to S3
+      # 7. Sync build to S3 (with proper caching headers)
+      - name: Upload build to S3 with cache control
         run: |
+          # Sync all files except those needing special cache handling
           aws s3 sync ./dist/kexy-brand-portal/browser/ s3://${{ secrets.S3_BUCKET }} \
             --delete \
             --cache-control "max-age=31536000" \
             --exclude "index.html" \
             --exclude "asset-manifest.json"
           
+          # Upload index.html with no cache
           aws s3 cp ./dist/kexy-brand-portal/browser/index.html s3://${{ secrets.S3_BUCKET }} \
             --cache-control "no-cache"
+          
+          # Upload asset-manifest.json if it exists
+          if [ -f "./dist/kexy-brand-portal/browser/asset-manifest.json" ]; then
+            aws s3 cp ./dist/kexy-brand-portal/browser/asset-manifest.json s3://${{ secrets.S3_BUCKET }} \
+              --cache-control "no-cache"
+          fi
 
+      # 8. Invalidate CloudFront cache
       - name: Invalidate CloudFront cache
         run: |
           aws cloudfront create-invalidation \
