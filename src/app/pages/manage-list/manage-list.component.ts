@@ -103,10 +103,9 @@ export class ManageListComponent implements OnInit, OnDestroy {
   };
 
   setPreviousSelectedLabels = () => {
-    // if (!this.labelOptions.some(label => label.is_selected)) return;
     this.selectedLabels = [];
     this.labelOptions.forEach(label => {
-      if (label.is_selected) {
+      if (label.isSelected) {
         this.selectedLabels.push(label);
       }
     });
@@ -132,9 +131,9 @@ export class ManageListComponent implements OnInit, OnDestroy {
 
   handleContactSelect = (selectedRow, isSelectAll) => {
     if (isSelectAll) {
-      if (this.labelOptions.some((i) => i.is_selected)) {
+      if (this.labelOptions.some((i) => i.isSelected)) {
         this.labelOptions.map((i) => {
-          i.is_selected = false;
+          i.isSelected = false;
           const index = this.selectedLabels.findIndex((j) => j.id === i.id);
           if (index > -1) {
             this.selectedLabels.splice(index, 1);
@@ -142,7 +141,7 @@ export class ManageListComponent implements OnInit, OnDestroy {
         });
       } else {
         this.labelOptions.map((i) => {
-          i.is_selected = true;
+          i.isSelected = true;
           const index = this.selectedLabels.findIndex((j) => j.id === i.id);
           if (index === -1) {
             this.selectedLabels.push(i);
@@ -151,9 +150,9 @@ export class ManageListComponent implements OnInit, OnDestroy {
       }
     } else {
       const rowIndex = this.labelOptions.findIndex((i) => i.id === selectedRow.id);
-      this.labelOptions[rowIndex].is_selected = !this.labelOptions[rowIndex].is_selected;
+      this.labelOptions[rowIndex].isSelected = !this.labelOptions[rowIndex].isSelected;
 
-      if (this.labelOptions[rowIndex].is_selected) {
+      if (this.labelOptions[rowIndex].isSelected) {
         const index = this.selectedLabels.findIndex((j) => j.id === this.labelOptions[rowIndex].id);
         if (index === -1) {
           this.selectedLabels.push(this.labelOptions[rowIndex]);

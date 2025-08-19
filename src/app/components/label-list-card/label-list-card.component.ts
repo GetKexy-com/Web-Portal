@@ -124,7 +124,7 @@ export class LabelListCardComponent implements OnInit, OnDestroy, AfterViewInit 
 
   selectedItemCount;
   isNoItemSelected = () => {
-    this.selectedItemCount = this.cardData.filter((i) => i.is_selected).length;
+    this.selectedItemCount = this.cardData.filter((i) => i.isSelected).length;
     return this.selectedItemCount === 0;
   };
 
