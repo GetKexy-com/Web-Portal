@@ -79,6 +79,8 @@ export class GenerateDripCampaignComponent implements OnInit {
   selectedEmailLength;
   emailTones = constants.EMAIL_TONES;
   selectedEmailToneKey;
+  contactList;
+  contactListSubscription: Subscription;
 
   constructor(
     private ngbOffcanvas: NgbOffcanvas,
@@ -248,12 +250,51 @@ export class GenerateDripCampaignComponent implements OnInit {
     if (this.dripCampaignStatusSubscription) this.dripCampaignStatusSubscription.unsubscribe();
     if (this.productsSubscription) this.productsSubscription.unsubscribe();
     if (this.dripCampaignProspectsSubscription) this.dripCampaignProspectsSubscription.unsubscribe();
+    if (this.contactListSubscription) this.contactListSubscription.unsubscribe();
     if (this.dripCampaignStatus !== constants.ACTIVE) {
       this.sseService.removeDripBulkEmailData();
     }
   }
 
+  getContacts = async (listId) => {
+    const postData = {
+      companyId: this.userData.supplier_id,
+      dripCampaignId: '',
+      listIds: [parseInt(listId)],
+      contactName: '',
+      companyName: '',
+      jobTitle: '',
+      emailStatus: '',
+      marketingStatus: '',
+      city: '',
+      state: '',
+      country: '',
+      page: 1,
+      limit: 1,
+      sortBy: '',
+      sortType: '',
+    };
+    await this.prospectingService.getContacts(postData, false);
+
+    this.contactListSubscription = this.prospectingService.contactRes.subscribe((data) => {
+      this.contactList = this.prospectingService.setLabelsInContactsList(data.contacts);
+    });
+  };
+
   generateEmailContent = async () => {
+    const enrollList = this.getEnrolledList();
+    if (!enrollList?.length) {
+      this.openSettingsCanvas();
+      await Swal.fire({
+        title: `Error`,
+        text: "Please select list(s) from enrollment triggers",
+        icon: "warning",
+      });
+      return;
+    }
+    const listId = enrollList[0].list.id;
+    await this.getContacts(listId);
+
     this.emails = [];
     const data = {
       count: this.dripCampaign.details.numberOfEmails,
@@ -271,7 +312,16 @@ export class GenerateDripCampaignComponent implements OnInit {
       target_audience: this.dripCampaign.targetAudience,
       email_about: this.dripCampaign.emailAbout,
       promotion_info: !!this.selectedPromotionsProductName,
+      prospect: {
+        name: this.contactList[0]?.contactName,
+        company: this.contactList[0]?.companyName,
+        industry: this.contactList[0]?.details?.organization?.industry,
+        location: `${this.contactList[0]?.details?.city}, ${this.contactList[0].details?.state}, ${this.contactList[0].details?.country}`,
+        website: "",
+        linkedinUrl: this.contactList[0]?.details?.linkedinUrl,
+      }
     };
+    
     await this.sseService.dripBulkEmailContentStream(data);
   };
 
@@ -331,6 +381,13 @@ export class GenerateDripCampaignComponent implements OnInit {
     this.testEmailModalRef = this.modal.open(modalContent);
   };
 
+  getEnrolledList = () => {
+    this.dripCampaign = this.dripCampaignService.getDripCampaignContentPageData();
+    const enrollment = this.dripCampaign.lists;
+    const enrollList = enrollment.filter(r => r.type === "enroll_list");
+    return enrollList;
+  }
+
   handleClickNextButton = async () => {
     if (!this.emails.length) {
       await Swal.fire({
@@ -341,9 +398,11 @@ export class GenerateDripCampaignComponent implements OnInit {
       return;
     }
 
-    this.dripCampaign = this.dripCampaignService.getDripCampaignContentPageData();
-    const enrollment = this.dripCampaign.lists;
-    const enrollList = enrollment.filter(r => r.type === "enroll_list");
+    // this.dripCampaign = this.dripCampaignService.getDripCampaignContentPageData();
+    // const enrollment = this.dripCampaign.lists;
+    // const enrollList = enrollment.filter(r => r.type === "enroll_list");
+
+    const enrollList = this.getEnrolledList();
     if (!enrollList?.length) {
       this.openSettingsCanvas();
       await Swal.fire({
