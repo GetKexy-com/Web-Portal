@@ -274,7 +274,12 @@ export class GenerateDripCampaignComponent implements OnInit {
       sortBy: '',
       sortType: '',
     };
-    await this.prospectingService.getContacts(postData, false);
+
+    try {
+      await this.prospectingService.getContacts(postData, false);
+    } catch (e) {
+      await Swal.fire('Error', e.message);
+    }
 
     this.contactListSubscription = this.prospectingService.contactRes.subscribe((data) => {
       this.contactList = this.prospectingService.setLabelsInContactsList(data.contacts);
@@ -322,7 +327,12 @@ export class GenerateDripCampaignComponent implements OnInit {
       }
     };
     
-    await this.sseService.dripBulkEmailContentStream(data);
+    try {
+      await this.sseService.dripBulkEmailContentStream(data);
+    } catch (e) {
+      await Swal.fire('Error', e.message);
+    }
+    
   };
 
   showAiEmailError = () => {
