@@ -29,7 +29,7 @@ export class DripCampaignService {
   dripCampaignSuppressionList = this._dripCampaignSuppressionList.asObservable();
 
   private emailLength = '';
-
+  public generateDripCampaignListContact;
   public editDripCampaignTitleItem;
   public emailEditItem;
   public hasPromotion;
@@ -261,7 +261,7 @@ export class DripCampaignService {
 
   deleteDripCampaignTitle = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.delete(`/titles/${postData.title_id}`).subscribe({
+      this.httpService.delete(`titles/${postData.title_id}`).subscribe({
         next: () => {
           let titleId = postData.title_id;
           let campaignTitles = [...this._dripCampaignTitles.getValue()];

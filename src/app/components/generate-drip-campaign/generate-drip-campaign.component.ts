@@ -287,19 +287,6 @@ export class GenerateDripCampaignComponent implements OnInit {
   };
 
   generateEmailContent = async () => {
-    const enrollList = this.getEnrolledList();
-    if (!enrollList?.length) {
-      this.openSettingsCanvas();
-      await Swal.fire({
-        title: `Error`,
-        text: "Please select list(s) from enrollment triggers",
-        icon: "warning",
-      });
-      return;
-    }
-    const listId = enrollList[0].list.id;
-    await this.getContacts(listId);
-
     this.emails = [];
     const data = {
       count: this.dripCampaign.details.numberOfEmails,
@@ -348,10 +335,18 @@ export class GenerateDripCampaignComponent implements OnInit {
     });
   };
 
-  showEmailDetailsBtnClick = (email) => {
+  showEmailDetailsBtnClick = async (email) => {
     this.dripCampaignService.setEditEmail(email);
     this.dripCampaignService.setHasPromotion(!!this.selectedPromotionsProductName);
     this.__createRightSideSlide(SendEmailDetailsContentComponent, "email-content");
+
+    if (!this.contactList?.length) {
+      const enrollList = this.getEnrolledList();
+      const listId = enrollList[0].list.id;
+      await this.getContacts(listId);
+    }
+
+    this.dripCampaignService.generateDripCampaignListContact = this.contactList;
   };
 
   insightsBtnClick = (email) => {
