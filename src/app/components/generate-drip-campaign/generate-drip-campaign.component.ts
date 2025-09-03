@@ -287,6 +287,21 @@ export class GenerateDripCampaignComponent implements OnInit {
   };
 
   generateEmailContent = async () => {
+    if (!this.contactList?.length) {
+      const enrollList = this.getEnrolledList();
+      if (!enrollList?.length) {
+      this.openSettingsCanvas();
+      await Swal.fire({
+        title: `Error`,
+        text: "Please select list(s) from enrollment triggers",
+        icon: "warning",
+      });
+      return;
+    }
+    const listId = enrollList[0].list.id;
+    await this.getContacts(listId);
+    }
+
     this.emails = [];
     const data = {
       count: this.dripCampaign.details.numberOfEmails,
