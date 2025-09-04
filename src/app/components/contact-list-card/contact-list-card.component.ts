@@ -103,7 +103,7 @@ export class ContactListCardComponent implements OnInit, OnDestroy, AfterViewIni
     columnList = [
       { name: '', key: 'action', width: 40 },
       { name: 'Name', key: 'name', width: 120 },
-      { name: 'Linkedin', key: 'linkedin_url', width: 70 },
+      { name: 'Linkedin', key: 'linkedinUrl', width: 70 },
       { name: 'Email Address', key: 'email', width: 180 },
       { name: 'Email Status', key: 'email_status', width: 120 },
       { name: 'Job Title', key: 'title', width: 170 },
@@ -154,7 +154,7 @@ export class ContactListCardComponent implements OnInit, OnDestroy, AfterViewIni
 
   getCellValue = (row, column) => {
     const details = typeof row.details === 'string' ? JSON.parse(row.details) : row.details;
-    // console.log('details', details);
+    
     if (details[column.key]) {
       return details[column.key];
     }
@@ -162,15 +162,6 @@ export class ContactListCardComponent implements OnInit, OnDestroy, AfterViewIni
       return details.organization?.name || '';
     }
     if (column.key === 'phone_number') {
-
-      // if (details.organization?.phone) {
-      //   let cleanNumber = details.organization.phone.replace(/[^\d]/g, "");
-      //   if (cleanNumber) {
-      //     let filterNUmber = parsePhoneNumber("+" + cleanNumber);
-      //     details.organization.phone = filterNUmber.formatInternational();
-      //   }
-      // }
-
       return `${details.organization?.phone || ''}`;
     }
   };
@@ -224,4 +215,12 @@ export class ContactListCardComponent implements OnInit, OnDestroy, AfterViewIni
     this.navigateSpecificPage(this.navigatePageNumber);
     this.showNavigationInput = false;
   };
+
+  isValidLinkedinUrl(url: string): boolean {
+  if (!url) return false;
+  const trimmed = url.trim().toLowerCase();
+
+  // Basic validation: must start with linkedin.com/in/ or linkedin.com/company/
+  return trimmed.includes('linkedin.com/in/') || trimmed.includes('linkedin.com/company/');
+}
 }

@@ -585,14 +585,15 @@ export class ProspectingService {
   deleteLabel = async (postData) => {
     let labels = [...this._labels.getValue()];
     return new Promise(async (resolve, reject) => {
-      this.httpService.post('contacts/labels/delete', postData).subscribe({
+      const labelId = postData.label_ids;
+      this.httpService.delete(`lists/${labelId}`).subscribe({
         next: () => {
-          labels = labels.filter((p) => {
-            const index = postData.label_ids.findIndex((l) => l === p.id);
-            return index === -1;
-          });
+          // labels = labels.filter((p) => {
+          //   const index = postData.label_ids.findIndex((l) => l === p.id);
+          //   return index === -1;
+          // });
           resolve(true);
-          this._labels.next(labels);
+          // this._labels.next(labels);
         },
         error: (err) => {
           if (err.error) {
@@ -605,7 +606,9 @@ export class ProspectingService {
 
   updateLabel = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post('contacts/labels/update', postData).subscribe({
+      const labelId = postData.labelId;
+      delete postData.labelId;
+      this.httpService.patch(`lists/${labelId}`, postData).subscribe({
         next: () => resolve(true),
         error: (err) => {
           if (err.error) {

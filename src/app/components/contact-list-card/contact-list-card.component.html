@@ -190,7 +190,7 @@
                 [style.width]="column.width"
               >
                 <span
-                  *ngIf="column.key !== 'action' && column.key !== 'linkedin_url' && column.key !== 'label' && column.key !== 'marketing_status' && column.key !== 'email_status' && column.key !== 'created'"
+                  *ngIf="column.key !== 'action' && column.key !== 'linkedinUrl' && column.key !== 'label' && column.key !== 'marketing_status' && column.key !== 'email_status' && column.key !== 'created'"
                   [className]="column.key !== 'email' ? 'text-capitalize' : ''">
                   {{ getCellValueToDisplay(contact, column) || 'N/A' }}
                 </span>
@@ -209,10 +209,21 @@
                   </span>
                 </span>
 
-                <span *ngIf="column.key === 'linkedin_url'" class="linkedin-icon-wrap"
-                      (click)="stopPropagation($event)">
-                  <a [href]="getCellValue(contact, column)" target="_blank"><i class="fa fa-linkedin-square"
-                                                                               aria-hidden="true"></i></a>
+                <span 
+                  *ngIf="column.key === 'linkedinUrl' && isValidLinkedinUrl(getCellValue(contact, column))"
+                  class="linkedin-icon-wrap"
+                  (click)="stopPropagation($event)"
+                >
+                  <a 
+                    [href]="getCellValue(contact, column)" 
+                    target="_blank"
+                    >
+                    <i 
+                      class="fa fa-linkedin-square"
+                      aria-hidden="true"
+                      >
+                    </i>
+                  </a>
                 </span>
                 <span *ngIf="column.key === 'email_status'">
                   <span class="email-status status-green" *ngIf="contact.emailStatus === 'verified'">

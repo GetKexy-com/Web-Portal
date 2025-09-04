@@ -130,43 +130,52 @@ export class ManageListComponent implements OnInit, OnDestroy {
   };
 
   handleContactSelect = (selectedRow, isSelectAll) => {
-    if (isSelectAll) {
-      if (this.labelOptions.some((i) => i.isSelected)) {
-        this.labelOptions.map((i) => {
-          i.isSelected = false;
-          const index = this.selectedLabels.findIndex((j) => j.id === i.id);
-          if (index > -1) {
-            this.selectedLabels.splice(index, 1);
-          }
-        });
-      } else {
-        this.labelOptions.map((i) => {
-          i.isSelected = true;
-          const index = this.selectedLabels.findIndex((j) => j.id === i.id);
-          if (index === -1) {
-            this.selectedLabels.push(i);
-          }
-        });
-      }
+    this.selectedLabels = []
+    const rowIndex = this.labelOptions.findIndex((i) => i.id === selectedRow.id);
+    if (this.labelOptions[rowIndex].isSelected) {
+      this.labelOptions[rowIndex].isSelected = false;
     } else {
-      const rowIndex = this.labelOptions.findIndex((i) => i.id === selectedRow.id);
-      this.labelOptions[rowIndex].isSelected = !this.labelOptions[rowIndex].isSelected;
-
-      if (this.labelOptions[rowIndex].isSelected) {
-        const index = this.selectedLabels.findIndex((j) => j.id === this.labelOptions[rowIndex].id);
-        if (index === -1) {
-          this.selectedLabels.push(this.labelOptions[rowIndex]);
-        }
-      } else {
-        const index = this.selectedLabels.findIndex((j) => j.id === this.labelOptions[rowIndex].id);
-        if (index > -1) {
-          this.selectedLabels.splice(index, 1);
-        }
-      }
+      this.labelOptions.forEach(label => {
+        label.isSelected = false;
+      })
+      this.labelOptions[rowIndex].isSelected = true;
+      this.selectedLabels.push(this.labelOptions[rowIndex]);
     }
 
-    // Save selected contact in service inorder to use it in contact add or edit sidebar.
-    // this.prospectingService.selectedLabelsInContactsPage = this.selectedLabels;
+    // if (isSelectAll) {
+    //   if (this.labelOptions.some((i) => i.isSelected)) {
+    //     this.labelOptions.map((i) => {
+    //       i.isSelected = false;
+    //       const index = this.selectedLabels.findIndex((j) => j.id === i.id);
+    //       if (index > -1) {
+    //         this.selectedLabels.splice(index, 1);
+    //       }
+    //     });
+    //   } else {
+    //     this.labelOptions.map((i) => {
+    //       i.isSelected = true;
+    //       const index = this.selectedLabels.findIndex((j) => j.id === i.id);
+    //       if (index === -1) {
+    //         this.selectedLabels.push(i);
+    //       }
+    //     });
+    //   }
+    // } else {
+    //   const rowIndex = this.labelOptions.findIndex((i) => i.id === selectedRow.id);
+    //   this.labelOptions[rowIndex].isSelected = !this.labelOptions[rowIndex].isSelected;
+
+    //   if (this.labelOptions[rowIndex].isSelected) {
+    //     const index = this.selectedLabels.findIndex((j) => j.id === this.labelOptions[rowIndex].id);
+    //     if (index === -1) {
+    //       this.selectedLabels.push(this.labelOptions[rowIndex]);
+    //     }
+    //   } else {
+    //     const index = this.selectedLabels.findIndex((j) => j.id === this.labelOptions[rowIndex].id);
+    //     if (index > -1) {
+    //       this.selectedLabels.splice(index, 1);
+    //     }
+    //   }
+    // }
   };
 
   receivedLimitNumber = async (limit) => {
@@ -232,11 +241,12 @@ export class ManageListComponent implements OnInit, OnDestroy {
 
     const labelIds = [];
     // filter out lists that used in drip campaigns
-    this.selectedLabels = this.selectedLabels.filter(label => !label.drip_campaign_kexy_labels.length);
+    console.log('selectedLabels', this.selectedLabels);
+    this.selectedLabels = this.selectedLabels.filter(label => !label.dripCampaignList.length);
     this.selectedLabels.forEach(i => labelIds.push(i.id));
     const postData = {
       supplier_id: this.supplierId,
-      label_ids: labelIds,
+      label_ids: labelIds[0],
     };
     try {
       await this.prospectingService.deleteLabel(postData);

@@ -53,14 +53,14 @@
               <span *ngIf="column.name" [className]="column.key === 'list_size' ? 'w-100 d-inline-block text-center' : '' ">{{ column.name }}</span>
 
               <!--Showing select all icon-->
-              <span *ngIf="!column.name && column.key === 'action'" class="select-all-header-icons"
+              <!-- <span *ngIf="!column.name && column.key === 'action'" class="select-all-header-icons"
                     (click)="checkboxClicked(null, true)">
                 <i *ngIf="isNoItemSelected()" aria-hidden="true" class="fa fa-square-o checkbox-icon"></i>
                 <i *ngIf="selectedItemCount > 0 && selectedItemCount < cardData.length" aria-hidden="true"
                    class="fa fa-minus-square-o"></i>
                 <i *ngIf="cardData.length && selectedItemCount === cardData.length" aria-hidden="true"
                    class="fa fa-check-square-o"></i>
-              </span>
+              </span> -->
 
             </td>
           </ng-container>

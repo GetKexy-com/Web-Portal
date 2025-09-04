@@ -306,8 +306,8 @@ export class GenerateDripCampaignComponent implements OnInit {
     const data = {
       count: this.dripCampaign.details.numberOfEmails,
       email_tone: this.selectedEmailToneKey || this.dripCampaign.details.emailTone,
-      sender_name: this.userData.first_name + " " + this.userData.last_name,
-      sender_number: this.userData.phone_country_code + this.userData.phone,
+      sender_name: this.userData.firstName + " " + this.userData.lastName,
+      sender_number: this.userData.phoneCountryCode + this.userData.phone,
       sender_company_name: this.userData.supplier_name,
       sender_website: this.dripCampaign.details.websiteUrl || "",
       sender_calendly_link: this.dripCampaign.details.calendlyLink || "",
