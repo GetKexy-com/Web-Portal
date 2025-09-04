@@ -558,6 +558,7 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
 
   handleSubmit = async () => {
     this.submitted = true;
+    this.setLabelFieldToPrimaryForm();
     if (!this.primaryForm.valid) {
       return false;
     }
