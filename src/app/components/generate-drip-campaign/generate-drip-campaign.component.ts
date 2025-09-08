@@ -7,7 +7,7 @@ import Swal from 'sweetalert2';
 import { DripCampaignService } from '../../services/drip-campaign.service';
 import { routeConstants } from '../../helpers/routeConstants';
 import { ActivatedRoute, Router } from '@angular/router';
-import { DripEmail } from '../../models/DripEmail';
+import { DripEmail, EmailDelay } from '../../models/DripEmail';
 import { SseService } from '../../services/sse.service';
 import { ProspectingService } from '../../services/prospecting.service';
 import { CampaignService } from '../../services/campaign.service';
@@ -132,10 +132,10 @@ export class GenerateDripCampaignComponent implements OnInit {
       }
     });
     this.emailsSubscription = this.sseService.dripBulkEmails.subscribe((emails: DripEmail[]) => {
-      console.log('emails', emails);
       this.emails = emails;
-      this.emails.forEach(e => {
-        const delay = e.delayBetweenPreviousEmail;
+      this.emails.forEach((e: DripEmail) => {
+        console.log(e.aiRawData);
+        const delay: EmailDelay = e.delayBetweenPreviousEmail;
         e['emailText'] = `${delay.days} day(s) ${delay.hours} hour(s) ${delay.minutes} minute(s)`;
       });
 
@@ -286,7 +286,7 @@ export class GenerateDripCampaignComponent implements OnInit {
     }
 
     this.contactListSubscription = this.prospectingService.contactRes.subscribe(async (data) => {
-      if(data.contacts.length < 1) {
+      if (data.contacts.length < 1) {
         await Swal.fire({
           title: `Error`,
           text: 'Please add contact(s) to your selected list(s).',
@@ -489,11 +489,12 @@ export class GenerateDripCampaignComponent implements OnInit {
 
   __saveEmails = async (save = 'false') => {
     const formattedEmails = [];
-    this.emails.forEach((e, index) => {
+    this.emails.forEach((e: DripEmail, index) => {
       const email = {
         emailSequence: e.emailSequence,
         emailSubject: e.emailSubject,
         emailContent: e.emailContent,
+        aiRawData: e.aiRawData,
         delayBetweenPreviousEmail: JSON.stringify(e.delayBetweenPreviousEmail),
         emailLength: this.selectedEmailLength.value,
         emailTone: this.selectedEmailToneKey,
@@ -613,7 +614,6 @@ export class GenerateDripCampaignComponent implements OnInit {
 
   handleUpdateNumberOfEmail = async () => {
     this.numberOfEmailUpdateApiLoading = true;
-    console.log(this.userData);
     const payload = {
       dripCampaignId: this.dripCampaign.id,
       companyId: this.dripCampaign.company.id,

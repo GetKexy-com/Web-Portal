@@ -196,99 +196,6 @@ export class SseService {
       .catch((err) => console.error(err));
   };
 
-
-  async processEmailStream(stream: ReadableStream<Uint8Array>): Promise<DripEmail[]> {
-    const emails: DripEmail[] = [];
-    let emailSequence = 1;
-    const defaultDelay: EmailDelay = { days: 3, hours: 0, minutes: 0 };
-
-    let buffer = '';
-    let currentEmail: { subject: string; content: string } | null = null;
-    let reader: ReadableStreamDefaultReader<Uint8Array>;
-
-    try {
-      reader = stream.getReader();
-
-      while (true) {
-        const { done, value } = await reader.read();
-
-        if (done) {
-          // Process any remaining content in buffer for the last email
-          if (currentEmail && buffer) {
-            currentEmail.content += buffer;
-            buffer = '';
-          }
-          break;
-        }
-
-        // Decode the chunk and add to buffer
-        buffer += new TextDecoder().decode(value);
-
-        // Process the buffer until no more complete patterns are found
-        while (true) {
-          if (!currentEmail) {
-            // Looking for start of a new email (^^subject$$)
-            const subjectStart = buffer.indexOf('^^');
-            if (subjectStart === -1) break; // No subject start found
-
-            const subjectEnd = buffer.indexOf('$$', subjectStart + 2);
-            if (subjectEnd === -1) break; // No subject end found yet
-
-            // Extract subject and create new email
-            const subject = buffer.substring(subjectStart + 2, subjectEnd);
-            currentEmail = {
-              subject,
-              content: ''
-            };
-
-            // Remove processed part from buffer
-            buffer = buffer.substring(subjectEnd + 2);
-          } else {
-            // Looking for email separator (~~) or end of stream
-            const emailSeparator = buffer.indexOf('~~');
-
-            if (emailSeparator !== -1) {
-              // Add content before separator to current email
-              currentEmail.content += buffer.substring(0, emailSeparator);
-
-              // Complete the current email
-              emails.push({
-                emailSequence: emailSequence++,
-                emailSubject: currentEmail.subject,
-                emailContent: currentEmail.content,
-                delayBetweenPreviousEmail: defaultDelay
-              });
-
-              // Reset for next email
-              currentEmail = null;
-              buffer = buffer.substring(emailSeparator + 2);
-            } else {
-              // No separator found, add entire buffer to content
-              currentEmail.content += buffer;
-              buffer = '';
-              break;
-            }
-          }
-        }
-      }
-
-      // If we have a current email when stream ends, add it
-      if (currentEmail) {
-        emails.push({
-          emailSequence: emailSequence++,
-          emailSubject: currentEmail.subject,
-          emailContent: currentEmail.content,
-          delayBetweenPreviousEmail: defaultDelay
-        });
-      }
-
-      return emails;
-    } finally {
-      reader?.releaseLock();
-    }
-  }
-
-
   // async fetchAndProcessEmails() {
   //   try {
   //     this._dripBulkEmailLoading.next(true);
@@ -326,6 +233,7 @@ export class SseService {
     let emailSequence = 1;
     let emailSubject = "";
     let emailContent = "";
+    let aiEmailData = '';
     let delayBetweenPreviousEmail: EmailDelay = { days: 3, hours: 0, minutes: 0 };
     this._dripBulkEmailLoading.next(true);
     let subjectReady = false;
@@ -357,6 +265,7 @@ export class SseService {
             // completed previous dripEmail content So we push content of previous Email in here
             // and start the new dripEmail content.
             if (str.includes(this.newEmailStartSign)) {
+              let currentAiData = aiEmailData;
               let current_subject = emailSubject;
               let current_content = emailContent;
               emailSubject = "";
@@ -370,6 +279,8 @@ export class SseService {
               // add first part to the previous email_content, last part to the email_subject for next email
               let cleanStr = str.split(this.newEmailStartSign);
               current_content += cleanStr[0];
+              currentAiData += cleanStr[0];
+              aiEmailData = cleanStr[1];
               emailSubject = cleanStr[1].replace(this.subjectStartSign, "");
 
               // Check if the subject has the end sign in here.
@@ -389,6 +300,7 @@ export class SseService {
                   emailSequence,
                   emailSubject: current_subject,
                   emailContent: current_content,
+                  aiRawData: currentAiData
                 };
                 emails.push(email);
                 this.addToDripBulkEmails(emails);
@@ -406,10 +318,12 @@ export class SseService {
             }
 
             if (str.includes(this.subjectStartSign)) {
-              // AI send "Subject:" as one stream object for 1st dripEmail. So we filter it here.
+              aiEmailData += str;
+              // AI send "^^" as one stream object for 1st dripEmail. So we filter it here.
               str = str.replace(this.subjectStartSign, "");
               emailSubject += str;
             } else {
+              aiEmailData += str;
               let contentStart = false;
 
               if (str.indexOf(this.subjectEndSign) === -1 && !subjectReady) {
@@ -437,6 +351,7 @@ export class SseService {
                 emailSequence,
                 emailSubject,
                 emailContent,
+                aiRawData: aiEmailData,
               };
               emails.push(email);
               this.addToDripBulkEmails(emails);
