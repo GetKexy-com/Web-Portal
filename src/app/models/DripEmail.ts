@@ -8,6 +8,7 @@ export class DripEmail {
   delayBetweenPreviousEmail?: EmailDelay;
   emailSubject: string = "";
   emailContent: string = "";
+  aiRawData: string = "";
 }
 
 export class EmailDelay {

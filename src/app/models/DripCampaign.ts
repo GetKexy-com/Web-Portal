@@ -1,5 +1,6 @@
 export class DripCampaign {
   id: number;
+  company: object;
   targetAudience: string;
   audienceType: string;
   emailAbout: string;
@@ -15,6 +16,7 @@ export class DripCampaign {
 
   constructor(rawData: IRawDripCampaign) {
     this.id = rawData.id;
+    this.company = rawData.company;
     this.targetAudience = rawData.targetAudience;
     this.audienceType = rawData.audienceType;
     this.emailAbout = rawData.emailAbout;
@@ -46,6 +48,7 @@ export class DripCampaign {
   static empty(): DripCampaign {
     const emptyRawData: IRawDripCampaign = {
       id: 0,
+      company: {},
       targetAudience: '',
       audienceType: '',
       emailAbout: '',
@@ -101,6 +104,7 @@ export class DripCampaign {
 // Interface definitions
 export interface IRawDripCampaign {
   id: number;
+  company: object;
   targetAudience: string;
   audienceType: string;
   emailAbout: string;

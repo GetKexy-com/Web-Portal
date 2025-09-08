@@ -1,32 +1,36 @@
-import { AfterViewChecked, Component, ElementRef, Input, OnDestroy, OnInit, ViewChild } from "@angular/core";
-import { constants } from "../../helpers/constants";
-import { NgbModal, NgbOffcanvas } from "@ng-bootstrap/ng-bootstrap";
-import { AuthService } from "../../services/auth.service";
-import { Subscription } from "rxjs";
-import Swal from "sweetalert2";
-import { DripCampaignService } from "../../services/drip-campaign.service";
-import { routeConstants } from "../../helpers/routeConstants";
-import { ActivatedRoute, Router } from "@angular/router";
-import { DripEmail } from "../../models/DripEmail";
-import { SseService } from "../../services/sse.service";
-import { ProspectingService } from "../../services/prospecting.service";
-import { CampaignService } from "../../services/campaign.service";
-import {KexySelectDropdownComponent} from '../kexy-select-dropdown/kexy-select-dropdown.component';
-import {KexyButtonComponent} from '../kexy-button/kexy-button.component';
-import {ErrorMessageCardComponent} from '../error-message-card/error-message-card.component';
-import {ModalComponent} from '../modal/modal.component';
-import {FormsModule} from '@angular/forms';
-import {DripCampaignCardComponent} from '../drip-campaign-card/drip-campaign-card.component';
-import {CampaignLayoutBottmBtnsComponent} from '../campaign-layout-bottm-btns/campaign-layout-bottm-btns.component';
-import {KexyToastifyComponent} from '../kexy-toastify/kexy-toastify.component';
-import {SendEmailDetailsContentComponent} from '../send-email-details-content/send-email-details-content.component';
-import {EmailInsightsContentComponent} from '../email-insights-content/email-insights-content.component';
-import {DelayDetailsContentComponent} from '../delay-details-content/delay-details-content.component';
-import {ActiveContactsInCampaignComponent} from '../active-contacts-in-campaign/active-contacts-in-campaign.component';
-import {EmailTimeSettingsContentComponent} from '../email-time-settings-content/email-time-settings-content.component';
-import {CommonModule} from '@angular/common';
-import {PageUiService} from '../../services/page-ui.service';
-import {ExportToCsv} from '../../helpers/CSVHelper';
+import { AfterViewChecked, Component, ElementRef, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { constants } from '../../helpers/constants';
+import { NgbModal, NgbOffcanvas } from '@ng-bootstrap/ng-bootstrap';
+import { AuthService } from '../../services/auth.service';
+import { Subscription } from 'rxjs';
+import Swal from 'sweetalert2';
+import { DripCampaignService } from '../../services/drip-campaign.service';
+import { routeConstants } from '../../helpers/routeConstants';
+import { ActivatedRoute, Router } from '@angular/router';
+import { DripEmail } from '../../models/DripEmail';
+import { SseService } from '../../services/sse.service';
+import { ProspectingService } from '../../services/prospecting.service';
+import { CampaignService } from '../../services/campaign.service';
+import { KexySelectDropdownComponent } from '../kexy-select-dropdown/kexy-select-dropdown.component';
+import { KexyButtonComponent } from '../kexy-button/kexy-button.component';
+import { ErrorMessageCardComponent } from '../error-message-card/error-message-card.component';
+import { ModalComponent } from '../modal/modal.component';
+import { FormsModule } from '@angular/forms';
+import { DripCampaignCardComponent } from '../drip-campaign-card/drip-campaign-card.component';
+import { CampaignLayoutBottmBtnsComponent } from '../campaign-layout-bottm-btns/campaign-layout-bottm-btns.component';
+import { KexyToastifyComponent } from '../kexy-toastify/kexy-toastify.component';
+import { SendEmailDetailsContentComponent } from '../send-email-details-content/send-email-details-content.component';
+import { EmailInsightsContentComponent } from '../email-insights-content/email-insights-content.component';
+import { DelayDetailsContentComponent } from '../delay-details-content/delay-details-content.component';
+import {
+  ActiveContactsInCampaignComponent,
+} from '../active-contacts-in-campaign/active-contacts-in-campaign.component';
+import {
+  EmailTimeSettingsContentComponent,
+} from '../email-time-settings-content/email-time-settings-content.component';
+import { CommonModule } from '@angular/common';
+import { PageUiService } from '../../services/page-ui.service';
+import { ExportToCsv } from '../../helpers/CSVHelper';
 
 @Component({
   selector: 'generate-drip-campaign',
@@ -39,10 +43,10 @@ import {ExportToCsv} from '../../helpers/CSVHelper';
     DripCampaignCardComponent,
     CampaignLayoutBottmBtnsComponent,
     KexyToastifyComponent,
-    CommonModule
+    CommonModule,
   ],
   templateUrl: './generate-drip-campaign.component.html',
-  styleUrl: './generate-drip-campaign.component.scss'
+  styleUrl: './generate-drip-campaign.component.scss',
 })
 export class GenerateDripCampaignComponent implements OnInit {
   @Input() nextBtnClick;
@@ -64,10 +68,10 @@ export class GenerateDripCampaignComponent implements OnInit {
   dripCampaignProspects: any = [];
   dripCampaignId;
   dripCampaign;
-  dripCampaignStatus: string = "";
+  dripCampaignStatus: string = '';
   numberOfEmail;
   numberOfEmailUpdateApiLoading: boolean = false;
-  selectedPromotionsProductName: string = "";
+  selectedPromotionsProductName: string = '';
   submittedTestEmailSend = false;
   isValidEmail = false;
   testEmailText;
@@ -98,10 +102,10 @@ export class GenerateDripCampaignComponent implements OnInit {
 
   ngOnInit() {
     this.route.queryParams.subscribe((params) => {
-      if (params["id"]) {
-        this.dripCampaignId = params["id"];
+      if (params['id']) {
+        this.dripCampaignId = params['id'];
         this.dripCampaign = this.dripCampaignService.getDripCampaignContentPageData();
-        console.log("dripCampaign", this.dripCampaign);
+        console.log('dripCampaign', this.dripCampaign);
       }
     });
 
@@ -118,7 +122,7 @@ export class GenerateDripCampaignComponent implements OnInit {
       if (!this.isContentLoading && this.emails.length) {
         this.showToastifyMessage = true;
         // Save the emails in DB
-        this.__saveEmails("true").then(async () => {
+        this.__saveEmails('true').then(async () => {
           const postData = {
             drip_campaign_id: this.dripCampaignId,
             supplier_id: this.userData.supplier_id,
@@ -132,7 +136,7 @@ export class GenerateDripCampaignComponent implements OnInit {
       this.emails = emails;
       this.emails.forEach(e => {
         const delay = e.delayBetweenPreviousEmail;
-        e["emailText"] = `${delay.days} day(s) ${delay.hours} hour(s) ${delay.minutes} minute(s)`;
+        e['emailText'] = `${delay.days} day(s) ${delay.hours} hour(s) ${delay.minutes} minute(s)`;
       });
 
       this.scroll = true;
@@ -182,12 +186,12 @@ export class GenerateDripCampaignComponent implements OnInit {
     try {
       await this.dripCampaignService.getProspects(postData);
       this.dripCampaignProspectsSubscription = this.dripCampaignService.dripCampaignProspects.subscribe(data => {
-        this.dripCampaignProspects = data["prospects"];
+        this.dripCampaignProspects = data['prospects'];
         console.log('prospects', this.dripCampaignProspects);
       });
 
     } catch (e) {
-      Swal.fire("Error", e.message);
+      Swal.fire('Error', e.message);
     }
   };
 
@@ -214,14 +218,14 @@ export class GenerateDripCampaignComponent implements OnInit {
       supplier_id: this.userData.supplier_id,
       page: 1,
       limit: 1000,
-      get_total_count: "false",
+      get_total_count: 'false',
     });
 
     // Set subscription to get up to date products
     this.productsSubscription = this.prospectingService.allProduct.subscribe((products) => {
       this.products = products;
 
-      const index = this.products.findIndex(p => p.id === campaign["campaign_detail"].prospecting_product_id);
+      const index = this.products.findIndex(p => p.id === campaign['campaign_detail'].prospecting_product_id);
       if (index > -1) {
         this.selectedPromotionsProductName = this.products[index].name;
       }
@@ -281,40 +285,51 @@ export class GenerateDripCampaignComponent implements OnInit {
       await Swal.fire('Error', e.message);
     }
 
-    this.contactListSubscription = this.prospectingService.contactRes.subscribe((data) => {
+    this.contactListSubscription = this.prospectingService.contactRes.subscribe(async (data) => {
+      if(data.contacts.length < 1) {
+        await Swal.fire({
+          title: `Error`,
+          text: 'Please add contact(s) to your selected list(s).',
+          icon: 'warning',
+        });
+        return;
+      }
       this.contactList = this.prospectingService.setLabelsInContactsList(data.contacts);
     });
   };
 
   generateEmailContent = async () => {
+    console.log(this.contactList);
     if (!this.contactList?.length) {
       const enrollList = this.getEnrolledList();
       if (!enrollList?.length) {
-      this.openSettingsCanvas();
-      await Swal.fire({
-        title: `Error`,
-        text: "Please select list(s) from enrollment triggers",
-        icon: "warning",
-      });
-      return;
-    }
-    const listId = enrollList[0].list.id;
-    await this.getContacts(listId);
+        this.openSettingsCanvas();
+        await Swal.fire({
+          title: `Error`,
+          text: 'Please select list(s) from enrollment triggers',
+          icon: 'warning',
+        });
+        return;
+      }
+      const listId = enrollList[0].list.id;
+      this.isContentLoading = true;
+      await this.getContacts(listId);
+      this.isContentLoading = false;
     }
 
     this.emails = [];
     const data = {
       count: this.dripCampaign.details.numberOfEmails,
       email_tone: this.selectedEmailToneKey || this.dripCampaign.details.emailTone,
-      sender_name: this.userData.firstName + " " + this.userData.lastName,
+      sender_name: this.userData.firstName + ' ' + this.userData.lastName,
       sender_number: this.userData.phoneCountryCode + this.userData.phone,
       sender_company_name: this.userData.supplier_name,
-      sender_website: this.dripCampaign.details.websiteUrl || "",
-      sender_calendly_link: this.dripCampaign.details.calendlyLink || "",
+      sender_website: this.dripCampaign.details.websiteUrl || '',
+      sender_calendly_link: this.dripCampaign.details.calendlyLink || '',
       sender_company_details: this.userData.company_description,
       sender_product_name: this.selectedPromotionsProductName,
-      sender_product_category: "",
-      sender_product_description: "",
+      sender_product_category: '',
+      sender_product_description: '',
       email_length: this.selectedEmailLength.key,
       target_audience: this.dripCampaign.targetAudience,
       email_about: this.dripCampaign.emailAbout,
@@ -324,27 +339,27 @@ export class GenerateDripCampaignComponent implements OnInit {
         company: this.contactList[0]?.companyName,
         industry: this.contactList[0]?.details?.organization?.industry,
         location: `${this.contactList[0]?.details?.city}, ${this.contactList[0].details?.state}, ${this.contactList[0].details?.country}`,
-        website: "",
+        website: '',
         linkedinUrl: this.contactList[0]?.details?.linkedinUrl,
-      }
+      },
     };
-    
+
     try {
       await this.sseService.dripBulkEmailContentStream(data);
     } catch (e) {
       await Swal.fire('Error', e.message);
     }
-    
+
   };
 
   showAiEmailError = () => {
     this.emailErrorSubscription = this.sseService.dripBulkEmailError.subscribe((content) => {
       if (content) {
-        content = content.replaceAll(this.sseService.emailErrorSign, "");
+        content = content.replaceAll(this.sseService.emailErrorSign, '');
         Swal.fire({
           title: `Error`,
           text: content,
-          icon: "warning",
+          icon: 'warning',
         });
       }
     });
@@ -353,7 +368,7 @@ export class GenerateDripCampaignComponent implements OnInit {
   showEmailDetailsBtnClick = async (email) => {
     this.dripCampaignService.setEditEmail(email);
     this.dripCampaignService.setHasPromotion(!!this.selectedPromotionsProductName);
-    this.__createRightSideSlide(SendEmailDetailsContentComponent, "email-content");
+    this.__createRightSideSlide(SendEmailDetailsContentComponent, 'email-content');
 
     if (!this.contactList?.length) {
       const enrollList = this.getEnrolledList();
@@ -369,10 +384,10 @@ export class GenerateDripCampaignComponent implements OnInit {
       drip_campaign_id: parseInt(this.dripCampaignId),
       drip_campaign_email_id: email.id,
       supplier_id: this.userData.supplier_id,
-      email
+      email,
     };
     this.dripCampaignService.insightApiPostData = insightApiPostData;
-    this.__createRightSideSlide(EmailInsightsContentComponent, "email-insights");
+    this.__createRightSideSlide(EmailInsightsContentComponent, 'email-insights');
   };
 
   showEmailDelayBtnClick = (email) => {
@@ -382,14 +397,14 @@ export class GenerateDripCampaignComponent implements OnInit {
 
   showDripCampaignContacts = (prospects) => {
     this.dripCampaignService.emailProspects = prospects;
-    this.__createRightSideSlide(ActiveContactsInCampaignComponent, "email-content");
+    this.__createRightSideSlide(ActiveContactsInCampaignComponent, 'email-content');
   };
 
-  __createRightSideSlide = (Component, panelClass = "attributes-bg") => {
+  __createRightSideSlide = (Component, panelClass = 'attributes-bg') => {
     this.ngbOffcanvas.open(Component, {
       panelClass: `${panelClass} edit-rep-canvas`,
-      backdropClass: "edit-rep-canvas-backdrop",
-      position: "end",
+      backdropClass: 'edit-rep-canvas-backdrop',
+      position: 'end',
       scroll: false,
       beforeDismiss: async () => {
         return true;
@@ -404,16 +419,16 @@ export class GenerateDripCampaignComponent implements OnInit {
   getEnrolledList = () => {
     this.dripCampaign = this.dripCampaignService.getDripCampaignContentPageData();
     const enrollment = this.dripCampaign.lists;
-    const enrollList = enrollment.filter(r => r.type === "enroll_list");
+    const enrollList = enrollment.filter(r => r.type === 'enroll_list');
     return enrollList;
-  }
+  };
 
   handleClickNextButton = async () => {
     if (!this.emails.length) {
       await Swal.fire({
         title: `Error`,
-        text: "Please generate emails to active.",
-        icon: "warning",
+        text: 'Please generate emails to active.',
+        icon: 'warning',
       });
       return;
     }
@@ -427,8 +442,8 @@ export class GenerateDripCampaignComponent implements OnInit {
       this.openSettingsCanvas();
       await Swal.fire({
         title: `Error`,
-        text: "Please select list(s) from enrollment triggers",
-        icon: "warning",
+        text: 'Please select list(s) from enrollment triggers',
+        icon: 'warning',
       });
       return;
     }
@@ -440,8 +455,8 @@ export class GenerateDripCampaignComponent implements OnInit {
     if (isSuccess) {
       await Swal.fire({
         title: `Congratulations!`,
-        text: "Drip campaign is now active.",
-        icon: "success",
+        text: 'Drip campaign is now active.',
+        icon: 'success',
       });
       await this.router.navigate([routeConstants.BRAND.LIST_DRIP_CAMPAIGN]);
     }
@@ -467,12 +482,12 @@ export class GenerateDripCampaignComponent implements OnInit {
       return true;
 
     } catch (e) {
-      await Swal.fire("Error", e.message);
+      await Swal.fire('Error', e.message);
       return false;
     }
   };
 
-  __saveEmails = async (save = "false") => {
+  __saveEmails = async (save = 'false') => {
     const formattedEmails = [];
     this.emails.forEach((e, index) => {
       const email = {
@@ -489,25 +504,25 @@ export class GenerateDripCampaignComponent implements OnInit {
     try {
       const postData = {
         dripCampaignId: this.dripCampaignId,
-        saveEmails: save === "true" ? "true" : "false",
+        saveEmails: save === 'true' ? 'true' : 'false',
         emails: formattedEmails,
       };
       await this.dripCampaignService.publishDripCampaign(postData);
 
     } catch (e) {
-      await Swal.fire("Error", e.message);
+      await Swal.fire('Error', e.message);
     }
   };
 
   __isConfirmed = async () => {
     let isConfirm = await Swal.fire({
       title: `Ready to active?`,
-      text: "Make sure all emails are in good shape.",
-      icon: "success",
+      text: 'Make sure all emails are in good shape.',
+      icon: 'success',
       showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Yes, Active It!",
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, Active It!',
     });
 
     return !isConfirm.dismiss;
@@ -522,18 +537,18 @@ export class GenerateDripCampaignComponent implements OnInit {
     // SHow sweet alert popup
     await Swal.fire({
       title: `Saved!`,
-      text: "Save as draft successfully.",
-      icon: "success",
+      text: 'Save as draft successfully.',
+      icon: 'success',
     });
   };
 
-  @ViewChild("emailSmoothScroll") private emailSmoothScroll: ElementRef;
+  @ViewChild('emailSmoothScroll') private emailSmoothScroll: ElementRef;
 
   scroll = false;
   scrollToBottom = () => {
     if (!this.scroll) return;
     try {
-      this.emailSmoothScroll.nativeElement.scrollIntoView({ behavior: "smooth" });
+      this.emailSmoothScroll.nativeElement.scrollIntoView({ behavior: 'smooth' });
       setTimeout(() => {
         this.scroll = false;
       }, 5);
@@ -598,14 +613,14 @@ export class GenerateDripCampaignComponent implements OnInit {
 
   handleUpdateNumberOfEmail = async () => {
     this.numberOfEmailUpdateApiLoading = true;
-
+    console.log(this.userData);
     const payload = {
       dripCampaignId: this.dripCampaign.id,
       companyId: this.dripCampaign.company.id,
       dripCampaignTitleId: this.dripCampaign.details.title.id,
       numberOfEmails: this.numberOfEmail,
       emailTone: this.dripCampaign.details.emailTone,
-      websiteUrl: this.dripCampaign.details.websiteUrl || "",
+      websiteUrl: this.dripCampaign.details.websiteUrl || '',
       campaignId: this.dripCampaign.details.campaignId,
       status: this.dripCampaign.status,
       targetAudience: this.dripCampaign.targetAudience,
@@ -614,7 +629,7 @@ export class GenerateDripCampaignComponent implements OnInit {
       emailLength: this.selectedEmailLength.value,
     };
     if (this.dripCampaign.details.calendlyLink) {
-      payload["calendlyLink"] = this.dripCampaign.details.calendlyLink;
+      payload['calendlyLink'] = this.dripCampaign.details.calendlyLink;
     }
 
     try {
@@ -626,7 +641,7 @@ export class GenerateDripCampaignComponent implements OnInit {
       this.numberOfEmailsInputShow = false;
       this.numberOfEmailUpdateApiLoading = false;
     } catch (e) {
-      Swal.fire("Error", e.message, "error");
+      Swal.fire('Error', e.message, 'error');
       this.numberOfEmailUpdateApiLoading = false;
     }
   };
@@ -659,14 +674,14 @@ export class GenerateDripCampaignComponent implements OnInit {
       await this.dripCampaignService.testDripCampaignEmail(postData);
       await Swal.fire({
         title: `Sent!`,
-        text: "Emails sent successfully.",
-        icon: "success",
+        text: 'Emails sent successfully.',
+        icon: 'success',
       });
     } catch (e) {
       await Swal.fire({
         title: `Error`,
         text: e.getMessages(),
-        icon: "warning",
+        icon: 'warning',
       });
     } finally {
       this.isSendEmailLoading = false;
@@ -674,7 +689,7 @@ export class GenerateDripCampaignComponent implements OnInit {
   };
 
   openSettingsCanvas = () => {
-    this.__createRightSideSlide(EmailTimeSettingsContentComponent, "email-time-settings-slider");
+    this.__createRightSideSlide(EmailTimeSettingsContentComponent, 'email-time-settings-slider');
   };
 
   // openEnrollmentTriggerCanvas = () => {
@@ -713,7 +728,7 @@ export class GenerateDripCampaignComponent implements OnInit {
         };
 
         const insightsData = await this.dripCampaignService.insights(postData);
-        return insightsData["insights"] || [];
+        return insightsData['insights'] || [];
       });
 
       const allInsights = await Promise.all(insightsPromises);
@@ -788,7 +803,7 @@ export class GenerateDripCampaignComponent implements OnInit {
       }
     });
 
-    return Object.values(contactsMap).sort((a, b) => b["count"] - a["count"]);
+    return Object.values(contactsMap).sort((a, b) => b['count'] - a['count']);
   };
 
   mergeContacts = (
@@ -822,15 +837,15 @@ export class GenerateDripCampaignComponent implements OnInit {
 
   exportCSV = async (contactsData) => {
     const headers = [
-      "First Name", "Last Name", "Email Number in Campaign",
-      "Email Subject Line", "Number of Opens", "Number of Clicks",
-      "Email", "Job Title", "Company Name", "Phone Number",
-      "Linkedin Url", "City", "State", "Country", "Date/Time Clicked",
-    ].join(",");
+      'First Name', 'Last Name', 'Email Number in Campaign',
+      'Email Subject Line', 'Number of Opens', 'Number of Clicks',
+      'Email', 'Job Title', 'Company Name', 'Phone Number',
+      'Linkedin Url', 'City', 'State', 'Country', 'Date/Time Clicked',
+    ].join(',');
 
     const rows = contactsData.flatMap(contacts =>
       Object.values(contacts).map(contact => {
-        const details = JSON.parse(contact["details"]) as {
+        const details = JSON.parse(contact['details']) as {
           first_name?: string;
           last_name?: string;
           email?: string;
@@ -842,28 +857,28 @@ export class GenerateDripCampaignComponent implements OnInit {
         };
 
         const escapeCsv = (value: any) =>
-          value?.toString().replace(/,/g, " ") || "";
+          value?.toString().replace(/,/g, ' ') || '';
 
         return [
-          escapeCsv(details["first_name"]),
-          escapeCsv(details["last_name"]),
-          escapeCsv(contact["emailSequence"]),
-          escapeCsv(contact["emailSubject"]),
-          escapeCsv(contact["openCount"]),
-          escapeCsv(contact["clickCount"]),
+          escapeCsv(details['first_name']),
+          escapeCsv(details['last_name']),
+          escapeCsv(contact['emailSequence']),
+          escapeCsv(contact['emailSubject']),
+          escapeCsv(contact['openCount']),
+          escapeCsv(contact['clickCount']),
           escapeCsv(details.email),
-          escapeCsv(contact["jobTitle"]),
-          escapeCsv(contact["companyName"]),
+          escapeCsv(contact['jobTitle']),
+          escapeCsv(contact['companyName']),
           escapeCsv(details.organization?.phone),
           escapeCsv(details.linkedin_url),
           escapeCsv(details.city),
           escapeCsv(details.state),
           escapeCsv(details.country),
-          escapeCsv(contact["createdAt"]),
-        ].join(",");
+          escapeCsv(contact['createdAt']),
+        ].join(',');
       }),
-    ).join("\n");
+    ).join('\n');
 
-    await ExportToCsv.download("insights.csv", `${headers}\n${rows}`);
+    await ExportToCsv.download('insights.csv', `${headers}\n${rows}`);
   };
 }
