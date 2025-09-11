@@ -8,11 +8,34 @@
           (click)="exportInsights()"
           class="me-3"
           label="Export Insights"
+          [iconLeft]="isContentLoading ? 'fa-cloud-download fa-spin' : 'fa-cloud-download'"
           [disabled]="isContentLoading || isSendEmailLoading"
           radius="8px"
           bgColor="#e7f6fe"
           textColor="#2847cc"
         ></app-kexy-button>
+
+        <kexy-select-dropdown
+          style="margin-right: 16px"
+          label="Spintax / Linkedin Scrape"
+          shortNoteBesideLabel=""
+          [selectAllBtn]="false"
+          [required]="false"
+          [options]="spintaxOptions"
+          [addNewBtn]="false"
+          [onAddNewClick]=""
+          [selectedOption]="selectedSpintaxKey"
+          [onSelectSingleItem]="onSpintaxSelect"
+          [rowIndex]="1"
+          [editIcon]="false"
+          [deleteIcon]="false"
+          [onDeleteClick]=""
+          [onEditClick]=""
+          [isClearable]="false"
+          optionStyle="button"
+          backgroundColor="white"
+          placeholder="Please Select"
+        ></kexy-select-dropdown>
 
         <kexy-select-dropdown
           style="margin-right: 10px"
@@ -103,6 +126,7 @@
         </div>
       </div>
       <div class="d-flex">
+
         <app-kexy-button
           (click)="openSettingsCanvas()"
           class="me-2"

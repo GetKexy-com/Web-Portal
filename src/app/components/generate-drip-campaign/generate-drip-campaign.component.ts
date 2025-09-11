@@ -82,6 +82,11 @@ export class GenerateDripCampaignComponent implements OnInit {
   // Set first index which is "short" by default.
   selectedEmailLength;
   emailTones = constants.EMAIL_TONES;
+  spintaxOptions = [
+    { key: 'yes', value: 'Yes' },
+    { key: 'no', value: 'No' }
+  ];
+  selectedSpintaxKey = 'Yes';
   selectedEmailToneKey;
   contactList;
   contactListSubscription: Subscription;
@@ -299,7 +304,6 @@ export class GenerateDripCampaignComponent implements OnInit {
   };
 
   generateEmailContent = async () => {
-    console.log(this.contactList);
     if (!this.contactList?.length) {
       const enrollList = this.getEnrolledList();
       if (!enrollList?.length) {
@@ -333,6 +337,7 @@ export class GenerateDripCampaignComponent implements OnInit {
       email_length: this.selectedEmailLength.key,
       target_audience: this.dripCampaign.targetAudience,
       email_about: this.dripCampaign.emailAbout,
+      isSpintax: this.selectedSpintaxKey === 'Yes',
       promotion_info: !!this.selectedPromotionsProductName,
       prospect: {
         name: this.contactList[0]?.contactName,
@@ -698,6 +703,10 @@ export class GenerateDripCampaignComponent implements OnInit {
 
   onEmailToneSelect = (tone, index = null, rowIndex = null) => {
     this.selectedEmailToneKey = tone.value;
+  };
+
+  onSpintaxSelect = (spintax, index = null, rowIndex = null) => {
+    this.selectedSpintaxKey = spintax.value;
   };
 
   // handleClickPlusBtn = (email: object, isFromDelayCard: boolean, emailIndex: number): void => {
