@@ -70,7 +70,7 @@ export class SendEmailDetailsContentComponent implements OnInit, OnDestroy {
     console.log(this.dripEmail);
     this.emailContent = this.dripEmail['emailContent'];
     this.emailSubject = this.dripEmail['emailSubject'];
-    
+
 
     this.dripCampaignStatusSubscription = this.dripCampaignService.dripCampaignStatus.subscribe(
       (status) => {
@@ -155,7 +155,7 @@ export class SendEmailDetailsContentComponent implements OnInit, OnDestroy {
   onEmailContentChange = (editor) => {
     setTimeout(() => {
       this.updatedEmailContent = editor.getData();
-      console.log(this.updatedEmailContent);
+      // this.updatedEmailContent = this.updatedEmailContent.replace(/\\n/g, '<br>');
     }, 10);
   };
 

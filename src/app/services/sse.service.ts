@@ -1,26 +1,26 @@
-import { Injectable, NgZone } from "@angular/core";
-import { BehaviorSubject, Observable } from "rxjs";
-import { DripEmail, EmailDelay } from "../models/DripEmail";
-import { environment } from "../../environments/environment";
+import { Injectable, NgZone } from '@angular/core';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { DripEmail, EmailDelay } from '../models/DripEmail';
+import { environment } from '../../environments/environment';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class SseService {
-  private subjectStartSign = "^^";
-  private subjectEndSign = "$$";
-  public emailErrorSign = "@@";
-  private newEmailStartSign = "~~";
+  private subjectStartSign = '^^';
+  private subjectEndSign = '$$';
+  public emailErrorSign = '@@';
+  private newEmailStartSign = '~~';
 
   //********
   // Prospect Email Related Variables
-  private _prospectEmailContent = new BehaviorSubject("");
+  private _prospectEmailContent = new BehaviorSubject('');
   prospectEmailContent = this._prospectEmailContent.asObservable();
 
-  private _prospectEmailSubject = new BehaviorSubject("");
+  private _prospectEmailSubject = new BehaviorSubject('');
   prospectEmailSubject = this._prospectEmailSubject.asObservable();
 
-  private _prospectEmailError = new BehaviorSubject("");
+  private _prospectEmailError = new BehaviorSubject('');
   prospectEmailError = this._prospectEmailError.asObservable();
 
   private _prospectEmailContentLoading = new BehaviorSubject(false);
@@ -30,16 +30,16 @@ export class SseService {
 
   //********
   // Drip Single Email Related Variables
-  private _dripSingleEmailContent = new BehaviorSubject("");
+  private _dripSingleEmailContent = new BehaviorSubject('');
   dripSingleEmailContent = this._dripSingleEmailContent.asObservable();
 
-  private _dripSingleEmailSubject = new BehaviorSubject("");
+  private _dripSingleEmailSubject = new BehaviorSubject('');
   dripSingleEmailSubject = this._dripSingleEmailSubject.asObservable();
 
   private _dripSingleEmailLoading = new BehaviorSubject(false);
   dripSingleEmailLoading = this._dripSingleEmailLoading.asObservable();
 
-  private _dripSingleEmailError = new BehaviorSubject("");
+  private _dripSingleEmailError = new BehaviorSubject('');
   dripSingleEmailError = this._dripSingleEmailError.asObservable();
   // End of Drip Single Email Related Variables
   //********
@@ -49,7 +49,7 @@ export class SseService {
   private _dripBulkEmails = new BehaviorSubject([]);
   dripBulkEmails = this._dripBulkEmails.asObservable();
 
-  private _dripBulkEmailError = new BehaviorSubject("");
+  private _dripBulkEmailError = new BehaviorSubject('');
   dripBulkEmailError = this._dripBulkEmailError.asObservable();
 
   private _dripBulkEmailLoading = new BehaviorSubject(false);
@@ -63,16 +63,16 @@ export class SseService {
   dripFollowUpEmailApiUrl = environment.dripFollowUpEmailApiUrl;
 
   getEmailContentStream = (data, newEmail = true) => {
-    this._prospectEmailContent.next("");
-    this._prospectEmailSubject.next("");
+    this._prospectEmailContent.next('');
+    this._prospectEmailSubject.next('');
     this._prospectEmailContentLoading.next(true);
     let subjectReady = false;
     const url = newEmail ? this.newEmailGenerateApiUrl : this.oldConversationEmailGenerateApiUrl;
     fetch(url, {
-      method: "POST",
+      method: 'POST',
       headers: {
-        Accept: "text/event-stream,application/json",
-        "Content-Type": "application/json",
+        Accept: 'text/event-stream,application/json',
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify(data), // body data type must match "Content-Type" header
     })
@@ -93,28 +93,28 @@ export class SseService {
             str = this.__filterSubject(str);
             let contentStart = false;
 
-            if (str.indexOf("\n\n") === -1 && !subjectReady) {
+            if (str.indexOf('\n\n') === -1 && !subjectReady) {
               this.addToEmailSubject(str);
-            } else if (str.indexOf("\n\n") > -1 && !subjectReady) {
-              let position = str.indexOf("\n\n");
-              let newStr = str.split("\n\n");
+            } else if (str.indexOf('\n\n') > -1 && !subjectReady) {
+              let position = str.indexOf('\n\n');
+              let newStr = str.split('\n\n');
               subjectReady = true;
               if (position === 0) {
-                str = str.replace("\n\n", "");
+                str = str.replace('\n\n', '');
                 this.addToEmailContent(str);
               } else {
                 this.addToEmailSubject(newStr[0]);
-                const emailContent = newStr[1].replaceAll("\n\n", "<p>");
+                const emailContent = newStr[1].replaceAll('\n\n', '<p>');
                 this.addToEmailContent(emailContent);
               }
             } else if (subjectReady) {
               if (!contentStart) {
-                str = str.replaceAll("\n\n", "<p>");
+                str = str.replaceAll('\n\n', '<p>');
                 contentStart = true;
               } else {
-                str = str.replaceAll("\n\n", "</p><p>");
+                str = str.replaceAll('\n\n', '</p><p>');
               }
-              str = str.replaceAll("\n", "<br>");
+              str = str.replaceAll('\n', '<br>');
               this.addToEmailContent(str);
             }
 
@@ -131,15 +131,17 @@ export class SseService {
 
   getDripFollowUpEmailContentStream = async (data) => {
     this._dripSingleEmailLoading.next(true);
-    this._dripSingleEmailContent.next("");
-    this._dripSingleEmailSubject.next("");
+    this._dripSingleEmailContent.next('');
+    this._dripSingleEmailSubject.next('');
     let subjectReady = false;
+    let emailContent = '';
+    let fullStreamData = '';
     const url = this.dripFollowUpEmailApiUrl;
     fetch(url, {
-      method: "POST",
+      method: 'POST',
       headers: {
-        Accept: "text/event-stream,application/json",
-        "Content-Type": "application/json",
+        Accept: 'text/event-stream,application/json',
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify(data), // body data type must match "Content-Type" header
     })
@@ -150,7 +152,8 @@ export class SseService {
           const { done, value } = await reader?.read();
           if (value) {
             let str = new TextDecoder().decode(value);
-            console.log({ str });
+            fullStreamData += str;
+            // console.log({ str });
             // @@ is a prefix ONLY show when an error occur
             if (str.includes(this.emailErrorSign)) {
               this.addToDripSingleEmailError(str);
@@ -160,7 +163,7 @@ export class SseService {
 
             if (str.includes(this.subjectStartSign)) {
               // AI send "Subject:" as one stream object for 1st dripEmail. So we filter it here.
-              str = str.replace(this.subjectStartSign, "");
+              str = str.replace(this.subjectStartSign, '');
               this.addToSingleEmailSubject(str);
             } else {
               let contentStart = false;
@@ -170,23 +173,42 @@ export class SseService {
               } else if (str.indexOf(this.subjectEndSign) > -1 && !subjectReady) {
                 let newStr = str.split(this.subjectEndSign);
                 this.addToSingleEmailSubject(newStr[0]);
-                const emailContent = newStr[1].replaceAll("\n\n", "<p>");
-                this.addToSingleEmailContent(emailContent);
+                // emailContent += newStr[1].replaceAll('\n\n', '<p>').replaceAll('\n', '<br>');
+                emailContent += newStr[1];
+                // this.addToSingleEmailContent(emailContent);
                 subjectReady = true;
               } else if (subjectReady) {
                 if (!contentStart) {
-                  str = str.replaceAll("\n\n", "<p>");
+                  // str = str.replaceAll('\n\n', '<p>');
                   contentStart = true;
                 } else {
-                  str = str.replaceAll("\n\n", "</p><p>");
+                  // str = str.replaceAll('\n\n', '</p><p>');
                 }
-                str = str.replaceAll("\n", "<br>");
-                this.addToSingleEmailContent(str);
+                // str = str.replaceAll('\n', '<br>');
+                emailContent += str;
+                // this.addToSingleEmailContent(str);
               }
+            }
+
+            if (emailContent.length > 50) {
+              console.log({ emailContent });
+              emailContent = emailContent
+                .replaceAll('\n\n', '<p>')
+                .replaceAll('\\n', '<br>')
+                .replaceAll('\n', '<br>');
+              this.addToSingleEmailContent(emailContent);
+              console.log({ emailContent });
+              emailContent = '';
             }
           }
 
           if (done) {
+            console.log({ fullStreamData });
+            emailContent = emailContent
+              .replaceAll('\\n\n', '<p>')
+              .replaceAll('\\n', '<br>')
+              .replaceAll('\n', '<br>');
+            this.addToSingleEmailContent(emailContent);
             this._dripSingleEmailLoading.next(false);
             return;
           }
@@ -196,53 +218,21 @@ export class SseService {
       .catch((err) => console.error(err));
   };
 
-  // async fetchAndProcessEmails() {
-  //   try {
-  //     this._dripBulkEmailLoading.next(true);
-  //
-  //     const response = await fetch('your-api-endpoint', {
-  //       method: 'POST',
-  //       headers: {
-  //         'Content-Type': 'application/json',
-  //       },
-  //       body: JSON.stringify({ /* your request data */ }),
-  //     });
-  //
-  //     if (!response.ok) {
-  //       this._dripBulkEmailLoading.next(false);
-  //
-  //       throw new Error(`HTTP error! status: ${response.status}`);
-  //     }
-  //     if (!response.body) {
-  //       this._dripBulkEmailLoading.next(false);
-  //
-  //       throw new Error('No response body');
-  //     }
-  //
-  //     const emails = await this.processEmailStream(response.body);
-  //     console.log('Processed emails:', emails);
-  //     return emails;
-  //   } catch (error) {
-  //     console.error('Error processing email stream:', error);
-  //     throw error;
-  //   }
-  // }
-
   dripBulkEmailContentStream = async (data) => {
     let emails: DripEmail[] = [];
     let emailSequence = 1;
-    let emailSubject = "";
-    let emailContent = "";
+    let emailSubject = '';
+    let emailContent = '';
     let aiEmailData = '';
     let delayBetweenPreviousEmail: EmailDelay = { days: 3, hours: 0, minutes: 0 };
     this._dripBulkEmailLoading.next(true);
     let subjectReady = false;
     const url = this.dripBulkEmailApiUrl;
     fetch(url, {
-      method: "POST",
+      method: 'POST',
       headers: {
-        Accept: "text/event-stream,application/json",
-        "Content-Type": "application/json",
+        Accept: 'text/event-stream,application/json',
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify(data), // body data type must match "Content-Type" header
     })
@@ -268,8 +258,8 @@ export class SseService {
               let currentAiData = aiEmailData;
               let current_subject = emailSubject;
               let current_content = emailContent;
-              emailSubject = "";
-              emailContent = "";
+              emailSubject = '';
+              emailContent = '';
               subjectReady = false;
 
               // There are times we get the stream like this - "thrilled##### \n\n^^Welcome to"
@@ -281,26 +271,26 @@ export class SseService {
               current_content += cleanStr[0];
               currentAiData += cleanStr[0];
               aiEmailData = cleanStr[1];
-              emailSubject = cleanStr[1].replace(this.subjectStartSign, "");
+              emailSubject = cleanStr[1].replace(this.subjectStartSign, '');
 
               // Check if the subject has the end sign in here.
               // If it has then we have to end the subject and start the content
-              if(emailSubject.indexOf(this.subjectEndSign) > -1 && !subjectReady) {
+              if (emailSubject.indexOf(this.subjectEndSign) > -1 && !subjectReady) {
                 let newStr = emailSubject.split(this.subjectEndSign);
                 emailSubject = newStr[0];
-                emailContent += newStr[1].replaceAll("\n\n", "<p>");
+                emailContent += newStr[1].replaceAll('\n\n', '<p>');
                 subjectReady = true;
               }
 
               if (current_content) {
-                current_content = current_content.replaceAll("\n\n", "<p>");
-                current_content = current_content.replaceAll("\n", "<br>");
+                current_content = current_content.replaceAll('\n\n', '<p>');
+                current_content = current_content.replaceAll('\n', '<br>');
                 const email: DripEmail = {
                   delayBetweenPreviousEmail,
                   emailSequence,
                   emailSubject: current_subject,
                   emailContent: current_content,
-                  aiRawData: currentAiData
+                  aiRawData: currentAiData,
                 };
                 emails.push(email);
                 this.addToDripBulkEmails(emails);
@@ -320,7 +310,7 @@ export class SseService {
             if (str.includes(this.subjectStartSign)) {
               aiEmailData += str;
               // AI send "^^" as one stream object for 1st dripEmail. So we filter it here.
-              str = str.replace(this.subjectStartSign, "");
+              str = str.replace(this.subjectStartSign, '');
               emailSubject += str;
             } else {
               aiEmailData += str;
@@ -331,7 +321,7 @@ export class SseService {
               } else if (str.indexOf(this.subjectEndSign) > -1 && !subjectReady) {
                 let newStr = str.split(this.subjectEndSign);
                 emailSubject += newStr[0];
-                emailContent += newStr[1].replaceAll("\n\n", "<p>");
+                emailContent += newStr[1].replaceAll('\n\n', '<p>');
                 subjectReady = true;
               } else if (subjectReady) {
                 if (!contentStart) {
@@ -344,8 +334,8 @@ export class SseService {
 
           if (done) {
             if (emailSubject && emailContent) {
-              emailContent = emailContent.replaceAll("\n\n", "<p>");
-              emailContent = emailContent.replaceAll("\n", "<br>");
+              emailContent = emailContent.replaceAll('\n\n', '<p>');
+              emailContent = emailContent.replaceAll('\n', '<br>');
               const email: DripEmail = {
                 delayBetweenPreviousEmail,
                 emailSequence,
@@ -366,12 +356,12 @@ export class SseService {
   };
 
   __filterSubject = (str) => {
-    if (str.includes("Subject:")) {
+    if (str.includes('Subject:')) {
       // AI send "Subject:" as one stream object for 1st dripEmail. So we filter it here.
-      str = str.replace("Subject:", "");
-    } else if (str.includes("\n\nSubject")) {
+      str = str.replace('Subject:', '');
+    } else if (str.includes('\n\nSubject')) {
       // Sometime AI send "Subject" and ":" in different stream object. So we filter it here.
-      str = str.replace("\n\nSubject", "");
+      str = str.replace('\n\nSubject', '');
     }
     return str;
   };
@@ -450,7 +440,7 @@ export class SseService {
   // };
 
   removeSingleEmailData = () => {
-    this._dripSingleEmailContent.next("");
-    this._dripSingleEmailSubject.next("");
+    this._dripSingleEmailContent.next('');
+    this._dripSingleEmailSubject.next('');
   };
 }
