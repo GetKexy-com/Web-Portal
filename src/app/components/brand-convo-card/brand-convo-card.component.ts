@@ -33,7 +33,7 @@ export class BrandConvoCardComponent implements OnInit {
     if (this.conversation.drip_campaign_id) {
       this.prospect = {
         ...this.conversation,
-        receiver_details: {
+        receiverDetails: {
           ...this.conversation.receiver_details,
           jobTitle: this.conversation.receiver_details.title,
           companyName: this.conversation.receiver_details.organization?.name,
@@ -44,8 +44,18 @@ export class BrandConvoCardComponent implements OnInit {
       };
     } else {
       this.prospect = this.conversation;
+      this.prospect = {
+        ...this.conversation,
+        receiverDetails: {
+          ...this.conversation.receiverDetails,
+          jobTitle: this.conversation.receiverDetails.jobTitle,
+          companyName: this.conversation.receiverDetails.companyName,
+          companyWebsite: this.conversation.receiverDetails.details.organization?.websiteUrl,
+          companyPhone: this.conversation.receiverDetails.details.organization?.phone,
+          companyInfo: '',
+        },
+      };
     }
-    console.log(this.prospect);
     this.shortMessage = this.conversation.emailSubject.replaceAll('\n', '').slice(0, 36);
   }
 

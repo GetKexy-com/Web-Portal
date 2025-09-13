@@ -130,30 +130,29 @@
           <div class="user-info d-flex align-items-center">
             <div class="m-2">
               <brand-convo-avatar
-                [text]="getNameInitials(selectedConversation.receiverDetails)"
+                [text]="getNameInitials(selectedConversation.receiverDetails.details)"
                 [color]="'blue'"
               ></brand-convo-avatar>
             </div>
             <span>
-              {{ selectedConversation.receiverDetails.first_name }}
-              {{ selectedConversation.receiverDetails.last_name }}
+              {{ selectedConversation.receiverDetails.contactName }}
               <span class="unsubscribe-link" (click)="unsubscribeBtnClick()">Unsubscribe</span>
               <br>
               <span style="font-weight: normal">
-                    {{ selectedConversation.receiverDetails.title }}
-                {{ (selectedConversation.receiverDetails.title && selectedConversation.receiverDetails.organization.name) ? 'at' : '' }}
+                    {{ selectedConversation.receiverDetails.jobTitle }}
+                {{ (selectedConversation.receiverDetails.jobTitle && selectedConversation.receiverDetails.companyName) ? 'at' : '' }}
                 <a
-                  *ngIf="selectedConversation.receiverDetails.organization.website_url"
-                  [href]="selectedConversation.receiverDetails.organization.website_url"
+                  *ngIf="selectedConversation.receiverDetails.companyWebsite"
+                  [href]="selectedConversation.receiverDetails.companyWebsite"
                   target="_blank"
                   class="company-name"
                 >
-                  {{ selectedConversation.receiverDetails.organization.name }}
+                  {{ selectedConversation.receiverDetails.companyName }}
                 </a>
                 <span
-                  *ngIf="selectedConversation.receiverDetails.organization.name"
+                  *ngIf="selectedConversation.receiverDetails.companyName"
                 >
-                  {{ selectedConversation.receiverDetails.organization.name }}
+                  {{ selectedConversation.receiverDetails.companyName }}
                 </span>
               </span>
             </span>
@@ -175,9 +174,9 @@
           </ng-container>
         </div>
         <div class="user-extra-info d-flex">
-          <p class="me-2" *ngIf="selectedConversation.receiverDetails.organization.phone">
+          <p class="me-2" *ngIf="selectedConversation.receiverDetails.details.organization.phone">
             <img src="/assets/icon/phone-icon.svg" alt="Phone Icon">
-            {{ selectedConversation.receiverDetails.organization.phone }}
+            {{ selectedConversation.receiverDetails.details.organization.phone }}
           </p>
           <p>
             <img src="/assets/icon/envelope-icon.svg" alt="Envelope Icon"> {{ selectedConversation.receiverEmail }}
@@ -226,22 +225,22 @@
           <div class="text-content">
             <div class="user-info d-flex align-items-center" *ngIf="selectedConversation">
               <brand-convo-avatar
-                [text]="getNameInitials(selectedConversation.receiverDetails)"
+                [text]="getNameInitials(selectedConversation.receiverDetails.details)"
                 [color]="'blue'"
               ></brand-convo-avatar>
               <span class="m-2">
                 <strong>
-                  {{ selectedConversation.receiverDetails.first_name }}
-                  {{ selectedConversation.receiverDetails.last_name }}
+                  {{ selectedConversation.receiverDetails.details.firstName }}
+                  {{ selectedConversation.receiverDetails.details.lastName }}
                 </strong>
                 <br>
                 <span style="font-size: 14px">
-                  {{ selectedConversation.receiverDetails.title }} at
+                  {{ selectedConversation.receiverDetails.jobTitle }} at
                   <a
-                    [href]="selectedConversation.receiverDetails.organization.name"
+                    [href]="selectedConversation.receiverDetails.details.organization.name"
                     target="_blank"
                     class="company-name">
-                    {{ selectedConversation.receiverDetails.organization.name }}
+                    {{ selectedConversation.receiverDetails.details.organization.name }}
                   </a>
                 </span>
               </span>

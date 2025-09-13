@@ -5,11 +5,11 @@
   on-mouseenter="onCardHover()"
   on-mouseleave="onCardHoverEnd()">
   <div class="m-1">
-    <brand-convo-avatar [text]="getNameInitials(prospect['receiverDetails'])" [color]="'blue'"></brand-convo-avatar>
+    <brand-convo-avatar [text]="getNameInitials(prospect['receiverDetails'].details)" [color]="'blue'"></brand-convo-avatar>
   </div>
   <div class="conv-user">
     <div class="name-date">
-      <p>{{ prospect['receiverDetails'].first_name }} {{ prospect['receiverDetails'].last_name }}</p>
+      <p>{{ prospect['receiverDetails'].details.firstName || prospect['receiverDetails'].details.first_name }} {{ prospect['receiverDetails'].details.lastName || prospect['receiverDetails'].details.last_name }}</p>
       <span *ngIf="prospect['messages']?.length">
         {{ getLatestMessageDate() | date }}
       </span>

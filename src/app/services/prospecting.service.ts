@@ -416,6 +416,8 @@ export class ProspectingService {
   getSalesLeadNameInitials = (contact) => {
     let c1 = '',
       c2 = '';
+    if (contact?.firstName) c1 = contact.firstName[0];
+    if (contact?.lastName) c2 = contact.lastName[0];
     if (contact?.first_name) c1 = contact.first_name[0];
     if (contact?.last_name) c2 = contact.last_name[0];
     return c1 + c2;

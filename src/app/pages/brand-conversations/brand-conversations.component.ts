@@ -115,6 +115,16 @@ export class BrandConversationsComponent implements OnInit, OnDestroy {
   // }
 
   setConversation = async (conversations) => {
+    conversations.forEach((conversation) => {
+      if(!conversation.receiverDetails.details) {
+        conversation.receiverDetails.details = conversation.receiverDetails;
+      }
+
+      if(typeof conversation.receiverDetails.details === 'string') {
+        conversation.receiverDetails.details = JSON.parse(conversation.receiverDetails.details);
+      }
+
+    })
     this.filteredConversations = this.conversations = conversations;
     await this.conversationTapped(conversations[0]);
     this.pageUiService.setSelectedProspectingConv(this.selectedConversation);
@@ -147,7 +157,7 @@ export class BrandConversationsComponent implements OnInit, OnDestroy {
       page: this.page,
       limit: this.paginationLimit,
       pin: this.pinedConversation,
-      inbox: true,
+      sent: true,
     };
 
     try {
@@ -281,7 +291,7 @@ export class BrandConversationsComponent implements OnInit, OnDestroy {
     if (conv?.drip_campaign_id) {
       this.selectedConversation = {
         ...conv,
-        receiver_details: {
+        receiverDetails: {
           ...conv.receiver_details,
           jobTitle: conv.receiver_details.title,
           companyName: conv.receiver_details.organization?.name,
@@ -291,7 +301,17 @@ export class BrandConversationsComponent implements OnInit, OnDestroy {
         },
       };
     } else {
-      this.selectedConversation = conv;
+      this.selectedConversation = {
+        ...conv,
+        receiverDetails: {
+          ...conv.receiverDetails,
+          jobTitle: conv.receiverDetails.jobTitle,
+          companyName: conv.receiverDetails.companyName,
+          companyWebsite: conv.receiverDetails.details.organization?.websiteUrl,
+          companyPhone: conv.receiverDetails.details.organization?.phone,
+          companyInfo: '',
+        }
+      };
     }
     console.log(this.selectedConversation);
 
