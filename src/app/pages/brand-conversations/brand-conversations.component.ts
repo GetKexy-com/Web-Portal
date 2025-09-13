@@ -157,7 +157,7 @@ export class BrandConversationsComponent implements OnInit, OnDestroy {
       page: this.page,
       limit: this.paginationLimit,
       pin: this.pinedConversation,
-      sent: true,
+      inbox: true,
     };
 
     try {
