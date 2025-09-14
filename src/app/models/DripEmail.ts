@@ -9,6 +9,7 @@ export class DripEmail {
   emailSubject: string = "";
   emailContent: string = "";
   aiRawData: string = "";
+  isSpintax?: boolean = true;
 }
 
 export class EmailDelay {

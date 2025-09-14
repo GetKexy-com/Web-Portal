@@ -139,8 +139,8 @@ export class GenerateDripCampaignComponent implements OnInit {
     this.emailsSubscription = this.sseService.dripBulkEmails.subscribe((emails: DripEmail[]) => {
       this.emails = emails;
       this.emails.forEach((e: DripEmail) => {
-        console.log(e.aiRawData);
         const delay: EmailDelay = e.delayBetweenPreviousEmail;
+        e.isSpintax = this.selectedSpintaxKey === 'Yes';
         e['emailText'] = `${delay.days} day(s) ${delay.hours} hour(s) ${delay.minutes} minute(s)`;
       });
 
@@ -503,6 +503,7 @@ export class GenerateDripCampaignComponent implements OnInit {
         delayBetweenPreviousEmail: JSON.stringify(e.delayBetweenPreviousEmail),
         emailLength: this.selectedEmailLength.value,
         emailTone: this.selectedEmailToneKey,
+        isSpintax: e.isSpintax
       };
       formattedEmails.push(email);
     });
