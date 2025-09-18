@@ -316,8 +316,15 @@ export class GenerateDripCampaignComponent implements OnInit {
         return;
       }
       const listId = enrollList[0].list.id;
+      // If a proper list is found then show loading instead of old emails.
       this.isContentLoading = true;
+      const emailBackup = [...this.emails];
+      this.emails = [];
       await this.getContacts(listId);
+      // If the selected list does not have contact in itt hen show old emails again
+      if(!this.contactList?.length) {
+        this.emails = emailBackup;
+      }
       this.isContentLoading = false;
     }
 

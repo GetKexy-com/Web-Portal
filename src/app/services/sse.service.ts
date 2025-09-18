@@ -10,6 +10,7 @@ export class SseService {
   private subjectStartSign = '^^';
   private subjectEndSign = '$$';
   public emailErrorSign = '@@';
+  public paraStartSign = '[[[PARA]]]';
   private newEmailStartSign = '~~';
 
   //********
@@ -173,42 +174,29 @@ export class SseService {
               } else if (str.indexOf(this.subjectEndSign) > -1 && !subjectReady) {
                 let newStr = str.split(this.subjectEndSign);
                 this.addToSingleEmailSubject(newStr[0]);
-                // emailContent += newStr[1].replaceAll('\n\n', '<p>').replaceAll('\n', '<br>');
                 emailContent += newStr[1];
-                // this.addToSingleEmailContent(emailContent);
                 subjectReady = true;
               } else if (subjectReady) {
                 if (!contentStart) {
-                  // str = str.replaceAll('\n\n', '<p>');
                   contentStart = true;
-                } else {
-                  // str = str.replaceAll('\n\n', '</p><p>');
                 }
-                // str = str.replaceAll('\n', '<br>');
                 emailContent += str;
-                // this.addToSingleEmailContent(str);
               }
             }
 
-            if (emailContent.length > 50) {
-              console.log({ emailContent });
+            if (emailContent.length > 10) {
               emailContent = emailContent
-                .replaceAll('\n\n', '<p>')
-                .replaceAll('\\n', '<br>')
-                .replaceAll('\n', '<br>');
+                .replaceAll(this.paraStartSign, '<p>');
               this.addToSingleEmailContent(emailContent);
-              console.log({ emailContent });
               emailContent = '';
             }
           }
 
           if (done) {
             console.log({ fullStreamData });
-            emailContent = emailContent
-              .replaceAll('\\n\n', '<p>')
-              .replaceAll('\\n', '<br>')
-              .replaceAll('\n', '<br>');
-            this.addToSingleEmailContent(emailContent);
+            let newCon = fullStreamData.split('$$').pop();
+            emailContent = this.__formatEmailContent(newCon);
+            this.addToSingleEmailContent(emailContent, true);
             this._dripSingleEmailLoading.next(false);
             return;
           }
@@ -278,13 +266,14 @@ export class SseService {
               if (emailSubject.indexOf(this.subjectEndSign) > -1 && !subjectReady) {
                 let newStr = emailSubject.split(this.subjectEndSign);
                 emailSubject = newStr[0];
-                emailContent += newStr[1].replaceAll('\n\n', '<p>');
+                // If subject and content in one stream then before content start '\n\n' needs to be
+                // replaced by [[[para]]] so we can parse it nicely later.
+                emailContent += newStr[1].replaceAll('\n\n', this.paraStartSign);
                 subjectReady = true;
               }
 
               if (current_content) {
-                current_content = current_content.replaceAll('\n\n', '<p>');
-                current_content = current_content.replaceAll('\n', '<br>');
+                current_content = this.__formatEmailContent(current_content);
                 const email: DripEmail = {
                   delayBetweenPreviousEmail,
                   emailSequence,
@@ -321,7 +310,6 @@ export class SseService {
               } else if (str.indexOf(this.subjectEndSign) > -1 && !subjectReady) {
                 let newStr = str.split(this.subjectEndSign);
                 emailSubject += newStr[0];
-                emailContent += newStr[1].replaceAll('\n\n', '<p>');
                 subjectReady = true;
               } else if (subjectReady) {
                 if (!contentStart) {
@@ -334,8 +322,7 @@ export class SseService {
 
           if (done) {
             if (emailSubject && emailContent) {
-              emailContent = emailContent.replaceAll('\n\n', '<p>');
-              emailContent = emailContent.replaceAll('\n', '<br>');
+              emailContent = this.__formatEmailContent(emailContent);
               const email: DripEmail = {
                 delayBetweenPreviousEmail,
                 emailSequence,
@@ -353,6 +340,22 @@ export class SseService {
 
       })
       .catch((err) => console.error(err));
+  };
+
+  __formatEmailContent: (content: string) => string = (content: string): string => {
+    let paraArray = content.split(this.paraStartSign);
+    console.log(paraArray);
+
+    const lastPara = paraArray.pop()
+      .replace(/^\n/, "")
+      .replace(/\n/g, "<br>");
+
+    paraArray = paraArray.map((para) => {
+      return para.replace(/\n/g, "");
+    });
+    console.log({ lastPara });
+    paraArray.push(lastPara);
+    return paraArray.join('<p>');
   };
 
   __filterSubject = (str) => {
@@ -410,7 +413,12 @@ export class SseService {
     this._prospectEmailSubject.next(content);
   }
 
-  addToSingleEmailContent(chunk) {
+  addToSingleEmailContent(chunk, freshStart = false) {
+    if(freshStart) {
+      this._dripSingleEmailContent.next("");
+      this._dripSingleEmailContent.next(chunk);
+      return;
+    }
     let content = this._dripSingleEmailContent.getValue();
     content += chunk;
     this._dripSingleEmailContent.next(content);
