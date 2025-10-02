@@ -39,6 +39,7 @@ export class SendEmailDetailsContentComponent implements OnInit, OnDestroy {
   public emailSubject;
   public dripEmail: DripEmail;
   public selectedEmailToneKey;
+  public isSpintax;
   public emailTones = constants.EMAIL_TONES;
   public singleEmailContentSubscription: Subscription;
   public singleEmailSubjectSubscription: Subscription;
@@ -99,6 +100,7 @@ export class SendEmailDetailsContentComponent implements OnInit, OnDestroy {
       },
     );
 
+    this.isSpintax = this.dripEmail.isSpintax;
 
     // Set email tone
     const emailTone = this.dripEmail['emailTone'];
@@ -212,6 +214,7 @@ export class SendEmailDetailsContentComponent implements OnInit, OnDestroy {
       email_number: this.dripEmail.emailSequence,
       email_length: this.selectedEmailLength.key,
       promotion_info: this.hasPromotion,
+      isSpintax: this.isSpintax,
       content,
       prospect: {
         name: this.contactList[0]?.contactName,
