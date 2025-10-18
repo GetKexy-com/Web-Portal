@@ -142,6 +142,7 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
       companyName: this.searchContactCompanyName,
       jobTitle: '',
       emailStatus: this.searchContactEmailStatus,
+      email: this.searchContactEmail,
       marketingStatus: this.searchContactMarketingStatus,
       city: this.searchContactCity,
       state: this.searchContactState,
@@ -440,6 +441,7 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
   };
 
   searchContactClickHandle = async (searchData) => {
+    console.log({ searchData });
     this.searchLabelIds = [];
     // this.searchContactName = "";
     if (searchData.labels) {
