@@ -7,6 +7,7 @@ import { routeConstants } from '../../helpers/routeConstants';
 import {LoginLayoutComponent} from '../../layouts/login-layout/login-layout.component';
 import {ReactiveFormsModule} from '@angular/forms';
 import {CommonModule} from '@angular/common';
+import { ErrorMessageCardComponent } from '../../components/error-message-card/error-message-card.component';
 
 @Component({
   selector: 'app-reset-password',
@@ -14,6 +15,7 @@ import {CommonModule} from '@angular/common';
     LoginLayoutComponent,
     ReactiveFormsModule,
     CommonModule,
+    ErrorMessageCardComponent,
   ],
   templateUrl: './reset-password.component.html',
   styleUrl: './reset-password.component.scss'
@@ -62,10 +64,13 @@ export class ResetPasswordComponent {
     if (this.resetPasswordForm.valid) {
       this.isWaitingFlag = true;
       const data = this.resetPasswordForm.getRawValue();
-      console.log(data);
 
       this.httpService
-        .post('user/verifyPasswordRecoveryCode', data)
+        .post('auth/resetPassword', {
+          email: data.email,
+          recoveryCode: data.recovery_code,
+          password: data.new_password,
+        })
         .subscribe((response) => {
           if (response.success) {
             alert('Password has been updated!');

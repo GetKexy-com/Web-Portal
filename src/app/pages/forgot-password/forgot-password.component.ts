@@ -50,7 +50,7 @@ export class ForgotPasswordComponent {
       console.log(data);
 
       this.httpService
-        .post('user/requestPasswordRecoveryCode', data)
+        .post('auth/forgetPassword', data)
         .subscribe((response) => {
           if (response.success) {
             this.isWaitingFlag = false;
