@@ -36,7 +36,7 @@
             type="button"
             style="width: 100%"
             iconLeft="fa-pencil"
-            (click)="openFileDialog()"
+            (click)="updatePassModal(changePasswordModal)"
           ></app-kexy-button>
         </div>
         <div class="col-md-9 ps-3">
@@ -132,11 +132,10 @@
                   label="Update"
                   style="width: 100%;"
                   padding="10px"
-                  iconLeft="fa-save"
                   type="submit"
                   [label]="isWaitingFlag ? 'Please wait...' : 'Update' "
                   [disabled]="isWaitingFlag"
-                  [iconLeft]="isWaitingFlag ? 'fa-refresh fa-spin' : ''"
+                  [iconLeft]="isWaitingFlag ? 'fa-refresh fa-spin' : 'fa-save'"
                 ></app-kexy-button>
               </div>
             </div>
@@ -160,5 +159,42 @@
 
   </main>
 
+  <ng-template #changePasswordModal let-c="close" let-d="dismiss">
+    <modal [modalClose]="c" title="Change Password">
+      <div class="modal-body">
+        <div class="input-wrap edit-password">
+          <label class="input-label-text edit-password">Enter Current Password</label>
+          <input [type]="currentPasswordType" class="form-control" name="currentPassword" [(ngModel)]="currentPassword" />
+          <div class="eye-wrapper" (click)="toggleCurrentPasswordView()">
+            <i *ngIf="currentPasswordView" class="fa fa-eye"></i>
+            <i *ngIf="!currentPasswordView" class="fa fa-eye-slash"></i>
+          </div>
+          <div *ngIf="!currentPassword && changePasswordSubmitted">
+            <error-message-card message="Please enter current password."></error-message-card>
+          </div>
+        </div>
+        <div class="input-wrap edit-password" style="margin-top: 20px">
+          <label class="input-label-text">Enter New Password</label>
+          <input [type]="newPasswordType" class="form-control" name="newPassword" [(ngModel)]="newPassword" />
+          <div class="eye-wrapper" (click)="toggleNewPasswordView()">
+            <i *ngIf="newPasswordView" class="fa fa-eye"></i>
+            <i *ngIf="!newPasswordView" class="fa fa-eye-slash"></i>
+          </div>
 
+          <div *ngIf="!newPassword && changePasswordSubmitted">
+            <error-message-card message="Please enter a new password."></error-message-card>
+          </div>
+        </div>
+        <div class="mt-4">
+          <app-kexy-button
+            style="width: 100%"
+            [disabled]="isPasswordUpdateLoading"
+            [label]="isPasswordUpdateLoading? 'Please wait...' : 'Update Password'"
+            [iconLeft]="isPasswordUpdateLoading ? 'fa-refresh fa-spin' : 'fa-save'"
+            (click)="updatePassword()">
+          </app-kexy-button>
+        </div>
+      </div>
+    </modal>
+  </ng-template>
 </brand-layout>

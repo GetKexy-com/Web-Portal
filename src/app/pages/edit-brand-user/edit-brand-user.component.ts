@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService } from 'src/app/services/auth.service';
 import { Router } from '@angular/router';
 import { environment } from 'src/environments/environment';
@@ -9,14 +9,21 @@ import { HttpService } from 'src/app/services/http.service';
 import { BrandLayoutComponent } from '../../layouts/brand-layout/brand-layout.component';
 import { CommonModule } from '@angular/common';
 import {
-  ProspectingCommonCardComponent
+  ProspectingCommonCardComponent,
 } from '../../components/prospecting-common-card/prospecting-common-card.component';
 import { KexyButtonComponent } from '../../components/kexy-button/kexy-button.component';
 import { ErrorMessageCardComponent } from '../../components/error-message-card/error-message-card.component';
+import {
+  KexyProTipsModalContentComponent,
+} from '../../components/kexy-pro-tips-modal-content/kexy-pro-tips-modal-content.component';
+import { routeConstants } from '../../helpers/routeConstants';
+import { dripCampaignInitialModalData } from '../../helpers/demoData';
+import { ModalComponent } from '../../components/modal/modal.component';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 
 @Component({
   selector: 'app-edit-brand-user',
-  imports: [BrandLayoutComponent, ReactiveFormsModule, CommonModule, ProspectingCommonCardComponent, KexyButtonComponent, ErrorMessageCardComponent],
+  imports: [BrandLayoutComponent, ReactiveFormsModule, CommonModule, ProspectingCommonCardComponent, KexyButtonComponent, ErrorMessageCardComponent, KexyProTipsModalContentComponent, ModalComponent, FormsModule],
   templateUrl: './edit-brand-user.component.html',
   styleUrl: './edit-brand-user.component.scss',
 })
@@ -30,6 +37,15 @@ export class EditBrandUserComponent implements OnInit {
   firstName: string;
   lastName: string;
   phone: string;
+  changePasswordModalRef;
+  currentPassword: string;
+  currentPasswordType: string = 'password';
+  newPasswordType: string = 'password';
+  currentPasswordView: boolean = false;
+  newPasswordView: boolean = false;
+  changePasswordSubmitted: boolean = false;
+  newPassword: string;
+  isPasswordUpdateLoading: boolean = false;
   userData;
   private emailBackup = null;
   private phoneBackup = null;
@@ -38,8 +54,10 @@ export class EditBrandUserComponent implements OnInit {
 
   constructor(
     private _authService: AuthService,
+    private modal: NgbModal,
     private httpService: HttpService,
-  ) {}
+  ) {
+  }
 
   ngOnInit() {
     this._authService.loggedUserRedirectToProperDashboard();
@@ -91,6 +109,16 @@ export class EditBrandUserComponent implements OnInit {
         Validators.compose([Validators.required, Validators.email]),
       ),
     });
+  }
+
+  toggleCurrentPasswordView() {
+    this.currentPasswordView = !this.currentPasswordView;
+    this.currentPasswordType = this.currentPasswordView ? 'text' : 'password';
+  }
+
+  toggleNewPasswordView() {
+    this.newPasswordView = !this.newPasswordView;
+    this.newPasswordType = this.newPasswordView ? 'text' : 'password';
   }
 
   async primaryFormSubmitted(): Promise<any> {
@@ -147,6 +175,58 @@ export class EditBrandUserComponent implements OnInit {
     });
   }
 
+  updatePassModal = async (modalContent) => {
+    this.changePasswordModalRef = this.modal.open(modalContent);
+  };
+
+
+  async updatePassword() {
+    this.changePasswordSubmitted = true;
+    if (!this.currentPassword || !this.newPassword) {
+      return;
+    }
+    try {
+      this.isPasswordUpdateLoading = true;
+      await this.passwordUpdateApiCall({
+        currentPassword: this.currentPassword,
+        newPassword: this.newPassword,
+      });
+      await Swal.fire('Done!', 'Password changed successfully!', 'success');
+    } catch (e) {
+      let message = 'There was an error!';
+      console.log(e.error);
+      if (typeof e.error === 'object' && e.error[0]) {
+        message = e.error[0];
+      } else {
+        message = e.error;
+      }
+
+      await Swal.fire({
+        icon: 'error',
+        title: 'Oops...',
+        text: message,
+      });
+    } finally {
+      this.isPasswordUpdateLoading = false;
+    }
+  }
+
+  passwordUpdateApiCall = (postData) => {
+    return new Promise(async (resolve, reject) => {
+      this.httpService.post('users/updatePassword', postData).subscribe({
+        next: (res) => {
+          resolve(res.data);
+        },
+        error: (err) => {
+          if (err) {
+            reject(err);
+          }
+        },
+      });
+    });
+  };
+
+
   openFileDialog() {
     (<any>document.querySelector('.profile-photo-file-input')).click();
   }
@@ -170,4 +250,7 @@ export class EditBrandUserComponent implements OnInit {
     };
     reader.readAsDataURL(file);
   }
+
+  protected readonly routeConstants = routeConstants;
+  protected readonly features = dripCampaignInitialModalData;
 }
