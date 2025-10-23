@@ -1,81 +1,164 @@
-<brand-layout>
-  <div class="kexy-logo" [hidden]="imageUrl">
-    <img class="profile-photo no-profile-image" src="/assets/images/no_profile_image.png" alt="" />
-  </div>
-  <div class="form-group text-center profile-photo-wrap" [hidden]="!imageUrl">
-    <img class="profile-photo" [src]="imageUrl" />
-  </div>
+<brand-layout layoutPaddingNone="true" headerBgWhite="true">
+  <main class="brand-list-contacts-page">
 
-  <div class="form-group text-center">
-    <button class="kexy-button" type="submit" (click)="openFileDialog()">Change Profile Image</button>
-    <input type="file" name="" class="profile-photo-file-input tr-hidden" (change)="fileSelected($event)" />
-  </div>
-
-  <form class="tr-form" [formGroup]="primaryForm" (ngSubmit)="primaryFormSubmitted()">
-    <div class="form-group">
-      <input
-        [class.error]="
+    <section class="card-area-wrap">
+      <prospecting-common-card
+        cardTitle="Profile Details"
+        cardTitleLogo="/assets/icon/user.svg"
+      >
+      </prospecting-common-card>
+    </section>
+    <section class="kexy-card pb-4">
+      <div class="row">
+        <div class="col-md-3">
+          <div class="kexy-logo" [hidden]="imageUrl">
+            <img class="profile-photo no-profile-image" src="/assets/images/no_profile_image.png" alt="" />
+          </div>
+          <div class="form-group text-center profile-photo-wrap" [hidden]="!imageUrl">
+            <img class="profile-photo" [src]="imageUrl" />
+          </div>
+          <div class="form-group text-center">
+            <app-kexy-button
+              label="Upload Logo"
+              type="button"
+              style="width: 100%"
+              iconLeft="fa-upload"
+              bgColor="transparent"
+              [borderColor]="'#0047cc'"
+              [textColor]="'#0047cc'"
+              (click)="openFileDialog()"
+            ></app-kexy-button>
+            <!--            <button class="kexy-button" type="submit" (click)="openFileDialog()">Change Profile Image</button>-->
+            <input type="file" name="" class="profile-photo-file-input tr-hidden" (change)="fileSelected($event)" />
+          </div>
+          <app-kexy-button
+            label="Change Pasword"
+            type="button"
+            style="width: 100%"
+            iconLeft="fa-pencil"
+            (click)="openFileDialog()"
+          ></app-kexy-button>
+        </div>
+        <div class="col-md-9 ps-3">
+          <form class="" [formGroup]="primaryForm" (ngSubmit)="primaryFormSubmitted()">
+            <div class="row">
+              <div class="col-sm-6 col-xs-12">
+                <div class="form-group">
+                  <label class="input-label-text">First Name</label>
+                  <input
+                    [class.error]="
           (submitted || primaryForm.controls['firstName'].dirty) && primaryForm.controls['firstName'].invalid
         "
-        type="text"
-        formControlName="firstName"
-        class="form-control"
-        placeholder="First Name"
-      />
-      <div
-        *ngIf="primaryForm.controls['firstName'].invalid && (submitted || primaryForm.controls['firstName'].dirty)"
-      >
-        <span class="text-danger">Please enter a valid First Name.</span>
-      </div>
-    </div>
-    <div class="form-group">
-      <input
-        [class.error]="
+                    type="text"
+                    formControlName="firstName"
+                    class="form-control"
+                    placeholder="First Name"
+                  />
+                  <div
+                    *ngIf="primaryForm.controls['firstName'].invalid && (submitted || primaryForm.controls['firstName'].dirty)"
+                  >
+                    <error-message-card message="Please enter a valid First Name."></error-message-card>
+                  </div>
+                </div>
+              </div>
+              <div class="col-sm-6 col-xs-12">
+                <div class="form-group">
+                  <label class="input-label-text">Last Name</label>
+                  <input
+                    [class.error]="
           (submitted || primaryForm.controls['lastName'].dirty) && primaryForm.controls['lastName'].invalid
         "
-        type="text"
-        formControlName="lastName"
-        class="form-control"
-        placeholder="Last Name"
-      />
-      <div *ngIf="primaryForm.controls['lastName'].invalid && (submitted || primaryForm.controls['lastName'].dirty)">
-        <span class="text-danger">Please enter a valid Last Name.</span>
-      </div>
-    </div>
-    <div class="form-group">
-      <select formControlName="role" class="form-control" [disabled]="true">
-        <option value="">Please Select Role</option>
-        <option value="rep" selected>Rep</option>
-        <option value="admin">Admin</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <input type="email" class="form-control" formControlName="email" />
-    </div>
-    <div class="form-group">
-      <input type="text" disabled class="form-control" value="{{ userData.supplier_country }}" />
-    </div>
-    <div class="form-group">
-      <div class="phonefields">
-        <div class="phonecode">{{ userData.phone_country_code }}</div>
-        <input
-          [class.error]="(submitted || primaryForm.controls['phone'].dirty) && primaryForm.controls['phone'].invalid"
-          class="form-control phoneNumber"
-          formControlName="phone"
-          placeholder="Mobile Phone"
-          type="tel"
-        />
-      </div>
-      <div *ngIf="primaryForm.controls['phone'].invalid && (submitted || primaryForm.controls['phone'].dirty)">
-        <span class="text-danger">Please enter a valid mobile phone.</span>
-      </div>
-    </div>
+                    type="text"
+                    formControlName="lastName"
+                    class="form-control"
+                    placeholder="Last Name"
+                  />
+                  <div
+                    *ngIf="primaryForm.controls['lastName'].invalid && (submitted || primaryForm.controls['lastName'].dirty)">
+                    <error-message-card message="Please enter a valid Last Name."></error-message-card>
+                  </div>
+                </div>
+              </div>
+            </div>
 
-    <div class="form-group text-center">
-      <button class="kexy-button tr-kexy-button" type="submit" name="submit" id="submit">
-        <i *ngIf="isWaitingFlag" class="fa fa-spinner fa-spin" aria-hidden="true"></i>
-        Update
-      </button>
-    </div>
-  </form>
+            <div class="row">
+              <div class="col-sm-6 col-xs-12">
+                <div class="form-group">
+                  <label class="input-label-text">Role</label>
+                  <select formControlName="role" class="form-control" [disabled]="true">
+                    <option value="">Please Select Role</option>
+                    <option value="rep" selected>Rep</option>
+                    <option value="admin">Admin</option>
+                  </select>
+                </div>
+              </div>
+              <div class="col-sm-6 col-xs-12">
+                <div class="form-group">
+                  <label class="input-label-text">Email Address</label>
+                  <input type="email" class="form-control" formControlName="email" />
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-sm-6 col-xs-12">
+                <div class="form-group">
+                  <label class="input-label-text">Country</label>
+                  <input type="text" disabled class="form-control" value="{{ userData.supplier_country }}" />
+                </div>
+              </div>
+              <div class="col-sm-6 col-xs-12">
+                <div class="form-group">
+                  <label class="input-label-text">Mobile Phone</label>
+                  <div class="phonefields">
+                    <div class="phonecode">{{ userData.phone_country_code }}</div>
+                    <input
+                      [class.error]="(submitted || primaryForm.controls['phone'].dirty) && primaryForm.controls['phone'].invalid"
+                      class="form-control phoneNumber"
+                      formControlName="phone"
+                      placeholder="Mobile Phone"
+                      type="tel"
+                    />
+                  </div>
+                  <div *ngIf="primaryForm.controls['phone'].invalid && (submitted || primaryForm.controls['phone'].dirty)">
+                    <error-message-card message="Please enter a valid mobile phone."></error-message-card>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-sm-6 com-xs-12">
+                <app-kexy-button
+                  label="Update"
+                  style="width: 100%;"
+                  padding="10px"
+                  iconLeft="fa-save"
+                  type="submit"
+                  [label]="isWaitingFlag ? 'Please wait...' : 'Update' "
+                  [disabled]="isWaitingFlag"
+                  [iconLeft]="isWaitingFlag ? 'fa-refresh fa-spin' : ''"
+                ></app-kexy-button>
+              </div>
+            </div>
+
+
+
+
+
+<!--            <div class="form-group text-center">-->
+<!--              <button class="kexy-button tr-kexy-button" type="submit" name="submit" id="submit">-->
+<!--                <i *ngIf="isWaitingFlag" class="fa fa-spinner fa-spin" aria-hidden="true"></i>-->
+<!--                Update-->
+<!--              </button>-->
+
+<!--            </div>-->
+          </form>
+        </div>
+      </div>
+    </section>
+
+
+  </main>
+
+
 </brand-layout>

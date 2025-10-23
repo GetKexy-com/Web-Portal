@@ -253,7 +253,13 @@ img {
 #page-container {
   padding: 0 !important;
 }
-
+.kexy-card {
+  background: white;
+  margin-bottom: 20px;
+  border-radius: 12px;
+  box-shadow: 0 1px 5px 0 #d6d6d6;
+  padding: 16px;
+}
 .page-template-page-template-client-login {
   background: #f2f5fb;
 }

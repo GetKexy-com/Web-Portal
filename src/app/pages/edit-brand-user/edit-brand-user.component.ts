@@ -8,10 +8,15 @@ import { PhoneNumberValidator } from 'src/app/helpers/phoneNumberValidator';
 import { HttpService } from 'src/app/services/http.service';
 import { BrandLayoutComponent } from '../../layouts/brand-layout/brand-layout.component';
 import { CommonModule } from '@angular/common';
+import {
+  ProspectingCommonCardComponent
+} from '../../components/prospecting-common-card/prospecting-common-card.component';
+import { KexyButtonComponent } from '../../components/kexy-button/kexy-button.component';
+import { ErrorMessageCardComponent } from '../../components/error-message-card/error-message-card.component';
 
 @Component({
   selector: 'app-edit-brand-user',
-  imports: [BrandLayoutComponent, ReactiveFormsModule, CommonModule],
+  imports: [BrandLayoutComponent, ReactiveFormsModule, CommonModule, ProspectingCommonCardComponent, KexyButtonComponent, ErrorMessageCardComponent],
   templateUrl: './edit-brand-user.component.html',
   styleUrl: './edit-brand-user.component.scss',
 })

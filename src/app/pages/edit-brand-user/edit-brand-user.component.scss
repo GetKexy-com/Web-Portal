@@ -1,3 +1,13 @@
+.brand-list-contacts-page {
+  background: #e7f6fe;
+  padding: 18px 24px;
+  min-height: calc(100vh - 70px);
+
+  .card-area-wrap {
+    padding-bottom: 20px;
+  }
+}
+
 .tr-main-box {
   overflow: hidden;
   position: relative;
@@ -37,10 +47,11 @@
 }
 
 .profile-photo {
-  width: 178px;
+  width: 100%;
   //height: 178px;
   border-radius: 10px;
   margin-top: 60px;
+  max-height: 150px;
 }
 .profile-photo-wrap {
   margin-top: 20px;
@@ -49,13 +60,17 @@
   margin-top: 0px;
   max-width: 134px;
 }
-.form-control {
-  background: #e7f6fe;
-  padding: 0px 20px;
-  font-size: 18px;
-  height: 55px;
-  line-height: 0px;
+.input-label-text {
+  font-size: 11px;
+  line-height: 11px;
 }
+//.form-control {
+//  background: #e7f6fe;
+//  padding: 0px 20px;
+//  font-size: 18px;
+//  height: 55px;
+//  line-height: 0px;
+//}
 .tr-form {
   width: 360px;
   margin: auto;
@@ -66,7 +81,7 @@
 }
 .phonecode {
   // float: left;
-  background-color: #e7f6fe;
+  //background-color: #e7f6fe;
   border: none;
   padding: 17px 9px 14px 14px;
   font-size: 18px;
@@ -81,7 +96,7 @@
 .phonefields {
   overflow: hidden;
   border: 1px solid #ccc;
-  background: #e7f6fe;
+  //background: #e7f6fe;
   border-radius: 6px;
   display: flex;
 }
@@ -97,10 +112,10 @@
 @media (min-width: 980px) and (max-width: 1199px) {
   .profile-photo {
     margin-top: 0px;
-    width: 80px;
+    //width: 80px;
   }
   .no-profile-image {
-    max-width: 75px;
+    //max-width: 75px;
   }
   .kexy-button {
     width: 300px;
@@ -132,7 +147,7 @@
 @media (min-width: 1200px) and (max-width: 1599px) {
   .profile-photo {
     margin-top: 0px;
-    width: 85px;
+    //width: 85px;
   }
   .no-profile-image {
     max-width: 80px;

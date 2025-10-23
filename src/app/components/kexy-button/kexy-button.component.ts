@@ -21,6 +21,7 @@ export class KexyButtonComponent {
   @Input() align = "center";
   @Input() flexAlignItems = "center";
   @Input() radius = "8px";
+  @Input() padding = "8px";
   @Input() borderColor = "transparent";
   @Input() disabled = false;
   @Input() iconSize = "medium";
