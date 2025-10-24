@@ -1,0 +1,33 @@
+<div class="canvas-content-wrap">
+  <div class="head-area">
+    <p><i class="fa fa-envelope-open-o pe-2"></i> Preview Email</p>
+    <div class="d-flex">
+      <app-kexy-button
+        class="me-3"
+        label="Spin Another Version"
+        bgColor="transparent"
+        [borderColor]="'#0047cc'"
+        [textColor]="'#0047cc'"
+        iconLeft="fa-refresh"
+        (click)="spinEmail()"
+      ></app-kexy-button>
+      <app-kexy-button
+        style="margin-right: 10px"
+        label="Close"
+        iconLeft="fa-close"
+        bgColor="#e7f6fe"
+        textColor="#2847cc"
+        (click)="activeCanvas.dismiss('Cross click')"
+      ></app-kexy-button>
+    </div>
+  </div>
+
+  <div class="canvas-body">
+    <div class="subject">
+      <p>{{ emailSubject }}</p>
+    </div>
+    <div class="email-content">
+      <div [innerHTML]="emailContent"></div>
+    </div>
+  </div>
+</div>

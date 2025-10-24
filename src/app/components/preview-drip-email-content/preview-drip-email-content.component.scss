@@ -1,0 +1,44 @@
+.canvas-content-wrap {
+  overflow: auto;
+  height: 100vh;
+
+  .head-area {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 15px 15px 24px;
+    border-bottom: 1px solid #e8e8e8;
+
+    p {
+      margin-bottom: 0;
+      font-size: 18px;
+      font-weight: 500;
+      line-height: 20px;
+      letter-spacing: 0em;
+      color: #0047CC;
+    }
+
+    img {
+      align-self: center;
+      cursor: pointer;
+    }
+  }
+
+  .canvas-body {
+    .subject {
+      border-bottom: 1px solid #e8e8e8;
+      padding: 12px 24px;
+
+      p {
+        font-size: 20px;
+        margin: 0;
+      }
+    }
+
+    .email-content {
+      padding: 24px;
+
+    }
+  }
+
+}

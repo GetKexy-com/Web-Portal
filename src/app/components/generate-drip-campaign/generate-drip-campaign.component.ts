@@ -31,6 +31,7 @@ import {
 import { CommonModule } from '@angular/common';
 import { PageUiService } from '../../services/page-ui.service';
 import { ExportToCsv } from '../../helpers/CSVHelper';
+import { PreviewDripEmailContentComponent } from '../preview-drip-email-content/preview-drip-email-content.component';
 
 @Component({
   selector: 'generate-drip-campaign',
@@ -395,15 +396,7 @@ export class GenerateDripCampaignComponent implements OnInit {
   handlePreviewBtnClick = async (email) => {
     this.dripCampaignService.setEditEmail(email);
     this.dripCampaignService.setHasPromotion(!!this.selectedPromotionsProductName);
-    this.__createRightSideSlide(SendEmailDetailsContentComponent, 'email-content');
-
-    if (!this.contactList?.length) {
-      const enrollList = this.getEnrolledList();
-      const listId = enrollList[0].list.id;
-      await this.getContacts(listId);
-    }
-
-    this.dripCampaignService.generateDripCampaignListContact = this.contactList;
+    this.__createRightSideSlide(PreviewDripEmailContentComponent, 'email-content');
   };
 
   insightsBtnClick = (email) => {
