@@ -4,6 +4,7 @@
     <section class="card-area-wrap">
       <prospecting-common-card
         cardTitle="Profile Details"
+        cardDetails="You can view or update your profile information here"
         cardTitleLogo="/assets/icon/user.svg"
       >
       </prospecting-common-card>
@@ -164,7 +165,7 @@
       <div class="modal-body">
         <div class="input-wrap edit-password">
           <label class="input-label-text edit-password">Enter Current Password</label>
-          <input [type]="currentPasswordType" class="form-control" name="currentPassword" [(ngModel)]="currentPassword" />
+          <input placeholder="Current Password" [type]="currentPasswordType" class="form-control" name="currentPassword" [(ngModel)]="currentPassword" />
           <div class="eye-wrapper" (click)="toggleCurrentPasswordView()">
             <i *ngIf="currentPasswordView" class="fa fa-eye"></i>
             <i *ngIf="!currentPasswordView" class="fa fa-eye-slash"></i>
@@ -175,7 +176,7 @@
         </div>
         <div class="input-wrap edit-password" style="margin-top: 20px">
           <label class="input-label-text">Enter New Password</label>
-          <input [type]="newPasswordType" class="form-control" name="newPassword" [(ngModel)]="newPassword" />
+          <input placeholder="New Password" [type]="newPasswordType" class="form-control" name="newPassword" [(ngModel)]="newPassword" />
           <div class="eye-wrapper" (click)="toggleNewPasswordView()">
             <i *ngIf="newPasswordView" class="fa fa-eye"></i>
             <i *ngIf="!newPasswordView" class="fa fa-eye-slash"></i>
