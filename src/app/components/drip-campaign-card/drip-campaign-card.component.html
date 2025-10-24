@@ -26,6 +26,14 @@
         (click)="deleteItem()"
       ></app-kexy-button>
       <app-kexy-button
+        *ngIf="isDelayCard"
+        label="Update Delay"
+        iconLeft="fa-pencil"
+        bgColor="white"
+        textColor="#0047CC"
+        (click)="handleShowDetailsBtnClick()"
+      ></app-kexy-button>
+      <app-kexy-button
         *ngIf="isDelayCard && emailContacts.length"
         [label]="emailContacts.length + ' contact(s) in actions'"
         bgColor="white"
@@ -33,6 +41,7 @@
         iconLeft="fa-users"
         (click)="showDripCampaignContacts(emailContacts)"
       ></app-kexy-button>
+
     </div>
     <div class="left-side-button">
       <app-kexy-button
@@ -44,11 +53,20 @@
         (click)="handleInsightsBtnClick()"
       ></app-kexy-button>
       <app-kexy-button
-        label="Show details"
-        iconLeft="fa-eye"
+        *ngIf="!isDelayCard"
+        label="Update"
+        iconLeft="fa-pencil"
         bgColor="white"
         textColor="#0047CC"
         (click)="handleShowDetailsBtnClick()"
+      ></app-kexy-button>
+      <app-kexy-button
+        *ngIf="!isDelayCard"
+        label="Preview Email"
+        iconLeft="fa-eye"
+        bgColor="white"
+        textColor="#0047CC"
+        (click)="handlePreviewEmailBtnClick()"
       ></app-kexy-button>
     </div>
   </div>

@@ -391,6 +391,21 @@ export class GenerateDripCampaignComponent implements OnInit {
     this.dripCampaignService.generateDripCampaignListContact = this.contactList;
   };
 
+
+  handlePreviewBtnClick = async (email) => {
+    this.dripCampaignService.setEditEmail(email);
+    this.dripCampaignService.setHasPromotion(!!this.selectedPromotionsProductName);
+    this.__createRightSideSlide(SendEmailDetailsContentComponent, 'email-content');
+
+    if (!this.contactList?.length) {
+      const enrollList = this.getEnrolledList();
+      const listId = enrollList[0].list.id;
+      await this.getContacts(listId);
+    }
+
+    this.dripCampaignService.generateDripCampaignListContact = this.contactList;
+  };
+
   insightsBtnClick = (email) => {
     const insightApiPostData = {
       drip_campaign_id: parseInt(this.dripCampaignId),

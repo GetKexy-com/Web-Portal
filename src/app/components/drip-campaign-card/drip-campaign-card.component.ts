@@ -27,6 +27,7 @@ export class DripCampaignCardComponent implements OnInit {
   @Input() showBlueBorder;
   @Input() isDelayCard = false;
   @Input() showDetailsBtnClick;
+  @Input() previewBtnClick;
   @Input() insightsBtnClick;
   @Input() showDripCampaignContacts;
   @Input() deleteEmptyEmail;
@@ -54,6 +55,10 @@ export class DripCampaignCardComponent implements OnInit {
 
   handleShowDetailsBtnClick = () => {
     this.showDetailsBtnClick(this.email);
+  };
+
+  handlePreviewEmailBtnClick = () => {
+    this.previewBtnClick(this.email);
   };
 
   handleInsightsBtnClick = () => {
