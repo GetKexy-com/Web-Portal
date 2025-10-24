@@ -324,10 +324,10 @@
               backgroundColor="white"
               placeholder="Please Select"
             ></kexy-select-dropdown>
-<!--            <div-->
-<!--              *ngIf="submitted && isEmptyEnrollList && !enrollList.length">-->
-<!--              <error-message-card message="Please select."></error-message-card>-->
-<!--            </div>-->
+            <!--            <div-->
+            <!--              *ngIf="submitted && isEmptyEnrollList && !enrollList.length">-->
+            <!--              <error-message-card message="Please select."></error-message-card>-->
+            <!--            </div>-->
           </div>
         </div>
 
@@ -389,10 +389,46 @@
           </p>
         </div>
 
-<!--        <div-->
-<!--          *ngIf="submitted && isEmptyEnrollList && !enrollList.length">-->
-<!--          <error-message-card message="Please select list(s) in Enrollment."></error-message-card>-->
-<!--        </div>-->
+        <p class="section-title d-flex justify-content-between mt-3 mb-0">
+          <span>Analytics Receive Users</span>
+          <span class="cursor-pointer link-text" (click)="addAnalyticUserRow()">+ Add</span>
+        </p>
+        <div class="section-content mt-2">
+          <div class="analytic-user d-flex justify-content-center align-items-center" *ngFor="let people of peoplesList; let i = index">
+            <div class="form-group">
+              <label class="input-label-text">Name</label>
+              <input
+                type="text"
+                class="form-control"
+                [value]="people.name"
+                placeholder="Name"
+              />
+            </div>
+            <div class="form-group w-100 ms-2">
+              <label class="input-label-text">Email Address</label>
+              <input
+                type="email"
+                class="form-control"
+                [value]="people.email"
+                placeholder="Email Address"
+              />
+            </div>
+            <div class="remove mt-3 ms-2">
+              <app-kexy-button
+                [class.invisible]="i === 0"
+                label=""
+                tooltip="Delete"
+                type="button"
+                iconLeft="fa-trash"
+                bgColor="transparent"
+                [borderColor]="'#0047cc'"
+                [textColor]="'#0047cc'"
+                (click)="deleteAnalyticUser(i)"
+              ></app-kexy-button>
+            </div>
+          </div>
+        </div>
+
 
         <div class="bottom-buttons">
           <button class="blue-button me-3" type="submit">

@@ -580,53 +580,6 @@ export class GenerateDripCampaignComponent implements OnInit {
 
   protected readonly constants = constants;
 
-  // pauseOrResumeDripCampaign = async () => {
-  //   let isConfirm = await Swal.fire({
-  //     title: "Are you sure?",
-  //     icon: "warning",
-  //     showCancelButton: true,
-  //     confirmButtonColor: "#3085d6",
-  //     cancelButtonColor: "#d33",
-  //     confirmButtonText: this.dripCampaign.status === constants.ACTIVE ? "Yes, Pause!" : "Yes, Resume!",
-  //   });
-  //
-  //   if (isConfirm.dismiss) {
-  //     return;
-  //   }
-  //
-  //   this.isContentLoading = true;
-  //   const payload = {
-  //     drip_campaign_id: this.dripCampaign.id,
-  //     supplier_id: this.userData.supplier_id,
-  //     allowed_credit_limit: 1,
-  //     drip_campaign_title_id: this.dripCampaign.details.title.id,
-  //     number_of_emails: this.dripCampaign.details.numberOfEmails,
-  //     website_url: this.dripCampaign.details.websiteUrl || "",
-  //     calendly_link: this.dripCampaign.details.calendlyLink || "",
-  //     campaign_id: this.dripCampaign.details.campaignId,
-  //     status: this.dripCampaign.status === constants.ACTIVE ? constants.PAUSE : constants.ACTIVE,
-  //     target_audience: this.dripCampaign.targetAudience,
-  //     email_about: this.dripCampaign.emailAbout,
-  //     audience_type: this.dripCampaign.audienceType,
-  //     email_tone: this.selectedEmailToneKey,
-  //     email_length: this.selectedEmailLength.value,
-  //   };
-  //
-  //   try {
-  //     await this.dripCampaignService.createOrUpdateDripCampaign(payload);
-  //     const postData = {
-  //       drip_campaign_id: this.dripCampaignId,
-  //       supplier_id: this.userData.supplier_id,
-  //     };
-  //     this.dripCampaign = await this.dripCampaignService.getCampaign(postData);
-  //
-  //     this.isContentLoading = false;
-  //
-  //   } catch (e) {
-  //     console.log(e);
-  //     this.isContentLoading = false;
-  //   }
-  // };
 
   numberOfEmailsInputShow = false;
   handleShowHideNumberOfEmailsInput = () => {
