@@ -394,26 +394,28 @@
           <span class="cursor-pointer link-text" (click)="addAnalyticUserRow()">+ Add</span>
         </p>
         <div class="section-content mt-2">
-          <div class="analytic-user d-flex justify-content-center align-items-center" *ngFor="let people of peoplesList; let i = index">
+          <div class="analytic-user d-flex justify-content-center" *ngFor="let people of analyticsReceiverArray; let i = index">
             <div class="form-group">
-              <label class="input-label-text">Name</label>
+              <label *ngIf="i===0" class="input-label-text">Name</label>
               <input
                 type="text"
                 class="form-control"
-                [value]="people.name"
+                [(ngModel)]="people.name"
+                [ngModelOptions]="{standalone: true}"
                 placeholder="Name"
               />
             </div>
             <div class="form-group w-100 ms-2">
-              <label class="input-label-text">Email Address</label>
+              <label *ngIf="i===0" class="input-label-text">Email Address</label>
               <input
                 type="email"
                 class="form-control"
-                [value]="people.email"
+                [(ngModel)]="people.email"
+                [ngModelOptions]="{standalone: true}"
                 placeholder="Email Address"
               />
             </div>
-            <div class="remove mt-3 ms-2">
+            <div class="remove ms-2">
               <app-kexy-button
                 [class.invisible]="i === 0"
                 label=""

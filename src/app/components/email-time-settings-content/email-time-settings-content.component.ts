@@ -41,6 +41,11 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
   endTimeOptions = [...constants.EMAIL_SETTINGS_TIMES];
   scheduleCampaignTurnOffAutomatically = false;
   unenrollContactsFromOtherCampaign = false;
+  analyticsFields = {
+    name: '',
+    email: '',
+  };
+  analyticsReceiverArray = [{...this.analyticsFields}];
   runCampaignFields = {
     day: constants.EVERYDAY,
     from: '',
@@ -73,15 +78,10 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
   unEnrollList;
   enrollmentLabelOptions = [];
   unenrollmentLabelOptions = [];
-  peoplesList = [
-    {
-      name: '',
-      email: '',
-    },
-  ];
   prospectUnenrollIfReply: boolean = false;
   prospectUnenrollIfReplyId;
   allowReenrollId;
+  analyticsReceiverId;
   allowContactsReenroll = false;
   dripCampaignTitlesSubscription: Subscription;
   contactLabelsSubscription: Subscription;
@@ -112,14 +112,14 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
   }
 
   addAnalyticUserRow = () => {
-    this.peoplesList.push({
+    this.analyticsReceiverArray.push({
       name: '',
       email: '',
     });
   };
 
   deleteAnalyticUser = (index) => {
-    this.peoplesList.splice(index, 1);
+    this.analyticsReceiverArray.splice(index, 1);
   }
 
   setInitialData = () => {
@@ -155,6 +155,13 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
         let allowReenrollData = this.settings[allowReenrollIndex];
         this.allowReenrollId = allowReenrollData.id;
         this.allowContactsReenroll = allowReenrollData.settingsValue[0].value;
+      }
+
+      const analyticsReceiverIndex = this.settings.findIndex(r => r.settingsType === 'analytics_receiver');
+      if (analyticsReceiverIndex > -1) {
+        let analyticsReceiverData = this.settings[analyticsReceiverIndex];
+        this.analyticsReceiverId = analyticsReceiverData.id;
+        this.analyticsReceiverArray = analyticsReceiverData.settingsValue;
       }
 
       const runTimeIndex = this.settings.findIndex(r => r.settingsType === 'run_time');
@@ -281,13 +288,6 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
       this.dripCampaignDropDownList = [];
     }
   };
-
-  // getCampaignTitle = (title_id) => {
-  //   const index = this.dripCampaignTitles && this.dripCampaignTitles.findIndex(i => i.id.toString() === title_id.toString());
-  //   if (index < 0) return;
-  //
-  //   return this.dripCampaignTitles[index].title;
-  // };
 
   onDaySelect = (day, index = null, rowIndex = null) => {
     console.log(rowIndex);
@@ -470,7 +470,7 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
       this.setPreviousData();
 
     } catch (e) {
-      Swal.fire('Error', e.message);
+      await Swal.fire('Error', e.message);
 
     } finally {
       swal.close();
@@ -579,12 +579,6 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
   isEmptyEnrollList = false;
   handleSubmitEnrollmentTriggers = async () => {
     this.submitted = true;
-    // const enrollListIds = this.enrollmentLabelOptions.filter(i => i.isSelected).map(i => i.id);
-    // if (!enrollListIds.length && !this.enrollList.length) {
-    //   this.isEmptyEnrollList = true;
-    //   return;
-    // }
-    // this.isEmptyEnrollList = false;
 
     const newEnrollListIds = this.enrollmentLabelOptions.filter(i => i.isSelected).map(i => i.id);
     const previousEnrollListIds = this.enrollList.map(i => i.list.id);
@@ -617,6 +611,13 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
             },
           ],
         },
+        {
+          ...(this.analyticsReceiverId && { id: this.analyticsReceiverId }),
+          dripCampaignId: this.dripCampaignId,
+          companyId: this.userData.supplier_id,
+          settingsType: 'analytics_receiver',
+          settingsValue: this.analyticsReceiverArray,
+        },
       ],
     };
 
@@ -636,7 +637,7 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
         await this.dripCampaignService.activateDripCampaign(postData);
       }
 
-      Swal.fire('Success', 'Settings saved successfully', 'success');
+      await Swal.fire('Success', 'Settings saved successfully', 'success');
 
     } catch (e) {
       await Swal.fire({
