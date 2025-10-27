@@ -3,16 +3,12 @@ import { FormsModule } from '@angular/forms';
 import { NgbActiveOffcanvas, NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { DripCampaignService } from '../../services/drip-campaign.service';
 import { DripEmail } from '../../models/DripEmail';
-import { BrandConvoAvatarComponent } from '../brand-convo-avatar/brand-convo-avatar.component';
-import { NgIf } from '@angular/common';
 import { KexyButtonComponent } from '../kexy-button/kexy-button.component';
 
 @Component({
   selector: 'app-preview-drip-email-content',
   imports: [
     FormsModule,
-    BrandConvoAvatarComponent,
-    NgIf,
     KexyButtonComponent,
   ],
   templateUrl: './preview-drip-email-content.component.html',
@@ -20,8 +16,8 @@ import { KexyButtonComponent } from '../kexy-button/kexy-button.component';
 })
 export class PreviewDripEmailContentComponent implements OnInit {
   public dripEmail: DripEmail;
-  public emailContent;
-  public emailSubject;
+  public emailContent: string;
+  public emailSubject: string;
 
   constructor(
     public activeCanvas: NgbActiveOffcanvas,
@@ -31,19 +27,38 @@ export class PreviewDripEmailContentComponent implements OnInit {
 
   ngOnInit(): void {
     this.dripEmail = this.dripCampaignService.getEditEmail();
+    console.log(this.dripEmail['emailContent']);
     this.spinEmail();
   }
 
   spinEmail() {
-    this.emailContent = this.parseSpintax(this.wrapSpintaxInParagraphs(this.dripEmail['emailContent']));
-    this.emailSubject = this.parseSpintax(this.dripEmail['emailSubject']);
+    this.emailSubject = this.expandSpintax(this.dripEmail['emailSubject']);
+
+    const formatted = this.__formatEmailContent(this.dripEmail['aiRawData']);
+    let newStr = formatted.split('$$');
+    this.emailContent = this.expandAndWrapSpintax(newStr[1]);
   }
 
-  private parseSpintax(text: string): string {
-    // Step 1: Ensure every spintax block is wrapped in <p> tags if not already
-    // text = this.wrapSpintaxInParagraphs(text);
+  __formatEmailContent: (content: string) => string = (content: string): string => {
+    let paraArray = content.split('[[[PARA]]]');
 
-    // Step 2: Expand spintax recursively
+    const lastPara = paraArray.pop()
+      .replace(/^\n/, "")
+      .replace(/\n/g, "<br>");
+
+    paraArray = paraArray.map((para) => {
+      return para.replace(/\n/g, "");
+    });
+
+    paraArray.push(lastPara);
+    return paraArray.join('<p>');
+  };
+
+  expandAndWrapSpintax(text: string) {
+    // Step 1: Wrap top-level { ... } blocks in <p>...</p> if not already inside one
+    text = this.wrapTopLevelSpintax(text);
+
+    // Step 2: Expand all spintax recursively
     text = this.expandSpintax(text);
 
     // Step 3: Format phone numbers (US)
@@ -52,16 +67,52 @@ export class PreviewDripEmailContentComponent implements OnInit {
     // Step 4: Hyperlink URLs
     text = this.linkifyUrls(text);
     return text;
+
   }
 
-  private wrapSpintaxInParagraphs(text: string): string {
-    // Matches spintax not already inside <p>...</p>
-    const spintaxRegex = /(?<!<p[^>]*>)\s*\{[^{}]+\}\s*(?![^<]*<\/p>)/g;
+  wrapTopLevelSpintax(text: string) {
+    let result = '';
+    let depth = 0;
+    let start = -1;
 
-    return text.replace(spintaxRegex, (match) => {
-      return `<p>${match.trim()}</p>`;
-    });
+    for (let i = 0; i < text.length; i++) {
+      const char = text[i];
+
+      if (char === '{') {
+        if (depth === 0) start = i; // mark potential top-level start
+        depth++;
+      } else if (char === '}') {
+        depth--;
+        if (depth === 0 && start !== -1) {
+          // Found a top-level {...} block
+          const spintax = text.slice(start, i + 1);
+
+          // Check if it's already inside a <p>...</p>
+          const before = text.slice(0, start);
+          const after = text.slice(i + 1);
+
+          const lastOpenP = before.lastIndexOf('<p>');
+          const lastCloseP = before.lastIndexOf('</p>');
+
+          const insideParagraph = lastOpenP > lastCloseP;
+
+          // Append with or without wrapping
+          if (!insideParagraph) {
+            result += before + `<p>${spintax}</p>`;
+          } else {
+            result += before + spintax;
+          }
+
+          text = after;
+          i = -1; // reset loop to process the remainder
+          start = -1;
+        }
+      }
+    }
+
+    return result + text;
   }
+
 
   private expandSpintax(text: string): string {
     const regex = /\{([^{}]*)\}/;

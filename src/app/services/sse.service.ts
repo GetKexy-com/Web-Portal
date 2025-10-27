@@ -344,7 +344,7 @@ export class SseService {
 
   __formatEmailContent: (content: string) => string = (content: string): string => {
     let paraArray = content.split(this.paraStartSign);
-    console.log(paraArray);
+    console.log({ paraArray });
 
     const lastPara = paraArray.pop()
       .replace(/^\n/, "")
