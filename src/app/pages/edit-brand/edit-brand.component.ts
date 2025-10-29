@@ -12,6 +12,11 @@ import { ZipCodeValidator } from "src/app/helpers/zipCodeValidator";
 import { HttpService } from "src/app/services/http.service";
 import {BrandLayoutComponent} from '../../layouts/brand-layout/brand-layout.component';
 import {CommonModule} from '@angular/common';
+import {
+  ProspectingCommonCardComponent
+} from '../../components/prospecting-common-card/prospecting-common-card.component';
+import { KexyButtonComponent } from '../../components/kexy-button/kexy-button.component';
+import { ErrorMessageCardComponent } from '../../components/error-message-card/error-message-card.component';
 
 @Component({
   selector: 'app-edit-brand',
@@ -19,6 +24,9 @@ import {CommonModule} from '@angular/common';
     BrandLayoutComponent,
     ReactiveFormsModule,
     CommonModule,
+    ProspectingCommonCardComponent,
+    KexyButtonComponent,
+    ErrorMessageCardComponent,
   ],
   templateUrl: './edit-brand.component.html',
   styleUrl: './edit-brand.component.scss'

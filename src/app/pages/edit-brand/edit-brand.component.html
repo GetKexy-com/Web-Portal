@@ -1,106 +1,183 @@
-<brand-layout>
-  <div class="kexy-logo" [hidden]="imageUrl">
-    <img class="profile-photo company-default-logo" src="/assets/images/company_default_logo_black.png" alt="" />
-  </div>
-  <div class="form-group text-center profile-photo-wrap">
-    <img class="profile-photo" [src]="imageUrl" [hidden]="!imageUrl" />
-  </div>
-
-  <div class="form-group text-center">
-    <button class="kexy-button" type="submit" (click)="openFileDialog()">Change Company Logo</button>
-    <input type="file" name="" class="profile-photo-file-input tr-hidden" (change)="fileSelected($event)" />
-  </div>
-
-  <form class="tr-form" [formGroup]="primaryForm" (ngSubmit)="primaryFormSubmitted()">
-    <div class="form-group">
-      <input
-        [class.error]="(submitted || primaryForm.controls['name'].dirty) && primaryForm.controls['name'].invalid"
-        type="text"
-        formControlName="name"
-        class="form-control"
-        placeholder="Company Name"
-      />
-      <div *ngIf="primaryForm.controls['name'].invalid && (submitted || primaryForm.controls['name'].dirty)">
-        <span class="text-danger">Please enter a valid Company Name.</span>
-      </div>
-    </div>
-
-    <div class="form-group">
-      <input
-        [class.error]="(submitted || primaryForm.controls['city'].dirty) && primaryForm.controls['city'].invalid"
-        type="text"
-        formControlName="city"
-        class="form-control"
-        placeholder="City"
-      />
-      <div *ngIf="primaryForm.controls['city'].invalid && (submitted || primaryForm.controls['city'].dirty)">
-        <span class="text-danger">Please enter a valid City name.</span>
-      </div>
-    </div>
-
-    <div class="form-group">
-      <select
-        [class.error]="(submitted || primaryForm.controls['state'].dirty) && primaryForm.controls['state'].invalid"
-        formControlName="state"
-        class="form-control"
+<brand-layout layoutPaddingNone="true" headerBgWhite="true">
+  <main class="brand-list-contacts-page">
+    <section class="card-area-wrap">
+      <prospecting-common-card
+        cardTitle="Compaany Details"
+        cardDetails="You can view or update your company/business information here"
+        cardTitleLogo="/assets/icon/user.svg"
       >
-        <option value="" selected>{{ stateLabel }}</option>
-        <option *ngFor="let state of states" [value]="state.isoCode">
-          {{ state.name }}
-        </option>
-      </select>
-    </div>
+      </prospecting-common-card>
+    </section>
+    <section class="kexy-card pb-4">
+      <div class="row">
+        <div class="col-md-3">
+          <div class="kexy-logo" [hidden]="imageUrl">
+            <img class="profile-photo company-default-logo" src="/assets/images/company_default_logo_black.png"
+                 alt="" />
+          </div>
+          <div class="form-group text-center profile-photo-wrap">
+            <img class="profile-photo" [src]="imageUrl" [hidden]="!imageUrl" />
+          </div>
 
-    <div class="form-group">
-      <select
-        [disabled]="true"
-        [class.error]="(submitted || primaryForm.controls['country'].dirty) && primaryForm.controls['country'].invalid"
-        formControlName="country"
-        class="form-control"
-        style="background: #80808026"
-      >
-        <option value="" selected>Please Select Country</option>
-        <option *ngFor="let country of countries" [value]="country.isoCode">
-          {{ country.name }}
-        </option>
-      </select>
-    </div>
+          <!--          <div class="form-group text-center">-->
+          <!--            <button class="kexy-button" type="submit" (click)="openFileDialog()">Change Company Logo</button>-->
+          <!--            <input type="file" name="" class="profile-photo-file-input tr-hidden" (change)="fileSelected($event)" />-->
+          <!--          </div>-->
+          <div class="form-group text-center">
+            <app-kexy-button
+              label="Upload Logo"
+              type="button"
+              style="width: 100%"
+              iconLeft="fa-upload"
+              bgColor="transparent"
+              [borderColor]="'#0047cc'"
+              [textColor]="'#0047cc'"
+              (click)="openFileDialog()"
+            ></app-kexy-button>
+            <input type="file" name="" class="profile-photo-file-input tr-hidden" (change)="fileSelected($event)" />
+          </div>
+        </div>
+        <div class="col-md-9 ps-3">
+          <form [formGroup]="primaryForm" (ngSubmit)="primaryFormSubmitted()">
+            <div class="row">
+              <div class="col-sm-6 col-xs-12">
+                <div class="form-group">
+                  <label class="input-label-text">Company Name</label>
+                  <input
+                    [class.error]="(submitted || primaryForm.controls['name'].dirty) && primaryForm.controls['name'].invalid"
+                    type="text"
+                    formControlName="name"
+                    class="form-control"
+                    placeholder="Company Name"
+                  />
+                  <div
+                    *ngIf="primaryForm.controls['name'].invalid && (submitted || primaryForm.controls['name'].dirty)">
+                    <error-message-card message="Please enter a valid Company Name."></error-message-card>
+                  </div>
+                </div>
 
-    <div class="form-group">
-      <input
-        [class.error]="
+              </div>
+              <div class="col-sm-6 col-xs-12">
+                <div class="form-group">
+                  <label class="input-label-text">City</label>
+                  <input
+                    [class.error]="(submitted || primaryForm.controls['city'].dirty) && primaryForm.controls['city'].invalid"
+                    type="text"
+                    formControlName="city"
+                    class="form-control"
+                    placeholder="City"
+                  />
+                  <div
+                    *ngIf="primaryForm.controls['city'].invalid && (submitted || primaryForm.controls['city'].dirty)">
+                    <error-message-card message="Please enter a valid City name."></error-message-card>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-sm-6 col-xs-12">
+                <div class="form-group">
+                  <label class="input-label-text">State</label>
+                  <select
+                    [class.error]="(submitted || primaryForm.controls['state'].dirty) && primaryForm.controls['state'].invalid"
+                    formControlName="state"
+                    class="form-control"
+                  >
+                    <option value="" selected>{{ stateLabel }}</option>
+                    <option *ngFor="let state of states" [value]="state.isoCode">
+                      {{ state.name }}
+                    </option>
+                  </select>
+                </div>
+              </div>
+              <div class="col-sm-6 col-xs-12">
+                <div class="form-group">
+                  <label class="input-label-text">Please Select Country</label>
+                  <select
+                    [disabled]="true"
+                    [class.error]="(submitted || primaryForm.controls['country'].dirty) && primaryForm.controls['country'].invalid"
+                    formControlName="country"
+                    class="form-control"
+                    style="background: #80808026"
+                  >
+                    <option value="" selected>Please Select Country</option>
+                    <option *ngFor="let country of countries" [value]="country.isoCode">
+                      {{ country.name }}
+                    </option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-sm-6 col-xs-12">
+                <div class="form-group">
+                  <label class="input-label-text">Zip Code</label>
+                  <input
+                    [class.error]="
           (submitted || primaryForm.controls['zip_code'].dirty) && primaryForm.controls['zip_code'].invalid
         "
-        type="text"
-        formControlName="zip_code"
-        class="form-control"
-        placeholder="{{ zipCodePlaceholder }}"
-      />
-      <div *ngIf="primaryForm.controls['zip_code'].invalid && (submitted || primaryForm.controls['zip_code'].dirty)">
-        <span class="text-danger">{{ zipCodePlaceholder }} is invalid</span>
-      </div>
-    </div>
+                    type="text"
+                    formControlName="zip_code"
+                    class="form-control"
+                    placeholder="{{ zipCodePlaceholder }}"
+                  />
+                  <div
+                    *ngIf="primaryForm.controls['zip_code'].invalid && (submitted || primaryForm.controls['zip_code'].dirty)">
+                    <error-message-card [message]="`${ zipCodePlaceholder } is invalid`"></error-message-card>
+                  </div>
+                </div>
+              </div>
+              <div class="col-sm-6 col-xs-12">
+                <div class="form-group">
+                  <label class="input-label-text">Mobile Number</label>
+                  <div class="phonefields">
+                    <div class="phonecode">{{ phoneCode }}</div>
+                    <input
+                      [class.error]="(submitted || primaryForm.controls['phone'].dirty) && primaryForm.controls['phone'].invalid"
+                      class="form-control phoneNumber"
+                      formControlName="phone"
+                      placeholder="Mobile Phone"
+                      type="tel"
+                    />
+                  </div>
+                  <div *ngIf="primaryForm.controls['phone'].invalid && (submitted || primaryForm.controls['phone'].dirty)">
+                    <error-message-card message="Please enter a valid mobile phone."></error-message-card>
+                  </div>
+                </div>
+              </div>
+            </div>
 
-    <div class="form-group">
-      <div class="phonefields">
-        <div class="phonecode">{{ phoneCode }}</div>
-        <input
-          [class.error]="(submitted || primaryForm.controls['phone'].dirty) && primaryForm.controls['phone'].invalid"
-          class="form-control phoneNumber"
-          formControlName="phone"
-          placeholder="Mobile Phone"
-          type="tel"
-        />
+            <div class="row">
+              <div class="col-sm-6 com-xs-12">
+                <app-kexy-button
+                  label="Update"
+                  style="width: 100%;"
+                  padding="10px"
+                  type="submit"
+                  [label]="isWaitingFlag ? 'Please wait...' : 'Update' "
+                  [disabled]="isWaitingFlag"
+                  [iconLeft]="isWaitingFlag ? 'fa-refresh fa-spin' : 'fa-save'"
+                ></app-kexy-button>
+              </div>
+            </div>
+
+
+
+
+
+<!--            <div class="form-group text-center">-->
+<!--              <button class="kexy-button tr-kexy-button" type="submit" name="submit" id="submit">-->
+<!--                <i *ngIf="isWaitingFlag" class="fa fa-spinner fa-spin" aria-hidden="true"></i>-->
+<!--                Update-->
+<!--              </button>-->
+<!--            </div>-->
+          </form>
+        </div>
       </div>
-      <div *ngIf="primaryForm.controls['phone'].invalid && (submitted || primaryForm.controls['phone'].dirty)">
-        <span class="text-danger">Please enter a valid mobile phone.</span>
-      </div>
-    </div>
-    <div class="form-group text-center">
-      <button class="kexy-button tr-kexy-button" type="submit" name="submit" id="submit">
-        <i *ngIf="isWaitingFlag" class="fa fa-spinner fa-spin" aria-hidden="true"></i>
-        Update
-      </button>
-    </div>
-  </form>
+    </section>
+  </main>
+
+
 </brand-layout>
