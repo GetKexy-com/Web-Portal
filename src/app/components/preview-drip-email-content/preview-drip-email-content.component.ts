@@ -27,19 +27,15 @@ export class PreviewDripEmailContentComponent implements OnInit {
 
   ngOnInit(): void {
     this.dripEmail = this.dripCampaignService.getEditEmail();
-    console.log(this.dripEmail['emailContent']);
     this.spinEmail();
   }
 
   spinEmail() {
-    this.emailSubject = this.expandSpintax(this.dripEmail['emailSubject']);
-
-    const formatted = this.__formatEmailContent(this.dripEmail['aiRawData']);
-    let newStr = formatted.split('$$');
-    this.emailContent = this.expandAndWrapSpintax(newStr[1]);
+    this.emailSubject = this.__expandSpintax(this.dripEmail['emailSubject']);
+    this.emailContent = this.__formatEmailContent(this.dripEmail['aiRawData']);
   }
 
-  __formatEmailContent: (content: string) => string = (content: string): string => {
+  private __formatEmailContent: (content: string) => string = (content: string): string => {
     let paraArray = content.split('[[[PARA]]]');
 
     const lastPara = paraArray.pop()
@@ -51,77 +47,33 @@ export class PreviewDripEmailContentComponent implements OnInit {
     });
 
     paraArray.push(lastPara);
-    return paraArray.join('<p>');
+    paraArray[0] = paraArray[0].split('$$')[1];
+    paraArray = paraArray.map(p => `<p>${this.__expandAndWrapSpintax(p)}</p>`);
+    return paraArray.join('');
   };
 
-  expandAndWrapSpintax(text: string) {
-    // Step 1: Wrap top-level { ... } blocks in <p>...</p> if not already inside one
-    text = this.wrapTopLevelSpintax(text);
+  private __expandAndWrapSpintax(text: string) {
+    // Step 1: Expand all spintax recursively
+    text = this.__expandSpintax(text);
 
-    // Step 2: Expand all spintax recursively
-    text = this.expandSpintax(text);
-
-    // Step 3: Format phone numbers (US)
+    // Step 2: Format phone numbers (US)
     text = this.formatUSPhoneNumbers(text);
 
-    // Step 4: Hyperlink URLs
-    text = this.linkifyUrls(text);
+    // Step 3: Hyperlink URLs
+    text = this.__linkifyUrls(text);
     return text;
 
   }
 
-  wrapTopLevelSpintax(text: string) {
-    let result = '';
-    let depth = 0;
-    let start = -1;
 
-    for (let i = 0; i < text.length; i++) {
-      const char = text[i];
-
-      if (char === '{') {
-        if (depth === 0) start = i; // mark potential top-level start
-        depth++;
-      } else if (char === '}') {
-        depth--;
-        if (depth === 0 && start !== -1) {
-          // Found a top-level {...} block
-          const spintax = text.slice(start, i + 1);
-
-          // Check if it's already inside a <p>...</p>
-          const before = text.slice(0, start);
-          const after = text.slice(i + 1);
-
-          const lastOpenP = before.lastIndexOf('<p>');
-          const lastCloseP = before.lastIndexOf('</p>');
-
-          const insideParagraph = lastOpenP > lastCloseP;
-
-          // Append with or without wrapping
-          if (!insideParagraph) {
-            result += before + `<p>${spintax}</p>`;
-          } else {
-            result += before + spintax;
-          }
-
-          text = after;
-          i = -1; // reset loop to process the remainder
-          start = -1;
-        }
-      }
-    }
-
-    return result + text;
-  }
-
-
-  private expandSpintax(text: string): string {
+  private __expandSpintax(text: string): string {
     const regex = /\{([^{}]*)\}/;
 
     while (regex.test(text)) {
       text = text.replace(regex, (_, group) => {
         const options = group.split('|');
         const randomChoice = options[Math.floor(Math.random() * options.length)];
-        return this.expandSpintax(randomChoice); // recursive
+        return this.__expandSpintax(randomChoice); // recursive
       });
     }
 
@@ -156,7 +108,7 @@ export class PreviewDripEmailContentComponent implements OnInit {
   }
 
 
-  private linkifyUrls(text: string): string {
+  private __linkifyUrls(text: string): string {
     const urlRegex = /\b(https?:\/\/[^\s<]+|www\.[^\s<]+)\b/g;
 
     // Split the text by existing anchor tags to avoid double-linking
