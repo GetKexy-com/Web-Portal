@@ -104,8 +104,8 @@
             <div class="platform-priority mt-3 mb-1">
               <label class="input-label-text">Use your own prompt to override the KEXY default</label>
               <kexy-toggle-switch
-                [isSwitchActive]="platformPriority"
-                [changeSwitchOption]="onPlatformPriorityChange"
+                [isSwitchActive]="userPromptPriority"
+                [changeSwitchOption]="onUserPromptPriorityChange"
                 activeText="Yes"
                 inactiveText="No"
               ></kexy-toggle-switch>

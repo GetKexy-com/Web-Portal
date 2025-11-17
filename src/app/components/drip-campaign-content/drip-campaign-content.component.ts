@@ -69,7 +69,7 @@ export class DripCampaignContentComponent implements OnInit {
   public whatDoYouCover = '';
   public emailLengthKeys = constants.EMAIL_LENGTH_KEYS;
   public selectedEmailLength;
-  public platformPriority = false;
+  public userPromptPriority = false;
 
   public dripCampaignTitlesSubscription: Subscription;
   public calendlyLinkSubscription: Subscription;
@@ -128,8 +128,8 @@ export class DripCampaignContentComponent implements OnInit {
     if (this.websiteSubscription) this.websiteSubscription.unsubscribe();
   }
 
-  onPlatformPriorityChange = () => {
-    this.platformPriority = !this.platformPriority;
+  onUserPromptPriorityChange = () => {
+    this.userPromptPriority = !this.userPromptPriority;
   };
 
 
@@ -151,6 +151,7 @@ export class DripCampaignContentComponent implements OnInit {
     this.selectedWebsiteKey = data.websiteUrl ? data.websiteUrl : '';
     this.selectedCalendlyLinkKey = data.calendlyLink ? data.calendlyLink : '';
     this.whatDoYouCover = dripCampaign.emailAbout;
+    this.userPromptPriority = dripCampaign.userPromptPriority;
     this.targetAudience = dripCampaign.targetAudience;
     // this.selectedDripCampaignType = dripCampaign["audience_type"];
   };
@@ -474,7 +475,7 @@ export class DripCampaignContentComponent implements OnInit {
       targetAudience: this.targetAudience,
       emailAbout: this.whatDoYouCover,
       audienceType: this.selectedDripCampaignType,
-      platformPriority: this.platformPriority,
+      userPromptPriority: this.userPromptPriority,
     };
     if (this.dripCampaignDuplicate) {
       payload['dripCampaignDuplicate'] = true;

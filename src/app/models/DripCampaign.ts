@@ -4,6 +4,7 @@ export class DripCampaign {
   targetAudience: string;
   audienceType: string;
   emailAbout: string;
+  userPromptPriority: boolean;
   currentStep: string;
   status: string;
   contactStatus: string;
@@ -20,6 +21,7 @@ export class DripCampaign {
     this.targetAudience = rawData.targetAudience;
     this.audienceType = rawData.audienceType;
     this.emailAbout = rawData.emailAbout;
+    this.userPromptPriority = rawData.userPromptPriority;
     this.currentStep = rawData.currentStep;
     this.status = rawData.status;
     this.contactStatus = rawData.contactStatus;
@@ -52,6 +54,7 @@ export class DripCampaign {
       targetAudience: '',
       audienceType: '',
       emailAbout: '',
+      userPromptPriority: false,
       currentStep: '1',
       status: 'inactive',
       contactStatus: 'PENDING',
@@ -108,6 +111,7 @@ export interface IRawDripCampaign {
   targetAudience: string;
   audienceType: string;
   emailAbout: string;
+  userPromptPriority: boolean;
   currentStep: string;
   status: string;
   contactStatus: string;
