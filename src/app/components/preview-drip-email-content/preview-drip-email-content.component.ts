@@ -4,6 +4,7 @@ import { NgbActiveOffcanvas, NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { DripCampaignService } from '../../services/drip-campaign.service';
 import { DripEmail } from '../../models/DripEmail';
 import { KexyButtonComponent } from '../kexy-button/kexy-button.component';
+import { PageUiService } from '../../services/page-ui.service';
 
 @Component({
   selector: 'app-preview-drip-email-content',
@@ -21,6 +22,7 @@ export class PreviewDripEmailContentComponent implements OnInit {
 
   constructor(
     public activeCanvas: NgbActiveOffcanvas,
+    private pageUiService: PageUiService,
     private dripCampaignService: DripCampaignService,
   ) {
   }
@@ -57,7 +59,7 @@ export class PreviewDripEmailContentComponent implements OnInit {
     text = this.__expandSpintax(text);
 
     // Step 2: Format phone numbers (US)
-    text = this.formatUSPhoneNumbers(text);
+    text = this.pageUiService.formatUSPhoneNumbers(text);
 
     // Step 3: Hyperlink URLs
     text = this.__linkifyUrls(text);
@@ -78,33 +80,6 @@ export class PreviewDripEmailContentComponent implements OnInit {
     }
 
     return text;
-  }
-
-  private formatUSPhoneNumbers(text: string): string {
-    // Match various US-like number patterns
-    const phoneRegex = /\+?\d[\d\s().-]{9,}\d/g;
-
-    return text.replace(phoneRegex, (match) => {
-      // Remove everything except digits
-      let digits = match.replace(/\D/g, '');
-
-      // Handle leading plus signs safely
-      const hasPlus = match.trim().startsWith('+');
-
-      // Remove redundant + or country code patterns
-      if (digits.startsWith('1') && digits.length === 11) {
-        digits = digits.slice(1);
-      }
-
-      // Only format if 10 digits
-      if (digits.length === 10) {
-        const formatted = `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
-        return hasPlus ? `+1 ${formatted}` : `+1 ${formatted}`;
-      }
-
-      // Not a valid 10-digit US number → return unchanged
-      return match;
-    });
   }
 
 

@@ -20,6 +20,7 @@ import { routeConstants } from '../../helpers/routeConstants';
 import { dripCampaignInitialModalData } from '../../helpers/demoData';
 import { ModalComponent } from '../../components/modal/modal.component';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { PageUiService } from '../../services/page-ui.service';
 
 @Component({
   selector: 'app-edit-brand-user',
@@ -54,6 +55,7 @@ export class EditBrandUserComponent implements OnInit {
 
   constructor(
     private _authService: AuthService,
+    private pageUiService: PageUiService,
     private modal: NgbModal,
     private httpService: HttpService,
   ) {
@@ -68,6 +70,7 @@ export class EditBrandUserComponent implements OnInit {
     this.emailBackup = this.userData.email;
     this.phoneBackup = this.userData.phone;
     this.jobTitleBackup = this.userData.job_title;
+    this.userData.phone = this.pageUiService.formatUSPhoneNumbers(`${this.userData.phoneCountryCode}${this.userData.phone}`);
 
     if (this.userData.logoImage) {
       this.imageUrl = environment.imageUrl + this.userData.logoImage.name;

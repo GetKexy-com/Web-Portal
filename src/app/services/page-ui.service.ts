@@ -52,6 +52,34 @@ export class PageUiService {
     return output.join("").substr(0, 14);
   }
 
+  public formatUSPhoneNumbers(text: string): string {
+    // Match various US-like number patterns
+    const phoneRegex = /\+?\d[\d\s().-]{9,}\d/g;
+
+    return text.replace(phoneRegex, (match) => {
+      // Remove everything except digits
+      let digits = match.replace(/\D/g, '');
+
+      // Handle leading plus signs safely
+      const hasPlus = match.trim().startsWith('+');
+
+      // Remove redundant + or country code patterns
+      if (digits.startsWith('1') && digits.length === 11) {
+        digits = digits.slice(1);
+      }
+
+      // Only format if 10 digits
+      if (digits.length === 10) {
+        const formatted = `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+        return hasPlus ? `+1 ${formatted}` : `+1 ${formatted}`;
+      }
+
+      // Not a valid 10-digit US number → return unchanged
+      return match;
+    });
+  }
+
+
   public setSelectedProspectingConv(conv: ProspectContact) {
     this.selectedProspectingConv = conv;
   }

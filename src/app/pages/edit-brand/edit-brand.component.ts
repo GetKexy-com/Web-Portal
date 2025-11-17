@@ -17,6 +17,7 @@ import {
 } from '../../components/prospecting-common-card/prospecting-common-card.component';
 import { KexyButtonComponent } from '../../components/kexy-button/kexy-button.component';
 import { ErrorMessageCardComponent } from '../../components/error-message-card/error-message-card.component';
+import { PageUiService } from '../../services/page-ui.service';
 
 @Component({
   selector: 'app-edit-brand',
@@ -59,6 +60,7 @@ export class EditBrandComponent implements OnInit {
   constructor(
     private _authService: AuthService,
     private httpService: HttpService,
+    private pageUiService: PageUiService,
     private fb: FormBuilder
   ) {}
 
@@ -67,8 +69,8 @@ export class EditBrandComponent implements OnInit {
     document.title = "Edit Brand - KEXY Brand Webportal";
 
     this.userData = this._authService.userTokenValue;
-    console.log("user data", this.userData);
 
+    this.userData.supplier_phone = this.pageUiService.formatUSPhoneNumbers(`${this.userData.phoneCountryCode}${this.userData.supplier_phone}`);
     this.supplier_id = this.userData.supplier_id;
 
     // if (this.userData.company_logo) {

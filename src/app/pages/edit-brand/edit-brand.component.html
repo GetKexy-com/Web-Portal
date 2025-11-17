@@ -18,11 +18,6 @@
           <div class="form-group text-center profile-photo-wrap">
             <img class="profile-photo" [src]="imageUrl" [hidden]="!imageUrl" />
           </div>
-
-          <!--          <div class="form-group text-center">-->
-          <!--            <button class="kexy-button" type="submit" (click)="openFileDialog()">Change Company Logo</button>-->
-          <!--            <input type="file" name="" class="profile-photo-file-input tr-hidden" (change)="fileSelected($event)" />-->
-          <!--          </div>-->
           <div class="form-group text-center">
             <app-kexy-button
               label="Upload Logo"
@@ -133,7 +128,7 @@
                 <div class="form-group">
                   <label class="input-label-text">Mobile Number</label>
                   <div class="phonefields">
-                    <div class="phonecode">{{ phoneCode }}</div>
+                    <div class="phonecode"></div>
                     <input
                       [class.error]="(submitted || primaryForm.controls['phone'].dirty) && primaryForm.controls['phone'].invalid"
                       class="form-control phoneNumber"
@@ -142,7 +137,8 @@
                       type="tel"
                     />
                   </div>
-                  <div *ngIf="primaryForm.controls['phone'].invalid && (submitted || primaryForm.controls['phone'].dirty)">
+                  <div
+                    *ngIf="primaryForm.controls['phone'].invalid && (submitted || primaryForm.controls['phone'].dirty)">
                     <error-message-card message="Please enter a valid mobile phone."></error-message-card>
                   </div>
                 </div>
@@ -164,15 +160,12 @@
             </div>
 
 
-
-
-
-<!--            <div class="form-group text-center">-->
-<!--              <button class="kexy-button tr-kexy-button" type="submit" name="submit" id="submit">-->
-<!--                <i *ngIf="isWaitingFlag" class="fa fa-spinner fa-spin" aria-hidden="true"></i>-->
-<!--                Update-->
-<!--              </button>-->
-<!--            </div>-->
+            <!--            <div class="form-group text-center">-->
+            <!--              <button class="kexy-button tr-kexy-button" type="submit" name="submit" id="submit">-->
+            <!--                <i *ngIf="isWaitingFlag" class="fa fa-spinner fa-spin" aria-hidden="true"></i>-->
+            <!--                Update-->
+            <!--              </button>-->
+            <!--            </div>-->
           </form>
         </div>
       </div>
