@@ -64,6 +64,7 @@ export const routeConstants = {
     LIST_CONTACTS: BRAND + CONTACTS + "list-contacts",
     SLACK_INTEGRATION: BRAND + "slack-integration",
     SMTP_SETTINGS: BRAND + "email-account-settings",
+    NEGATIVE_PROMPTS: BRAND + "negative-prompts",
     LANDING_PAGE_NO_AUTH: 'landing-page',
   },
   PUBLIC_PROMOTION_ATTRIBUTES: "promotion-attributes",

@@ -1,0 +1,15 @@
+<brand-layout layoutPaddingNone="true" headerBgWhite="true">
+  <div class="company-description-page">
+    <div class="card-area-wrap">
+      <prospecting-common-card
+        cardTitle="Negative Prompts"
+        [description]="negativePrompts"
+        cardTitleLogo="/assets/icon/blue-company-icon.svg"
+        cardDetails="Avoid including these elements in the email:"
+        textAreaLabel="Prompts"
+        bottomBtnLabel="Save changes"
+        [handleBottomBtnClick]="saveNegativePrompts"
+      />
+    </div>
+  </div>
+</brand-layout>

@@ -346,6 +346,7 @@ export class GenerateDripCampaignComponent implements OnInit {
       target_audience: this.dripCampaign.targetAudience,
       email_about: this.dripCampaign.emailAbout,
       platformPriority: this.dripCampaign.userPromptPriority,
+      negative_prompt: this.userData.negative_prompts,
       isSpintax: this.selectedSpintaxKey === 'Yes',
       promotion_info: !!this.selectedPromotionsProductName,
       prospect: {
@@ -357,6 +358,8 @@ export class GenerateDripCampaignComponent implements OnInit {
         linkedinUrl: this.contactList[0]?.details?.linkedinUrl,
       },
     };
+    console.log({ data });
+    console.log(this.userData.negative_prompts);
 
     try {
       await this.sseService.dripBulkEmailContentStream(data);

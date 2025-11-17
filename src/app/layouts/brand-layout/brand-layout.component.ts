@@ -167,6 +167,7 @@ export class BrandLayoutComponent implements OnInit {
       url.includes(routeConstants.BRAND.INVITE_PEOPLE) ||
       url.includes(routeConstants.BRAND.SUPPRESSION_LIST) ||
       url.includes(routeConstants.BRAND.SLACK_INTEGRATION) ||
+      url.includes(routeConstants.BRAND.NEGATIVE_PROMPTS) ||
       url.includes(routeConstants.BRAND.SMTP_SETTINGS)
     ) {
       this.expandSettingsDropdown = true;

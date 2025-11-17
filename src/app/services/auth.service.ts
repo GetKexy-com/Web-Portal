@@ -172,6 +172,7 @@ export class AuthService {
 
     const response = await this.userCompaniesApiCall(true);
     if (response.success) {
+      console.log({ response });
       let createUrl;
       let organizationListUrl;
       let company;

@@ -272,6 +272,7 @@ export class BrandListComponent implements OnInit {
       websites: company.websites ?? '',
       calendly_links: company.calendlyLinks ?? '',
       company_description: company.companyDescription ?? '',
+      negative_prompts: company.negativePrompts ?? '',
       is_subscription: subscription?.["id"] ? 1 : 0,
       subscription: subscription ? JSON.stringify(subscription) : null,
     };
