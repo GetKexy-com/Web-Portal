@@ -85,7 +85,7 @@ export class GenerateDripCampaignComponent implements OnInit {
   emailTones = constants.EMAIL_TONES;
   spintaxOptions = [
     { key: 'yes', value: 'Yes' },
-    { key: 'no', value: 'No' }
+    { key: 'no', value: 'No' },
   ];
   selectedSpintaxKey = 'Yes';
   selectedEmailToneKey;
@@ -322,8 +322,8 @@ export class GenerateDripCampaignComponent implements OnInit {
       const emailBackup = [...this.emails];
       this.emails = [];
       await this.getContacts(listId);
-      // If the selected list does not have contact in itt hen show old emails again
-      if(!this.contactList?.length) {
+      // If the selected list does not have contact in it then show old emails again
+      if (!this.contactList?.length) {
         this.emails = emailBackup;
       }
       this.isContentLoading = false;
@@ -447,7 +447,7 @@ export class GenerateDripCampaignComponent implements OnInit {
     if (!this.emails.length) {
       await Swal.fire({
         title: `Error`,
-        text: 'Please generate emails to active.',
+        text: 'Please generate emails to activate.',
         icon: 'warning',
       });
       return;
@@ -518,7 +518,7 @@ export class GenerateDripCampaignComponent implements OnInit {
         delayBetweenPreviousEmail: JSON.stringify(e.delayBetweenPreviousEmail),
         emailLength: this.selectedEmailLength.value,
         emailTone: this.selectedEmailToneKey,
-        isSpintax: e.isSpintax
+        isSpintax: e.isSpintax,
       };
       formattedEmails.push(email);
     });
@@ -538,13 +538,13 @@ export class GenerateDripCampaignComponent implements OnInit {
 
   __isConfirmed = async () => {
     let isConfirm = await Swal.fire({
-      title: `Ready to active?`,
+      title: `Ready to activate?`,
       text: 'Make sure all emails are in good shape.',
       icon: 'success',
       showCancelButton: true,
       confirmButtonColor: '#3085d6',
       cancelButtonColor: '#d33',
-      confirmButtonText: 'Yes, Active It!',
+      confirmButtonText: 'Yes, Activate It!',
     });
 
     return !isConfirm.dismiss;

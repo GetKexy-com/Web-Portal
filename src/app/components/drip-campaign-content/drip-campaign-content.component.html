@@ -1,6 +1,8 @@
 <section class="drip-campaign-content">
   <div class="drip-campaign-fields">
-    <p class="title">Drip Campaign Content <a href="https://drive.google.com/drive/folders/1UFEkAdUj1ZqnDLlu04jOBcZsHYbTFZv5" target="_blank">(Here are some drip campaign examples)</a></p>
+    <p class="title">Drip Campaign Content <a
+      href="https://drive.google.com/drive/folders/1UFEkAdUj1ZqnDLlu04jOBcZsHYbTFZv5" target="_blank">(Here are some
+      drip campaign examples)</a></p>
     <form>
       <div class="container-fluid">
         <div class="row section-padding">
@@ -97,6 +99,16 @@
             </textarea>
             <div *ngIf="submitted && !numberOfEmail">
               <error-message-card message="Please enter valid data."></error-message-card>
+            </div>
+
+            <div class="platform-priority mt-3 mb-1">
+              <label class="input-label-text">Use your own prompt to override the KEXY default</label>
+              <kexy-toggle-switch
+                [isSwitchActive]="platformPriority"
+                [changeSwitchOption]="onPlatformPriorityChange"
+                activeText="Yes"
+                inactiveText="No"
+              ></kexy-toggle-switch>
             </div>
           </div>
 
@@ -221,231 +233,3 @@
   [rightSecondBtnClick]="handleClickNextButton"
   [showRightSideFirstBtn]="false"
 ></campaign-layout-bottm-btns>
-
-
-<!--<section class="drip-campaign-content">-->
-<!--  <div class="drip-campaign-fields">-->
-<!--    <p class="title">Drip Campaign Content <a href="https://drive.google.com/drive/folders/1UFEkAdUj1ZqnDLlu04jOBcZsHYbTFZv5" target="_blank">(Here are some drip campaign examples)</a></p>-->
-<!--    <form>-->
-<!--      <div class="container-fluid">-->
-<!--        <div class="contact section-padding">-->
-<!--          <div class="col-12 p-0">-->
-<!--            <kexy-select-dropdown-->
-<!--              label="Title of Campaign"-->
-<!--              shortNoteBesideLabel=""-->
-<!--              [selectAllBtn]="false"-->
-<!--              [required]="true"-->
-<!--              [options]="campaignTitles()"-->
-<!--              [addNewBtn]="true"-->
-<!--              [onAddNewClick]="openCreateDripCampaignTitleCanvas"-->
-<!--              [selectedOption]="selectedTitle()"-->
-<!--              [onSelectSingleItem]="onDripCampaignTitleSelect"-->
-<!--              [rowIndex]="1"-->
-<!--              [editIcon]="true"-->
-<!--              [deleteIcon]="true"-->
-<!--              [onDeleteClick]="handleDeleteDripCampaignTitle"-->
-<!--              [onEditClick]="handleEditDripCampaignTitle"-->
-<!--              optionStyle="button"-->
-<!--              backgroundColor="white"-->
-<!--              placeholder="Please Select"-->
-<!--            ></kexy-select-dropdown>-->
-<!--            @if (submitted() && !selectedTitle()) {-->
-<!--              <error-message-card message="Please enter valid data."></error-message-card>-->
-<!--            }-->
-<!--          </div>-->
-
-<!--          <div class="col-12 col-md-6 mt-3 ps-0">-->
-<!--            <label class="input-label-text">How many emails do you want to send to each prospect? <i-->
-<!--              class="fa fa-asterisk" aria-hidden="true"></i></label>-->
-<!--            <input type="number" class="form-control" placeholder="Number" name="numberOfEmail" min="1"-->
-<!--                   [(ngModel)]="numberOfEmail" (change)="onChangeNumberOfEmail($event)" />-->
-<!--            @if (submitted() && !numberOfEmail) {-->
-<!--              <error-message-card message="Please enter valid data."></error-message-card>-->
-<!--            }-->
-<!--          </div>-->
-
-<!--          <div class="col-12 col-md-3 mt-4 pe-0">-->
-<!--            <kexy-select-dropdown-->
-<!--              label="Email Tone"-->
-<!--              shortNoteBesideLabel=""-->
-<!--              [selectAllBtn]="false"-->
-<!--              [required]="true"-->
-<!--              [options]="emailTones"-->
-<!--              [addNewBtn]="false"-->
-<!--              [onAddNewClick]=""-->
-<!--              [selectedOption]="selectedEmailToneKey()"-->
-<!--              [onSelectSingleItem]="onEmailToneSelect"-->
-<!--              [rowIndex]="1"-->
-<!--              [editIcon]="false"-->
-<!--              [deleteIcon]="false"-->
-<!--              [onDeleteClick]=""-->
-<!--              [onEditClick]=""-->
-<!--              optionStyle="button"-->
-<!--              backgroundColor="white"-->
-<!--              placeholder="Please Select"-->
-<!--            ></kexy-select-dropdown>-->
-<!--            @if (submitted() && !selectedEmailToneKey()) {-->
-<!--              <error-message-card message="Please enter valid data."></error-message-card>-->
-<!--            }-->
-<!--          </div>-->
-
-<!--          <div class="col-12 col-md-3 mt-4 pe-0">-->
-<!--            <kexy-select-dropdown-->
-<!--              label="Email Length"-->
-<!--              shortNoteBesideLabel=""-->
-<!--              [selectAllBtn]="false"-->
-<!--              [required]="false"-->
-<!--              [options]="emailLengthKeys"-->
-<!--              [addNewBtn]="false"-->
-<!--              [onAddNewClick]=""-->
-<!--              [selectedOption]="selectedEmailLength() ? selectedEmailLength()['value'] : ''"-->
-<!--              [onSelectSingleItem]="onEmailLengthSelect"-->
-<!--              [rowIndex]="1"-->
-<!--              [editIcon]="false"-->
-<!--              [deleteIcon]="false"-->
-<!--              [onDeleteClick]=""-->
-<!--              [onEditClick]=""-->
-<!--              [isSearchAble]="false"-->
-<!--              optionStyle="button"-->
-<!--              backgroundColor="white"-->
-<!--              placeholder="Please Select"-->
-<!--            ></kexy-select-dropdown>-->
-<!--          </div>-->
-
-<!--          <div class="col-12 col-md-6 mt-3 position-static ps-0">-->
-<!--            <label class="input-label-text">What do you want to cover? <i class="fa fa-asterisk" aria-hidden="true"></i></label>-->
-<!--            <textarea-->
-<!--              class="form-control campaign-textarea"-->
-<!--              name="whatDoYouCover"-->
-<!--              [(ngModel)]="whatDoYouCover">-->
-<!--            </textarea>-->
-<!--            @if (submitted() && !numberOfEmail) {-->
-<!--              <error-message-card message="Please enter valid data."></error-message-card>-->
-<!--            }-->
-<!--          </div>-->
-
-<!--          <div class="col-12 col-md-6 mt-3 pe-0">-->
-<!--            <label class="input-label-text">-->
-<!--              Define your target audience?-->
-<!--              <i class="fa fa-asterisk" aria-hidden="true"></i></label>-->
-<!--            <textarea-->
-<!--              class="form-control campaign-textarea"-->
-<!--              placeholder="i.e. - small business owner, female consumers ages 21-40, etc."-->
-<!--              name="targetAudience"-->
-<!--              [(ngModel)]="targetAudience">-->
-<!--            </textarea>-->
-<!--            @if (submitted() && !targetAudience) {-->
-<!--              <error-message-card message="Please enter valid data."></error-message-card>-->
-<!--            }-->
-<!--          </div>-->
-
-<!--          <div class="col-12 col-md-6 mt-4 ps-0">-->
-<!--            <kexy-select-dropdown-->
-<!--              label="Calendly or Scheduling link"-->
-<!--              shortNoteBesideLabel=""-->
-<!--              [selectAllBtn]="false"-->
-<!--              [required]="false"-->
-<!--              [options]="calendlyLinkOptions()"-->
-<!--              [addNewBtn]="true"-->
-<!--              [onAddNewClick]="openAddCalendlyLinkCanvas"-->
-<!--              [selectedOption]="selectedCalendlyLinkKey()"-->
-<!--              [onSelectSingleItem]="onCalendlyLinkSelect"-->
-<!--              [rowIndex]="1"-->
-<!--              [editIcon]="false"-->
-<!--              [deleteIcon]="true"-->
-<!--              [onDeleteClick]="handleDeleteCalendlyLink"-->
-<!--              optionStyle="button"-->
-<!--              backgroundColor="white"-->
-<!--              placeholder="Please Select"-->
-<!--            ></kexy-select-dropdown>-->
-<!--          </div>-->
-
-<!--          <div class="col-12 col-md-6 mt-4 pe-0">-->
-<!--            <kexy-select-dropdown-->
-<!--              label="Website"-->
-<!--              shortNoteBesideLabel=""-->
-<!--              [selectAllBtn]="false"-->
-<!--              [required]="true"-->
-<!--              [options]="websitesOptions()"-->
-<!--              [addNewBtn]="true"-->
-<!--              [onAddNewClick]="openAddWebsiteCanvas"-->
-<!--              [selectedOption]="selectedWebsiteKey()"-->
-<!--              [onSelectSingleItem]="onWebsiteSelect"-->
-<!--              [rowIndex]="1"-->
-<!--              [editIcon]="false"-->
-<!--              [deleteIcon]="true"-->
-<!--              [onDeleteClick]="handleDeleteWebsite"-->
-<!--              optionStyle="button"-->
-<!--              backgroundColor="white"-->
-<!--              placeholder="Please Select"-->
-<!--            ></kexy-select-dropdown>-->
-<!--            @if (submitted() && !selectedWebsiteKey()) {-->
-<!--              <error-message-card message="Please enter valid data."></error-message-card>-->
-<!--            }-->
-<!--          </div>-->
-<!--        </div>-->
-<!--      </div>-->
-<!--    </form>-->
-<!--  </div>-->
-<!--  <div class="previous-campaigns-wrap mt-3">-->
-<!--    <drip-campaign-promotions-table-->
-<!--      tableHeaderBg="#0047CC"-->
-<!--      tableHeaderColor="#FFFFFF"-->
-<!--      [promotionId]="promotionId()"-->
-<!--      (selectedPromotion)="receivedPromotion($event)"-->
-<!--      (selectedLimit)="receivedLimitNumber($event)"-->
-<!--      [landingPages]="promotionsData()"-->
-<!--      [isWaitingFlag]="isWaitingFlag()"-->
-<!--    >-->
-<!--    </drip-campaign-promotions-table>-->
-
-<!--    &lt;!&ndash;pagination&ndash;&gt;-->
-<!--    @if (!isWaitingFlag()) {-->
-<!--      <nav style="text-align: center">-->
-<!--        <ul class="pagination">-->
-<!--          <li class="page-item">-->
-<!--            <button-->
-<!--              (click)="goToPage(page() > 1 ? page() - 1 : 1)"-->
-<!--              class="page-link"-->
-<!--              href="#"-->
-<!--              aria-label="Previous"-->
-<!--              type="button"-->
-<!--            >-->
-<!--              <span aria-hidden="true">&laquo;</span>-->
-<!--              <span class="sr-only">Previous</span>-->
-<!--            </button>-->
-<!--          </li>-->
-<!--          @for (p of totalPages(); track p.page) {-->
-<!--            <li class="page-item" [class.active]="p.isActive">-->
-<!--              <button-->
-<!--                (click)="goToPage(p.page)"-->
-<!--                class="page-link"-->
-<!--                type="button"-->
-<!--              >-->
-<!--                {{ p.page }}-->
-<!--              </button>-->
-<!--            </li>-->
-<!--          }-->
-<!--          <li class="page-item">-->
-<!--            <button-->
-<!--              (click)="goToPage(page() < totalPageCounts() ? page() + 1 : totalPageCounts())"-->
-<!--              class="page-link"-->
-<!--              href="#"-->
-<!--              aria-label="Next"-->
-<!--              type="button"-->
-<!--            >-->
-<!--              <span aria-hidden="true">&raquo;</span>-->
-<!--              <span class="sr-only">Next</span>-->
-<!--            </button>-->
-<!--          </li>-->
-<!--        </ul>-->
-<!--      </nav>-->
-<!--    }-->
-<!--  </div>-->
-<!--</section>-->
-
-<!--&lt;!&ndash; Back Next Button &ndash;&gt;-->
-<!--<campaign-layout-bottm-btns-->
-<!--  [rightSecondBtnClick]="handleClickNextButton"-->
-<!--  [showRightSideFirstBtn]="false"-->
-<!--&gt;</campaign-layout-bottm-btns>-->

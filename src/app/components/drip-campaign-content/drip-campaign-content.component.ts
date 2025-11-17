@@ -19,6 +19,7 @@ import { AddCalendlyLinkContentComponent } from '../add-calendly-link-content/ad
 import { AddWebsiteContentComponent } from '../add-website-content/add-website-content.component';
 import { LandingPage } from '../../models/LandingPage';
 import { DripCampaign } from '../../models/DripCampaign';
+import { KexyToggleSwitchComponent } from '../kexy-toggle-switch/kexy-toggle-switch.component';
 
 @Component({
   selector: 'drip-campaign-content',
@@ -30,6 +31,7 @@ import { DripCampaign } from '../../models/DripCampaign';
     NgClass,
     CampaignLayoutBottmBtnsComponent,
     CommonModule,
+    KexyToggleSwitchComponent,
   ],
   templateUrl: './drip-campaign-content.component.html',
   styleUrl: './drip-campaign-content.component.scss',
@@ -67,6 +69,7 @@ export class DripCampaignContentComponent implements OnInit {
   public whatDoYouCover = '';
   public emailLengthKeys = constants.EMAIL_LENGTH_KEYS;
   public selectedEmailLength;
+  public platformPriority = false;
 
   public dripCampaignTitlesSubscription: Subscription;
   public calendlyLinkSubscription: Subscription;
@@ -124,6 +127,11 @@ export class DripCampaignContentComponent implements OnInit {
     if (this.calendlyLinkSubscription) this.calendlyLinkSubscription.unsubscribe();
     if (this.websiteSubscription) this.websiteSubscription.unsubscribe();
   }
+
+  onPlatformPriorityChange = () => {
+    this.platformPriority = !this.platformPriority;
+  };
+
 
   setPreviousData = () => {
     let dripCampaign: DripCampaign = this.dripCampaignService.getDripCampaignContentPageData();
@@ -466,6 +474,7 @@ export class DripCampaignContentComponent implements OnInit {
       targetAudience: this.targetAudience,
       emailAbout: this.whatDoYouCover,
       audienceType: this.selectedDripCampaignType,
+      platformPriority: this.platformPriority,
     };
     if (this.dripCampaignDuplicate) {
       payload['dripCampaignDuplicate'] = true;
