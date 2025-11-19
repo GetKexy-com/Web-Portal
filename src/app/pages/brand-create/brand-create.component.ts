@@ -264,7 +264,7 @@
 //   }
 // }
 
-import {Component, inject, OnInit, signal} from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -275,8 +275,9 @@ import { constants } from '../../helpers/constants';
 import { routeConstants } from '../../helpers/routeConstants';
 import { LoginLayoutComponent } from '../../layouts/login-layout/login-layout.component';
 import { CommonModule } from '@angular/common';
-import { states } from "src/assets/states";
-import {PhoneNumberMaskDirective} from '../../directive/phone-number-mask.directive';
+import { states } from 'src/assets/states';
+import { PhoneNumberMaskDirective } from '../../directive/phone-number-mask.directive';
+
 // import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 
 @Component({
@@ -290,7 +291,7 @@ import {PhoneNumberMaskDirective} from '../../directive/phone-number-mask.direct
     // FontAwesomeModule
   ],
   templateUrl: './brand-create.component.html',
-  styleUrl: './brand-create.component.scss'
+  styleUrl: './brand-create.component.scss',
 })
 export class BrandCreateComponent implements OnInit {
   primaryForm: FormGroup;
@@ -317,7 +318,7 @@ export class BrandCreateComponent implements OnInit {
     city: '',
     country: '',
     state: '',
-    zip_code_list: ''
+    zip_code_list: '',
   });
 
   private _authService = inject(AuthService);
@@ -329,20 +330,13 @@ export class BrandCreateComponent implements OnInit {
     this.primaryForm = this.fb.group({
       name: [
         this.companyName(),
-        [Validators.required, Validators.minLength(0), Validators.maxLength(64)]
+        [Validators.required, Validators.minLength(0), Validators.maxLength(64)],
       ],
       industry: [
         this.industry(),
-        [Validators.required, Validators.minLength(0), Validators.maxLength(100)]
+        [Validators.required, Validators.minLength(0), Validators.maxLength(100)],
       ],
-      phone: [
-        '',
-        [
-          Validators.minLength(0),
-          Validators.maxLength(21),
-          Validators.pattern(/^\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$/)
-        ]
-      ],
+      phone: [''],
       country: [constants.US],
       city: [''],
       website: [''],
@@ -353,9 +347,9 @@ export class BrandCreateComponent implements OnInit {
           Validators.required,
           Validators.minLength(0),
           Validators.maxLength(5),
-          Validators.pattern(/^[0-9]{5}(?:-[0-9]{4})?$/)
-        ]
-      ]
+          Validators.pattern(/^[0-9]{5}(?:-[0-9]{4})?$/),
+        ],
+      ],
     });
   }
 
@@ -395,7 +389,7 @@ export class BrandCreateComponent implements OnInit {
 
     this.countries.set([
       { isoCode: 'US', name: 'United States', phonecode: '1' },
-      { isoCode: 'CA', name: 'Canada', phonecode: '1' }
+      { isoCode: 'CA', name: 'Canada', phonecode: '1' },
     ]);
 
     this.onCountrySelect(this.selectedCountry());
@@ -405,7 +399,7 @@ export class BrandCreateComponent implements OnInit {
     this.submitted.set(true);
 
     if (!this.primaryForm.valid) {
-      console.log(this.primaryForm);
+      console.log(this.primaryForm.controls);
       return;
     }
 
@@ -420,9 +414,11 @@ export class BrandCreateComponent implements OnInit {
       ...this.primaryForm.getRawValue(),
     };
 
-    if(this.primaryForm.getRawValue().website !== "") {
+    delete data.website;
+    if (this.primaryForm.getRawValue().website !== '') {
       data.websites = JSON.stringify([this.primaryForm.getRawValue().website]);
-      delete data.website;
+    } else {
+      data.websites = '';
     }
 
     data.zipCodeList = [{ zip_code: data.zipCodeList }];
@@ -481,13 +477,13 @@ export class BrandCreateComponent implements OnInit {
     this.selectedCountry.set(country);
     this.getStateList(country);
 
-    this.primaryForm.setControl('phone', this.fb.control('', [PhoneNumberValidator(country)]));
+    this.primaryForm.setControl('phone', this.fb.control('', [PhoneNumberValidator(country, true)]));
 
     const zipCodeValidation = COUNTRY_ADDRESS_POSTALS.find(c => c.abbrev === country);
     if (zipCodeValidation?.postal) {
       this.primaryForm.setControl(
         'zipCodeList',
-        this.fb.control('', [Validators.required, Validators.pattern(zipCodeValidation.postal)])
+        this.fb.control('', [Validators.required, Validators.pattern(zipCodeValidation.postal)]),
       );
     } else {
       this.primaryForm.setControl('zipCodeList', this.fb.control('', []));

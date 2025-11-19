@@ -3,8 +3,11 @@ import { PhoneNumberUtil } from "google-libphonenumber";
 
 const phoneNumberUtil = PhoneNumberUtil.getInstance();
 
-export function PhoneNumberValidator(regionCode: string = undefined): ValidatorFn {
+export function PhoneNumberValidator(regionCode: string = undefined, emptyAllow = false): ValidatorFn {
   return (control: AbstractControl): { [key: string]: any } => {
+    if(emptyAllow && control.value === '') {
+      return null;
+    }
     let validNumber = false;
     try {
       //let userToken = JSON.parse(localStorage.getItem("userToken"));

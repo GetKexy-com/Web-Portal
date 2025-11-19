@@ -100,9 +100,12 @@ export class AuthService {
       return this.userOrganisationData;
     }
     try {
+      console.log("Is here?");
       const response = await this.httpService.get('company/getUserCompanies').toPromise();
       if (response.success) {
         this.userOrganisationData = response;
+        const company = this.userOrganisationData.data[0].company;
+        localStorage.setItem(constants.PROSPECTING_WEBSITE, company.websites ?? '');
       }
       return this.userOrganisationData;
     } catch (ex) {

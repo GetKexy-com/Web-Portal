@@ -54,7 +54,7 @@ export class PageUiService {
 
   public formatUSPhoneNumbers(text: string): string {
     // Match various US-like number patterns
-    const phoneRegex = /\+?\d[\d\s().-]{9,}\d/g;
+    const phoneRegex = /(\+?1[\s.-]*)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}/g;
 
     return text.replace(phoneRegex, (match) => {
       // Remove everything except digits
@@ -73,7 +73,6 @@ export class PageUiService {
         const formatted = `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
         return hasPlus ? `+1 ${formatted}` : `+1 ${formatted}`;
       }
-
       // Not a valid 10-digit US number → return unchanged
       return match;
     });

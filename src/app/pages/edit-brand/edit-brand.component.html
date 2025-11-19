@@ -128,10 +128,9 @@
                 <div class="form-group">
                   <label class="input-label-text">Mobile Number</label>
                   <div class="phonefields">
-                    <div class="phonecode"></div>
                     <input
                       [class.error]="(submitted || primaryForm.controls['phone'].dirty) && primaryForm.controls['phone'].invalid"
-                      class="form-control phoneNumber"
+                      class="form-control"
                       formControlName="phone"
                       placeholder="Mobile Phone"
                       type="tel"
@@ -140,6 +139,25 @@
                   <div
                     *ngIf="primaryForm.controls['phone'].invalid && (submitted || primaryForm.controls['phone'].dirty)">
                     <error-message-card message="Please enter a valid mobile phone."></error-message-card>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-sm-6 col-xs-12">
+                <div class="form-group">
+                  <label class="input-label-text">Website</label>
+                  <input
+                    [class.error]="(submitted || primaryForm.controls['website'].dirty) && primaryForm.controls['website'].invalid"
+                    type="text"
+                    formControlName="website"
+                    class="form-control"
+                    placeholder="Website"
+                  />
+                  <div
+                    *ngIf="primaryForm.controls['website'].invalid && (submitted || primaryForm.controls['website'].dirty)">
+                    <error-message-card message="Please enter a valid website."></error-message-card>
                   </div>
                 </div>
               </div>
@@ -160,12 +178,6 @@
             </div>
 
 
-            <!--            <div class="form-group text-center">-->
-            <!--              <button class="kexy-button tr-kexy-button" type="submit" name="submit" id="submit">-->
-            <!--                <i *ngIf="isWaitingFlag" class="fa fa-spinner fa-spin" aria-hidden="true"></i>-->
-            <!--                Update-->
-            <!--              </button>-->
-            <!--            </div>-->
           </form>
         </div>
       </div>
