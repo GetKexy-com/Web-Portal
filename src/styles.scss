@@ -913,6 +913,20 @@ header#main-header #logo {
   cursor: pointer;
 }
 
+.tr-main-box {
+  overflow: hidden;
+  position: relative;
+  min-height: 600px;
+  background: white;
+  width: 570px;
+  margin: 0 auto;
+  padding: 40px 20px 20px 20px;
+  -webkit-box-shadow: 0px 0px 35px 0px rgba(0, 0, 0, 0.1);
+  -moz-box-shadow: 0px 0px 35px 0px rgba(0, 0, 0, 0.1);
+  box-shadow: 0px 0px 35px 0px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+}
+
 /*********************************************
  Preious app.component.scss css
  *********************************************/

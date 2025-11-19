@@ -338,7 +338,6 @@ export class BrandCreateComponent implements OnInit {
       phone: [
         '',
         [
-          Validators.required,
           Validators.minLength(0),
           Validators.maxLength(21),
           Validators.pattern(/^\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$/)
@@ -346,6 +345,7 @@ export class BrandCreateComponent implements OnInit {
       ],
       country: [constants.US],
       city: [''],
+      website: [''],
       state: [''],
       zipCodeList: [
         '',
@@ -417,8 +417,13 @@ export class BrandCreateComponent implements OnInit {
       phoneCountryCode: this.phoneCode(),
       industry: localStorage.getItem(constants.INDUSTRY),
       zipCodeList: [{}],
-      ...this.primaryForm.getRawValue()
+      ...this.primaryForm.getRawValue(),
     };
+
+    if(this.primaryForm.getRawValue().website !== "") {
+      data.websites = JSON.stringify([this.primaryForm.getRawValue().website]);
+      delete data.website;
+    }
 
     data.zipCodeList = [{ zip_code: data.zipCodeList }];
 
@@ -429,23 +434,6 @@ export class BrandCreateComponent implements OnInit {
         localStorage.setItem('supplierId', response.data.company_id);
         this.isWaitingFlag.set(false);
         localStorage.removeItem(constants.INDUSTRY);
-
-        // const hubspotFormData = {
-        //   formGuid: constants.HUBSPOT_RESTAURANT_CREATE_FORMID,
-        //   fields: [
-        //     {
-        //       name: 'email',
-        //       value: localStorage.getItem('registerEmail')
-        //     }
-        //   ],
-        //   context: {
-        //     pageUri: location.href,
-        //     pageName: document.title
-        //   }
-        // };
-
-        // this.httpService.post('user/formSubmitInHubspot', hubspotFormData).subscribe();
-
         await this.router.navigate([routeConstants.BRAND.SUBSCRIPTION_SELECTION]);
       } else {
         this.handleError(response);
@@ -535,26 +523,4 @@ export class BrandCreateComponent implements OnInit {
       this.stateLabel.set('Please Select State');
     }
   }
-
-  // private getStateList(country: string) {
-  //   this.geolocationDetails.update(details => ({ ...details, state: '' }));
-  //
-  //   // In a real app, you would fetch states for the selected country
-  //   this.states.set([]); // Reset states
-  //
-  //   const userCountry = this.countries().find(c => c.isoCode === country);
-  //   if (userCountry) {
-  //     this.phoneCode.set('+' + userCountry.phonecode);
-  //   }
-  //
-  //   if (country !== 'US') {
-  //     this.zipCodePlaceholder.set('Postal Code');
-  //     this.zipCodeLabel.set('Please enter a valid Postal Code.');
-  //     this.stateLabel.set('Please Select Province');
-  //   } else {
-  //     this.zipCodePlaceholder.set('Zip Code');
-  //     this.zipCodeLabel.set('Please enter a valid 5 digit Zip Code.');
-  //     this.stateLabel.set('Please Select State');
-  //   }
-  // }
 }

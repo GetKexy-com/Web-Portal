@@ -271,6 +271,10 @@ export class RegisterComponent implements OnInit {
         Validators.maxLength(64),
         Validators.pattern("^[a-zA-Z- ]+$")
       ]],
+      email: ['', [
+        Validators.required,
+        Validators.email,
+      ]],
       jobTitle: ['', [
         Validators.required,
         Validators.minLength(0),
@@ -318,6 +322,7 @@ export class RegisterComponent implements OnInit {
     this.registerForm.patchValue({
       firstName: this.first_name(),
       lastName: this.last_name(),
+      email: this.email(),
       jobTitle: this.job_title()
     });
   }
@@ -338,7 +343,6 @@ export class RegisterComponent implements OnInit {
     data.phoneCountryCode = this.phoneCode();
 
     const registerData = {
-      email: this.email(),
       profilePhoto: this.imageUrl()
     };
 
