@@ -281,6 +281,7 @@ export class SseService {
                   emailContent: current_content,
                   aiRawData: currentAiData,
                 };
+                console.log({ email });
                 emails.push(email);
                 this.addToDripBulkEmails(emails);
                 // Increment email_sequence by 1 so next dripEmail sequence is set to next number.
@@ -330,6 +331,7 @@ export class SseService {
                 emailContent,
                 aiRawData: aiEmailData,
               };
+              console.log({ email });
               emails.push(email);
               this.addToDripBulkEmails(emails);
             }

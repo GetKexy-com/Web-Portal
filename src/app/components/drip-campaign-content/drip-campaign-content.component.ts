@@ -225,7 +225,7 @@ export class DripCampaignContentComponent implements OnInit {
     // Set campaignTitle subscription
     this.dripCampaignTitlesSubscription = this.dripCampaignService.dripCampaignTitles.subscribe(
       (campaignTitles) => {
-        this.campaignTitles = campaignTitles;
+        this.campaignTitles = campaignTitles.sort((a,b) => b.id - a.id);
         console.log('campaignTitles', campaignTitles);
         console.log('selectedTitle', this.selectedTitleId);
         this.campaignTitles.map((i) => {
