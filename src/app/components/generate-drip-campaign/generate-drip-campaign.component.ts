@@ -87,7 +87,7 @@ export class GenerateDripCampaignComponent implements OnInit {
     { key: 'yes', value: 'Prospect Insights' },
     { key: 'no', value: 'Spintax' },
   ];
-  selectedSpintaxKey = 'Yes';
+  selectedSpintaxKey = 'Prospect Insights';
   selectedEmailToneKey;
   contactList;
   contactListSubscription: Subscription;
