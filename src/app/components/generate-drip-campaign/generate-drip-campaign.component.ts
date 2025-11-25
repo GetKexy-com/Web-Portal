@@ -84,8 +84,8 @@ export class GenerateDripCampaignComponent implements OnInit {
   selectedEmailLength;
   emailTones = constants.EMAIL_TONES;
   spintaxOptions = [
-    { key: 'yes', value: 'Yes' },
-    { key: 'no', value: 'No' },
+    { key: 'yes', value: 'Prospect Insights' },
+    { key: 'no', value: 'Spintax' },
   ];
   selectedSpintaxKey = 'Yes';
   selectedEmailToneKey;
