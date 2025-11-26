@@ -30,6 +30,7 @@ import {
 } from '../email-time-settings-content/email-time-settings-content.component';
 import { CommonModule } from '@angular/common';
 import { PageUiService } from '../../services/page-ui.service';
+import { Contact, IRawContact } from '../../models/Contact';
 import { ExportToCsv } from '../../helpers/CSVHelper';
 import { PreviewDripEmailContentComponent } from '../preview-drip-email-content/preview-drip-email-content.component';
 
@@ -89,7 +90,7 @@ export class GenerateDripCampaignComponent implements OnInit {
   ];
   selectedSpintaxKey = constants.PROSPECT_INSIGHTS;
   selectedEmailToneKey;
-  contactList;
+  contactList: Contact[];
   contactListSubscription: Subscription;
 
   constructor(
@@ -349,6 +350,8 @@ export class GenerateDripCampaignComponent implements OnInit {
       negative_prompt: this.userData.negative_prompts,
       isSpintax: this.selectedSpintaxKey === constants.PROSPECT_INSIGHTS,
       promotion_info: !!this.selectedPromotionsProductName,
+      prospect_email_address: this.contactList[0]?.email,
+      drip_campaign_id: this.dripCampaign.id,
       prospect: {
         name: this.contactList[0]?.contactName,
         company: this.contactList[0]?.companyName,
@@ -356,6 +359,7 @@ export class GenerateDripCampaignComponent implements OnInit {
         location: `${this.contactList[0]?.details?.city}, ${this.contactList[0].details?.state}, ${this.contactList[0].details?.country}`,
         website: '',
         linkedinUrl: this.contactList[0]?.details?.linkedinUrl,
+        username: this.getLinkedInUsername(this.contactList[0]?.details?.linkedinUrl),
       },
     };
     console.log({ data });
@@ -368,6 +372,14 @@ export class GenerateDripCampaignComponent implements OnInit {
     }
 
   };
+
+  getLinkedInUsername(url) {
+    if(!url) {
+      return "";
+    }
+    const match = url.match(/linkedin\.com\/in\/([^/?]+)/i);
+    return match ? match[1] : "";
+  }
 
   showAiEmailError = () => {
     this.emailErrorSubscription = this.sseService.dripBulkEmailError.subscribe((content) => {

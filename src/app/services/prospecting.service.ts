@@ -773,7 +773,7 @@ export class ProspectingService {
     });
   };
 
-  setLabelsInContactsList = (contactList) => {
+  setLabelsInContactsList = (contactList: Contact[]) => {
     const lists = this._labels.getValue();
     contactList.forEach((contact: Contact) => {
       let contactLists = [];
