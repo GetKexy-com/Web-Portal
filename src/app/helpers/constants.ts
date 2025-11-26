@@ -168,6 +168,8 @@ export const constants = {
   SCOTT_BRAND_ACCOUNT_ID: 95,
   PROSPECTING_CALENDLY_LINKS: 'prospectingCalendlyLinks',
   PROSPECTING_WEBSITE: 'prospectingWebsite',
+  PROSPECT_INSIGHTS: "Prospect Insights",
+  SPINTAX: 'Spintax',
   SALES_LEAD_SEARCH_PAYLOAD: 'sales-lead-search-payload',
   SALES_LEAD_SEARCH_JOB_TITLES_PAYLOAD: 'sales-lead-search-job-titles-payload',
   SALES_LEAD_EMAIL_TONE: 'sales-lead-email-tone',

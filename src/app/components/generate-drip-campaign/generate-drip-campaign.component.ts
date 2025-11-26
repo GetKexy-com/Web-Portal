@@ -84,10 +84,10 @@ export class GenerateDripCampaignComponent implements OnInit {
   selectedEmailLength;
   emailTones = constants.EMAIL_TONES;
   spintaxOptions = [
-    { key: 'yes', value: 'Prospect Insights' },
-    { key: 'no', value: 'Spintax' },
+    { key: 'yes', value: constants.PROSPECT_INSIGHTS },
+    { key: 'no', value: constants.SPINTAX },
   ];
-  selectedSpintaxKey = 'Prospect Insights';
+  selectedSpintaxKey = constants.PROSPECT_INSIGHTS;
   selectedEmailToneKey;
   contactList;
   contactListSubscription: Subscription;
@@ -141,7 +141,7 @@ export class GenerateDripCampaignComponent implements OnInit {
       this.emails = emails;
       this.emails.forEach((e: DripEmail) => {
         const delay: EmailDelay = e.delayBetweenPreviousEmail;
-        e.isSpintax = this.selectedSpintaxKey === 'Yes';
+        e.isSpintax = this.selectedSpintaxKey === constants.PROSPECT_INSIGHTS;
         e['emailText'] = `${delay.days} day(s) ${delay.hours} hour(s) ${delay.minutes} minute(s)`;
       });
 
@@ -347,7 +347,7 @@ export class GenerateDripCampaignComponent implements OnInit {
       email_about: this.dripCampaign.emailAbout,
       platformPriority: this.dripCampaign.userPromptPriority,
       negative_prompt: this.userData.negative_prompts,
-      isSpintax: this.selectedSpintaxKey === 'Yes',
+      isSpintax: this.selectedSpintaxKey === constants.PROSPECT_INSIGHTS,
       promotion_info: !!this.selectedPromotionsProductName,
       prospect: {
         name: this.contactList[0]?.contactName,
