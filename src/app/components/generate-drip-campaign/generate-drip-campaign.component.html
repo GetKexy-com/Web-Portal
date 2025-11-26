@@ -172,7 +172,7 @@
       <ng-container *ngFor="let email of emails; let i = index">
         <drip-campaign-card
           headerIcon="/assets/icon/message-sent-white-icon.svg"
-          [headerTitle]="'Send Email #' + (i + 1)"
+          [headerTitle]="'Email #' + (i + 1)"
           [emailText]="email.emailSubject"
           [email]="email"
           clickRate="50% click rate"
