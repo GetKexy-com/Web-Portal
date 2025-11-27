@@ -347,6 +347,7 @@ export class CategoryProductListCardComponent {
     const p = {
       ...product,
       id: product.id,
+      companyId: this.supplierId(),
       name: product.name
     };
 
