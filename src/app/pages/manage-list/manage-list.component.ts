@@ -258,6 +258,21 @@ export class ManageListComponent implements OnInit, OnDestroy {
     }
   };
 
+  validateList = async () => {
+    const postData = {
+      listId: this.selectedLabels[0].id,
+    };
+    const swlLoading = this.pageUiService.showSweetAlertLoading();
+    try {
+      swlLoading.showLoading();
+      await this.prospectingService.validateList(postData);
+      swlLoading.close();
+    } catch (e) {
+      swlLoading.close();
+      await Swal.fire('Error', e.message);
+    }
+  }
+
   duplicateLabel = async () => {
     const postData = {
       supplier_id: this.supplierId,

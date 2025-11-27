@@ -1,3 +1,10 @@
+<section
+  *ngIf="isValidationProgress() "
+  class="alert alert-primary mb-3"
+>
+  <i class="fa fa-refresh fa-spin" style="font-size: 20px;" aria-hidden="true"></i>
+  <span class="ps-3">You'll receive an email notification once email verification is complete.</span>
+</section>
 <div class="kexy-table-card">
   <section class="card-header">
     <p class="d-flex align-items-center">
@@ -34,6 +41,15 @@
             label="Add Contact"
             tooltip="Add New Contact"
             iconLeft="fa-plus"
+            bgColor="#e7f6fe"
+            textColor="#2847cc"
+            radius="8px"
+          ></app-kexy-button>
+          <app-kexy-button
+            (click)="validateList()"
+            [disabled]="validationLoading || isValidationProgress()"
+            [label]="validationLoading ? 'Please wait...' : 'Verify Email(s)' "
+            [iconLeft]="validationLoading ? 'fa-refresh fa-spin' : 'fa-check-circle-o'"
             bgColor="#e7f6fe"
             textColor="#2847cc"
             radius="8px"

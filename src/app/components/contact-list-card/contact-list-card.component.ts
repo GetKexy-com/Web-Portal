@@ -21,6 +21,7 @@ import { KexyButtonComponent } from '../kexy-button/kexy-button.component';
 import { CommonModule, DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Contact } from '../../models/Contact';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'contact-list-card',
@@ -41,6 +42,7 @@ export class ContactListCardComponent implements OnInit, OnDestroy, AfterViewIni
   @Input() selectedContacts = [];
   @Input() isLoading: boolean = false;
   @Input() isWaitingFlag: boolean;
+  @Input() listInfo;
   @Input() checkboxClicked;
   @Input() createContactClick;
   @Input() importBtnClick;
@@ -140,6 +142,33 @@ export class ContactListCardComponent implements OnInit, OnDestroy, AfterViewIni
     this.tableWidth = this.browserWidthForTable > sum ? this.browserWidthForTable : sum;
   };
 
+  public validationLoading: boolean = false;
+
+  isValidationProgress = () => {
+    return this.listInfo && (this.listInfo.validationStatus === 'pending' || this.listInfo.validationStatus === 'inprogress');
+  };
+
+  validateList = async () => {
+    const postData = {
+      listId: this.listInfo.id,
+    };
+    try {
+      this.validationLoading = true;
+      await this.prospectingService.validateList(postData);
+      this.listInfo.validationStatus = 'pending';
+      await this.pageUiService.showSweetAlert(
+        'Verification started',
+        'An email notification will be sent to you upon completion of the varification process.',
+        'info',
+      );
+    } catch (e) {
+      await Swal.fire('Error', e.message);
+    } finally {
+      this.validationLoading = false;
+    }
+  };
+
+
   getCellClasses = (column) => {
     let classes = {
       'n-cell-only-name': column.key === 'no',
@@ -218,10 +247,10 @@ export class ContactListCardComponent implements OnInit, OnDestroy, AfterViewIni
   };
 
   isValidLinkedinUrl(url: string): boolean {
-  if (!url) return false;
-  const trimmed = url.trim().toLowerCase();
+    if (!url) return false;
+    const trimmed = url.trim().toLowerCase();
 
-  // Basic validation: must start with linkedin.com/in/ or linkedin.com/company/
-  return trimmed.includes('linkedin.com/in/') || trimmed.includes('linkedin.com/company/');
-}
+    // Basic validation: must start with linkedin.com/in/ or linkedin.com/company/
+    return trimmed.includes('linkedin.com/in/') || trimmed.includes('linkedin.com/company/');
+  }
 }

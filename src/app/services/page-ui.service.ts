@@ -2,7 +2,7 @@ import { Injectable } from "@angular/core";
 import { Router } from "@angular/router";
 import { ProspectContact } from "../models/ProspectContact";
 import { AbstractControl, ValidatorFn } from "@angular/forms";
-import Swal from "sweetalert2";
+import Swal, { SweetAlertIcon } from 'sweetalert2';
 
 @Injectable({
   providedIn: "root",
@@ -124,6 +124,19 @@ export class PageUiService {
       showCancelButton: false,
       allowOutsideClick: false,
       allowEscapeKey: false,
+    });
+    return Swal;
+  };
+
+  public showSweetAlert = async (title = "", text = "", icon: SweetAlertIcon = 'info') => {
+    await Swal.fire({
+      title,
+      text,
+      showConfirmButton: true,
+      showCancelButton: false,
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      icon,
     });
     return Swal;
   };

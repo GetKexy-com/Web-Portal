@@ -634,6 +634,19 @@ export class ProspectingService {
     });
   };
 
+  validateList = async (postData) => {
+    return new Promise(async (resolve, reject) => {
+      this.httpService.post('lists/validate', postData).subscribe({
+        next: () => resolve(true),
+        error: (err) => {
+          if (err.error) {
+            reject(err.error);
+          }
+        },
+      });
+    });
+  };
+
   getLists = async (postData, overwrite = true) => {
     const { page, limit } = postData;
     if (page) this.manageListCurrentPage = page;
