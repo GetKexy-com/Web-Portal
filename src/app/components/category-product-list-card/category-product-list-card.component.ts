@@ -355,6 +355,7 @@ export class CategoryProductListCardComponent {
     delete p.isOpened;
     delete p.status;
     delete p.createdAt;
+    delete p.company;
 
     try {
       await this.prospectingService.updateProduct(p);
