@@ -5,7 +5,7 @@
          (click)="backBtnClickHandler($event)">
         <i class="fa fa-angle-left me-2" style="font-size: 20px" aria-hidden="true"></i> Back
       </a>
-      Contacts
+      <span *ngIf="showTitle">Contacts</span>
       <span class="d-none"> {{ getSelectedItemCount() }} </span>
       <span
         *ngIf="totalPage && totalPage > 1 && selectedItemCount > 0 && selectedItemCount === contacts.length"
@@ -209,19 +209,19 @@
                   </span>
                 </span>
 
-                <span 
+                <span
                   *ngIf="column.key === 'linkedinUrl' && isValidLinkedinUrl(getCellValue(contact, column))"
                   class="linkedin-icon-wrap"
                   (click)="stopPropagation($event)"
                 >
-                  <a 
-                    [href]="getCellValue(contact, column)" 
+                  <a
+                    [href]="getCellValue(contact, column)"
                     target="_blank"
-                    >
-                    <i 
+                  >
+                    <i
                       class="fa fa-linkedin-square"
                       aria-hidden="true"
-                      >
+                    >
                     </i>
                   </a>
                 </span>

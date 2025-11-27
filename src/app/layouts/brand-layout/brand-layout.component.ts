@@ -56,6 +56,7 @@ export class BrandLayoutComponent implements OnInit {
   @Input() headerBgWhite;
   @Input() mainBgColor = "white";
   @Input() showBackButton = false;
+  @Input() headline = "";
   brand = routeConstants.BRAND;
   base_url = routeConstants.BASE_URL;
 

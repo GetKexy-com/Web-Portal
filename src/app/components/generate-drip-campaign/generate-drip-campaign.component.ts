@@ -362,8 +362,6 @@ export class GenerateDripCampaignComponent implements OnInit {
         username: this.getLinkedInUsername(this.contactList[0]?.details?.linkedinUrl),
       },
     };
-    console.log({ data });
-    console.log(this.userData.negative_prompts);
 
     try {
       await this.sseService.dripBulkEmailContentStream(data);

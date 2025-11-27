@@ -1,4 +1,4 @@
-<brand-layout layoutPaddingNone="true" headerBgWhite="true">
+<brand-layout layoutPaddingNone="true" headerBgWhite="true" [showBackButton]="true" headline="Contacts">
   <main class="brand-list-contacts-page">
     <section class="card-area-wrap">
       <prospecting-common-card
@@ -28,7 +28,8 @@
         [paginationRightArrowClick]="paginationRightArrowClick"
         [navigateSpecificPage]="navigateSpecificPage"
         [sortByCreatedAt]="handleSortByCreatedAt"
-        [showBackBtn]="true"
+        [showBackBtn]="false"
+        [showTitle]="false"
         [showActionBtns]="true"
         [backBtnClick]="backBtnClick"
         [isWaitingFlag]="isWaitingFlag"

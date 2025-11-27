@@ -63,6 +63,7 @@ export class ContactListCardComponent implements OnInit, OnDestroy, AfterViewIni
   @Input() limit;
   @Input() backBtnClick;
   @Input() showBackBtn = false;
+  @Input() showTitle = true;
   @Input() showActionBtns = false;
   @Input() sortByCreatedAt;
   @Input() activeFilterClick;
@@ -154,7 +155,7 @@ export class ContactListCardComponent implements OnInit, OnDestroy, AfterViewIni
 
   getCellValue = (row, column) => {
     const details = typeof row.details === 'string' ? JSON.parse(row.details) : row.details;
-    
+
     if (details[column.key]) {
       return details[column.key];
     }
