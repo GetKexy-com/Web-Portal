@@ -145,7 +145,11 @@ export class ContactListCardComponent implements OnInit, OnDestroy, AfterViewIni
   public validationLoading: boolean = false;
 
   isValidationProgress = () => {
-    return this.listInfo && (this.listInfo.validationStatus === 'pending' || this.listInfo.validationStatus === 'inprogress');
+    return this.listInfo && (
+      this.listInfo.validationStatus === 'pending' ||
+      this.listInfo.validationStatus === 'inprogress' ||
+      this.listInfo.validationStatus === 'in_queue'
+    );
   };
 
   validateList = async () => {
