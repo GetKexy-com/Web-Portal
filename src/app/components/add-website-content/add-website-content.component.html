@@ -1,32 +1,3 @@
-<!--<div class="canvas-content-wrap">-->
-<!--  <div class="head-area">-->
-<!--    <p>Add Website</p>-->
-<!--    <img src="/assets/images/close-icon.png" alt="Close" (click)="activeCanvas.dismiss('Cross click')" />-->
-<!--  </div>-->
-
-<!--  <div class="canvas-body">-->
-<!--    <form [formGroup]="primaryForm" (ngSubmit)="onSubmit()">-->
-<!--      <div class="input-wrap">-->
-<!--        <div class="label-and-input">-->
-<!--          <p>Website</p>-->
-<!--          <input class="form-control" formControlName="website" type="text" />-->
-<!--          <div *ngIf="formValidationErrorCheck('website')">-->
-<!--            <error-message-card message="Field is required!"></error-message-card>-->
-<!--          </div>-->
-<!--        </div>-->
-<!--      </div>-->
-<!--      <div class="buttons mt-4">-->
-<!--        <button type="submit" class="blue-button me-3">-->
-<!--          Save<i *ngIf="isLoading" class="fa fa-spinner fa-spin ms-2" aria-hidden="true" style="color: white"></i>-->
-<!--        </button>-->
-<!--        <button type="button" class="blue-border-white-bg-button" (click)="activeCanvas.dismiss('Cross click')">-->
-<!--          Cancel-->
-<!--        </button>-->
-<!--      </div>-->
-<!--    </form>-->
-<!--  </div>-->
-<!--</div>-->
-
 <div class="canvas-content-wrap">
   <div class="head-area">
     <p>Add Website</p>
@@ -39,8 +10,8 @@
         <div class="label-and-input">
           <p>Website</p>
           <input class="form-control" formControlName="website" type="text" />
-          @if (formValidationErrorCheck('website')) {
-            <error-message-card message="Field is required!"></error-message-card>
+          @if (formValidationErrorCheck('website') || invalidWebsite) {
+            <error-message-card message="Website is missing or invalid!"></error-message-card>
           }
         </div>
       </div>

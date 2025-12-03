@@ -108,14 +108,6 @@ export class PageUiService {
     return string.charAt(0).toUpperCase() + string.slice(1);
   };
 
-  // public customEmailValidator(): ValidatorFn {
-  //   return (control: AbstractControl): { [key: string]: any } | null => {
-  //     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/; // Ensures a valid TLD
-  //     const valid = emailRegex.test(control.value);
-  //     return valid ? null : { invalidEmail: true };
-  //   };
-  // }
-
   public showSweetAlertLoading = () => {
     Swal.fire({
       title: "",
@@ -140,4 +132,32 @@ export class PageUiService {
     });
     return Swal;
   };
+
+  private isValidDomain(url) {
+    const regex = /^(https?:\/\/)?(www\.)?[a-z0-9-]+(\.[a-z0-9-]+)+\.[a-z]{2,}$/i;
+    return regex.test(url.trim());
+  }
+
+  public urlValidate(url) {
+    if (url) {
+      url = this.normalizeUrl(url);
+      if(this.isValidDomain(url)) {
+        return url;
+      }
+    }
+    return '';
+  }
+
+  private normalizeUrl(url) {
+    url = url.trim();
+
+    // If starts with http:// or https:// → OK
+    if (/^https?:\/\//i.test(url)) return url;
+
+    // If starts with www. but no protocol → add https://
+    if (/^www\./i.test(url)) return url;
+
+    // Otherwise → force it to have www.
+    return 'www.' + url;
+  }
 }

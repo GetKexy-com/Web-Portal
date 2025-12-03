@@ -1,93 +1,3 @@
-// import { Component, OnInit } from "@angular/core";
-// import { NgbActiveOffcanvas } from "@ng-bootstrap/ng-bootstrap";
-// import { FormBuilder, FormControl, FormGroup, Validators } from "@angular/forms";
-// import { HttpService } from "src/app/services/http.service";
-// import { AuthService } from "src/app/services/auth.service";
-// import { ProspectingService } from "src/app/services/prospecting.service";
-// import {ReactiveFormsModule} from '@angular/forms';
-// import {ErrorMessageCardComponent} from '../error-message-card/error-message-card.component';
-//
-// @Component({
-//   selector: 'app-add-calendly-link-content',
-//   imports: [
-//     ReactiveFormsModule,
-//     ErrorMessageCardComponent
-//   ],
-//   templateUrl: './add-calendly-link-content.component.html',
-//   styleUrl: './add-calendly-link-content.component.scss'
-// })
-// export class AddCalendlyLinkContentComponent {
-//   primaryForm: FormGroup;
-//   userData;
-//   supplierId;
-//   public previousLinks = [];
-//
-//   constructor(
-//     public activeCanvas: NgbActiveOffcanvas,
-//     private fb: FormBuilder,
-//     private httpService: HttpService,
-//     private _authService: AuthService,
-//     private prospectingService: ProspectingService
-//   ) {}
-//
-//   ngOnInit(): void {
-//     this.userData = this._authService.userTokenValue;
-//     this.supplierId = this.userData.supplier_id;
-//     this.prospectingService.calendlyLinks.subscribe((links) => {
-//       this.previousLinks = links;
-//     });
-//     this.setPrimaryForm();
-//   }
-//
-//   states = [];
-//   setPrimaryForm = () => {
-//     this.primaryForm = new FormGroup({
-//       calendly_link: new FormControl(
-//         "",
-//         Validators.compose([
-//           Validators.required,
-//           Validators.minLength(0),
-//           Validators.maxLength(500),
-//           //Validators.pattern("^[a-zA-Z- ]+$"),
-//         ])
-//       ),
-//     });
-//   };
-//
-//   formValidationErrorCheck = (fieldName: string) => {
-//     return (
-//       this.primaryForm.controls[fieldName].invalid && (this.submitted || this.primaryForm.controls[fieldName].dirty)
-//     );
-//   };
-//
-//   isLoading: boolean = false;
-//   submitted: boolean = false;
-//   onSubmit = async () => {
-//     this.submitted = true;
-//     if (!this.primaryForm.valid) {
-//       console.log("primaryForm", this.primaryForm);
-//       return false;
-//     }
-//     this.isLoading = true;
-//     let data = this.primaryForm.getRawValue();
-//     this.previousLinks.push(data.calendly_link);
-//
-//     const payload = {
-//       supplier_id: this.supplierId,
-//       calendly_links: JSON.stringify(this.previousLinks),
-//     };
-//     console.log("data", payload);
-//
-//     let res = await this.httpService.post("supplier/edit", payload).toPromise();
-//     if (res.success) {
-//       this.prospectingService.updateCalendlyLinks(this.previousLinks);
-//     }
-//     this.activeCanvas.dismiss("Cross click");
-//     this.isLoading = false;
-//   };
-// }
-
-
 import { Component, OnInit, signal } from '@angular/core';
 import { NgbActiveOffcanvas } from '@ng-bootstrap/ng-bootstrap';
 import { FormBuilder, FormControl, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
@@ -96,6 +6,7 @@ import { AuthService } from '../../services/auth.service';
 import { ProspectingService } from '../../services/prospecting.service';
 import { ErrorMessageCardComponent } from '../error-message-card/error-message-card.component';
 import { CommonModule } from '@angular/common';
+import { PageUiService } from '../../services/page-ui.service';
 
 @Component({
   selector: 'add-calendly-link-content',
@@ -103,10 +14,10 @@ import { CommonModule } from '@angular/common';
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    ErrorMessageCardComponent
+    ErrorMessageCardComponent,
   ],
   templateUrl: './add-calendly-link-content.component.html',
-  styleUrl: './add-calendly-link-content.component.scss'
+  styleUrl: './add-calendly-link-content.component.scss',
 })
 export class AddCalendlyLinkContentComponent implements OnInit {
   primaryForm: FormGroup;
@@ -123,8 +34,10 @@ export class AddCalendlyLinkContentComponent implements OnInit {
     private fb: FormBuilder,
     private httpService: HttpService,
     private authService: AuthService,
-    private prospectingService: ProspectingService
-  ) {}
+    private pageUiService: PageUiService,
+    private prospectingService: ProspectingService,
+  ) {
+  }
 
   ngOnInit(): void {
     this.userData = this.authService.userTokenValue;
@@ -139,11 +52,11 @@ export class AddCalendlyLinkContentComponent implements OnInit {
 
   setPrimaryForm(): void {
     this.primaryForm = this.fb.group({
-      calendly_link: ['', [
+      calendly_link: ['www.', [
         Validators.required,
         Validators.minLength(0),
-        Validators.maxLength(500)
-      ]]
+        Validators.maxLength(500),
+      ]],
     });
   }
 
@@ -154,21 +67,29 @@ export class AddCalendlyLinkContentComponent implements OnInit {
     );
   }
 
+  invalidWebsite = false;
+
   async onSubmit(): Promise<void> {
     this.submitted.set(true);
 
     if (!this.primaryForm.valid) {
-      console.log("primaryForm", this.primaryForm);
+      console.log('primaryForm', this.primaryForm);
       return;
     }
 
     this.isLoading.set(true);
 
+    this.invalidWebsite = false;
     const formData = this.primaryForm.getRawValue();
+    formData.calendly_link = this.pageUiService.urlValidate(formData.calendly_link);
+    if (!formData.calendly_link) {
+      this.invalidWebsite = true;
+      return;
+    }
     this.previousLinks.update(links => [...links, formData.calendly_link]);
 
     const payload = {
-      calendlyLinks: JSON.stringify(this.previousLinks())
+      calendlyLinks: JSON.stringify(this.previousLinks()),
     };
 
     try {
@@ -176,7 +97,7 @@ export class AddCalendlyLinkContentComponent implements OnInit {
       if (res.success) {
         this.prospectingService.updateCalendlyLinks(this.previousLinks());
       }
-      this.activeCanvas.dismiss("Cross click");
+      this.activeCanvas.dismiss('Cross click');
     } finally {
       this.isLoading.set(false);
     }
