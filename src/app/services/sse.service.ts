@@ -10,7 +10,7 @@ export class SseService {
   private subjectStartSign = '^^';
   private subjectEndSign = '$$';
   public emailErrorSign = '@@';
-  public paraStartSign = '[[[PARA]]]';
+  public paraStartSign = '[[PARA]]';
   private newEmailStartSign = '~~';
 
   //********
@@ -231,7 +231,7 @@ export class SseService {
           const { done, value } = await reader?.read();
           if (value) {
             let str = new TextDecoder().decode(value);
-            console.log({ str });
+            // console.log({ str });
             // @@ is a prefix ONLY show when an error occur
             if (str.includes(this.emailErrorSign)) {
               this.addToEmailError(str);
@@ -345,11 +345,20 @@ export class SseService {
   };
 
   __formatEmailContent: (content: string) => string = (content: string): string => {
-    let paraArray = content.split(this.paraStartSign);
+
+    const separators = ["[[[PARA]]]", "[[PARA]]]"];
+
+    let result = content;
+    separators.forEach(sep => {
+      result = result.split(sep).join(this.paraStartSign); // normalize to one;
+    });
+
+    let paraArray = result.split(this.paraStartSign);
     console.log({ paraArray });
 
     const lastPara = paraArray.pop()
       .replace(/^\n/, "")
+      .replace(/^\\n/, "<br>")
       .replace(/\n/g, "<br>");
 
     paraArray = paraArray.map((para) => {
