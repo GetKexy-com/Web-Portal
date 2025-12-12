@@ -58,5 +58,6 @@ export const environment = {
   oldConversationEmailGenerateApiUrl:
     'https://bekkg6xoll3swbz73lyyqmoyry0qrkts.lambda-url.us-east-1.on.aws/',
   dripBulkEmailApiUrl: 'https://k7xqc2cistnfujk3f2lo4wxbla0qqckr.lambda-url.us-east-1.on.aws/',
+  dripBulkEmailUserPromptApiUrl: 'https://n3h45sxt4cshs4bozycpujewnq0uvrac.lambda-url.us-east-1.on.aws/',
   dripFollowUpEmailApiUrl: 'https://jwo3xvetzcedmoxxv3aaufqle40iwwiz.lambda-url.us-east-1.on.aws/',
 };

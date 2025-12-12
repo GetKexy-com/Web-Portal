@@ -61,6 +61,7 @@ export class SseService {
   newEmailGenerateApiUrl = environment.newEmailGenerateApiUrl;
   oldConversationEmailGenerateApiUrl = environment.oldConversationEmailGenerateApiUrl;
   dripBulkEmailApiUrl = environment.dripBulkEmailApiUrl;
+  dripBulkEmailApiUrlUserPrompt = environment.dripBulkEmailUserPromptApiUrl;
   dripFollowUpEmailApiUrl = environment.dripFollowUpEmailApiUrl;
 
   getEmailContentStream = (data, newEmail = true) => {
@@ -206,7 +207,7 @@ export class SseService {
       .catch((err) => console.error(err));
   };
 
-  dripBulkEmailContentStream = async (data) => {
+  dripBulkEmailContentStream = async (data, userPromptPriority = false) => {
     let emails: DripEmail[] = [];
     let emailSequence = 1;
     let emailSubject = '';
@@ -215,7 +216,7 @@ export class SseService {
     let delayBetweenPreviousEmail: EmailDelay = { days: 3, hours: 0, minutes: 0 };
     this._dripBulkEmailLoading.next(true);
     let subjectReady = false;
-    const url = this.dripBulkEmailApiUrl;
+    const url = userPromptPriority ? this.dripBulkEmailApiUrlUserPrompt : this.dripBulkEmailApiUrl;
     fetch(url, {
       method: 'POST',
       headers: {
@@ -346,7 +347,7 @@ export class SseService {
 
   __formatEmailContent: (content: string) => string = (content: string): string => {
 
-    const separators = ["[[[PARA]]]", "[[PARA]]]"];
+    const separators = ['[[[PARA]]]', '[[PARA]]]'];
 
     let result = content;
     separators.forEach(sep => {
@@ -357,12 +358,12 @@ export class SseService {
     console.log({ paraArray });
 
     const lastPara = paraArray.pop()
-      .replace(/^\n/, "")
-      .replace(/^\\n/, "<br>")
-      .replace(/\n/g, "<br>");
+      .replace(/^\n/, '')
+      .replace(/^\\n/, '<br>')
+      .replace(/\n/g, '<br>');
 
     paraArray = paraArray.map((para) => {
-      return para.replace(/\n/g, "");
+      return para.replace(/\n/g, '');
     });
     console.log({ lastPara });
     paraArray.push(lastPara);
@@ -425,8 +426,8 @@ export class SseService {
   }
 
   addToSingleEmailContent(chunk, freshStart = false) {
-    if(freshStart) {
-      this._dripSingleEmailContent.next("");
+    if (freshStart) {
+      this._dripSingleEmailContent.next('');
       this._dripSingleEmailContent.next(chunk);
       return;
     }

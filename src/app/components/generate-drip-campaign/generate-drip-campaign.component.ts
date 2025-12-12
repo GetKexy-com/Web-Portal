@@ -331,6 +331,7 @@ export class GenerateDripCampaignComponent implements OnInit {
     }
 
     this.emails = [];
+
     const data = {
       count: this.dripCampaign.details.numberOfEmails,
       email_tone: this.selectedEmailToneKey || this.dripCampaign.details.emailTone,
@@ -364,7 +365,7 @@ export class GenerateDripCampaignComponent implements OnInit {
     };
 
     try {
-      await this.sseService.dripBulkEmailContentStream(data);
+      await this.sseService.dripBulkEmailContentStream(data, this.dripCampaign.userPromptPriority);
     } catch (e) {
       await Swal.fire('Error', e.message);
     }
