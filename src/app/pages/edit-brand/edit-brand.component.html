@@ -90,11 +90,9 @@
                 <div class="form-group">
                   <label class="input-label-text">Please Select Country</label>
                   <select
-                    [disabled]="true"
                     [class.error]="(submitted || primaryForm.controls['country'].dirty) && primaryForm.controls['country'].invalid"
                     formControlName="country"
                     class="form-control"
-                    style="background: #80808026"
                   >
                     <option value="" selected>Please Select Country</option>
                     <option *ngFor="let country of countries" [value]="country.isoCode">

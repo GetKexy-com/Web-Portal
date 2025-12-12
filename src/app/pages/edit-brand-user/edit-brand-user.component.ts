@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService } from 'src/app/services/auth.service';
-import { Router } from '@angular/router';
 import { environment } from 'src/environments/environment';
 import Swal from 'sweetalert2';
 import { PhoneNumberValidator } from 'src/app/helpers/phoneNumberValidator';
@@ -21,6 +20,7 @@ import { dripCampaignInitialModalData } from '../../helpers/demoData';
 import { ModalComponent } from '../../components/modal/modal.component';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { PageUiService } from '../../services/page-ui.service';
+import { countries } from 'src/assets/countries';
 
 @Component({
   selector: 'app-edit-brand-user',
@@ -48,6 +48,7 @@ export class EditBrandUserComponent implements OnInit {
   newPassword: string;
   isPasswordUpdateLoading: boolean = false;
   userData;
+  public countries = [];
   private emailBackup = null;
   private phoneBackup = null;
   private jobTitleBackup = null;
@@ -72,9 +73,16 @@ export class EditBrandUserComponent implements OnInit {
     this.jobTitleBackup = this.userData.job_title;
     this.userData.phone = this.pageUiService.formatUSPhoneNumbers(`${this.userData.phoneCountryCode}${this.userData.phone}`);
 
+    // let c = countries.find(e => e.isoCode === this.userData.supplier_country);
+    // if(c) {
+    //   this.userData.supplier_country = c.name;
+    // }
+
     if (this.userData.logoImage) {
       this.imageUrl = environment.imageUrl + this.userData.logoImage.name;
     }
+
+    this.getCountryList();
 
     this.primaryForm = new FormGroup({
       firstName: new FormControl(
@@ -99,6 +107,10 @@ export class EditBrandUserComponent implements OnInit {
         this.userData.phone,
         Validators.compose([PhoneNumberValidator(this.userData.country)]),
       ),
+      country: new FormControl(
+        this.userData.country,
+        [Validators.required],
+      ),
       role: new FormControl(
         this.userData.role,
         Validators.compose([
@@ -113,6 +125,22 @@ export class EditBrandUserComponent implements OnInit {
       ),
     });
   }
+
+  private getCountryList() {
+    countries.forEach((c) => {
+      if (c.isoCode === 'NL' || c.isoCode === 'GM') {
+        c.name = c.name.replace('The', '');
+      }
+      if (c.isoCode === 'CD') {
+        c.name = 'Congo, The Democratic Republic';
+      }
+    });
+
+    this.countries = countries.filter((c) => {
+      return !c.phonecode.includes('+1-');
+    });
+  }
+
 
   toggleCurrentPasswordView() {
     this.currentPasswordView = !this.currentPasswordView;
@@ -153,6 +181,7 @@ export class EditBrandUserComponent implements OnInit {
           this.userData.lastName = form.lastName;
           this.userData.email = form.email;
           this.userData.phone = form.phone;
+          this.userData.country = form.country;
           if (response.data.logoImage?.name) {
             this.userData.logoImage = response.data.logoImage;
           }

@@ -100,8 +100,8 @@ export class EditBrandComponent implements OnInit {
         this.userData.supplier_phone
       ),
       country: new FormControl(
-        { value: this.userData.supplier_country, disabled: true },  // Initially disabled
-        [Validators.required, Validators.minLength(0), Validators.maxLength(21)],
+        this.userData.supplier_country,
+        [Validators.required],
       ),
       city: new FormControl(
         this.userData.supplier_city,
@@ -113,7 +113,6 @@ export class EditBrandComponent implements OnInit {
       ),
       zip_code: new FormControl(
         this.zip_code,
-        Validators.compose([Validators.required, Validators.minLength(0), Validators.maxLength(21)]),
       ),
       state: new FormControl(
         this.userData.supplier_state,
@@ -151,12 +150,12 @@ export class EditBrandComponent implements OnInit {
       this.stateLabel = 'Please Select State';
     }
 
-    const zipCodeValidation = COUNTRY_ADDRESS_POSTALS.filter((c) => c.abbrev === country);
+    // const zipCodeValidation = COUNTRY_ADDRESS_POSTALS.filter((c) => c.abbrev === country);
 
-    this.primaryForm.setControl(
-      'zip_code',
-      this.fb.control(this.userData.zip_code, [ZipCodeValidator(zipCodeValidation[0].postal)]),
-    );
+    // this.primaryForm.setControl(
+    //   'zip_code',
+    //   this.fb.control(this.userData.zip_code, [ZipCodeValidator(zipCodeValidation[0].postal)]),
+    // );
     this.primaryForm.setControl(
       'phone',
       this.fb.control(this.userData.supplier_phone, [PhoneNumberValidator(country, true)]),
