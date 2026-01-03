@@ -210,4 +210,11 @@ export const routes: Routes = [
         (m) => m.PublicLandingPageComponent,
       ),
   },
+  {
+    path: routeConstants.BRAND.IMPORT_CONTACTS_IN_SENDY,
+    loadComponent: () =>
+      import('./pages/import-contacts-in-sendy/import-contacts-in-sendy.component').then(
+        (m) => m.ImportContactsInSendyComponent,
+      ),
+  },
 ];

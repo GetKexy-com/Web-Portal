@@ -55,6 +55,7 @@ export const routeConstants = {
     CREATE_DRIP_CAMPAIGN: BRAND + DRIP_CAMPAIGN + "create",
     LIST_DRIP_CAMPAIGN: BRAND + DRIP_CAMPAIGN + "list",
     LAUNCH_DRIP_CAMPAIGN: BRAND + DRIP_CAMPAIGN + "launch",
+    IMPORT_CONTACTS_IN_SENDY: BRAND + "push-contacts-in-sendy",
     PRICE: BRAND + SUBSCRPTIONS + "price",
     CREDITS: BRAND + "credits",
     SUPPRESSION_LIST: BRAND + "suppression-list",
