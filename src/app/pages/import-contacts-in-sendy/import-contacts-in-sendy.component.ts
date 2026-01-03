@@ -89,23 +89,20 @@ export class ImportContactsInSendyComponent implements OnInit {
 
   primaryFormSubmitted = async () => {
     console.log(this.primaryForm.getRawValue());
-
     this.submitted = true;
 
     if (!this.primaryForm.valid) {
-      console.log('submitted data', this.primaryForm);
       return;
     }
-
     this.isWaitingFlag = true;
     const data = {
       csv_file: this.primaryForm.getRawValue().sellSheet,
       sendy_list_id: this.primaryForm.getRawValue().listId,
     };
+
     this.httpService.post(`admin/importContactsInSendy`, data, environment.oldBaseUrl).subscribe((response) => {
       if (response.success) {
-        console.log('success', response);
-
+        this.isWaitingFlag = false;
         Swal.fire('Done!', 'Sent successfully!', 'success');
       } else {
         this.isWaitingFlag = false;

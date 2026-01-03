@@ -9,12 +9,7 @@
       </prospecting-common-card>
     </section>
     <section class="campaign-details-form-content">
-      <form
-        (keydown.enter)="$event.preventDefault()"
-        [formGroup]="primaryForm"
-        (ngSubmit)="primaryFormSubmitted()"
-        *ngIf="primaryForm"
-      >
+      <form [formGroup]="primaryForm">
         <div class="row">
 
           <div class="col-12">
@@ -70,7 +65,8 @@
               label="Update"
               style="width: 100%;"
               padding="10px"
-              type="submit"
+              type="button"
+              (click)="primaryFormSubmitted()"
               [label]="isWaitingFlag ? 'Please wait...' : 'Submit' "
               [disabled]="isWaitingFlag"
               [iconLeft]="isWaitingFlag ? 'fa-refresh fa-spin' : 'fa-save'"
