@@ -9,6 +9,7 @@ export class DripEmail {
   emailSubject: string = "";
   emailContent: string = "";
   aiRawData: string = "";
+  templateOptions?: string = "";
   isSpintax?: boolean = true;
 }
 

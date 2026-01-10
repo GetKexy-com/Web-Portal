@@ -33,12 +33,12 @@ export class DripCampaign {
         ...rawData.details.title
       }
     };
-
-    this.emails = rawData.emails.map(email => ({
-      ...email,
-      delayBetweenPreviousEmail: JSON.parse(email.delayBetweenPreviousEmail)
-    }));
-
+    this.emails = rawData.emails.map(email => {
+      return {
+        ...email,
+        delayBetweenPreviousEmail: JSON.parse(email.delayBetweenPreviousEmail)
+      }
+    });
     this.settings = rawData.settings.map(setting => ({
       ...setting,
       settingsValue: JSON.parse(setting.settingsValue)
@@ -64,6 +64,7 @@ export class DripCampaign {
         campaignId: null,
         numberOfEmails: 0,
         emailTone: 'Neutral',
+        templateOptions: '',
         emailLength: 'Medium',
         websiteUrl: '',
         calendlyLink: '',
@@ -126,6 +127,7 @@ interface IDripCampaignDetails {
   id: number;
   campaignId: number | null;
   numberOfEmails: number;
+  templateOptions: string;
   emailTone: string;
   emailLength: string;
   websiteUrl: string;
@@ -142,6 +144,7 @@ interface ICampaignEmail {
   previousEmailSendTime: string | null;
   delayBetweenPreviousEmail: { days: number; hours: number; minutes: number };
   emailTone: string;
+  templateOptions: string;
   emailLength: string;
   emailSubject: string;
   emailContent: string;

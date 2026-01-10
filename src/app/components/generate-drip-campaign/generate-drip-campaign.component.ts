@@ -85,10 +85,11 @@ export class GenerateDripCampaignComponent implements OnInit {
   selectedEmailLength;
   emailTones = constants.EMAIL_TONES;
   spintaxOptions = [
-    { key: 'yes', value: constants.PROSPECT_INSIGHTS },
-    { key: 'no', value: constants.SPINTAX },
+    { key: constants.PROSPECT_INSIGHTS_KEY, value: constants.PROSPECT_INSIGHTS },
+    { key: constants.SPINTAX_KEY, value: constants.SPINTAX },
+    { key: constants.TEMPLATE_KEY, value: constants.TEMPLATE },
   ];
-  selectedSpintaxKey = constants.PROSPECT_INSIGHTS;
+  selectedEmailTemplate;
   selectedEmailToneKey;
   contactList: Contact[];
   contactListSubscription: Subscription;
@@ -112,7 +113,9 @@ export class GenerateDripCampaignComponent implements OnInit {
       if (params['id']) {
         this.dripCampaignId = params['id'];
         this.dripCampaign = this.dripCampaignService.getDripCampaignContentPageData();
-        console.log('dripCampaign', this.dripCampaign);
+        this.selectedEmailTemplate = this.spintaxOptions.find(o => {
+          return o.key === this.dripCampaign.emails[0].templateOptions;
+        });
       }
     });
 
@@ -142,7 +145,8 @@ export class GenerateDripCampaignComponent implements OnInit {
       this.emails = emails;
       this.emails.forEach((e: DripEmail) => {
         const delay: EmailDelay = e.delayBetweenPreviousEmail;
-        e.isSpintax = this.selectedSpintaxKey === constants.PROSPECT_INSIGHTS;
+        e.isSpintax = this.selectedEmailTemplate.key === constants.PROSPECT_INSIGHTS_KEY;
+        e.templateOptions = this.selectedEmailTemplate.key;
         e['emailText'] = `${delay.days} day(s) ${delay.hours} hour(s) ${delay.minutes} minute(s)`;
       });
 
@@ -349,7 +353,7 @@ export class GenerateDripCampaignComponent implements OnInit {
       email_about: this.dripCampaign.emailAbout,
       platformPriority: this.dripCampaign.userPromptPriority,
       negative_prompt: this.userData.negative_prompts,
-      isSpintax: this.selectedSpintaxKey === constants.PROSPECT_INSIGHTS,
+      isSpintax: this.selectedEmailTemplate.key === constants.PROSPECT_INSIGHTS_KEY,
       promotion_info: !!this.selectedPromotionsProductName,
       prospect_email_address: this.contactList[0]?.email,
       drip_campaign_id: this.dripCampaign.id,
@@ -533,11 +537,13 @@ export class GenerateDripCampaignComponent implements OnInit {
         delayBetweenPreviousEmail: JSON.stringify(e.delayBetweenPreviousEmail),
         emailLength: this.selectedEmailLength.value,
         emailTone: this.selectedEmailToneKey,
+        templateOptions: this.selectedEmailTemplate.key,
         isSpintax: e.isSpintax,
       };
       formattedEmails.push(email);
     });
-
+    console.log(this.selectedEmailTemplate);
+    console.log({ formattedEmails });
     try {
       const postData = {
         dripCampaignId: this.dripCampaignId,
@@ -681,27 +687,13 @@ export class GenerateDripCampaignComponent implements OnInit {
     this.__createRightSideSlide(EmailTimeSettingsContentComponent, 'email-time-settings-slider');
   };
 
-  // openEnrollmentTriggerCanvas = () => {
-  //   this.__createRightSideSlide(EnrollmentTriggerContentComponent, "email-time-settings-slider");
-  // };
-
   onEmailToneSelect = (tone, index = null, rowIndex = null) => {
     this.selectedEmailToneKey = tone.value;
   };
 
   onSpintaxSelect = (spintax, index = null, rowIndex = null) => {
-    this.selectedSpintaxKey = spintax.value;
+    this.selectedEmailTemplate = spintax;
   };
-
-  // handleClickPlusBtn = (email: object, isFromDelayCard: boolean, emailIndex: number): void => {
-  //   console.log(this.emails);
-  //   const emailObject = {
-  //     delay_between_previous_email: { days: 0, hours: 1, minutes: 0 },
-  //     emailText: "0 day(s) 1 hour(s) 0 minute(s)",
-  //     isNewBox: true,
-  //   };
-  //   this.emails.splice(emailIndex + 1, 0, emailObject);
-  // };
 
   deleteEmptyEmail = (emptyEmailObj: object) => {
     const index = this.emails.indexOf(emptyEmailObj);
