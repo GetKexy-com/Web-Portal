@@ -141,41 +141,6 @@ export class ManageListComponent implements OnInit, OnDestroy {
       this.labelOptions[rowIndex].isSelected = true;
       this.selectedLabels.push(this.labelOptions[rowIndex]);
     }
-
-    // if (isSelectAll) {
-    //   if (this.labelOptions.some((i) => i.isSelected)) {
-    //     this.labelOptions.map((i) => {
-    //       i.isSelected = false;
-    //       const index = this.selectedLabels.findIndex((j) => j.id === i.id);
-    //       if (index > -1) {
-    //         this.selectedLabels.splice(index, 1);
-    //       }
-    //     });
-    //   } else {
-    //     this.labelOptions.map((i) => {
-    //       i.isSelected = true;
-    //       const index = this.selectedLabels.findIndex((j) => j.id === i.id);
-    //       if (index === -1) {
-    //         this.selectedLabels.push(i);
-    //       }
-    //     });
-    //   }
-    // } else {
-    //   const rowIndex = this.labelOptions.findIndex((i) => i.id === selectedRow.id);
-    //   this.labelOptions[rowIndex].isSelected = !this.labelOptions[rowIndex].isSelected;
-
-    //   if (this.labelOptions[rowIndex].isSelected) {
-    //     const index = this.selectedLabels.findIndex((j) => j.id === this.labelOptions[rowIndex].id);
-    //     if (index === -1) {
-    //       this.selectedLabels.push(this.labelOptions[rowIndex]);
-    //     }
-    //   } else {
-    //     const index = this.selectedLabels.findIndex((j) => j.id === this.labelOptions[rowIndex].id);
-    //     if (index > -1) {
-    //       this.selectedLabels.splice(index, 1);
-    //     }
-    //   }
-    // }
   };
 
   receivedLimitNumber = async (limit) => {
@@ -258,38 +223,7 @@ export class ManageListComponent implements OnInit, OnDestroy {
     }
   };
 
-  validateList = async () => {
-    const postData = {
-      listId: this.selectedLabels[0].id,
-    };
-    const swlLoading = this.pageUiService.showSweetAlertLoading();
-    try {
-      swlLoading.showLoading();
-      await this.prospectingService.validateList(postData);
-      swlLoading.close();
-    } catch (e) {
-      swlLoading.close();
-      await Swal.fire('Error', e.message);
-    }
-  }
 
-  duplicateLabel = async () => {
-    const postData = {
-      supplier_id: this.supplierId,
-      label_id: this.selectedLabels[0].id,
-    };
-    const swlLoading = this.pageUiService.showSweetAlertLoading();
-    try {
-      swlLoading.showLoading();
-      await this.prospectingService.duplicateLabel(postData);
-      await this.getLabels();
-      this.selectedLabels = [];
-      swlLoading.close();
-    } catch (e) {
-      swlLoading.close();
-      await Swal.fire('Error', e.message);
-    }
-  };
 
   getAllContacts = async () => {
     this.exportBtnLoading = true;
@@ -298,21 +232,20 @@ export class ManageListComponent implements OnInit, OnDestroy {
     this.selectedLabels.forEach(l => labelIds.push(l.id));
 
     const postData = {
-      supplier_id: this.supplierId,
-      drip_campaign_id: '',
-      label_ids: labelIds,
-      contact_name: '',
-      company_name: '',
-      job_title: '',
-      marketing_status: '',
-      email_status: '',
+      companyId: this.supplierId,
+      dripCampaignId: '',
+      listIds: labelIds,
+      contactName: '',
+      companyName: '',
+      jobTitle: '',
+      emailStatus: '',
+      marketingStatus: '',
       city: '',
       state: '',
       country: '',
       page: 1,
       limit: 9999999,
-      get_total_count: true,
-      sort_by: '',
+      sortBy: '',
     };
     try {
       const contacts = await this.prospectingService.getAllContacts(postData, true);
@@ -327,33 +260,31 @@ export class ManageListComponent implements OnInit, OnDestroy {
   exportBtnLoading = false;
   exportCSV = async () => {
     const contacts = await this.getAllContacts();
-
     const headers = `First Name,Last Name,Linkedin,Email,Email Status,Job Title,Company Name,Phone Number,City,State,Country,Marketing Status,List`;
     let rows = '';
     contacts.forEach((contact) => {
-      // console.log('contact', contact);
       let labels = [];
-      contact.kexy_contact_labels.forEach(label => {
-        labels.push(label.kexy_label.label);
+      contact.listIds.forEach(label => {
+        const labelTitle = this.labelOptions.find(l => l.id === parseInt(label));
+        labels.push(labelTitle.label);
       });
-
       let contactDetails = JSON.parse(contact.details);
-      rows += `${contactDetails.first_name?.replace(/,/g, ' ')}, `;
-      rows += `${contactDetails.last_name?.replace(/,/g, ' ')}, `;
-      rows += `${contactDetails.linkedin_url?.replace(/,/g, ' ')}, `;
+      rows += `${contactDetails.firstName?.replace(/,/g, ' ')}, `;
+      rows += `${contactDetails.lastName?.replace(/,/g, ' ')}, `;
+      rows += `${contactDetails.linkedinUrl?.replace(/,/g, ' ')}, `;
       rows += `${contactDetails.email?.replace(/,/g, ' ')}, `;
-      rows += `${contactDetails.email_status?.replace(/,/g, ' ')}, `;
+      rows += `${contactDetails.emailStatus?.replace(/,/g, ' ')}, `;
       rows += `${contactDetails.title?.replace(/,/g, ' ')}, `;
       rows += `${contactDetails.organization.name?.replace(/,/g, ' ')}, `;
       rows += `${contactDetails.organization.phone?.replace(/,/g, ' ')}, `;
       rows += `${contactDetails.city?.replace(/,/g, ' ')}, `;
       rows += `${contactDetails.state?.replace(/,/g, ' ')}, `;
       rows += `${contactDetails.country?.replace(/,/g, ' ')}, `;
-      rows += `${contact.marketing_status?.replace(/,/g, ' ')}, `;
+      rows += `${contact.marketingStatus?.replace(/,/g, ' ')}, `;
       rows += `${labels.length ? labels.join('/') : ''}\n`;
     });
     // console.log(rows);
-    await ExportToCsv.download('Contacts.csv', headers + '\n' + rows);
+    ExportToCsv.download('Contacts.csv', headers + '\n' + rows);
     this.isWaitingFlag = false;
   };
 }

@@ -134,8 +134,10 @@ export class PageUiService {
   };
 
   private isValidDomain(url) {
-    const regex = /^(https?:\/\/)?(www\.)?[a-z0-9-]+(\.[a-z0-9-]+)+\.[a-z]{2,}$/i;
-    return regex.test(url.trim());
+    const regex = /^(https?:\/\/)?(www\.)?[a-z0-9-]+(\.[a-z0-9-]+)+([\/?#].*)?$/i;
+    const res = regex.test(url.trim());
+    console.log({ res });
+    return res;
   }
 
   public urlValidate(url) {

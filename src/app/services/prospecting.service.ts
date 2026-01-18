@@ -743,7 +743,7 @@ export class ProspectingService {
             `${encodeURIComponent(key)}=${encodeURIComponent(value)}`,
         )
         .join('&');
-      const url = `/contacts?${queryString}`;
+      const url = `contacts?${queryString}`;
       this.httpService.get(url).subscribe({
         next: (res) => {
           this._loading_all_contacts.next(false);
