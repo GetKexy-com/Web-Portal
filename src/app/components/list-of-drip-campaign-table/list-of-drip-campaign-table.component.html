@@ -92,7 +92,10 @@
                 <span *ngIf="column.key === 'date_created'">{{ row.createdAt | date : "medium" }}</span>
 
                 <span *ngIf="column.key == 'drip_campaign_title'" class="text-link"
-                      (click)="redirectToEditPage(row)">{{ row.details.title.title }}</span>
+                      (click)="redirectToEditPage(row)">
+                  <span *ngIf="row.details.title">{{ row.details.title.title }}</span>
+                  <span *ngIf="!row.details.title"><i><u>Title Deleted</u></i></span>
+                </span>
 
                 <span *ngIf="column.key == 'number_of_emails'"
                       class="w-100 d-inline-block text-center">{{ row.details.numberOfEmails }}</span>
