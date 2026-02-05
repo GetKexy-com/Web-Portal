@@ -79,7 +79,7 @@ export class BrandEmailAccountSettingsComponent implements OnInit {
       companyId: this.userData.supplier_id,
     });
     console.log('smtp details', this.smtpDetails);
-    if (this.smtpDetails && this.smtpDetails.smtp) {
+    if (this.smtpDetails) {
       const smtp = this.smtpDetails.smtp;
       if (smtp) {
         this.isSmtpConnected = true;
