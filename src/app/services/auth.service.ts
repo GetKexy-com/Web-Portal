@@ -288,14 +288,13 @@ export class AuthService {
     });
   }
 
-  loggedUserRedirectToProperDashboard() {
+  async loggedUserRedirectToProperDashboard() {
     const currentUrl = this.router.url;
     const userTokenValue = this.userTokenValue;
     if (userTokenValue) {
       if (userTokenValue.type === constants.BRAND) {
         if (!currentUrl.includes(constants.BRAND)) {
-          // this.router.navigate([routeConstants.BRAND.DEAL]);
-          this.router.navigate([routeConstants.BRAND.LANDING_PAGES]);
+          await this.router.navigate([routeConstants.BRAND.CREATE_DRIP_CAMPAIGN]);
         }
       }
     }
