@@ -1,10 +1,10 @@
-import { Component, OnInit, Input } from "@angular/core";
-import {CommonModule, Location} from "@angular/common";
-import Swal from "sweetalert2";
-import { AuthService } from "../../services/auth.service";
-import { DripCampaignService } from "../../services/drip-campaign.service";
-import {KexyButtonComponent} from '../kexy-button/kexy-button.component';
-import {FileDropComponent} from '../file-drop/file-drop.component';
+import { Component, OnInit, Input } from '@angular/core';
+import { CommonModule, Location } from '@angular/common';
+import Swal from 'sweetalert2';
+import { AuthService } from '../../services/auth.service';
+import { DripCampaignService } from '../../services/drip-campaign.service';
+import { KexyButtonComponent } from '../kexy-button/kexy-button.component';
+import { FileDropComponent } from '../file-drop/file-drop.component';
 
 interface SuppressionUser {
   contactFirstName: string;
@@ -20,7 +20,7 @@ interface SuppressionUser {
     FileDropComponent,
   ],
   templateUrl: './upload-vendors-modal-content.component.html',
-  styleUrl: './upload-vendors-modal-content.component.scss'
+  styleUrl: './upload-vendors-modal-content.component.scss',
 })
 export class UploadVendorsModalContentComponent implements OnInit {
   @Input() closeModal;
@@ -40,22 +40,22 @@ export class UploadVendorsModalContentComponent implements OnInit {
   fileInfo;
   getSelectedFile = (file, fileInfo) => {
     this.fileInfo = fileInfo;
-    const base64Data = file.split(",")[1];
+    const base64Data = file.split(',')[1];
     const decodedString = atob(base64Data);
     const rows = this.parseCSV(decodedString);
     this.userObjList = rows.map((row: any) => ({
-      contactFirstName: row["First Name"],
-      contactLastName: row["Last Name"],
-      contactEmail: row["Email"],
+      contactFirstName: row['First Name'],
+      contactLastName: row['Last Name'],
+      contactEmail: row['Email'],
     }));
   };
 
   parseCSV(csvContent: string): any[] {
-    const lines = csvContent.trim().split("\n");
-    const headers = lines[0].split(",");
+    const lines = csvContent.trim().split('\n');
+    const headers = lines[0].split(',');
 
     return lines.slice(1).map(line => {
-      const data = line.split(",");
+      const data = line.split(',');
       return headers.reduce((obj, header, index) => {
         obj[header.trim()] = data[index].trim();
         return obj;
@@ -64,7 +64,7 @@ export class UploadVendorsModalContentComponent implements OnInit {
   }
 
   removeSelectedFile = () => {
-    this.fileInfo = "";
+    this.fileInfo = '';
   };
 
   userObjList: SuppressionUser[] = [];
@@ -76,7 +76,7 @@ export class UploadVendorsModalContentComponent implements OnInit {
     // Validation check
     if (!this.userObjList.length && !this.userObjList.some((i) => i.contactFirstName && i.contactLastName && i.contactEmail)) {
       console.log(this.userObjList);
-      await Swal.fire("Error", "Validation error!");
+      await Swal.fire('Error', 'Validation error!');
       return;
     }
 
@@ -93,7 +93,20 @@ export class UploadVendorsModalContentComponent implements OnInit {
       this.closeModal();
       this.isLoading = false;
     } catch (e) {
-      await Swal.fire("Error", e.message);
+      console.log(e);
+      let message = '';
+      if (Array.isArray(e)) {
+        e.map(msg => {
+          return msg + 2;
+        });
+        const rows = e.join(',');
+        message = `Validation failed for rows: ${rows} due to empty or invalid data`;
+      } else {
+        message = e.message;
+      }
+      await Swal.fire('Error', message);
+    } finally {
+      this.isLoading = false;
     }
   };
 }
