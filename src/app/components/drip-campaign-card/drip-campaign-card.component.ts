@@ -1,12 +1,12 @@
-import { Component, Input, OnInit } from "@angular/core";
-import { DripEmail, EmailDelay } from "../../models/DripEmail";
-import Swal from "sweetalert2";
-import { DripCampaignService } from "../../services/drip-campaign.service";
-import { AuthService } from "../../services/auth.service";
-import { Subscription } from "rxjs";
-import { constants } from "../../helpers/constants";
-import {CommonModule, NgClass} from '@angular/common';
-import {KexyButtonComponent} from '../kexy-button/kexy-button.component';
+import { Component, Input, OnInit } from '@angular/core';
+import { DripEmail, EmailDelay } from '../../models/DripEmail';
+import Swal from 'sweetalert2';
+import { DripCampaignService } from '../../services/drip-campaign.service';
+import { AuthService } from '../../services/auth.service';
+import { Subscription } from 'rxjs';
+import { constants } from '../../helpers/constants';
+import { CommonModule, NgClass } from '@angular/common';
+import { KexyButtonComponent } from '../kexy-button/kexy-button.component';
 
 @Component({
   selector: 'drip-campaign-card',
@@ -16,7 +16,7 @@ import {KexyButtonComponent} from '../kexy-button/kexy-button.component';
     CommonModule,
   ],
   templateUrl: './drip-campaign-card.component.html',
-  styleUrl: './drip-campaign-card.component.scss'
+  styleUrl: './drip-campaign-card.component.scss',
 })
 export class DripCampaignCardComponent implements OnInit {
   @Input() headerIcon;
@@ -31,12 +31,13 @@ export class DripCampaignCardComponent implements OnInit {
   @Input() insightsBtnClick;
   @Input() showDripCampaignContacts;
   @Input() deleteEmptyEmail;
+  @Input() onDeleteUpdateEmail;
   @Input() email: DripEmail;
   userData;
   isLoading = false;
   dripCampaignStatusSubscription: Subscription;
-  dripCampaignStatus: string = "";
-  disableTitle: string = "";
+  dripCampaignStatus: string = '';
+  disableTitle: string = '';
   dripCampaign;
 
   constructor(
@@ -63,15 +64,15 @@ export class DripCampaignCardComponent implements OnInit {
 
   handleInsightsBtnClick = () => {
     this.insightsBtnClick(this.email);
-  }
+  };
 
   deleteLoading = false;
   deleteItem = async () => {
-    if (!this.isDelayCard && this.email["isEmailSent"]) {
+    if (!this.isDelayCard && this.email['isEmailSent']) {
       await Swal.fire({
         title: `Error`,
-        text: "This email has already been sent out to public and can not be deleted.",
-        icon: "warning",
+        text: 'This email has already been sent out to public and can not be deleted.',
+        icon: 'warning',
       });
       return;
     }
@@ -88,13 +89,8 @@ export class DripCampaignCardComponent implements OnInit {
     }
     await this.__deleteEmail();
 
-    // After deleting an email, we get all emails from server to update the view.
-    const postData = {
-      drip_campaign_id: this.dripCampaign.id,
-      supplier_id: this.userData.supplier_id,
-    };
-    await this.dripCampaignService.getCampaign(postData);
     this.deleteLoading = false;
+    this.onDeleteUpdateEmail();
   };
 
   __deleteEmail = async () => {
@@ -105,29 +101,29 @@ export class DripCampaignCardComponent implements OnInit {
     console.log('email', this.email);
     try {
       await this.dripCampaignService.deleteDripCampaignEmail(postData);
-      // await Swal.fire({
-      //   title: `Success`,
-      //   text: "Email has been deleted.",
-      //   icon: "success",
-      // });
+      Swal.fire({
+        title: `Success`,
+        text: 'Email has been deleted.',
+        icon: 'success',
+      });
     } catch (e) {
       await Swal.fire({
         title: `Error`,
         text: e.getMessages(),
-        icon: "warning",
+        icon: 'warning',
       });
     }
   };
 
-  __isConfirmed = async (text = "This action can not be undone.") => {
+  __isConfirmed = async (text = 'This action can not be undone.') => {
     let isConfirm = await Swal.fire({
       title: `Are you sure?`,
       text: text,
-      icon: "warning",
+      icon: 'warning',
       showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Yes, Delete!",
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, Delete!',
     });
 
     return !isConfirm.dismiss;
@@ -138,10 +134,10 @@ export class DripCampaignCardComponent implements OnInit {
     if (this.dripCampaignStatus === constants.COMPLETE) {
       return true;
     }
-    if (this.email["isEmailSent"]) {
+    if (this.email['isEmailSent']) {
       return true;
     }
-    this.disableTitle = "";
+    this.disableTitle = '';
     return this.deleteLoading;
   };
 

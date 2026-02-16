@@ -587,6 +587,29 @@ export class GenerateDripCampaignComponent implements OnInit {
     });
   };
 
+  onDeleteUpdateEmail = async () => {
+    const postData = {
+      drip_campaign_id: this.dripCampaign.id,
+      supplier_id: this.userData.supplier_id,
+    };
+    const drip:any = await this.dripCampaignService.getCampaign(postData);
+    this.emails = drip.emails;
+
+    this.emails.forEach((email, index) => {
+      console.log(email.delayBetweenPreviousEmail);
+      email.emailSequence = index + 1;
+      email.delayBetweenPreviousEmail = JSON.parse(email.delayBetweenPreviousEmail);
+    });
+    console.log(this.emails);
+    if(!this.emails.length) {
+      return;
+    }
+    this.saveEmails('true').then(async () => {
+      this.dripCampaign = await this.dripCampaignService.getCampaign(postData);
+      this.emails = this.dripCampaign.emails;
+    });
+  }
+
   @ViewChild('emailSmoothScroll') private emailSmoothScroll: ElementRef;
 
   scroll = false;
