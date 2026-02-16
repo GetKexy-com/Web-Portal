@@ -105,11 +105,11 @@ export class DripCampaignCardComponent implements OnInit {
     console.log('email', this.email);
     try {
       await this.dripCampaignService.deleteDripCampaignEmail(postData);
-      await Swal.fire({
-        title: `Success`,
-        text: "Email has been deleted.",
-        icon: "success",
-      });
+      // await Swal.fire({
+      //   title: `Success`,
+      //   text: "Email has been deleted.",
+      //   icon: "success",
+      // });
     } catch (e) {
       await Swal.fire({
         title: `Error`,

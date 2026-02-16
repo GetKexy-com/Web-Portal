@@ -132,7 +132,7 @@ export class GenerateDripCampaignComponent implements OnInit {
       if (!this.isContentLoading && this.emails.length) {
         this.showToastifyMessage = true;
         // Save the emails in DB
-        this.__saveEmails('true').then(async () => {
+        this.saveEmails('true').then(async () => {
           const postData = {
             drip_campaign_id: this.dripCampaignId,
             supplier_id: this.userData.supplier_id,
@@ -377,11 +377,11 @@ export class GenerateDripCampaignComponent implements OnInit {
   };
 
   getLinkedInUsername(url) {
-    if(!url) {
-      return "";
+    if (!url) {
+      return '';
     }
     const match = url.match(/linkedin\.com\/in\/([^/?]+)/i);
-    return match ? match[1] : "";
+    return match ? match[1] : '';
   }
 
   showAiEmailError = () => {
@@ -526,7 +526,7 @@ export class GenerateDripCampaignComponent implements OnInit {
     }
   };
 
-  __saveEmails = async (save = 'false') => {
+  public saveEmails = async (save = 'false') => {
     const formattedEmails = [];
     this.emails.forEach((e: DripEmail, index) => {
       const email = {
@@ -577,7 +577,9 @@ export class GenerateDripCampaignComponent implements OnInit {
     this.backBtnClick();
   };
   handleClickSaveDraft = async () => {
-    // SHow sweet alert popup
+    this.saveEmails('true').then();
+
+    // Show sweet alert popup immediately
     await Swal.fire({
       title: `Saved!`,
       text: 'Save as draft successfully.',
@@ -691,7 +693,7 @@ export class GenerateDripCampaignComponent implements OnInit {
     this.selectedEmailToneKey = tone.value;
   };
 
-  onSpintaxSelect = (spintax, index = null, rowIndex = null) => {
+  onSpintaxSelect = async (spintax, index = null, rowIndex = null) => {
     this.selectedEmailTemplate = spintax;
   };
 
