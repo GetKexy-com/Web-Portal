@@ -51,6 +51,7 @@ export class DripCampaignCardComponent implements OnInit {
     this.dripCampaign = this.dripCampaignService.getDripCampaignContentPageData();
     this.dripCampaignStatusSubscription = this.dripCampaignService.dripCampaignStatus.subscribe(status => {
       this.dripCampaignStatus = status;
+      console.log(this.dripCampaignStatus);
     });
   }
 
@@ -72,6 +73,15 @@ export class DripCampaignCardComponent implements OnInit {
       await Swal.fire({
         title: `Error`,
         text: 'This email has already been sent out to public and can not be deleted.',
+        icon: 'warning',
+      });
+      return;
+    }
+
+    if(this.dripCampaignStatus === 'active') {
+      await Swal.fire({
+        title: `Error`,
+        text: 'Emails from an active drip campaign cannot be deleted.',
         icon: 'warning',
       });
       return;

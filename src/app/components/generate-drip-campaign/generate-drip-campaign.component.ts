@@ -577,7 +577,16 @@ export class GenerateDripCampaignComponent implements OnInit {
     this.backBtnClick();
   };
   handleClickSaveDraft = async () => {
-    this.saveEmails('true').then();
+    // this.saveEmails('true').then(() => {
+    //   this.onDeleteUpdateEmail();
+    // });
+
+    for (const email of this.emails) {
+      this.dripCampaignService.updateDripCampaignEmail({
+        drip_campaign_email_id: email.id,
+        templateOptions: this.selectedEmailTemplate.key
+      });
+    }
 
     // Show sweet alert popup immediately
     await Swal.fire({
