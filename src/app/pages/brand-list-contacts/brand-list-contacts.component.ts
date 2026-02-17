@@ -440,25 +440,30 @@ export class BrandListContactsComponent implements OnInit, OnDestroy {
 
     const contacts = [];
 
-    data.map((contact: any) => {
+    for (const contact of data) {
       const c: Contact = Contact.empty();
       c.email = contact['Email'].trim();
-      c.state = contact['State'].trim();
-      c.city = contact['City'].trim();
-      c.country = contact['Country'].trim();
-      c.details.firstName = contact['First Name'].trim();
-      c.details.lastName = contact['Last Name'].trim();
+      c.state = contact['State']?.trim();
+      c.city = contact['City']?.trim();
+      c.country = contact['Country']?.trim();
+      c.details.firstName = contact['First Name']?.trim();
+      c.details.lastName = contact['Last Name']?.trim();
       c.details.name = `${contact['First Name']} ${contact['Last Name']}`;
-      c.details.linkedinUrl = contact['Linkedin'].trim();
-      c.details.title = contact['Job Title'].trim();
-      c.details.headline = contact['Job Title'].trim();
-      c.details.organization.name = contact['Company Name'].trim();
-      c.details.organization.phone = contact['Phone Number'].trim();
-      c.details.organization.city = contact['City'].trim();
-      c.details.organization.state = contact['State'].trim();
-      c.details.organization.country = contact['Country'].trim();
+      c.details.linkedinUrl = contact['Linkedin']?.trim();
+      c.details.title = contact['Job Title']?.trim();
+      c.details.headline = contact['Job Title']?.trim();
+      c.details.organization.name = contact['Company Name']?.trim();
+      c.details.organization.phone = contact['Phone Number']?.trim();
+      c.details.organization.city = contact['City']?.trim();
+      c.details.organization.state = contact['State']?.trim();
+      c.details.organization.country = contact['Country']?.trim();
+      if(!contact['Linkedin']) {
+        await Swal.fire('Error', `Contact with ${c.email} does not have a valid linkedin url.`);
+        this.isLoading = false;
+        return;
+      }
       contacts.push(Contact.contactPostDto(c));
-    });
+    }
 
     const payload = {
       companyId: this.userData.supplier_id,
