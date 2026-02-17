@@ -592,23 +592,24 @@ export class GenerateDripCampaignComponent implements OnInit {
       drip_campaign_id: this.dripCampaign.id,
       supplier_id: this.userData.supplier_id,
     };
-    const drip:any = await this.dripCampaignService.getCampaign(postData);
-    this.emails = drip.emails;
+    const drip: any = await this.dripCampaignService.getCampaign(postData);
 
-    this.emails.forEach((email, index) => {
-      console.log(email.delayBetweenPreviousEmail);
+    for (const email of drip.emails) {
+      const index = drip.emails.indexOf(email);
       email.emailSequence = index + 1;
       email.delayBetweenPreviousEmail = JSON.parse(email.delayBetweenPreviousEmail);
-    });
-    console.log(this.emails);
-    if(!this.emails.length) {
-      return;
+      await this.dripCampaignService.updateDripCampaignEmail({
+        drip_campaign_email_id: email.id,
+        emailSequence: email.emailSequence
+      });
+      const delay: EmailDelay = email.delayBetweenPreviousEmail;
+      email.isSpintax = this.selectedEmailTemplate.key === constants.PROSPECT_INSIGHTS_KEY;
+      email.templateOptions = this.selectedEmailTemplate.key;
+      email['emailText'] = `${delay.days} day(s) ${delay.hours} hour(s) ${delay.minutes} minute(s)`;
     }
-    this.saveEmails('true').then(async () => {
-      this.dripCampaign = await this.dripCampaignService.getCampaign(postData);
-      this.emails = this.dripCampaign.emails;
-    });
-  }
+
+    this.emails = drip.emails;
+  };
 
   @ViewChild('emailSmoothScroll') private emailSmoothScroll: ElementRef;
 
