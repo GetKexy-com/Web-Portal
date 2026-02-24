@@ -99,7 +99,7 @@ export class Contact {
   static contactPostDto(contact: Contact) {
     return {
       id: contact.id.toString() || '',
-      apolloContactId: contact.details.apolloContactId || '',
+      apolloContactId: contact.details?.apolloContactId || '',
       firstName: contact.details.firstName || contact.contactName.split(' ')[0] || '',
       lastName: contact.details.lastName || contact.contactName.split(' ').slice(1).join(' ') || '',
       name: contact.details.name || contact.contactName || '',

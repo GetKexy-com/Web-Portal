@@ -249,6 +249,7 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
     if (this.selectedContacts.length) {
       this.contact = this.selectedContacts[0];
     }
+    console.log(this.contact);
     contactDetails = this.contact.details;
 
     if (this.selectedContacts?.length && !this.isMultipleContactsSelected) {
@@ -447,8 +448,7 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
   };
 
   setAndGetAddOrEditSingleContactApiPayload = (formData) => {
-    console.log('formData', formData);
-    
+
     const contactDetails: ContactDetails = this.contact.details;
     contactDetails.firstName = formData.firstName;
     contactDetails.lastName = formData.lastName;
@@ -471,6 +471,9 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
       contactDetails.linkedinUrl = formData.linkedinUrl;
       contactDetails.organization.linkedinUrl = formData.linkedinUrl;
     }
+
+    this.contact.companyName = formData.organizationName;
+    this.contact.details = contactDetails;
 
     const payload = {
       companyId: this.supplierId,
