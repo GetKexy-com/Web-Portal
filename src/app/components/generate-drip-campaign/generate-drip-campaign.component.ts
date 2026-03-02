@@ -333,6 +333,14 @@ export class GenerateDripCampaignComponent implements OnInit {
       }
       this.isContentLoading = false;
     }
+    if (this.selectedEmailTemplate.key === constants.TEMPLATE_KEY) {
+      console.log(this.selectedEmailTemplate);
+      this.sseService.setupEmptyDripEmailTemplate({
+        count: this.dripCampaign.details.numberOfEmails,
+      });
+      return;
+    }
+
 
     this.emails = [];
 
@@ -584,7 +592,7 @@ export class GenerateDripCampaignComponent implements OnInit {
     for (const email of this.emails) {
       this.dripCampaignService.updateDripCampaignEmail({
         drip_campaign_email_id: email.id,
-        templateOptions: this.selectedEmailTemplate.key
+        templateOptions: this.selectedEmailTemplate.key,
       });
     }
 
@@ -609,7 +617,7 @@ export class GenerateDripCampaignComponent implements OnInit {
       email.delayBetweenPreviousEmail = JSON.parse(email.delayBetweenPreviousEmail);
       await this.dripCampaignService.updateDripCampaignEmail({
         drip_campaign_email_id: email.id,
-        emailSequence: email.emailSequence
+        emailSequence: email.emailSequence,
       });
       const delay: EmailDelay = email.delayBetweenPreviousEmail;
       email.isSpintax = this.selectedEmailTemplate.key === constants.PROSPECT_INSIGHTS_KEY;

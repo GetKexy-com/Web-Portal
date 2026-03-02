@@ -345,6 +345,29 @@ export class SseService {
       .catch((err) => console.error(err));
   };
 
+  setupEmptyDripEmailTemplate = ({ count }) => {
+    let emails: DripEmail[] = [];
+    let delayBetweenPreviousEmail: EmailDelay = { days: 3, hours: 0, minutes: 0 };
+    this._dripBulkEmailLoading.next(true);
+    if (count < 1) {
+      return;
+    }
+
+    for (let i = 0; i < count; i++) {
+      const email: DripEmail = {
+        delayBetweenPreviousEmail,
+        emailSequence: i + 1,
+        emailSubject: `Subject ${i + 1}`,
+        emailContent: `Content ${i + 1}`,
+        aiRawData: `Content ${i + 1}`,
+      };
+      console.log({ email });
+      emails.push(email);
+      this.addToDripBulkEmails(emails);
+    }
+    this._dripBulkEmailLoading.next(false);
+  };
+
   __formatEmailContent: (content: string) => string = (content: string): string => {
 
     const separators = ['[[[PARA]]]', '[[PARA]]]'];
