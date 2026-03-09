@@ -3,14 +3,79 @@
     <div class="card-area-wrap">
       <prospecting-common-card
         cardTitle="Company Description"
-        [description]="companyDescription"
         cardTitleLogo="/assets/icon/blue-company-icon.svg"
         cardDetails="This is the information about your company that KEXY uses to write cold emails with. The more elaborate and accurate
       the information here is, the better the emails will be."
-        textAreaLabel="Description"
-        bottomBtnLabel="Save changes"
-        [handleBottomBtnClick]="saveCompanyDescription"
       />
+    </div>
+
+    <div class="card-area-wrap">
+      <div class="product-card">
+        <div class="card-header">
+          <div class="card-add-new">
+            <app-kexy-button
+              label="ADD DESCRIPTION"
+              iconLeft="fa-plus"
+              bgColor="white"
+              textColor="#0047cc"
+              fontSize="12px !important"
+              iconSize="small"
+              (click)="addNewBtnClick($event)"
+            />
+          </div>
+        </div>
+        <div class="list-table">
+          <div class="head-area">
+            <p class="number-cell">No</p>
+            <p class="product-name-cell">Description</p>
+            <p class="icons-cell"></p>
+          </div>
+          <div class="body-area">
+            @if (descriptions().length > 0) {
+              @for (item of descriptions(); track item.id; let i = $index) {
+                <div class="table-row-wrap">
+                  <div class="table-row">
+                    <div class="d-flex w-100">
+                      <p class="number">{{ i + 1 }}</p>
+                      @if (!item.isEditClicked) {
+                        <p class="product-name category-product-name-typography">
+                          {{ item.description?.slice(0,100) }}{{ item.description?.length > 100 ? '...' : '' }}
+                        </p>
+                      }
+                      @if (item.isEditClicked) {
+                        <div class="product-desc">
+                          <textarea [name]="item.id" [(ngModel)]="item.description" [value]="item.description" class="form-control mb-2"></textarea>
+                          <div class="bottom-btn-wrap">
+                            <app-kexy-button
+                              (click)="createOrUpdateDescription(item)"
+                              label="Save changes"
+                            />
+                          </div>
+                        </div>
+                      }
+                    </div>
+                    <div class="icons-wrap">
+                      <div class="edit-delete-icon-wrap d-flex">
+                        <i (click)="handleEditClick(i)" class="fa fa-pencil" aria-hidden="true"></i>
+                        <i (click)="deleteDescription(item)" class="fa fa-trash-o" aria-hidden="true"></i>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              }
+            }
+            @if (descriptions().length === 0 && !isLoading()) {
+              <p class="p-3 text-center">Sorry! No data found.</p>
+            }
+          </div>
+
+          @if (isLoading()) {
+            <p class="load-more-text mt-3 mb-3 pb-3 text-center">
+              <i class="fa fa-spinner fa-spin" aria-hidden="true" style="color: black"></i>
+            </p>
+          }
+        </div>
+      </div>
     </div>
   </div>
 </brand-layout>

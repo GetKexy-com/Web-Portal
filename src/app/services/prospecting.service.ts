@@ -17,6 +17,9 @@ export class ProspectingService {
   private _products = new BehaviorSubject([]);
   allProduct = this._products.asObservable();
 
+  private _descriptions = new BehaviorSubject([]);
+  allDescription = this._descriptions.asObservable();
+
   private _conversation = new BehaviorSubject([]);
   allConversation = this._conversation.asObservable();
 
@@ -102,6 +105,27 @@ export class ProspectingService {
     });
   };
 
+  getDescriptions = async (postData) => {
+    return new Promise(async (resolve, reject) => {
+      const url = `company/${postData.companyId}/descriptions`;
+      this.httpService.get(url).subscribe({
+        next: (res) => {
+          let descriptions = res.data;
+          descriptions.forEach((item) => {
+            item.isEditClicked = false;
+          });
+          resolve(descriptions);
+          this._descriptions.next(descriptions);
+        },
+        error: (err) => {
+          if (err.error) {
+            reject(err.error);
+          }
+        },
+      });
+    });
+  };
+
   createProduct = async (postData) => {
     let products = [...this._products.getValue()];
     return new Promise(async (resolve, reject) => {
@@ -113,6 +137,29 @@ export class ProspectingService {
           products.push(item);
           resolve(true);
           this._products.next(products);
+        },
+        error: (err) => {
+          if (err.error) {
+            reject(err.error);
+          }
+        },
+      });
+    });
+  };
+
+  createDescription = async (postData) => {
+    let products = [...this._descriptions.getValue()];
+    return new Promise(async (resolve, reject) => {
+      const url = `company/${postData.companyId}/descriptions`;
+      delete postData.companyId;
+      this.httpService.post(url, postData).subscribe({
+        next: (res) => {
+          let item = { ...res.data };
+          item.isOpened = false;
+          item.isEditClicked = false;
+          products.push(item);
+          resolve(true);
+          this._descriptions.next(products);
         },
         error: (err) => {
           if (err.error) {
@@ -148,6 +195,31 @@ export class ProspectingService {
     });
   };
 
+  updateDescription = async (postData) => {
+    let products = [...this._descriptions.getValue()];
+    return new Promise(async (resolve, reject) => {
+      const id = postData.id;
+      delete postData.id;
+      const url = `company/descriptions/${id}`;
+      this.httpService.patch(url, postData).subscribe({
+        next: (res) => {
+          products.forEach((p, index) => {
+            if (p.id === id) {
+              products[index] = res.data;
+            }
+          });
+          resolve(true);
+          this._descriptions.next(products);
+        },
+        error: (err) => {
+          if (err.error) {
+            reject(err.error);
+          }
+        },
+      });
+    });
+  };
+
   deleteProduct = async (postData) => {
     let products = [...this._products.getValue()];
     return new Promise(async (resolve, reject) => {
@@ -157,6 +229,25 @@ export class ProspectingService {
           products = products.filter((p) => p.id !== postData.id);
           resolve(true);
           this._products.next(products);
+        },
+        error: (err) => {
+          if (err.error) {
+            reject(err.error);
+          }
+        },
+      });
+    });
+  };
+
+  deleteDescription = async (postData) => {
+    let products = [...this._descriptions.getValue()];
+    return new Promise(async (resolve, reject) => {
+      const url = `company/descriptions/${postData.id}`;
+      this.httpService.delete(url).subscribe({
+        next: (res) => {
+          products = products.filter((p) => p.id !== postData.id);
+          resolve(true);
+          this._descriptions.next(products);
         },
         error: (err) => {
           if (err.error) {

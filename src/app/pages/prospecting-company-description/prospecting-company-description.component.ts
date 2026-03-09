@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, DestroyRef, inject, Input, OnInit, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from 'src/app/services/auth.service';
 import { HttpService } from 'src/app/services/http.service';
@@ -8,6 +8,14 @@ import { BrandLayoutComponent } from '../../layouts/brand-layout/brand-layout.co
 import {
   ProspectingCommonCardComponent,
 } from '../../components/prospecting-common-card/prospecting-common-card.component';
+import {
+  CategoryProductListCardComponent,
+} from '../../components/category-product-list-card/category-product-list-card.component';
+import { KexyButtonComponent } from '../../components/kexy-button/kexy-button.component';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { ProspectingService } from '../../services/prospecting.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { NgClass } from '@angular/common';
 
 @Component({
   selector: 'prospecting-company-description',
@@ -17,62 +25,162 @@ import {
     ProspectingCommonCardComponent,
     BrandLayoutComponent,
     ProspectingCommonCardComponent,
+    CategoryProductListCardComponent,
+    KexyButtonComponent,
+    ReactiveFormsModule,
+    FormsModule,
+    NgClass,
   ],
   templateUrl: './prospecting-company-description.component.html',
   styleUrl: './prospecting-company-description.component.scss',
 })
 export class ProspectingCompanyDescriptionComponent implements OnInit {
-  // State
-  userData;
-  supplierId;
-  companyDescription;
+  // Services
+  private prospectingService = inject(ProspectingService);
+  private authService = inject(AuthService);
+  private destroyRef = inject(DestroyRef);
 
-  constructor(
-    private httpService: HttpService,
-    private authService: AuthService,
-  ) {
+  // Inputs
+  @Input() isLoading = signal(false);
+  @Input() toggleBtnBg?: string;
+  @Input() tableHeaderBg?: string;
+  @Input() tableHeaderColor?: string;
+
+  // State
+  userData = signal<any>(null);
+  supplierId = signal<string>('');
+  descriptions = signal<any[]>([]);
+  newDescriptionClicked = signal(false);
+
+  newDescription = signal({
+    description: '',
+    isEditClicked: true,
+  });
+
+  constructor() {
+    this.userData.set(this.authService.userTokenValue);
+    this.supplierId.set(this.userData().supplier_id);
+
+    this.prospectingService.allDescription
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(descriptions => {
+        this.descriptions.set(descriptions);
+      });
+
+    this.getDescriptions().then();
+  }
+
+  async ngOnInit() {
     document.title = 'Prospecting Company Description - KEXY Brand Portal';
   }
 
-  ngOnInit() {
-    this.userData = this.authService.userTokenValue;
-    this.supplierId = this.userData.supplier_id;
-    this.setCompanyDescriptionValue();
-  }
-
-  private setCompanyDescriptionValue() {
-    const userToken = JSON.parse(localStorage.getItem(constants.USERTOKEN) || '{}');
-    this.companyDescription = userToken?.company_description || '';
-  }
-
-  saveCompanyDescription = async (description: string) => {
-    const payload = {
-      companyDescription: description,
+  async getDescriptions() {
+    this.isLoading.set(true);
+    const data = {
+      companyId: this.supplierId(),
     };
-    try {
-      const url = `company/${this.supplierId}`;
-      const res = await this.httpService.patch(url, payload).toPromise();
-      if (res?.success) {
-        const userToken = JSON.parse(localStorage.getItem(constants.USERTOKEN) || '{}');
-        userToken.company_description = description;
-        localStorage.setItem(constants.USERTOKEN, JSON.stringify(userToken));
 
-        // Modern alert alternative
-        await Swal.fire({
-          title: 'Success!',
-          text: 'Saved successfully!',
-          icon: 'success',
-          confirmButtonText: 'OK',
-        });
-      }
-    } catch (error) {
-      console.error('Error saving company description:', error);
-      const alert = await Swal.fire({
-        title: 'Error!',
-        text: 'Failed to save description',
-        icon: 'error',
-        confirmButtonText: 'OK',
-      });
+    try {
+      await this.prospectingService.getDescriptions(data);
+    } catch (e) {
+      console.error('Error fetching products:', e);
+    } finally {
+      this.isLoading.set(false);
     }
-  };
+  }
+
+  addNewBtnClick(e: Event) {
+    e.stopPropagation();
+    if (this.newDescriptionClicked()) {
+      const products = this.descriptions();
+      const p = products[products.length - 1];
+      p.isEditClicked = true;
+      this.descriptions.set([...products]);
+      return;
+    }
+    this.descriptions.update(products => [...products, this.newDescription()]);
+    this.newDescriptionClicked.set(true);
+  }
+
+  handleEditClick(rowIndex: number) {
+    this.descriptions.update(products => {
+      const updated = [...products];
+      updated[rowIndex].isEditClicked = !updated[rowIndex].isEditClicked;
+      return updated;
+    });
+  }
+
+  async createOrUpdateDescription(product: any) {
+    if (product.id) {
+      await this.updateDescription(product);
+      return;
+    }
+
+    const newDesc = {
+      ...product,
+      companyId: this.supplierId(),
+    };
+
+    delete newDesc.isEditClicked;
+    console.log(newDesc);
+    if (newDesc.description === '') {
+      await Swal.fire('Error!', 'Description is missing.', 'warning');
+      return;
+    }
+    try {
+      this.descriptions.update(descriptions => descriptions.slice(0, -1));
+      await this.prospectingService.createDescription(newDesc);
+      this.newDescriptionClicked.set(false);
+      this.resetNewDescription();
+    } catch (e) {
+      this.newDescriptionClicked.set(false);
+      console.error('Error creating product:', e);
+    }
+  }
+
+  private resetNewDescription() {
+    this.newDescription.set({
+      description: '',
+      isEditClicked: true,
+    });
+  }
+
+  async updateDescription(product: any) {
+    const p = {
+      ...product,
+      id: product.id,
+    };
+
+    delete p.isEditClicked;
+    delete p.status;
+    delete p.createdAt;
+    delete p.user;
+    console.log(p);
+    try {
+      await this.prospectingService.updateDescription(p);
+    } catch (e) {
+      console.error('Error updating product:', e);
+    }
+  }
+
+  async deleteDescription(description: any) {
+    if (this.newDescriptionClicked() && !description.id) {
+      this.descriptions.update(descriptions => descriptions.slice(0, -1));
+      this.newDescriptionClicked.set(false);
+      return;
+    }
+
+    this.descriptions.update(descriptions => descriptions.filter(p => p.id !== description.id));
+
+    const data = {
+      id: description.id,
+    };
+
+    try {
+      await this.prospectingService.deleteDescription(data);
+    } catch (e) {
+      console.error('Error deleting product:', e);
+    }
+  }
+
 }
