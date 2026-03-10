@@ -13,9 +13,6 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ProspectingService } from '../../services/prospecting.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NgClass } from '@angular/common';
-import {
-  EmailTimeSettingsContentComponent
-} from '../../components/email-time-settings-content/email-time-settings-content.component';
 import { NgbOffcanvas } from '@ng-bootstrap/ng-bootstrap';
 import {
   CompanyDescriptionCanvasComponent
@@ -29,11 +26,9 @@ import {
     ProspectingCommonCardComponent,
     BrandLayoutComponent,
     ProspectingCommonCardComponent,
-    CategoryProductListCardComponent,
     KexyButtonComponent,
     ReactiveFormsModule,
     FormsModule,
-    NgClass,
   ],
   templateUrl: './prospecting-company-description.component.html',
   styleUrl: './prospecting-company-description.component.scss',
@@ -55,12 +50,6 @@ export class ProspectingCompanyDescriptionComponent implements OnInit {
   supplierId = signal<string>('');
   descriptions = signal<any[]>([]);
   newDescriptionClicked = signal(false);
-
-  newDescription = signal({
-    name: '',
-    description: '',
-    isEditClicked: true,
-  });
 
   constructor(
     private ngbOffcanvas: NgbOffcanvas,
