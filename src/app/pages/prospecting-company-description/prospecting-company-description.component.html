@@ -27,6 +27,7 @@
         <div class="list-table">
           <div class="head-area">
             <p class="number-cell">No</p>
+            <p class="company-name-cell">Company Name</p>
             <p class="product-name-cell">Description</p>
             <p class="icons-cell"></p>
           </div>
@@ -37,35 +38,16 @@
                   <div class="table-row">
                     <div class="d-flex w-100">
                       <p class="number">{{ i + 1 }}</p>
-                      @if (!item.isEditClicked) {
-                        <p class="product-name category-product-name-typography">
-                          {{ item.description?.slice(0,100) }}{{ item.description?.length > 100 ? '...' : '' }}
-                        </p>
-                      }
-                      @if (item.isEditClicked) {
-                        <div class="product-desc">
-                          <textarea [name]="item.id" [(ngModel)]="item.description" [value]="item.description" class="form-control mb-3"></textarea>
-                          <div class="bottom-btn-wrap">
-                            <app-kexy-button
-                              style="width: 150px"
-                              (click)="createOrUpdateDescription(item)"
-                              label="Save changes"
-                            />
-                            <app-kexy-button
-                              style="width: 100px"
-                              [bgColor]="'transparent'"
-                              textColor="black"
-                              [borderColor]="'#8c8c8c'"
-                              (click)="handleEditClick(i)"
-                              label="Cancel"
-                            />
-                          </div>
-                        </div>
-                      }
+                      <p class="product-name category-product-name-typography">
+                        {{item.companyName}}
+                      </p>
+                      <p class="product-desc category-product-name-typography">
+                        {{ item.description?.slice(0, 100) }}{{ item.description?.length > 100 ? '...' : '' }}
+                      </p>
                     </div>
                     <div class="icons-wrap">
                       <div class="edit-delete-icon-wrap d-flex">
-                        <i (click)="handleEditClick(i)" class="fa fa-pencil" aria-hidden="true"></i>
+                        <i (click)="openCreateOrEditCanvas(item)" class="fa fa-pencil" aria-hidden="true"></i>
                         <i (click)="deleteDescription(item)" class="fa fa-trash-o" aria-hidden="true"></i>
                       </div>
                     </div>

@@ -1,8 +1,5 @@
 import { Component, DestroyRef, inject, Input, OnInit, signal } from '@angular/core';
-import { Router } from '@angular/router';
 import { AuthService } from 'src/app/services/auth.service';
-import { HttpService } from 'src/app/services/http.service';
-import { constants } from 'src/app/helpers/constants';
 import Swal from 'sweetalert2';
 import { BrandLayoutComponent } from '../../layouts/brand-layout/brand-layout.component';
 import {
@@ -16,6 +13,13 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ProspectingService } from '../../services/prospecting.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NgClass } from '@angular/common';
+import {
+  EmailTimeSettingsContentComponent
+} from '../../components/email-time-settings-content/email-time-settings-content.component';
+import { NgbOffcanvas } from '@ng-bootstrap/ng-bootstrap';
+import {
+  CompanyDescriptionCanvasComponent
+} from '../../components/company-description-canvas/company-description-canvas.component';
 
 @Component({
   selector: 'prospecting-company-description',
@@ -53,11 +57,14 @@ export class ProspectingCompanyDescriptionComponent implements OnInit {
   newDescriptionClicked = signal(false);
 
   newDescription = signal({
+    name: '',
     description: '',
     isEditClicked: true,
   });
 
-  constructor() {
+  constructor(
+    private ngbOffcanvas: NgbOffcanvas,
+  ) {
     this.userData.set(this.authService.userTokenValue);
     this.supplierId.set(this.userData().supplier_id);
 
@@ -91,77 +98,27 @@ export class ProspectingCompanyDescriptionComponent implements OnInit {
 
   addNewBtnClick(e: Event) {
     e.stopPropagation();
-    if (this.newDescriptionClicked()) {
-      const products = this.descriptions();
-      const p = products[products.length - 1];
-      p.isEditClicked = true;
-      this.descriptions.set([...products]);
-      return;
-    }
-    this.descriptions.update(products => [...products, this.newDescription()]);
-    this.newDescriptionClicked.set(true);
+    this.openCreateOrEditCanvas();
   }
 
-  handleEditClick(rowIndex: number) {
-    this.descriptions.update(products => {
-      const updated = [...products];
-      updated[rowIndex].isEditClicked = !updated[rowIndex].isEditClicked;
-      return updated;
+  openCreateOrEditCanvas = (description = {}) => {
+    this.prospectingService.selectedCompanyDescription = description;
+    console.log({ description });
+    this.__createRightSideSlide(CompanyDescriptionCanvasComponent, 'email-time-settings-slider');
+  };
+
+  __createRightSideSlide = (Component, panelClass = 'attributes-bg') => {
+    this.ngbOffcanvas.open(Component, {
+      panelClass: `${panelClass} edit-rep-canvas`,
+      backdropClass: 'edit-rep-canvas-backdrop',
+      position: 'end',
+      scroll: false,
+      beforeDismiss: async () => {
+        return true;
+      },
     });
-  }
+  };
 
-  async createOrUpdateDescription(product: any) {
-    if (product.id) {
-      await this.updateDescription(product);
-      return;
-    }
-
-    const newDesc = {
-      ...product,
-      companyId: this.supplierId(),
-    };
-
-    delete newDesc.isEditClicked;
-    console.log(newDesc);
-    if (newDesc.description === '') {
-      await Swal.fire('Error!', 'Description is missing.', 'warning');
-      return;
-    }
-    try {
-      this.descriptions.update(descriptions => descriptions.slice(0, -1));
-      await this.prospectingService.createDescription(newDesc);
-      this.newDescriptionClicked.set(false);
-      this.resetNewDescription();
-    } catch (e) {
-      this.newDescriptionClicked.set(false);
-      console.error('Error creating product:', e);
-    }
-  }
-
-  private resetNewDescription() {
-    this.newDescription.set({
-      description: '',
-      isEditClicked: true,
-    });
-  }
-
-  async updateDescription(product: any) {
-    const p = {
-      ...product,
-      id: product.id,
-    };
-
-    delete p.isEditClicked;
-    delete p.status;
-    delete p.createdAt;
-    delete p.user;
-    console.log(p);
-    try {
-      await this.prospectingService.updateDescription(p);
-    } catch (e) {
-      console.error('Error updating product:', e);
-    }
-  }
 
   async deleteDescription(description: any) {
 

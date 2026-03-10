@@ -74,6 +74,7 @@ export class ProspectingService {
   public listIdWhenEditContactFromListContactPage;
   public searchContactFilterData;
   public searchContactActiveFilterCount;
+  public selectedCompanyDescription;
   public selectedAllContacts;
   private companyInfoApiUrl =
     'https://l777t7f5reetofkbbji7uq7jsy0oydzw.lambda-url.us-east-1.on.aws/';
@@ -152,6 +153,7 @@ export class ProspectingService {
     return new Promise(async (resolve, reject) => {
       const url = `company/${postData.companyId}/descriptions`;
       delete postData.companyId;
+      // delete postData.name;
       this.httpService.post(url, postData).subscribe({
         next: (res) => {
           let item = { ...res.data };

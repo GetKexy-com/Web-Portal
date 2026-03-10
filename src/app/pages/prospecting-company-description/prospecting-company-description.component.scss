@@ -44,12 +44,12 @@
         width: 4%;
         font-size: 12px;
       }
-      .category-type-cell {
+      .company-name-cell {
         width: 24%;
         font-size: 12px;
       }
       .product-name-cell {
-        width: 54%;
+        width: 30%;
         font-size: 12px;
       }
       .icons-cell {
@@ -87,7 +87,7 @@
         line-height: 16px;
         letter-spacing: 0em;
         color: #a0a0a0;
-        width: 45px;
+        width: 38px;
       }
       .category-product-name-typography {
         font-size: 12px;
@@ -97,14 +97,16 @@
         color: black;
       }
       .product-name {
-        width: 50%;
-
+        width: 225px;
+      }
+      .product-desc {
         textarea {
           width: 100%;
           padding: 4px 8px;
           border-radius: 6px;
           font-size: 14px;
         }
+
       }
       .icons-wrap {
         width: 125px;
