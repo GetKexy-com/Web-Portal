@@ -46,6 +46,7 @@ export class DripCampaignContentComponent implements OnInit {
   public campaignTitles = [];
   public selectedTitle: string;
   public selectedTitleId;
+  public selectedCompany;
   public numberOfEmail;
   public promotionId;
   public promotionTitles;
@@ -61,7 +62,9 @@ export class DripCampaignContentComponent implements OnInit {
   public dripCampaignDuplicate: boolean = false;
   public dripCampaignId;
   public calendlyLinkOptions = [];
+  public companyOptions = [];
   public selectedCalendlyLinkKey = '';
+  public selectedCompanyKey = '';
   public websitesOptions = [];
   public selectedWebsiteKey = '';
   public selectedDripCampaignType = constants.COMPANIES;
@@ -73,6 +76,7 @@ export class DripCampaignContentComponent implements OnInit {
 
   public dripCampaignTitlesSubscription: Subscription;
   public calendlyLinkSubscription: Subscription;
+  public companySubscription: Subscription;
   public websiteSubscription: Subscription;
 
   constructor(
@@ -102,13 +106,17 @@ export class DripCampaignContentComponent implements OnInit {
     await this.getAndSetDripCampaignTitleSubscription();
     this.prospectingService.getCalendlyLinks();
     this.prospectingService.getWebsites();
+    await this.prospectingService.getDescriptions({
+      companyId: this.userData.supplier_id,
+    });
     this.setCalendlyLinkOptions();
     this.setWebsiteOptions();
+    this.setCompanyOptions();
 
     if (this.dripCampaignId) {
       this.setPreviousData();
     }
-    await this.getListOfPromotion();
+    // await this.getListOfPromotion();
 
     // Set 1st index as the default which is 'short' if not find anything in service for this field
     const emailLength = this.dripCampaignService.getEmailLength();
@@ -126,6 +134,7 @@ export class DripCampaignContentComponent implements OnInit {
     if (this.dripCampaignTitlesSubscription) this.dripCampaignTitlesSubscription.unsubscribe();
     if (this.calendlyLinkSubscription) this.calendlyLinkSubscription.unsubscribe();
     if (this.websiteSubscription) this.websiteSubscription.unsubscribe();
+    if (this.companySubscription) this.companySubscription.unsubscribe();
   }
 
   onUserPromptPriorityChange = () => {
@@ -144,6 +153,8 @@ export class DripCampaignContentComponent implements OnInit {
       // if (titleIndex > -1) this.selectedTitle = this.campaignTitles[titleIndex].value;
       this.selectedTitle = data.title.title;
       this.selectedTitleId = data.title.id;
+      this.selectedCompany = data.companyDescription;
+      this.selectedCompanyKey = data.companyDescription.description;
     }
     this.selectedEmailToneKey = data.emailTone;
     this.numberOfEmail = data.numberOfEmails;
@@ -153,35 +164,6 @@ export class DripCampaignContentComponent implements OnInit {
     this.whatDoYouCover = dripCampaign.emailAbout;
     this.userPromptPriority = dripCampaign.userPromptPriority;
     this.targetAudience = dripCampaign.targetAudience;
-    // this.selectedDripCampaignType = dripCampaign["audience_type"];
-  };
-
-  getListOfPromotion = async () => {
-    this.promotionsData = [];
-    let postData = {
-      page: this.page,
-      supplier_id: this.userData.supplier_id,
-      limit: this.limit,
-      get_total_count: true,
-      status: constants.ACTIVE,
-    };
-    let data = await this.campaignService.getListOfLandingPage(postData);
-    if (!data['landingPages'] || !data['landingPages'].length) return;
-
-    this.promotionTitles = await this.campaignService.getAllCampaignTitle();
-
-    this.totalPageCounts = data['totalPageCounts'];
-    this.calculatePages();
-    data['landingPages'].map((item) => {
-      const obj = {
-        id: item.id,
-        title_of_campaign: item.detail.title.title,
-        promotion_type: item.detail.landingPageType,
-        date_created: item.createdAt,
-        promotion_data: item,
-      };
-      this.promotionsData.push(obj);
-    });
   };
 
   onEmailLengthSelect = (selectedValue, index = null, rowIndex = null) => {
@@ -198,6 +180,16 @@ export class DripCampaignContentComponent implements OnInit {
     });
   };
 
+  setCompanyOptions = async () => {
+    this.companySubscription = this.prospectingService.allDescription.subscribe((data) => {
+      this.companyOptions = [];
+      data.map((item, index) => {
+        this.companyOptions.push({ ...item, value: item.description });
+      });
+      console.log(this.companyOptions);
+    });
+  };
+
   setWebsiteOptions = async () => {
     this.websiteSubscription = this.prospectingService.websites.subscribe((data) => {
       this.websitesOptions = [];
@@ -206,13 +198,6 @@ export class DripCampaignContentComponent implements OnInit {
       });
     });
   };
-
-  // getCampaignTitle = (title_id) => {
-  //   const index = this.promotionTitles && this.promotionTitles.findIndex(i => i.id.toString() === title_id.toString());
-  //   if (index < 0) return;
-  //
-  //   return this.promotionTitles[index].title;
-  // };
 
   getAndSetDripCampaignTitleSubscription = async () => {
     // Get dripCampaignTitles api call
@@ -328,43 +313,6 @@ export class DripCampaignContentComponent implements OnInit {
     });
   };
 
-  receivedPromotion = (data) => {
-    if (this.promotionId === data.id) {
-      this.promotionId = '';
-    } else {
-      this.promotionId = data.id;
-    }
-  };
-
-  receivedLimitNumber = async (limit) => {
-    this.limit = limit;
-    this.page = 1;
-
-    this.isWaitingFlag = true;
-    await this.getListOfPromotion();
-    this.isWaitingFlag = false;
-  };
-
-  async goToPage(page) {
-    if (page === this.page) return;
-    if (page > this.totalPageCounts) return;
-    if (page === 0) return;
-    this.isWaitingFlag = true;
-    this.page = page;
-    this.calculatePages();
-    await this.getListOfPromotion();
-    this.isWaitingFlag = false;
-  }
-
-  calculatePages() {
-    this.totalPages = [];
-    for (let i = 1; i <= this.totalPageCounts; i++) {
-      this.totalPages.push({
-        page: i,
-        isActive: i === this.page,
-      });
-    }
-  }
 
   onChangeNumberOfEmail = (e) => {
     if (this.numberOfEmail < 1) this.numberOfEmail = 1;
@@ -381,6 +329,11 @@ export class DripCampaignContentComponent implements OnInit {
 
   onCalendlyLinkSelect = (calendlyLink, index, rowIndex) => {
     this.selectedCalendlyLinkKey = calendlyLink.value;
+  };
+
+  onCompanySelect = (company, index, rowIndex) => {
+    this.selectedCompanyKey = company.value;
+    this.selectedCompany = company;
   };
 
   openAddWebsiteCanvas = () => {
@@ -467,6 +420,7 @@ export class DripCampaignContentComponent implements OnInit {
       dripCampaignId: parseInt(this.dripCampaignId) || '',
       companyId: this.userData.supplier_id,
       dripCampaignTitleId: this.selectedTitleId,
+      companyDescriptionId: this.selectedCompany.id,
       numberOfEmails: this.numberOfEmail,
       emailTone: this.selectedEmailToneKey,
       emailLength: this.selectedEmailLength.value,

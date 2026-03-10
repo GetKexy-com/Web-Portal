@@ -31,6 +31,9 @@ export class DripCampaign {
       ...rawData.details,
       title: {
         ...rawData.details.title
+      },
+      companyDescription: {
+        ...rawData.details.companyDescription
       }
     };
     this.emails = rawData.emails.map(email => {
@@ -74,6 +77,13 @@ export class DripCampaign {
           title: '',
           status: 'inactive',
           titleType: 'drip',
+          createdAt: new Date().toISOString()
+        },
+        companyDescription: {
+          id: 0,
+          status: 'inactive',
+          companyName: "",
+          description: "",
           createdAt: new Date().toISOString()
         }
       },
@@ -134,6 +144,7 @@ interface IDripCampaignDetails {
   calendlyLink: string;
   createdAt: string;
   title: ICampaignTitle;
+  companyDescription: ICompanyDescription;
 }
 
 interface ICampaignEmail {
@@ -185,5 +196,12 @@ interface ICampaignTitle {
   title: string;
   status: string;
   titleType: string;
+  createdAt: string;
+}
+interface ICompanyDescription {
+  id: number;
+  companyName: string;
+  status: string;
+  description: string;
   createdAt: string;
 }

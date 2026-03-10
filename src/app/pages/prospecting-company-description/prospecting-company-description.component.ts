@@ -5,14 +5,10 @@ import { BrandLayoutComponent } from '../../layouts/brand-layout/brand-layout.co
 import {
   ProspectingCommonCardComponent,
 } from '../../components/prospecting-common-card/prospecting-common-card.component';
-import {
-  CategoryProductListCardComponent,
-} from '../../components/category-product-list-card/category-product-list-card.component';
 import { KexyButtonComponent } from '../../components/kexy-button/kexy-button.component';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ProspectingService } from '../../services/prospecting.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { NgClass } from '@angular/common';
 import { NgbOffcanvas } from '@ng-bootstrap/ng-bootstrap';
 import {
   CompanyDescriptionCanvasComponent
