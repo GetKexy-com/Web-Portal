@@ -164,13 +164,15 @@ export class ProspectingCompanyDescriptionComponent implements OnInit {
   }
 
   async deleteDescription(description: any) {
+
+    const confirmed = await this.__isConfirmed();
+    if (!confirmed) return;
+
     if (this.newDescriptionClicked() && !description.id) {
       this.descriptions.update(descriptions => descriptions.slice(0, -1));
       this.newDescriptionClicked.set(false);
       return;
     }
-
-    this.descriptions.update(descriptions => descriptions.filter(p => p.id !== description.id));
 
     const data = {
       id: description.id,
@@ -178,9 +180,26 @@ export class ProspectingCompanyDescriptionComponent implements OnInit {
 
     try {
       await this.prospectingService.deleteDescription(data);
+      this.descriptions.update(descriptions => descriptions.filter(p => p.id !== description.id));
     } catch (e) {
       console.error('Error deleting product:', e);
     }
+
   }
+
+  __isConfirmed = async () => {
+    let isConfirm = await Swal.fire({
+      title: `Delete?`,
+      text: 'Are you sure?.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes!',
+    });
+
+    return !isConfirm.dismiss;
+  };
+
 
 }

@@ -68,13 +68,14 @@
         }
       }
       .bottom-btn-wrap {
-        width: 200px;
+        display: flex;
+        gap: 10px;
       }
       .table-row {
         display: flex;
         align-items: flex-start;
         //justify-content: space-between;
-        padding: 10px 20px;
+        padding: 20px;
       }
       p {
         margin-bottom: 0;

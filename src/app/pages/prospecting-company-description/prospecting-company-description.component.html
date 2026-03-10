@@ -44,11 +44,18 @@
                       }
                       @if (item.isEditClicked) {
                         <div class="product-desc">
-                          <textarea [name]="item.id" [(ngModel)]="item.description" [value]="item.description" class="form-control mb-2"></textarea>
+                          <textarea [name]="item.id" [(ngModel)]="item.description" [value]="item.description" class="form-control mb-3"></textarea>
                           <div class="bottom-btn-wrap">
                             <app-kexy-button
+                              style="width: 150px"
                               (click)="createOrUpdateDescription(item)"
                               label="Save changes"
+                            />
+                            <app-kexy-button
+                              style="width: 100px"
+                              [bgColor]="'#dc3545'"
+                              (click)="handleEditClick(i)"
+                              label="Cancel"
                             />
                           </div>
                         </div>
