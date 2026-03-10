@@ -343,16 +343,17 @@ export class GenerateDripCampaignComponent implements OnInit {
 
 
     this.emails = [];
-
+    console.log(this.dripCampaign.details);
+    // return;
     const data = {
       count: this.dripCampaign.details.numberOfEmails,
       email_tone: this.selectedEmailToneKey || this.dripCampaign.details.emailTone,
       sender_name: this.userData.firstName + ' ' + this.userData.lastName,
       sender_number: this.userData.phoneCountryCode + this.userData.phone,
-      sender_company_name: this.userData.supplier_name,
       sender_website: this.dripCampaign.details.websiteUrl || '',
       sender_calendly_link: this.dripCampaign.details.calendlyLink || '',
-      sender_company_details: this.userData.company_description,
+      sender_company_name: this.dripCampaign.details.companyDescription.companyName,
+      sender_company_details: this.dripCampaign.details.description,
       sender_product_name: this.selectedPromotionsProductName,
       sender_product_category: '',
       sender_product_description: '',
