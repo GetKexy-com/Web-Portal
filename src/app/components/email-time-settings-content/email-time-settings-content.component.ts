@@ -628,11 +628,13 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
       await this.getAndSetLabels();
       this.setPreviousData();
 
+      // If new list is added to 'active' drip campaign then we need to call 'activateDripCampaign'
+      // Because contacts from new list needs to be added to the drip which will be done in 'activateDripCampaign'
       if (this.dripCampaign.status === constants.ACTIVE && newEnrollListIds.length) {
         const postData = {
           drip_campaign_id: this.dripCampaignId,
-          supplier_id: this.userData.supplier_id,
-          notify: 'false',
+          companyId: this.userData.supplier_id,
+          // notify: 'false',
         };
         await this.dripCampaignService.activateDripCampaign(postData);
       }
