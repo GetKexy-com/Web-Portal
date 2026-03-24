@@ -5,7 +5,7 @@
       <div class="buttons-for-large-screen">
 
         <app-kexy-button
-          *ngIf="selectedContacts.length"
+          *ngIf="selectedLeadMagnet.length"
           [disabled]="isWaitingFlag || isLoading"
           (click)="deleteLeadMagnets()"
           style="margin-right: 10px"
@@ -28,7 +28,7 @@
         ></app-kexy-button>
 
         <app-kexy-button
-          *ngIf="selectedContacts.length"
+          *ngIf="selectedLeadMagnet.length"
           [disabled]="isWaitingFlag || isLoading"
           style="margin-right: 10px"
           label="Edit"
@@ -43,7 +43,7 @@
       <!--Buttons for small laptop screen-->
       <div class="buttons-for-small-screen">
         <app-kexy-button
-          *ngIf="selectedContacts.length"
+          *ngIf="selectedLeadMagnet.length"
           [disabled]="isWaitingFlag || isLoading"
           (click)="deleteLeadMagnets()"
           style="margin-right: 10px"
@@ -68,7 +68,7 @@
         ></app-kexy-button>
 
         <app-kexy-button
-          *ngIf="selectedContacts.length"
+          *ngIf="selectedLeadMagnet.length"
           [disabled]="isWaitingFlag || isLoading"
           style="margin-right: 10px"
           label=""
@@ -126,7 +126,7 @@
         <section class="new-table-wrapper">
           <!--    [style.width]="tableWidth + 'px'"-->
           <div
-            [style.height]="!isWaitingFlag && contacts.length ? 'calc(100vh - 330px)' : 'auto'" class="list-wrapper"
+            [style.height]="!isWaitingFlag && leadMagnets.length ? 'calc(100vh - 330px)' : 'auto'" class="list-wrapper"
           >
             <table *ngIf="columnList" [style.width]="tableWidth + 'px'" class="n-table">
               <!-- header - start -->
@@ -152,9 +152,9 @@
               <!-- header - end -->
 
               <!-- body - start -->
-              <ng-container *ngIf="!isWaitingFlag && contacts.length > 0">
+              <ng-container *ngIf="!isWaitingFlag && leadMagnets.length > 0">
                 <tbody>
-                <tr class="n-product" [class.selected]="contact.isSelected" *ngFor="let contact of contacts; let i = index"
+                <tr class="n-product" [class.selected]="contact.isSelected" *ngFor="let contact of leadMagnets; let i = index"
                     (click)="editContact(contact)">
                   <ng-container *ngFor="let column of columnList">
                     <td
@@ -191,7 +191,7 @@
                 </tr>
                 </tbody>
               </ng-container>
-              <ng-container *ngIf="!isWaitingFlag && contacts.length === 0">
+              <ng-container *ngIf="!isWaitingFlag && leadMagnets.length === 0">
                 <tr class="n-product">
                   <td [colSpan]="columnList.length" class="n-cell">
               <span class="text-center d-inline-block"

@@ -28,16 +28,16 @@ import { Contact } from '../../models/Contact';
 export class LeadMagnetsComponent implements OnInit, OnDestroy, AfterViewChecked {
   userData;
   supplierId;
-  contactList = [];
+  leadMagnetList = [];
   totalContactsCount = 0;
   isWaitingFlag: boolean = true;
   isLoading: boolean = false;
-  selectedContacts = [];
+  selectedLeadMagnet = [];
   page = 1;
   limit = 100;
   totalPage;
   lmListSubscription: Subscription;
-  contacts: any[] = [];
+  leadMagnets: any[] = [];
   public tableWidth = 500;
   public columnList: any[];
   public showNavigationInput: boolean = false;
@@ -134,22 +134,22 @@ export class LeadMagnetsComponent implements OnInit, OnDestroy, AfterViewChecked
   };
 
   handleContactSelect = (selectedRow) => {
-    const rowIndex = this.contactList.findIndex((i) => i.id === selectedRow.id);
-    this.contactList[rowIndex].isSelected = !this.contactList[rowIndex].isSelected;
+    const rowIndex = this.leadMagnetList.findIndex((i) => i.id === selectedRow.id);
+    this.leadMagnetList[rowIndex].isSelected = !this.leadMagnetList[rowIndex].isSelected;
 
-    if (this.contactList[rowIndex].isSelected) {
-      const index = this.selectedContacts.findIndex(
-        (j) => j.id === this.contactList[rowIndex].id,
+    if (this.leadMagnetList[rowIndex].isSelected) {
+      const index = this.selectedLeadMagnet.findIndex(
+        (j) => j.id === this.leadMagnetList[rowIndex].id,
       );
       if (index === -1) {
-        this.selectedContacts.push(this.contactList[rowIndex]);
+        this.selectedLeadMagnet.push(this.leadMagnetList[rowIndex]);
       }
     } else {
-      const index = this.selectedContacts.findIndex(
-        (j) => j.id === this.contactList[rowIndex].id,
+      const index = this.selectedLeadMagnet.findIndex(
+        (j) => j.id === this.leadMagnetList[rowIndex].id,
       );
       if (index > -1) {
-        this.selectedContacts.splice(index, 1);
+        this.selectedLeadMagnet.splice(index, 1);
       }
     }
 
@@ -158,7 +158,7 @@ export class LeadMagnetsComponent implements OnInit, OnDestroy, AfterViewChecked
     // this.prospectingService.selectedAllContacts = this.selectAllContacts;
 
     // Save selected contact in service inorder to use it in contact add or edit sidebar.
-    this.prospectingService.selectedContactsInContactsPage = this.selectedContacts;
+    this.prospectingService.selectedContactsInContactsPage = this.selectedLeadMagnet;
   };
 
 
