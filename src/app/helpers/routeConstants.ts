@@ -63,6 +63,7 @@ export const routeConstants = {
     FIND_LEADS: BRAND + CONTACTS + "find-leads",
     MANAGE_LIST: BRAND + CONTACTS + "manage-list",
     LIST_CONTACTS: BRAND + CONTACTS + "list-contacts",
+    LEAD_MAGNETS: BRAND + "lead-magnets",
     SLACK_INTEGRATION: BRAND + "slack-integration",
     SMTP_SETTINGS: BRAND + "email-account-settings",
     NEGATIVE_PROMPTS: BRAND + "negative-prompts",

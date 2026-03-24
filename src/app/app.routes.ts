@@ -165,6 +165,14 @@ export const routes: Routes = [
     canActivate: [AuthGuard],
   },
   {
+    path: routeConstants.BRAND.LEAD_MAGNETS,
+    loadComponent: () =>
+      import('./pages/lead-magnets/lead-magnets.component').then(
+        (m) => m.LeadMagnetsComponent,
+      ),
+    canActivate: [AuthGuard],
+  },
+  {
     path: routeConstants.BRAND.MANAGE_CONTACTS,
     loadComponent: () =>
       import('./pages/brand-contacts/brand-contacts.component').then(
