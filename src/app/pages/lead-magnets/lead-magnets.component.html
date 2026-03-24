@@ -1,1 +1,90 @@
-<p>lead-magnets works!</p>
+<brand-layout layoutPaddingNone="true" headerBgWhite="true" [fullPageScroll]="false">
+  <div class="brand-contacts-page">
+    <div class="top-btns">
+      <!--Buttons for large screen-->
+      <div class="buttons-for-large-screen">
+
+        <app-kexy-button
+          *ngIf="selectedContacts.length"
+          [disabled]="isWaitingFlag || isLoading"
+          (click)="deleteLeadMagnets()"
+          style="margin-right: 10px"
+          label=""
+          iconLeft="fa-trash"
+          bgColor="#e7f6fe"
+          textColor="#2847cc"
+          radius="8px"
+        ></app-kexy-button>
+
+        <app-kexy-button
+          [disabled]="isWaitingFlag || isLoading"
+          style="margin-right: 10px"
+          label="Add Lead Magnet"
+          iconLeft="fa-plus"
+          bgColor="#e7f6fe"
+          textColor="#2847cc"
+          radius="8px"
+          (click)="addLeadMagnetClick()"
+        ></app-kexy-button>
+
+        <app-kexy-button
+          *ngIf="selectedContacts.length"
+          [disabled]="isWaitingFlag || isLoading"
+          style="margin-right: 10px"
+          label="Edit"
+          iconLeft="fa-pencil"
+          bgColor="#e7f6fe"
+          textColor="#2847cc"
+          radius="8px"
+          (click)="editLeadMagnetClick()"
+        ></app-kexy-button>
+      </div>
+
+      <!--Buttons for small laptop screen-->
+      <div class="buttons-for-small-screen">
+        <app-kexy-button
+          *ngIf="selectedContacts.length"
+          [disabled]="isWaitingFlag || isLoading"
+          (click)="deleteLeadMagnets()"
+          style="margin-right: 10px"
+          label=""
+          iconLeft="fa-trash"
+          bgColor="#e7f6fe"
+          textColor="#2847cc"
+          radius="8px"
+          tooltip="Delete Contact(s)"
+        ></app-kexy-button>
+
+        <app-kexy-button
+          [disabled]="isWaitingFlag || isLoading"
+          style="margin-right: 10px"
+          label=""
+          iconLeft="fa-plus"
+          bgColor="#e7f6fe"
+          textColor="#2847cc"
+          radius="8px"
+          (click)="addLeadMagnetClick()"
+          tooltip="Add Lead Magnet"
+        ></app-kexy-button>
+
+        <app-kexy-button
+          *ngIf="selectedContacts.length"
+          [disabled]="isWaitingFlag || isLoading"
+          style="margin-right: 10px"
+          label=""
+          iconLeft="fa-pencil"
+          bgColor="#e7f6fe"
+          textColor="#2847cc"
+          radius="8px"
+          (click)="editLeadMagnetClick()"
+          tooltip="Edit"
+        ></app-kexy-button>
+      </div>
+    </div>
+
+    <div class="content-area">
+
+
+    </div>
+  </div>
+</brand-layout>

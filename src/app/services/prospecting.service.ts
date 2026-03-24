@@ -61,6 +61,8 @@ export class ProspectingService {
   public selectedLabelForEdit;
   public brandContactCurrentPage = 1;
   public brandContactContactLimit = 100;
+  public lmCurrentPage = 1;
+  public lmLimit = 100;
   public manageListCurrentPage: number = 1;
   public manageListLimit: number = 100;
   public allContacts;
