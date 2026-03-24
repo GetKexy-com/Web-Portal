@@ -84,6 +84,175 @@
 
     <div class="content-area">
 
+      <div class="kexy-table-card">
+        <section class="card-header">
+          <div class="d-flex flex-wrap">
+            <div *ngIf="totalPage" class="kexy-table-entry-count">
+              Per Page:
+              <select class="form-control" style="width: auto" [(ngModel)]="limit" (change)="onShowEntriesSelect($event)">
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+                <option value="200">200</option>
+                <option value="500">500</option>
+                <option value="1000">1000</option>
+                <!--          <option value="2500">2500</option>-->
+              </select>
+            </div>
+            <div *ngIf="totalPage" class="pagination-section">
+              <div class="conv-pagination-wrap">
+                <div class="conv-pagination">
+
+                  <p>
+                    Page
+                    <ng-container *ngIf="!isLoading">{{ page }}</ng-container>
+                    <span *ngIf="isLoading"><i aria-hidden="true" class="fa fa-spinner fa-spin"></i></span>
+                    of {{ totalPage }}
+                  </p>
+                  <div class="ms-2">
+              <span class="pagination-arrow" (click)="paginationLeftArrowClick()">
+                <i aria-hidden="true" class="fa fa-angle-left"></i>
+              </span>
+                    <span class="pagination-arrow ms-1" (click)="paginationRightArrowClick()">
+                <i aria-hidden="true" class="fa fa-angle-right"></i>
+              </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="new-table-wrapper">
+          <!--    [style.width]="tableWidth + 'px'"-->
+          <div
+            [style.height]="!isWaitingFlag && contacts.length ? 'calc(100vh - 330px)' : 'auto'" class="list-wrapper"
+          >
+            <table *ngIf="columnList" [style.width]="tableWidth + 'px'" class="n-table">
+              <!-- header - start -->
+              <thead>
+              <tr class="n-header">
+                <ng-container *ngFor="let column of columnList">
+                  <td
+                    class="n-header-name"
+                    [style.background-color]="tableHeaderBg"
+                    [style.color]="tableHeaderColor"
+                    [style.width]="column.width ? column.width+'px' : ''"
+                  >
+                    <!--Showing column name-->
+                    <span
+                      *ngIf="column.name && column.key !== 'created' && column.key !== 'title' && column.key !== 'company_name'"
+                    >
+                {{ column.name }}
+              </span>
+                  </td>
+                </ng-container>
+              </tr>
+              </thead>
+              <!-- header - end -->
+
+              <!-- body - start -->
+              <ng-container *ngIf="!isWaitingFlag && contacts.length > 0">
+                <tbody>
+                <tr class="n-product" [class.selected]="contact.isSelected" *ngFor="let contact of contacts; let i = index"
+                    (click)="editContact(contact)">
+                  <ng-container *ngFor="let column of columnList">
+                    <td
+                      [className]="
+                  column.key === 'title_of_campaign'
+                    ? 'n-cell title-of-campaign-column-width'
+                    : 'n-cell ' + getCellClasses(column)
+                "
+                      [style.width]="column.width"
+                    >
+                <span
+                  *ngIf="column.key !== 'action' && column.key !== 'linkedinUrl' && column.key !== 'label' && column.key !== 'marketing_status' && column.key !== 'email_status' && column.key !== 'created'"
+                  [className]="column.key !== 'email' ? 'text-capitalize' : ''">
+                  {{ getCellValueToDisplay(contact, column) || 'N/A' }}
+                </span>
+
+                      <span *ngIf="column.key === 'created'">
+                  {{ contact.createdAt | date: 'medium' }}
+                </span>
+
+
+
+
+
+                      <span *ngIf="column.key === 'action'" class="text-center d-inline-block w-100"
+                            (click)="onCheckboxClicked($event, contact)">
+                  <i *ngIf="!contact.isSelected" aria-hidden="true" class="fa fa-square-o checkbox-icon"></i>
+                  <i *ngIf="contact.isSelected" aria-hidden="true"
+                     class="fa fa-check-square checkbox-icon selected"></i>
+                </span>
+
+                    </td>
+                  </ng-container>
+                </tr>
+                </tbody>
+              </ng-container>
+              <ng-container *ngIf="!isWaitingFlag && contacts.length === 0">
+                <tr class="n-product">
+                  <td [colSpan]="columnList.length" class="n-cell">
+              <span class="text-center d-inline-block"
+                    [style.width]="browserWidthForTable + 'px'">Sorry, no data found.</span>
+                  </td>
+                </tr>
+              </ng-container>
+              <ng-container *ngIf="isWaitingFlag">
+                <tr class="n-product">
+                  <td [colSpan]="columnList.length" class="n-cell">
+              <span class="text-center d-inline-block" [style.width]="browserWidthForTable + 'px'"><i
+                class="fa fa-refresh fa-spin"></i></span>
+                  </td>
+                </tr>
+              </ng-container>
+              <!-- body - end -->
+
+            </table>
+          </div>
+        </section>
+
+        <div *ngIf="totalPage" class="card-footer justify-content-end">
+          <div class="kexy-table-entry-count">
+            Per Page:
+            <select class="form-control" style="width: auto" [(ngModel)]="limit" (change)="onShowEntriesSelect($event)">
+              <option value="25">25</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+              <option value="200">200</option>
+              <option value="500">500</option>
+              <option value="1000">1000</option>
+              <!--        <option value="2500">2500</option>-->
+            </select>
+          </div>
+          <div class="pagination-section d-flex">
+            <div class="conv-pagination-wrap">
+              <div class="conv-pagination">
+                <p>
+                  Page
+                  <ng-container *ngIf="!isLoading">{{ page }}</ng-container>
+                  <span *ngIf="isLoading">
+              <i aria-hidden="true" class="fa fa-spinner fa-spin"></i>
+            </span>
+                  of {{ totalPage }}
+                </p>
+                <div class="ms-2">
+                <span class="pagination-arrow" (click)="paginationLeftArrowClick()">
+                  <i aria-hidden="true" class="fa fa-angle-left"></i>
+                </span>
+                  <span class="pagination-arrow ms-1" (click)="paginationRightArrowClick()">
+                  <i aria-hidden="true" class="fa fa-angle-right"></i>
+                </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+
 
     </div>
   </div>
