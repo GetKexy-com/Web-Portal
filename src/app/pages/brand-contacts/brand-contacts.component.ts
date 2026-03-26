@@ -487,14 +487,14 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
 
     data.map((contact: any) => {
       const c: Contact = Contact.empty();
-      c.email = contact['Email'];
+      c.email = contact['Email'].trim();
       c.state = contact['State'];
       c.city = contact['City'];
       c.country = contact['Country'];
       c.details.firstName = contact['First Name'];
       c.details.lastName = contact['Last Name'];
       c.details.name = `${contact['First Name']} ${contact['Last Name']}`;
-      c.details.linkedinUrl = contact['Linkedin'];
+      c.details.linkedinUrl = contact['Linkedin'].trim();
       c.details.title = contact['Job Title'];
       c.details.headline = contact['Job Title'];
       c.details.organization.name = contact['Company Name'];
