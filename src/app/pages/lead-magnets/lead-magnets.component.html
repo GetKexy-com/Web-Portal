@@ -86,42 +86,19 @@
 
       <div class="kexy-table-card">
         <section class="card-header">
-          <div class="d-flex flex-wrap">
-            <div *ngIf="totalPage" class="kexy-table-entry-count">
-              Per Page:
-              <select class="form-control" style="width: auto" [(ngModel)]="limit"
-                      (change)="onShowEntriesSelect($event)">
-                <option value="25">25</option>
-                <option value="50">50</option>
-                <option value="100">100</option>
-                <option value="200">200</option>
-                <option value="500">500</option>
-                <option value="1000">1000</option>
-                <!--          <option value="2500">2500</option>-->
-              </select>
-            </div>
-            <div *ngIf="totalPage" class="pagination-section">
-              <div class="conv-pagination-wrap">
-                <div class="conv-pagination">
 
-                  <p>
-                    Page
-                    <ng-container *ngIf="!isLoading">{{ page }}</ng-container>
-                    <span *ngIf="isLoading"><i aria-hidden="true" class="fa fa-spinner fa-spin"></i></span>
-                    of {{ totalPage }}
-                  </p>
-                  <div class="ms-2">
-                  <span class="pagination-arrow" (click)="paginationLeftArrowClick()">
-                    <i aria-hidden="true" class="fa fa-angle-left"></i>
-                  </span>
-                        <span class="pagination-arrow ms-1" (click)="paginationRightArrowClick()">
-                    <i aria-hidden="true" class="fa fa-angle-right"></i>
-                  </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+            <app-pagination
+              *ngIf="totalPage"
+              [page]="page"
+              [totalPage]="totalPage"
+              [isLoading]="isLoading"
+              [limit]="limit"
+              (left)="paginationLeftArrowClick()"
+              (right)="paginationRightArrowClick()"
+              (limitChange)="onShowEntriesSelect($event)">
+            </app-pagination>
+
+
         </section>
 
         <section class="new-table-wrapper">
@@ -209,40 +186,16 @@
         </section>
 
         <div *ngIf="totalPage" class="card-footer justify-content-end">
-          <div class="kexy-table-entry-count">
-            Per Page:
-            <select class="form-control" style="width: auto" [(ngModel)]="limit" (change)="onShowEntriesSelect($event)">
-              <option value="25">25</option>
-              <option value="50">50</option>
-              <option value="100">100</option>
-              <option value="200">200</option>
-              <option value="500">500</option>
-              <option value="1000">1000</option>
-              <!--        <option value="2500">2500</option>-->
-            </select>
-          </div>
-          <div class="pagination-section d-flex">
-            <div class="conv-pagination-wrap">
-              <div class="conv-pagination">
-                <p>
-                  Page
-                  <ng-container *ngIf="!isLoading">{{ page }}</ng-container>
-                  <span *ngIf="isLoading">
-              <i aria-hidden="true" class="fa fa-spinner fa-spin"></i>
-            </span>
-                  of {{ totalPage }}
-                </p>
-                <div class="ms-2">
-                <span class="pagination-arrow" (click)="paginationLeftArrowClick()">
-                  <i aria-hidden="true" class="fa fa-angle-left"></i>
-                </span>
-                  <span class="pagination-arrow ms-1" (click)="paginationRightArrowClick()">
-                  <i aria-hidden="true" class="fa fa-angle-right"></i>
-                </span>
-                </div>
-              </div>
-            </div>
-          </div>
+          <app-pagination
+            *ngIf="totalPage"
+            [page]="page"
+            [totalPage]="totalPage"
+            [isLoading]="isLoading"
+            [limit]="limit"
+            (left)="paginationLeftArrowClick()"
+            (right)="paginationRightArrowClick()"
+            (limitChange)="onShowEntriesSelect($event)">
+          </app-pagination>
         </div>
       </div>
 

@@ -1,0 +1,37 @@
+<div class="d-flex">
+  <div class="kexy-table-entry-count d-flex align-items-center">
+    Per Page:
+    <select class="form-control" style="width: auto"
+            [(ngModel)]="limit"
+            (change)="onLimitChange($event)">
+      <option value="2">2</option>
+      <option value="25">25</option>
+      <option value="50">50</option>
+      <option value="100">100</option>
+    </select>
+  </div>
+
+  <div class="pagination-section">
+    <div class="conv-pagination-wrap">
+      <div class="conv-pagination d-flex">
+        <p>
+          Page
+          <ng-container *ngIf="!isLoading">{{ page }}</ng-container>
+          <span *ngIf="isLoading">
+          <i class="fa fa-spinner fa-spin"></i>
+        </span>
+          of {{ totalPage }}
+        </p>
+
+        <div class="ms-2">
+        <span class="pagination-arrow" (click)="left.emit()">
+          <i class="fa fa-angle-left"></i>
+        </span>
+          <span class="pagination-arrow ms-1" (click)="right.emit()">
+          <i class="fa fa-angle-right"></i>
+        </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

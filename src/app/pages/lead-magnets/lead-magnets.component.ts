@@ -11,6 +11,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Contact } from '../../models/Contact';
 import Swal from 'sweetalert2';
 import { LeadMagnetService } from '../../services/lead-magnet.service';
+import { PaginationComponent } from '../../components/pagination/pagination.component';
 
 @Component({
   selector: 'app-lead-magnets',
@@ -23,6 +24,7 @@ import { LeadMagnetService } from '../../services/lead-magnet.service';
     FormsModule,
     NgForOf,
     ReactiveFormsModule,
+    PaginationComponent,
   ],
   templateUrl: './lead-magnets.component.html',
   styleUrl: './lead-magnets.component.scss',
@@ -188,8 +190,8 @@ export class LeadMagnetsComponent implements OnInit, OnDestroy, AfterViewChecked
     event.stopPropagation();
   };
 
-  onShowEntriesSelect = ($event) => {
-    this.receivedLimitNumber($event.target.value).then();
+  onShowEntriesSelect = (limit) => {
+    this.receivedLimitNumber(limit).then();
   };
 
   receivedLimitNumber = async (limit) => {

@@ -55,68 +55,6 @@
       justify-content: flex-end;
       align-items: center;
       height: 60px;
-
-      p {
-        margin-bottom: 0;
-        font-weight: 600;
-        font-size: 14px;
-        line-height: 16px;
-      }
-
-      .conv-pagination {
-        p {
-          span {
-            font-size: 14px;
-          }
-        }
-      }
-
-      .pagination-section {
-        display: flex;
-        align-items: center;
-
-        .btn-wrap {
-          width: fit-content;
-        }
-
-        .conv-pagination-wrap {
-          padding-left: 20px;
-          border-radius: 10px;
-
-          .conv-pagination {
-            display: flex;
-            //justify-content: flex-end;
-            align-items: center;
-            //min-width: 200px;
-            p {
-              color: #5e5e5e;
-              font-size: 14px;
-              margin-bottom: 0;
-            }
-
-            .pagination-arrow {
-              font-size: 20px;
-              width: 30px;
-              cursor: pointer;
-              border-radius: 50%;
-              height: 30px;
-              display: inline-block;
-              text-align: center;
-              background: #e7f6fe;
-
-              &:hover {
-                background: lightgray;
-              }
-            }
-
-            .disabled {
-              color: grey;
-              pointer-events: none;
-              cursor: crosshair;
-            }
-          }
-        }
-      }
     }
 
     .new-table-wrapper {
@@ -185,54 +123,6 @@
             &.col-zip {
             }
 
-            .marketing-status {
-              text-transform: capitalize;
-
-              .ms-green {
-                background-color: #20ff031f;
-                padding: 2px 14px;
-                border-radius: 15px;
-                border: 1px solid lightgray;
-                font-size: 14px;
-              }
-
-              .ms-red {
-                background-color: #ff00003b;
-                padding: 3px 14px;
-                border-radius: 15px;
-                border: 1px solid lightgray;
-                font-size: 13px;
-              }
-            }
-
-            .email-status {
-              padding: 2px 14px;
-              border-radius: 15px;
-              font-size: 14px;
-              text-transform: capitalize;
-
-              &.status-red {
-                background-color: #c91b00;
-                color: white;
-              }
-
-              &.status-yellow {
-                background-color: #ffea99;
-                color: black;
-              }
-
-              &.status-green {
-                background-color: #68ba7f;
-                color: white;
-              }
-
-            }
-
-            .copied {
-              text-transform: lowercase;
-              text-decoration-line: underline;
-              text-decoration-style: dotted;
-            }
 
             span {
               font-size: 14px;
@@ -262,26 +152,8 @@
       }
     }
 
-    .pagination {
-      text-align: right;
-      padding: 10px;
-    }
   }
 
-  .kexy-table-entry-count {
-    display: flex;
-    align-items: center;
-    color: #5e5e5e;
-    font-size: 14px;
-    font-weight: 600;
-
-    select {
-      margin: 0 10px;
-      width: auto;
-      padding: 3px;
-      font-size: 14px;
-    }
-  }
 
   .checkbox-icon {
     font-size: 18px;

@@ -1,0 +1,99 @@
+:host {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  width: 100%;
+}
+
+/* LEFT: Per page */
+.kexy-table-entry-count {
+  display: flex;
+  align-items: center;
+  color: #5e5e5e;
+  font-size: 14px;
+  font-weight: 600;
+
+  select {
+    margin: 0 10px;
+    width: auto;
+    padding: 3px;
+    font-size: 14px;
+  }
+}
+
+/* RIGHT: Pagination */
+.pagination-section {
+  display: flex;
+  align-items: center;
+
+  .conv-pagination-wrap {
+    padding-left: 20px;
+
+    .conv-pagination {
+      display: flex;
+      align-items: center;
+
+      p {
+        color: #5e5e5e;
+        font-size: 14px;
+        margin: 0;
+        font-weight: 600;
+      }
+
+      .pagination-arrow {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background: #e7f6fe;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+
+        i {
+          font-size: 16px;
+        }
+
+        &:hover {
+          background: #d6eefd;
+        }
+
+        &.disabled {
+          opacity: 0.5;
+          pointer-events: none;
+        }
+      }
+
+      .pagination-arrow + .pagination-arrow {
+        margin-left: 6px;
+      }
+    }
+  }
+}
+
+/* MOBILE */
+@media (max-width: 575px) {
+  :host {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .pagination-section {
+    width: 100%;
+    justify-content: space-between;
+
+    .conv-pagination-wrap {
+      padding-left: 0;
+    }
+
+    .pagination-arrow {
+      width: 26px;
+      height: 26px;
+
+      i {
+        font-size: 14px;
+      }
+    }
+  }
+}
