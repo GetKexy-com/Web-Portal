@@ -30,7 +30,7 @@ import { LeadMagnetService } from '../../services/lead-magnet.service';
 export class LeadMagnetsComponent implements OnInit, OnDestroy, AfterViewChecked {
   userData;
   supplierId;
-  totalContactsCount = 0;
+  totalContactsCount;
   isWaitingFlag: boolean = true;
   isLoading: boolean = false;
   selectedLeadMagnet = [];
@@ -82,7 +82,8 @@ export class LeadMagnetsComponent implements OnInit, OnDestroy, AfterViewChecked
     this.lmListSubscription = this.leadMagnetService.leadMagnets.subscribe((data) => {
       console.log({ data });
       this.leadMagnets = data.leadMagnets;
-      this.totalPage = data.total || 1;
+      this.totalContactsCount = data.total || 1;
+      this.totalPage = Math.ceil(this.totalContactsCount / this.limit);
     });
 
 
@@ -213,14 +214,14 @@ export class LeadMagnetsComponent implements OnInit, OnDestroy, AfterViewChecked
     if (this.page === this.totalPage) return;
 
     this.page += 1;
-    // await this.getPaginatedContacts();
+    await this.getLeadMagnets();
   };
 
   paginationLeftArrowClick = async () => {
     if (this.page === 1) return; // Here added 1 with page because page starts with 0
 
     this.page -= 1;
-    // await this.getPaginatedContacts();
+    await this.getLeadMagnets();
   };
 
 
