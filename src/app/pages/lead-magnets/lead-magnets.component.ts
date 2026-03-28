@@ -9,6 +9,8 @@ import { Router } from '@angular/router';
 import { constants } from '../../helpers/constants';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Contact } from '../../models/Contact';
+import Swal from 'sweetalert2';
+import { LeadMagnetService } from '../../services/lead-magnet.service';
 
 @Component({
   selector: 'app-lead-magnets',
@@ -28,7 +30,6 @@ import { Contact } from '../../models/Contact';
 export class LeadMagnetsComponent implements OnInit, OnDestroy, AfterViewChecked {
   userData;
   supplierId;
-  leadMagnetList = [];
   totalContactsCount = 0;
   isWaitingFlag: boolean = true;
   isLoading: boolean = false;
@@ -50,7 +51,7 @@ export class LeadMagnetsComponent implements OnInit, OnDestroy, AfterViewChecked
 
   constructor(
     private _authService: AuthService,
-    private prospectingService: ProspectingService,
+    private leadMagnetService: LeadMagnetService,
     private router: Router,
   ) {
     // override the route reuse strategy
@@ -66,24 +67,45 @@ export class LeadMagnetsComponent implements OnInit, OnDestroy, AfterViewChecked
 
     this.columnList = [
       { name: '', key: 'action', width: 40 },
-      { name: 'Lead Magnet Url', key: 'lead_magnet_url', width: 120 },
-      { name: 'Anchor Text', key: 'anchor_text', width: 70 },
-      { name: 'Summary', key: 'summary', width: 180 },
-      { name: 'Created', key: 'created', width: 160 },
+      { name: 'Lead Magnet Url', key: 'leadMagnetUrl', width: 150 },
+      { name: 'Anchor Text', key: 'anchorText', width: 150 },
+      { name: 'Summary', key: 'summary', width: 300 },
     ];
 
 
     // Set pagination limit from localstorage if found
-    const limit = localStorage.getItem(constants.CONTACTS_TABLE_PAGINATION_LIMIT);
+    const limit = localStorage.getItem(constants.LEAD_MAGNET_PAGINATION_LIMIT);
     if (limit) {
       this.limit = parseInt(limit);
     }
 
+    this.lmListSubscription = this.leadMagnetService.leadMagnets.subscribe((data) => {
+      console.log({ data });
+      this.leadMagnets = data.leadMagnets;
+      this.totalPage = data.total;
+    });
+
+
+    await this.getLeadMagnets();
     // set pagination data in service
-    this.prospectingService.lmCurrentPage = this.page;
-    this.prospectingService.lmLimit = this.limit;
+    this.leadMagnetService.lmCurrentPage = this.page;
+    this.leadMagnetService.lmLimit = this.limit;
     this.isWaitingFlag = false;
   }
+
+  getLeadMagnets = async () => {
+    const postData = {
+      limit: this.limit,
+      page: this.page,
+      companyId: this.supplierId
+    };
+    try {
+      await this.leadMagnetService.getAll(postData);
+    } catch (e) {
+      await Swal.fire('Error', e, 'error');
+    }
+  };
+
 
   ngOnDestroy() {
     if (this.lmListSubscription) this.lmListSubscription.unsubscribe();
@@ -119,34 +141,32 @@ export class LeadMagnetsComponent implements OnInit, OnDestroy, AfterViewChecked
   getCellValueToDisplay = (row, column) => this.getCellValue(row, column);
 
   getCellValue = (row, column) => {
-    const details = typeof row.details === 'string' ? JSON.parse(row.details) : row.details;
-
-    if (details[column.key]) {
-      return details[column.key];
+    if (row[column.key]) {
+      return row[column.key];
     }
   };
 
 
   onCheckboxClicked = (event, data) => {
     this.stopPropagation(event);
-    console.log('contact', data);
+    console.log('lead', data);
     this.handleContactSelect(data);
   };
 
   handleContactSelect = (selectedRow) => {
-    const rowIndex = this.leadMagnetList.findIndex((i) => i.id === selectedRow.id);
-    this.leadMagnetList[rowIndex].isSelected = !this.leadMagnetList[rowIndex].isSelected;
+    const rowIndex = this.leadMagnets.findIndex((i) => i.id === selectedRow.id);
+    this.leadMagnets[rowIndex].isSelected = !this.leadMagnets[rowIndex].isSelected;
 
-    if (this.leadMagnetList[rowIndex].isSelected) {
+    if (this.leadMagnets[rowIndex].isSelected) {
       const index = this.selectedLeadMagnet.findIndex(
-        (j) => j.id === this.leadMagnetList[rowIndex].id,
+        (j) => j.id === this.leadMagnets[rowIndex].id,
       );
       if (index === -1) {
-        this.selectedLeadMagnet.push(this.leadMagnetList[rowIndex]);
+        this.selectedLeadMagnet.push(this.leadMagnets[rowIndex]);
       }
     } else {
       const index = this.selectedLeadMagnet.findIndex(
-        (j) => j.id === this.leadMagnetList[rowIndex].id,
+        (j) => j.id === this.leadMagnets[rowIndex].id,
       );
       if (index > -1) {
         this.selectedLeadMagnet.splice(index, 1);
@@ -158,7 +178,7 @@ export class LeadMagnetsComponent implements OnInit, OnDestroy, AfterViewChecked
     // this.prospectingService.selectedAllContacts = this.selectAllContacts;
 
     // Save selected contact in service inorder to use it in contact add or edit sidebar.
-    this.prospectingService.selectedContactsInContactsPage = this.selectedLeadMagnet;
+    this.leadMagnetService.selectedLeadMagnet = this.selectedLeadMagnet;
   };
 
 
@@ -168,20 +188,20 @@ export class LeadMagnetsComponent implements OnInit, OnDestroy, AfterViewChecked
   };
 
   onShowEntriesSelect = ($event) => {
-    this.receivedLimitNumber(this.limit);
+    this.receivedLimitNumber($event.target.value).then();
   };
 
   receivedLimitNumber = async (limit) => {
     this.limit = parseInt(limit);
-    localStorage.setItem(constants.CONTACTS_TABLE_PAGINATION_LIMIT, limit);
+    localStorage.setItem(constants.LEAD_MAGNET_PAGINATION_LIMIT, limit);
     this.page = 1;
 
     // set pagination data in service
-    this.prospectingService.brandContactCurrentPage = this.page;
-    this.prospectingService.brandContactContactLimit = this.limit;
+    this.leadMagnetService.lmCurrentPage = this.page;
+    this.leadMagnetService.lmLimit = this.limit;
 
     this.isWaitingFlag = true;
-    // await this.getContacts(true);
+    await this.getLeadMagnets();
     this.isWaitingFlag = false;
   };
 

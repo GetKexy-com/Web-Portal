@@ -453,6 +453,7 @@ export const constants = {
   CONTACTS: 'Contacts',
   COMPANY_DETAILS: 'Company Details',
   CONTACTS_TABLE_PAGINATION_LIMIT: 'contacts_table_pagination_limit',
+  LEAD_MAGNET_PAGINATION_LIMIT: 'lead_magnet_table_pagination_limit',
   LISTS_TABLE_PAGINATION_LIMIT: 'lists_table_pagination_limit',
   SUPPRESSION_TABLE_PAGINATION_LIMIT: 'suppression_table_pagination_limit',
   EMAIL_SETTINGS_DAYS: [

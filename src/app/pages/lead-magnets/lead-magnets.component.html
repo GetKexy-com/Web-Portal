@@ -28,7 +28,7 @@
         ></app-kexy-button>
 
         <app-kexy-button
-          *ngIf="selectedLeadMagnet.length"
+          *ngIf="selectedLeadMagnet.length && selectedLeadMagnet.length === 1"
           [disabled]="isWaitingFlag || isLoading"
           style="margin-right: 10px"
           label="Edit"
@@ -89,7 +89,9 @@
           <div class="d-flex flex-wrap">
             <div *ngIf="totalPage" class="kexy-table-entry-count">
               Per Page:
-              <select class="form-control" style="width: auto" [(ngModel)]="limit" (change)="onShowEntriesSelect($event)">
+              <select class="form-control" style="width: auto" [(ngModel)]="limit"
+                      (change)="onShowEntriesSelect($event)">
+                <option value="2">2</option>
                 <option value="25">25</option>
                 <option value="50">50</option>
                 <option value="100">100</option>
@@ -110,12 +112,12 @@
                     of {{ totalPage }}
                   </p>
                   <div class="ms-2">
-              <span class="pagination-arrow" (click)="paginationLeftArrowClick()">
-                <i aria-hidden="true" class="fa fa-angle-left"></i>
-              </span>
-                    <span class="pagination-arrow ms-1" (click)="paginationRightArrowClick()">
-                <i aria-hidden="true" class="fa fa-angle-right"></i>
-              </span>
+                  <span class="pagination-arrow" (click)="paginationLeftArrowClick()">
+                    <i aria-hidden="true" class="fa fa-angle-left"></i>
+                  </span>
+                        <span class="pagination-arrow ms-1" (click)="paginationRightArrowClick()">
+                    <i aria-hidden="true" class="fa fa-angle-right"></i>
+                  </span>
                   </div>
                 </div>
               </div>
@@ -124,7 +126,6 @@
         </section>
 
         <section class="new-table-wrapper">
-          <!--    [style.width]="tableWidth + 'px'"-->
           <div
             [style.height]="!isWaitingFlag && leadMagnets.length ? 'calc(100vh - 330px)' : 'auto'" class="list-wrapper"
           >
@@ -140,11 +141,9 @@
                     [style.width]="column.width ? column.width+'px' : ''"
                   >
                     <!--Showing column name-->
-                    <span
-                      *ngIf="column.name && column.key !== 'created' && column.key !== 'title' && column.key !== 'company_name'"
-                    >
-                {{ column.name }}
-              </span>
+                    <span *ngIf="column.name">
+                      {{ column.name }}
+                    </span>
                   </td>
                 </ng-container>
               </tr>
@@ -154,37 +153,34 @@
               <!-- body - start -->
               <ng-container *ngIf="!isWaitingFlag && leadMagnets.length > 0">
                 <tbody>
-                <tr class="n-product" [class.selected]="contact.isSelected" *ngFor="let contact of leadMagnets; let i = index"
-                    (click)="editContact(contact)">
+                <tr class="n-product" [class.selected]="lead.isSelected"
+                    *ngFor="let lead of leadMagnets; let i = index"
+                    (click)="editContact(lead)">
                   <ng-container *ngFor="let column of columnList">
                     <td
-                      [className]="
-                  column.key === 'title_of_campaign'
-                    ? 'n-cell title-of-campaign-column-width'
-                    : 'n-cell ' + getCellClasses(column)
-                "
+                      [className]="'n-cell ' + getCellClasses(column)"
                       [style.width]="column.width"
                     >
-                <span
-                  *ngIf="column.key !== 'action' && column.key !== 'linkedinUrl' && column.key !== 'label' && column.key !== 'marketing_status' && column.key !== 'email_status' && column.key !== 'created'"
-                  [className]="column.key !== 'email' ? 'text-capitalize' : ''">
-                  {{ getCellValueToDisplay(contact, column) || 'N/A' }}
-                </span>
-
-                      <span *ngIf="column.key === 'created'">
-                  {{ contact.createdAt | date: 'medium' }}
-                </span>
-
-
-
-
-
-                      <span *ngIf="column.key === 'action'" class="text-center d-inline-block w-100"
-                            (click)="onCheckboxClicked($event, contact)">
-                  <i *ngIf="!contact.isSelected" aria-hidden="true" class="fa fa-square-o checkbox-icon"></i>
-                  <i *ngIf="contact.isSelected" aria-hidden="true"
-                     class="fa fa-check-square checkbox-icon selected"></i>
-                </span>
+                    <span
+                      *ngIf="column.key !== 'action'"
+                      [className]="column.key !== 'leadMagnetUrl' ? 'text-capitalize' : ''">
+                      {{ getCellValueToDisplay(lead, column) || 'N/A' }}
+                    </span>
+                      <span
+                        *ngIf="column.key === 'action'"
+                        class="text-center d-inline-block w-100"
+                        (click)="onCheckboxClicked($event, lead)">
+                        <i
+                          *ngIf="!lead.isSelected"
+                          aria-hidden="true"
+                          class="fa fa-square-o checkbox-icon">
+                        </i>
+                        <i
+                          *ngIf="lead.isSelected"
+                          aria-hidden="true"
+                          class="fa fa-check-square checkbox-icon selected">
+                        </i>
+                    </span>
 
                     </td>
                   </ng-container>
@@ -250,8 +246,6 @@
           </div>
         </div>
       </div>
-
-
 
 
     </div>
