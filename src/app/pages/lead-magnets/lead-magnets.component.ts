@@ -100,7 +100,7 @@ export class LeadMagnetsComponent implements OnInit, OnDestroy, AfterViewChecked
     const postData = {
       limit: this.limit,
       page: this.page,
-      companyId: this.supplierId
+      companyId: this.supplierId,
     };
     try {
       await this.leadMagnetService.getAll(postData);
@@ -119,10 +119,6 @@ export class LeadMagnetsComponent implements OnInit, OnDestroy, AfterViewChecked
   };
 
   addLeadMagnetClick = () => {
-
-  };
-
-  deleteLeadMagnets = () => {
 
   };
 
@@ -182,6 +178,55 @@ export class LeadMagnetsComponent implements OnInit, OnDestroy, AfterViewChecked
 
     // Save selected contact in service inorder to use it in contact add or edit sidebar.
     this.leadMagnetService.selectedLeadMagnet = this.selectedLeadMagnet;
+  };
+
+
+  deleteLeadMagnets = async () => {
+    let isConfirm = await Swal.fire({
+      title: 'Are you sure?',
+      text: 'You won\'t be able to revert this!',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      confirmButtonText: 'Yes, delete it!',
+      showLoaderOnConfirm: true,
+    });
+
+    if (isConfirm.dismiss) {
+      return;
+    }
+
+    Swal.fire({
+      title: '',
+      text: 'Please wait...',
+      showConfirmButton: false,
+      showCancelButton: false,
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+    });
+    Swal.showLoading();
+
+    const ids = [];
+    this.selectedLeadMagnet.forEach((magnet) => {
+      ids.push(magnet.id);
+    });
+    // if (this.selectAllContacts) {
+    //   postData['selectedAllContacts'] = true;
+    //   postData['selectedAllContactsPayload'] = this.getContactsApiPostData();
+    //   postData['contacts'] = [];
+    // }
+    try {
+      await this.leadMagnetService.delete({ ids });
+      await this.getLeadMagnets();
+      this.selectedLeadMagnet = [];
+      Swal.close();
+    } catch (e) {
+      Swal.close();
+      await Swal.fire('Error', e.message);
+    }
   };
 
 

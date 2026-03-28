@@ -49,5 +49,22 @@ export class LeadMagnetService {
     });
   };
 
+  delete = async (postData) => {
+    return new Promise(async (resolve, reject) => {
+      const url = `lead-magnets`;
+      this.httpService.delete(url, postData).subscribe({
+        next: (res) => {
+          resolve(true);
+        },
+        error: (err) => {
+          if (err.error) {
+            reject(err.error);
+          }
+        },
+      });
+    });
+  };
+
+
 
 }
