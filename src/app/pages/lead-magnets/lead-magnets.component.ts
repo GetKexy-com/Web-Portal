@@ -82,7 +82,7 @@ export class LeadMagnetsComponent implements OnInit, OnDestroy, AfterViewChecked
     this.lmListSubscription = this.leadMagnetService.leadMagnets.subscribe((data) => {
       console.log({ data });
       this.leadMagnets = data.leadMagnets;
-      this.totalPage = data.total;
+      this.totalPage = data.total || 1;
     });
 
 
