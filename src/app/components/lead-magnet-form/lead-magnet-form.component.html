@@ -1,0 +1,61 @@
+<div class="canvas-content-wrap">
+  <div class="head-area">
+    <p>{{ canvasTitle }} Lead Magnet</p>
+    <img src="/assets/images/close-icon.png" alt="Close" (click)="activeCanvas.dismiss('Cross click')" />
+  </div>
+
+  <div class="canvas-body">
+    <form [formGroup]="primaryForm" (ngSubmit)="handleSubmit()">
+      <div class="mb-4">
+        <div class="row">
+          <div class="col-12">
+            <div class="input-wrap">
+              <div class="label-and-input">
+                <p>LinkedIn</p>
+                <input class="form-control" formControlName="leadMagnetUrl" type="text" placeholder="LinkedIn" />
+              </div>
+            </div>
+          </div>
+          <div class="col-12">
+            <div class="input-wrap">
+              <div class="label-and-input">
+                <p>Notes</p>
+                <textarea class="form-control" formControlName="anchorText" type="text" placeholder="Notes"></textarea>
+              </div>
+            </div>
+          </div>
+          <div class="col-12">
+            <div class="input-wrap">
+              <div class="label-and-input">
+                <p>Notes</p>
+                <textarea class="form-control" formControlName="summary" type="text" placeholder="Notes"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="buttons justify-content-between">
+        <app-kexy-button
+          [disabled]="isLoading"
+          style="margin-right: 10px; width: 100%"
+          label="Save"
+          [label]="isLoading ? 'Please wait...' : 'Save' "
+          [iconLeft]="isLoading ? 'fa-refresh fa-spin' : 'fa-plus'"
+          radius="8px"
+          type="submit"
+        ></app-kexy-button>
+        <app-kexy-button
+          style="margin-right: 10px; width: 100%"
+          label="Cancel"
+          radius="8px"
+          bgColor="#e7f6fe"
+          textColor="#2847cc"
+          borderColor="#2847cc"
+          (click)="activeCanvas.dismiss('Cross click')"
+        ></app-kexy-button>
+
+      </div>
+    </form>
+  </div>
+</div>

@@ -19,6 +19,8 @@ export class LeadMagnetService {
 
   public lmCurrentPage = 1;
   public lmLimit = 100;
+  public isAddNewButtonClicked = false;
+  public clickedEditLeadMagnet = [];
 
   selectedLeadMagnet;
 
@@ -48,6 +50,28 @@ export class LeadMagnetService {
       });
     });
   };
+
+  create = async (postData) => {
+
+    return new Promise(async (resolve, reject) => {
+      this.httpService.post('lead-magnets', postData).subscribe({
+        next: (res) => {
+          let item = { ...res.data };
+          item.isOpened = false;
+          item.isEditClicked = false;
+          // products.push(item);
+          resolve(true);
+          // this._leadMagnets.next(leadData);
+        },
+        error: (err) => {
+          if (err.error) {
+            reject(err.error);
+          }
+        },
+      });
+    });
+  };
+
 
   delete = async (postData) => {
     return new Promise(async (resolve, reject) => {

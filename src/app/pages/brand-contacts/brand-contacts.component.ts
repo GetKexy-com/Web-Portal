@@ -331,7 +331,8 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
   };
 
   addContactClick = () => {
-    // Set reference for add new button because we need to show blank form in slider...We can select contact and then we can try to create new contact that's why
+    // Set reference for add new button because we need to show blank form in slider...
+    // We can select contact and then we can try to create new contact that's why
     this.prospectingService.isAddNewButtonClickedInContactPage = true;
 
     // Open slider

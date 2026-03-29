@@ -12,6 +12,9 @@ import { Contact } from '../../models/Contact';
 import Swal from 'sweetalert2';
 import { LeadMagnetService } from '../../services/lead-magnet.service';
 import { PaginationComponent } from '../../components/pagination/pagination.component';
+import { ProspectingContactsComponent } from '../../components/prospecting-contacts/prospecting-contacts.component';
+import { NgbOffcanvas } from '@ng-bootstrap/ng-bootstrap';
+import { LeadMagnetFormComponent } from '../../components/lead-magnet-form/lead-magnet-form.component';
 
 @Component({
   selector: 'app-lead-magnets',
@@ -53,6 +56,7 @@ export class LeadMagnetsComponent implements OnInit, OnDestroy, AfterViewChecked
 
   constructor(
     private _authService: AuthService,
+    private ngbOffcanvas: NgbOffcanvas,
     private leadMagnetService: LeadMagnetService,
     private router: Router,
   ) {
@@ -119,11 +123,34 @@ export class LeadMagnetsComponent implements OnInit, OnDestroy, AfterViewChecked
   };
 
   addLeadMagnetClick = () => {
+    // Set reference for add new button because we need to show blank form in slider...
+    // We can select contact and then we can try to create new contact that's why
+    this.leadMagnetService.isAddNewButtonClicked = true;
+
+    // Open slider
+    this.openContactSlider();
 
   };
 
   editContact = (data) => {
+    console.log({ data });
+    if (data) {
+      this.leadMagnetService.clickedEditLeadMagnet = [data];
+    }
+    this.openContactSlider();
+  };
 
+  openContactSlider = () => {
+    this.openSlider(LeadMagnetFormComponent);
+  };
+
+  openSlider = (component, sliderClass = 'contact-slide-content') => {
+    this.ngbOffcanvas.open(component, {
+      panelClass: `${sliderClass} edit-rep-canvas`,
+      backdropClass: 'edit-rep-canvas-backdrop',
+      position: 'end',
+      scroll: false,
+    });
   };
 
   getCellClasses = (column) => {
