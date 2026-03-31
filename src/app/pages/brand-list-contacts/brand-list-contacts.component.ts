@@ -105,6 +105,10 @@ export class BrandListContactsComponent implements OnInit, OnDestroy {
         if (index > -1) {
           this.listObj = labels[index];
           this.listObj['user'] = this.userData;
+          // This make sure total contact count does not show the count from listobj.
+          // We show total count inside of this.setContactSubscription();
+          this.listObj['contactListCount'] = this.totalContactsCount;
+          console.log(this.listObj);
         }
       }
     });
@@ -140,6 +144,7 @@ export class BrandListContactsComponent implements OnInit, OnDestroy {
       this.contactList = this.prospectingService.setLabelsInContactsList(data.contacts);
       this.totalContactsCount = data.total;
       this.totalPage = Math.ceil(this.totalContactsCount / this.limit);
+      this.listObj['contactListCount'] = this.totalContactsCount;
 
       // Resetting edit and contact button showing condition
       this.selectedContacts = [];
