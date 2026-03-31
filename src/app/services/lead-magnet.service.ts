@@ -52,7 +52,6 @@ export class LeadMagnetService {
   };
 
   create = async (postData) => {
-
     return new Promise(async (resolve, reject) => {
       this.httpService.post('lead-magnets', postData).subscribe({
         next: (res) => {
@@ -71,6 +70,25 @@ export class LeadMagnetService {
       });
     });
   };
+
+  update = async (postData) => {
+    return new Promise(async (resolve, reject) => {
+      const productId = postData.id;
+      delete postData.id;
+      const url = `lead-magnets/${productId}`;
+      this.httpService.patch(url, postData).subscribe({
+        next: (res) => {
+          resolve(true);
+        },
+        error: (err) => {
+          if (err.error) {
+            reject(err.error);
+          }
+        },
+      });
+    });
+  };
+
 
 
   delete = async (postData) => {

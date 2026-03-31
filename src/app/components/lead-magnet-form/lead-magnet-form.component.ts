@@ -71,16 +71,9 @@ export class LeadMagnetFormComponent implements OnInit, OnDestroy {
 
     // Get edit data
     if (this.leadMagnetService.clickedEditLeadMagnet.length) {
-      this.selectedLeadMagnet = this.leadMagnetService.clickedEditLeadMagnet;
-      console.log('selectedContact', this.selectedLeadMagnet);
+      this.selectedLeadMagnet = this.leadMagnetService.clickedEditLeadMagnet[0];
+      console.log('selectedLeadMagnet', this.selectedLeadMagnet);
     }
-
-    // Get label ids for comparing later in assignLabel api for edit single contact
-    if (this.selectedLeadMagnet?.length && !this.isMultipleContactsSelected) {
-      this.selectedLeadMagnet[0].lists.forEach((label) => this.labelIds.push(label.id));
-    }
-
-    this.isMultipleContactsSelected = this.selectedLeadMagnet?.length > 1;
 
     // Set Canvas Title
     if (this.leadMagnetService.isAddNewButtonClicked) {
@@ -90,6 +83,8 @@ export class LeadMagnetFormComponent implements OnInit, OnDestroy {
         anchorText: '',
         summary: '',
       };
+    } else {
+      this.canvasTitle = 'Edit';
     }
 
     this.setPrimaryForm();
@@ -103,10 +98,6 @@ export class LeadMagnetFormComponent implements OnInit, OnDestroy {
   }
 
   setPrimaryForm = () => {
-    if (this.selectedLeadMagnet) {
-      this.contact = this.selectedLeadMagnet;
-    }
-
     this.primaryForm = new FormGroup({
       leadMagnetUrl: new FormControl(this.selectedLeadMagnet.leadMagnetUrl),
       anchorText: new FormControl(this.selectedLeadMagnet.anchorText),
@@ -129,22 +120,36 @@ export class LeadMagnetFormComponent implements OnInit, OnDestroy {
     }
     this.isLoading = true;
     const formData = this.primaryForm.getRawValue();
+    formData['companyId'] = this.supplierId;
     console.log(formData);
-    let postData;
 
     try {
-      if (!this.selectedLeadMagnet) {
+
+      if (this.leadMagnetService.isAddNewButtonClicked) {
+        console.log('A');
         // Create Contact
         await this.leadMagnetService.create(formData);
+        this.selectedLeadMagnet = {
+          leadMagnetUrl: '',
+          anchorText: '',
+          summary: '',
+        };
       } else {
-        // Edit Multiple Contact
+        console.log('B');
+        formData['id'] = this.selectedLeadMagnet.id;
+        await this.leadMagnetService.update(formData);
       }
 
       this.leadMagnetService.selectedLeadMagnet = null;
-
-      // this.activeCanvas.dismiss('Cross click');
+      this.activeCanvas.dismiss('Cross click');
     } catch (e) {
-      await Swal.fire('Error', e.message);
+      console.log(e);
+      if (Array.isArray(e)) {
+        await Swal.fire('Error', e[0]);
+      } else {
+        await Swal.fire('Error', e);
+      }
+
     } finally {
       this.isLoading = false;
     }

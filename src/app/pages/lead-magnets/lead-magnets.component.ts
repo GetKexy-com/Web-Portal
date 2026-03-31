@@ -119,7 +119,11 @@ export class LeadMagnetsComponent implements OnInit, OnDestroy, AfterViewChecked
   }
 
   editLeadMagnetClick = () => {
-
+    console.log(this.selectedLeadMagnet);
+    this.leadMagnetService.clickedEditLeadMagnet = this.selectedLeadMagnet;
+    this.leadMagnetService.isAddNewButtonClicked = false;
+    // Open slider
+    this.openContactSlider();
   };
 
   addLeadMagnetClick = () => {

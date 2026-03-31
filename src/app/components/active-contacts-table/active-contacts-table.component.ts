@@ -42,6 +42,7 @@ export class ActiveContactsTableComponent {
   constructor(private prospectingService: ProspectingService, private modal: NgbModal) {}
 
   ngOnInit(): void {
+    console.log(this.cardData);
     this.getListViewData();
   }
 
@@ -55,7 +56,7 @@ export class ActiveContactsTableComponent {
     let columnList: any;
     columnList = [
       { name: "", key: "action", width: 40 },
-      { name: "Name", key: "name", width: 120 },
+      { name: "Name", key: "contactName", width: 120 },
       { name: "Email Address", key: "email", width: 180 },
     ];
     this.columnList = columnList;
