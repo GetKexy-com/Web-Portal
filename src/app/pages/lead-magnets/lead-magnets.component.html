@@ -136,7 +136,7 @@
                     >
                     <span
                       *ngIf="column.key !== 'action'"
-                      [className]="column.key !== 'leadMagnetUrl' ? 'text-capitalize' : ''">
+                      [className]="column.key !== 'leadMagnetUrl' ? 'first-letter-cap' : ''">
                       {{ getCellValueToDisplay(lead, column) || 'N/A' }}
                     </span>
                       <span

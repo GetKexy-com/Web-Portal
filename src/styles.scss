@@ -191,7 +191,9 @@ select.form-control {
 .form-group {
   margin-bottom: 16px;
 }
-
+.first-letter-cap::first-letter {
+  text-transform: uppercase;
+}
 input.login-control,
 select.login-control {
   padding: 2px;

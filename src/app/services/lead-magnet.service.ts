@@ -14,7 +14,7 @@ import { IRawLandingPage, LandingPage } from '../models/LandingPage';
   providedIn: 'root',
 })
 export class LeadMagnetService {
-  private _leadMagnets = new BehaviorSubject({leadMagnets: [], total: Number});
+  private _leadMagnets = new BehaviorSubject({ leadMagnets: [], total: Number });
   leadMagnets = this._leadMagnets.asObservable();
 
   public lmCurrentPage = 1;
@@ -26,7 +26,8 @@ export class LeadMagnetService {
 
   constructor(
     private httpService: HttpService,
-  ) {}
+  ) {
+  }
 
   getAll = async (postData) => {
     return new Promise(async (resolve, reject) => {
@@ -52,15 +53,21 @@ export class LeadMagnetService {
   };
 
   create = async (postData) => {
+    let leads = this._leadMagnets.getValue();
+    const lm = [...leads.leadMagnets];
     return new Promise(async (resolve, reject) => {
       this.httpService.post('lead-magnets', postData).subscribe({
         next: (res) => {
           let item = { ...res.data };
           item.isOpened = false;
           item.isEditClicked = false;
-          // products.push(item);
+          console.log({ item });
+          lm.push(item);
           resolve(true);
-          // this._leadMagnets.next(leadData);
+          this._leadMagnets.next({
+            total: leads.total,
+            leadMagnets: lm,
+          });
         },
         error: (err) => {
           if (err.error) {
@@ -72,12 +79,26 @@ export class LeadMagnetService {
   };
 
   update = async (postData) => {
+    let leads = this._leadMagnets.getValue();
+    let lm = [...leads.leadMagnets];
     return new Promise(async (resolve, reject) => {
       const productId = postData.id;
       delete postData.id;
       const url = `lead-magnets/${productId}`;
       this.httpService.patch(url, postData).subscribe({
         next: (res) => {
+          let item = { ...res.data };
+          lm = lm.map((lead) => {
+            if (lead.id === item.id) {
+              lead = { ...item };
+              console.log({ lead });
+            }
+            return lead;
+          });
+          this._leadMagnets.next({
+            total: leads.total,
+            leadMagnets: lm,
+          });
           resolve(true);
         },
         error: (err) => {
@@ -88,7 +109,6 @@ export class LeadMagnetService {
       });
     });
   };
-
 
 
   delete = async (postData) => {
@@ -106,7 +126,6 @@ export class LeadMagnetService {
       });
     });
   };
-
 
 
 }

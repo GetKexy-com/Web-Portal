@@ -172,10 +172,22 @@ export class LeadMagnetsComponent implements OnInit, OnDestroy, AfterViewChecked
 
   getCellValue = (row, column) => {
     if (row[column.key]) {
+      if (column.key !== 'leadMagnetUrl') {
+        return this.truncateIfLong(row[column.key]);
+      }
       return row[column.key];
     }
   };
 
+  truncateIfLong(text, limit = 5) {
+    const words = text.trim().split(/\s+/); // Splits by any whitespace
+
+    if (words.length > limit) {
+      return words.slice(0, limit).join(' ') + '...';
+    }
+
+    return text; // Returns original if 5 words or fewer
+  }
 
   onCheckboxClicked = (event, data) => {
     this.stopPropagation(event);
