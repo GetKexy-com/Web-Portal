@@ -35,6 +35,7 @@ export class LeadMagnetFormComponent implements OnInit, OnDestroy {
   supplierId;
   isLoading: boolean = false;
   initialLoading: boolean = true;
+  invalidWebsite = false;
   submitted: boolean = false;
   canvasTitle: string = 'Edit';
   labelOptions = [];
@@ -61,7 +62,7 @@ export class LeadMagnetFormComponent implements OnInit, OnDestroy {
     public activeCanvas: NgbActiveOffcanvas,
     private _authService: AuthService,
     private leadMagnetService: LeadMagnetService,
-    private ngbOffcanvas: NgbOffcanvas,
+    private pageUiService: PageUiService,
   ) {
   }
 
@@ -79,7 +80,7 @@ export class LeadMagnetFormComponent implements OnInit, OnDestroy {
     if (this.leadMagnetService.isAddNewButtonClicked) {
       this.canvasTitle = 'Create';
       this.selectedLeadMagnet = {
-        leadMagnetUrl: '',
+        leadMagnetUrl: 'www.',
         anchorText: '',
         summary: '',
       };
@@ -99,9 +100,9 @@ export class LeadMagnetFormComponent implements OnInit, OnDestroy {
 
   setPrimaryForm = () => {
     this.primaryForm = new FormGroup({
-      leadMagnetUrl: new FormControl(this.selectedLeadMagnet.leadMagnetUrl),
-      anchorText: new FormControl(this.selectedLeadMagnet.anchorText),
-      summary: new FormControl(this.selectedLeadMagnet.summary),
+      leadMagnetUrl: new FormControl(this.selectedLeadMagnet.leadMagnetUrl, [Validators.required]),
+      anchorText: new FormControl(this.selectedLeadMagnet.anchorText, [Validators.required]),
+      summary: new FormControl(this.selectedLeadMagnet.summary, [Validators.required]),
     });
   };
 
@@ -118,8 +119,15 @@ export class LeadMagnetFormComponent implements OnInit, OnDestroy {
     if (!this.primaryForm.valid) {
       return false;
     }
-    this.isLoading = true;
+    this.invalidWebsite = false;
     const formData = this.primaryForm.getRawValue();
+    formData.leadMagnetUrl = this.pageUiService.urlValidate(formData.leadMagnetUrl);
+    if (!formData.leadMagnetUrl) {
+      this.invalidWebsite = true;
+      return;
+    }
+    this.isLoading = true;
+    //const formData = this.primaryForm.getRawValue();
     formData['companyId'] = this.supplierId;
     console.log(formData);
 
