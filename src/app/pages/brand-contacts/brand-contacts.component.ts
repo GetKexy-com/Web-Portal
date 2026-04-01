@@ -485,6 +485,7 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
   getImportedFileData = async (data) => {
     this.isLoading = true;
     const contacts = [];
+    console.log({ data });
 
     data.map((contact: any) => {
       const c: Contact = Contact.empty();
@@ -512,6 +513,7 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
       contacts: contacts,
       listIds: labelId ? [labelId] : [],
     };
+    console.log({ payload });
 
     if (this.zerobounceBypass) {
       payload['bypassZerobounce'] = true;

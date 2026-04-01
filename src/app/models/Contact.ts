@@ -152,8 +152,8 @@ export class Contact {
       city: '',
       state: '',
       country: '',
-      emailStatus: 'unverified',
-      marketingStatus: 'unsubscribed',
+      emailStatus: '',
+      marketingStatus: '',
       listIds: [],
       details: JSON.stringify({
         id: '',
