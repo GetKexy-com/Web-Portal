@@ -208,7 +208,7 @@ export class GenerateDripCampaignComponent implements OnInit {
 
   getEmailContactsInAction = (emailSequence) => {
     return this.dripCampaignProspects.filter(d => {
-      return parseInt(d.emailSequence) === parseInt(emailSequence)
+      return d.status === constants.ACTIVE && parseInt(d.emailSequence) === parseInt(emailSequence);
     });
   };
 

@@ -102,8 +102,8 @@ export class ActiveContactsInCampaignComponent {
       contactEmails.push(c.email);
     })
     const postData = {
-      drip_campaign_id: this.dripCampaignId,
-      contact_emails: contactEmails
+      dripCampaignId: this.dripCampaignId,
+      email: contactEmails
     };
 
     const swlLoading = this.pageUiService.showSweetAlertLoading();
@@ -111,7 +111,6 @@ export class ActiveContactsInCampaignComponent {
       swlLoading.showLoading();
       await this.dripCampaignService.unEnrollProspects(postData);
 
-      delete postData.contact_emails;
       contactEmails.forEach(email => {
         const index = this.contacts.findIndex(c => c.email === email);
         if (index > -1) {
@@ -124,12 +123,20 @@ export class ActiveContactsInCampaignComponent {
         }
       })
       this.selectedContacts = [];
-      await this.dripCampaignService.getProspects(postData);
+      await this.dripCampaignService.getProspects({
+        drip_campaign_id: this.dripCampaignId,
+      });
       swlLoading.close();
 
     } catch (e) {
+      console.log({ e });
       swlLoading.close();
-      await Swal.fire("Error", e.message)
+      if(Array.isArray(e) && e.length > 0) {
+        await Swal.fire("Error", e[0])
+      } else {
+        await Swal.fire("Error", e)
+      }
+
     }
   }
 

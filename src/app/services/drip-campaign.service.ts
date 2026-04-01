@@ -554,7 +554,7 @@ export class DripCampaignService {
 
   unEnrollProspects = async (postData) => {
     return new Promise(async (resolve, reject) => {
-      this.httpService.post('drip-campaigns/unEnrollProspects', postData).subscribe({
+      this.httpService.post('drip-campaigns/unEnrollProspect', postData).subscribe({
         next: (res) => resolve(res.data),
         error: (err) => {
           if (err.error) {
