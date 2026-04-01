@@ -12,7 +12,9 @@ import { ActivatedRoute } from '@angular/router';
 import { ProspectingService } from '../../services/prospecting.service';
 import { KexySelectDropdownComponent } from '../kexy-select-dropdown/kexy-select-dropdown.component';
 import { ErrorMessageCardComponent } from '../error-message-card/error-message-card.component';
-import { DripCampaignPromotionsTableComponent } from '../drip-campaign-promotions-table/drip-campaign-promotions-table.component';
+import {
+  DripCampaignPromotionsTableComponent,
+} from '../drip-campaign-promotions-table/drip-campaign-promotions-table.component';
 import { CampaignLayoutBottmBtnsComponent } from '../campaign-layout-bottm-btns/campaign-layout-bottm-btns.component';
 import { CreateDripCampaignTitleComponent } from '../create-drip-campaign-title/create-drip-campaign-title.component';
 import { AddCalendlyLinkContentComponent } from '../add-calendly-link-content/add-calendly-link-content.component';
@@ -20,6 +22,8 @@ import { AddWebsiteContentComponent } from '../add-website-content/add-website-c
 import { LandingPage } from '../../models/LandingPage';
 import { DripCampaign } from '../../models/DripCampaign';
 import { KexyToggleSwitchComponent } from '../kexy-toggle-switch/kexy-toggle-switch.component';
+import { personSeniorities } from '../../helpers/campaign-premise-constants';
+import { LeadMagnetService } from '../../services/lead-magnet.service';
 
 @Component({
   selector: 'drip-campaign-content',
@@ -63,6 +67,7 @@ export class DripCampaignContentComponent implements OnInit {
   public dripCampaignId;
   public calendlyLinkOptions = [];
   public companyOptions = [];
+  public leadMagnetOptions = [];
   public selectedCalendlyLinkKey = '';
   public selectedCompanyKey = '';
   public websitesOptions = [];
@@ -84,10 +89,12 @@ export class DripCampaignContentComponent implements OnInit {
     private ngbOffcanvas: NgbOffcanvas,
     private _authService: AuthService,
     private dripCampaignService: DripCampaignService,
+    private leadMagnetService: LeadMagnetService,
     private campaignService: CampaignService,
     private prospectingService: ProspectingService,
     // private datePipe: DatePipe,
-  ) {}
+  ) {
+  }
 
   async ngOnInit() {
     // this.selectedDripCampaignType = this.dripCampaignService.selectedDripCampaignType;
@@ -116,7 +123,7 @@ export class DripCampaignContentComponent implements OnInit {
     if (this.dripCampaignId) {
       this.setPreviousData();
     }
-    // await this.getListOfPromotion();
+    this.getLeadMagnets();
 
     // Set 1st index as the default which is 'short' if not find anything in service for this field
     const emailLength = this.dripCampaignService.getEmailLength();
@@ -139,6 +146,35 @@ export class DripCampaignContentComponent implements OnInit {
 
   onUserPromptPriorityChange = () => {
     this.userPromptPriority = !this.userPromptPriority;
+  };
+
+  getLeadMagnets = () => {
+    let dripCampaign: DripCampaign = this.dripCampaignService.getDripCampaignContentPageData();
+    this.leadMagnetService.getAll({
+      limit: 9999999,
+      page: 1,
+      companyId: this.userData.supplier_id,
+    }).then((response: any) => {
+      const lm = response.leadMagnets;
+      if (response.total > 0) {
+        lm.forEach((item) => {
+          this.leadMagnetOptions.push({
+            key: item.id,
+            value: item.leadMagnetUrl,
+            isSelected: dripCampaign.details.leadMagnetIds.find(l => l === item.id),
+            ...item,
+          });
+        });
+      }
+    });
+  };
+
+  onLeadMagnetSelect = (leadMagnet) => {
+    leadMagnet.isSelected = !leadMagnet.isSelected;
+  };
+
+  selectedLeadMagnet = () => {
+    return this.leadMagnetOptions.filter(leadMagnet => leadMagnet.isSelected).length > 0;
   };
 
 
@@ -210,7 +246,7 @@ export class DripCampaignContentComponent implements OnInit {
     // Set campaignTitle subscription
     this.dripCampaignTitlesSubscription = this.dripCampaignService.dripCampaignTitles.subscribe(
       (campaignTitles) => {
-        this.campaignTitles = campaignTitles.sort((a,b) => b.id - a.id);
+        this.campaignTitles = campaignTitles.sort((a, b) => b.id - a.id);
         console.log('campaignTitles', campaignTitles);
         console.log('selectedTitle', this.selectedTitleId);
         this.campaignTitles.map((i) => {
@@ -274,7 +310,7 @@ export class DripCampaignContentComponent implements OnInit {
   __isDeleteConfirmed = async () => {
     let isConfirm = await Swal.fire({
       title: `Are you sure?`,
-      text: "You won't be able to revert this!",
+      text: 'You won\'t be able to revert this!',
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#3085d6',
@@ -356,7 +392,7 @@ export class DripCampaignContentComponent implements OnInit {
 
     let isConfirm = await Swal.fire({
       title: `Do you want to delete this website url?`,
-      text: "You won't be able to revert this!",
+      text: 'You won\'t be able to revert this!',
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#3085d6',
@@ -382,7 +418,7 @@ export class DripCampaignContentComponent implements OnInit {
 
     let isConfirm = await Swal.fire({
       title: `Do you want to delete this link?`,
-      text: "You won't be able to revert this!",
+      text: 'You won\'t be able to revert this!',
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#3085d6',
@@ -416,6 +452,15 @@ export class DripCampaignContentComponent implements OnInit {
       return;
     }
 
+    const leadMagnets = this.leadMagnetOptions.filter(l => l.isSelected);
+    const leadMagnetIds = [];
+    if (leadMagnets.length < 1) {
+      return;
+    }
+    leadMagnets.forEach((leadMagnet) => {
+      leadMagnetIds.push(leadMagnet.id);
+    });
+
     const payload = {
       dripCampaignId: parseInt(this.dripCampaignId) || '',
       companyId: this.userData.supplier_id,
@@ -427,6 +472,7 @@ export class DripCampaignContentComponent implements OnInit {
       websiteUrl: this.selectedWebsiteKey,
       campaignId: this.promotionId || '',
       targetAudience: this.targetAudience,
+      leadMagnetIds,
       emailAbout: this.whatDoYouCover,
       audienceType: this.selectedDripCampaignType,
       userPromptPriority: this.userPromptPriority,
@@ -452,6 +498,7 @@ export class DripCampaignContentComponent implements OnInit {
   };
 
   protected readonly constants = constants;
+  protected readonly personSeniorities = personSeniorities;
 }
 
 // import { Component, Input, OnInit, OnDestroy, signal, computed } from '@angular/core';

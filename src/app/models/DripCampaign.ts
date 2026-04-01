@@ -65,6 +65,7 @@ export class DripCampaign {
       details: {
         id: 0,
         campaignId: null,
+        leadMagnetIds: null,
         numberOfEmails: 0,
         emailTone: 'Neutral',
         templateOptions: '',
@@ -137,6 +138,7 @@ interface IDripCampaignDetails {
   id: number;
   campaignId: number | null;
   numberOfEmails: number;
+  leadMagnetIds: number[];
   templateOptions: string;
   emailTone: string;
   emailLength: string;
