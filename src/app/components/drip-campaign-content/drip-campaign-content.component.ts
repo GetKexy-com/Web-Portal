@@ -150,6 +150,7 @@ export class DripCampaignContentComponent implements OnInit {
 
   getLeadMagnets = () => {
     let dripCampaign: DripCampaign = this.dripCampaignService.getDripCampaignContentPageData();
+    console.log(dripCampaign.details);
     this.leadMagnetService.getAll({
       limit: 9999999,
       page: 1,
@@ -161,7 +162,7 @@ export class DripCampaignContentComponent implements OnInit {
           this.leadMagnetOptions.push({
             key: item.id,
             value: item.leadMagnetUrl,
-            isSelected: dripCampaign.details.leadMagnetIds.find(l => l === item.id),
+            isSelected: dripCampaign.details.leadMagnetIds?.find(l => l === item.id),
             ...item,
           });
         });
