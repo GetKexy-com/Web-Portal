@@ -455,12 +455,14 @@ export class DripCampaignContentComponent implements OnInit {
 
     const leadMagnets = this.leadMagnetOptions.filter(l => l.isSelected);
     const leadMagnetIds = [];
-    if (leadMagnets.length < 1) {
-      return;
+    // if (leadMagnets.length < 1) {
+    //   return;
+    // }
+    if (leadMagnets.length) {
+      leadMagnets.forEach((leadMagnet) => {
+        leadMagnetIds.push(leadMagnet.id);
+      });
     }
-    leadMagnets.forEach((leadMagnet) => {
-      leadMagnetIds.push(leadMagnet.id);
-    });
 
     const payload = {
       dripCampaignId: parseInt(this.dripCampaignId) || '',
