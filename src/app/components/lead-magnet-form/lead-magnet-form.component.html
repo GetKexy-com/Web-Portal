@@ -11,6 +11,17 @@
           <div class="col-12">
             <div class="input-wrap">
               <div class="label-and-input">
+                <p>Title</p>
+                <input class="form-control" formControlName="title" type="text" />
+                @if (formValidationErrorCheck('title')) {
+                  <error-message-card message="Title is missing or invalid!"></error-message-card>
+                }
+              </div>
+            </div>
+          </div>
+          <div class="col-12">
+            <div class="input-wrap">
+              <div class="label-and-input">
                 <p>Lead Magnet URL</p>
                 <input class="form-control" formControlName="leadMagnetUrl" type="text" />
                 @if (formValidationErrorCheck('leadMagnetUrl') || invalidWebsite) {
@@ -19,17 +30,7 @@
               </div>
             </div>
           </div>
-          <div class="col-12">
-            <div class="input-wrap">
-              <div class="label-and-input">
-                <p>Anchor Text</p>
-                <textarea class="form-control" style="height: 120px" formControlName="anchorText" type="text"></textarea>
-                @if (formValidationErrorCheck('anchorText')) {
-                  <error-message-card message="Anchor Text is missing or invalid!"></error-message-card>
-                }
-              </div>
-            </div>
-          </div>
+
           <div class="col-12">
             <div class="input-wrap">
               <div class="label-and-input">

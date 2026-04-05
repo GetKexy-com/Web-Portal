@@ -74,7 +74,7 @@ export class LeadMagnetsComponent implements OnInit, OnDestroy, AfterViewChecked
     this.columnList = [
       { name: '', key: 'action', width: 40 },
       { name: 'Lead Magnet Url', key: 'leadMagnetUrl', width: 150 },
-      { name: 'Anchor Text', key: 'anchorText', width: 150 },
+      { name: 'Title', key: 'title', width: 150 },
       { name: 'Summary', key: 'summary', width: 300 },
     ];
 

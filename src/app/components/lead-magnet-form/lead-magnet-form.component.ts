@@ -81,7 +81,7 @@ export class LeadMagnetFormComponent implements OnInit, OnDestroy {
       this.canvasTitle = 'Create';
       this.selectedLeadMagnet = {
         leadMagnetUrl: 'www.',
-        anchorText: '',
+        title: '',
         summary: '',
       };
     } else {
@@ -101,7 +101,7 @@ export class LeadMagnetFormComponent implements OnInit, OnDestroy {
   setPrimaryForm = () => {
     this.primaryForm = new FormGroup({
       leadMagnetUrl: new FormControl(this.selectedLeadMagnet.leadMagnetUrl, [Validators.required]),
-      anchorText: new FormControl(this.selectedLeadMagnet.anchorText, [Validators.required]),
+      title: new FormControl(this.selectedLeadMagnet.title, [Validators.required]),
       summary: new FormControl(this.selectedLeadMagnet.summary, [Validators.required]),
     });
   };
@@ -139,7 +139,7 @@ export class LeadMagnetFormComponent implements OnInit, OnDestroy {
         await this.leadMagnetService.create(formData);
         this.selectedLeadMagnet = {
           leadMagnetUrl: '',
-          anchorText: '',
+          title: '',
           summary: '',
         };
       } else {
