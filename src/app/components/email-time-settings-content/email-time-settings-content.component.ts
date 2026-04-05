@@ -85,6 +85,7 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
   allowContactsReenroll = false;
   dripCampaignTitlesSubscription: Subscription;
   contactLabelsSubscription: Subscription;
+  labelsSubscription: Subscription;
 
   constructor(
     public activeCanvas: NgbActiveOffcanvas,
@@ -98,7 +99,10 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
   async ngOnInit() {
     this.setInitialData();
 
-    await this.getAndSetLabels();
+    this.userData = this._authService.userTokenValue;
+
+    this.getAndSetLabels();
+    // this.setLabelsSubscription();
     await this.getAndSetDripCampaignTitleSubscription();
     await this.getDripCampaignsApiCall();
 
@@ -109,6 +113,7 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     if (this.dripCampaignTitlesSubscription) this.dripCampaignTitlesSubscription.unsubscribe();
     if (this.contactLabelsSubscription) this.contactLabelsSubscription.unsubscribe();
+    if (this.labelsSubscription) this.labelsSubscription.unsubscribe();
   }
 
   addAnalyticUserRow = () => {
@@ -338,6 +343,9 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
 
   changeUnenrollContactOption = () => {
     this.unenrollContactsFromOtherCampaign = !this.unenrollContactsFromOtherCampaign;
+    // if(this.unenrollContactsFromOtherCampaign){
+    //
+    // }
   };
 
   addNewRunCampaign = () => {
@@ -486,6 +494,8 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
 
   onEnrollmentLabelSelect = (selectedValue, index = null, rowIndex = null) => {
     this.handleMultiselectFunctionality(this.enrollmentLabelOptions, selectedValue);
+    console.log(selectedValue, index);
+    console.log(this.enrollmentLabelOptions);
 
     // If the item is selected, remove it from unenrollmentLabelOptions
     if (selectedValue.isSelected) {
@@ -545,36 +555,63 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
   };
 
   labelOptions = [];
-  getAndSetLabels = async () => {
-    // Get Label
-    const getLabelApiPostData = {
-      companyId: this.userData.supplier_id,
-      page: 1,
-      limit: 1000,
-    };
-    await this.prospectingService.getLabelsOnly(getLabelApiPostData);
+  // getAndSetLabels = async () => {
+  //   // Get Label
+  //   const getLabelApiPostData = {
+  //     companyId: this.userData.supplier_id,
+  //     page: 1,
+  //     limit: 1000,
+  //   };
+  //   await this.prospectingService.getLabelsOnly(getLabelApiPostData);
+  //
+  //   // Set Label Subscription
+  //   this.contactLabelsSubscription = this.prospectingService.labelsOnly.subscribe((labels: ListDetail[]) => {
+  //     // Set label dropdown options
+  //     this.enrollmentLabelOptions = [];
+  //     this.unenrollmentLabelOptions = [];
+  //     this.labelOptions = [];
+  //     labels.forEach(i => {
+  //       const labelObj = {
+  //         key: i.label,
+  //         value: i.label,
+  //         itemBgColor: i.bgColor,
+  //         itemTextColor: i.textColor,
+  //         id: i.id,
+  //         isSelected: false,
+  //       };
+  //       this.enrollmentLabelOptions.push({ ...labelObj });
+  //       this.unenrollmentLabelOptions.push({ ...labelObj });
+  //       this.labelOptions.push({ ...labelObj });
+  //     });
+  //   });
+  // };
 
-    // Set Label Subscription
-    this.contactLabelsSubscription = this.prospectingService.labelsOnly.subscribe((labels: ListDetail[]) => {
+  getAndSetLabels = async () => {
+    await this.prospectingService.getLists({ companyId: this.userData.supplier_id, page: 1, limit: 9999999 }, false);
+
+    this.labelsSubscription = this.prospectingService.lists.subscribe((labels) => {
       // Set label dropdown options
       this.enrollmentLabelOptions = [];
       this.unenrollmentLabelOptions = [];
       this.labelOptions = [];
       labels.forEach(i => {
-        const labelObj = {
-          key: i.label,
-          value: i.label,
-          itemBgColor: i.bgColor,
-          itemTextColor: i.textColor,
-          id: i.id,
-          isSelected: false,
-        };
-        this.enrollmentLabelOptions.push({ ...labelObj });
-        this.unenrollmentLabelOptions.push({ ...labelObj });
-        this.labelOptions.push({ ...labelObj });
+        if(i.contactListCount) {
+          const labelObj = {
+            key: i.label,
+            value: i.label,
+            itemBgColor: i.bgColor,
+            itemTextColor: i.textColor,
+            id: i.id,
+            isSelected: false,
+          };
+          this.enrollmentLabelOptions.push({ ...labelObj });
+          this.unenrollmentLabelOptions.push({ ...labelObj });
+          this.labelOptions.push({ ...labelObj });
+        }
       });
     });
   };
+
 
   isEmptyEnrollList = false;
   handleSubmitEnrollmentTriggers = async () => {
