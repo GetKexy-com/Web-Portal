@@ -45,7 +45,8 @@ export class DripCampaignService {
     private httpService: HttpService,
     private campaignService: CampaignService,
     private sseService: SseService,
-  ) {}
+  ) {
+  }
 
   getDripCampaignContentPageData = () => {
     return this.dripCampaign;
@@ -318,7 +319,7 @@ export class DripCampaignService {
           let totalPageCounts = Math.ceil(res.data.total / limit);
           let totalRecordsCount = res.data.total;
 
-          res.data.dripCampaigns.sort(function (a, b) {
+          res.data.dripCampaigns.sort(function(a, b) {
             const a1 = a.id,
               b1 = b.id;
             if (a1 == b1) return 0;
@@ -361,7 +362,7 @@ export class DripCampaignService {
 
       this.httpService.get('drip-campaigns').subscribe({
         next: (res) => {
-          res.data.dripCampaigns.sort(function (a, b) {
+          res.data.dripCampaigns.sort(function(a, b) {
             const a1 = a.id,
               b1 = b.id;
             if (a1 == b1) return 0;
