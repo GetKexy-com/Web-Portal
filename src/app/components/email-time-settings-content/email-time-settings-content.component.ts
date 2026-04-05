@@ -104,7 +104,7 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
     this.getAndSetLabels();
     // this.setLabelsSubscription();
     await this.getAndSetDripCampaignTitleSubscription();
-    await this.getDripCampaignsApiCall();
+    this.getDripCampaignsApiCall();
 
     this.setPreviousData();
     this.isWaitingFlag = false;
@@ -240,7 +240,7 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
   setEnrollmentPreviousData = () => {
     this.enrollList = this.enrollment.filter(r => r.type === 'enroll_list');
     this.unEnrollList = this.enrollment.filter(r => r.type === 'un_enroll_list');
-
+    console.log(this.enrollList);
     // **Remove Enrolled Items from Dropdowns**
     this.enrollList.forEach(enroll => {
       const index = this.enrollmentLabelOptions.findIndex(r => r.id === enroll.list.id);
@@ -273,7 +273,7 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
   };
 
   getDripCampaignsApiCall = async () => {
-    this.dripCampaignList = await this.dripCampaignService.getListOfDripCampaignsWithoutPagination(true);
+    this.dripCampaignList = await this.dripCampaignService.getListOfDripCampaignsWithoutPagination(false);
     if (this.dripCampaignList.length) {
       this.dripCampaignList = this.dripCampaignList.filter(i => {
         return (i.status === constants.PUBLISHED || i.status === constants.ACTIVE);
@@ -341,11 +341,11 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
     this.scheduleCampaignTurnOffAutomatically = !this.scheduleCampaignTurnOffAutomatically;
   };
 
-  changeUnenrollContactOption = () => {
+  changeUnenrollContactOption = async () => {
     this.unenrollContactsFromOtherCampaign = !this.unenrollContactsFromOtherCampaign;
-    // if(this.unenrollContactsFromOtherCampaign){
-    //
-    // }
+    if(this.unenrollContactsFromOtherCampaign){
+      // await this.getDripCampaignsApiCall();
+    }
   };
 
   addNewRunCampaign = () => {

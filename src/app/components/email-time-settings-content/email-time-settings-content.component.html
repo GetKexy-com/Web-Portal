@@ -288,11 +288,11 @@
             <div *ngFor="let item of enrollList; let i = index">
               <span
                 class="searched-tag"
-                [style.background-color]="item.itemBgColor ? item.itemBgColor : '#0047cc'"
-                [style.color]="item.itemTextColor ? item.itemTextColor : '#ffffff'"
+                [style.background-color]="item.list.bgColor ? item.list.bgColor : '#0047cc'"
+                [style.color]="item.list.textColor ? item.list.textColor : '#ffffff'"
                 [style.text-transform]="item.itemBgColor && item.itemTextColor ? 'uppercase' : ''"
               >
-                {{ item.value }}
+                {{ item.list.label }}
                 <span class="close-icon-wrap" (click)="removeActiveList(item)">
                   <i class="fa fa-times-circle non-hide-from-toggle" aria-hidden="true"></i>
                 </span>
