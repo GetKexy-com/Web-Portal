@@ -33,6 +33,7 @@ import { PageUiService } from '../../services/page-ui.service';
 import { Contact, IRawContact } from '../../models/Contact';
 import { ExportToCsv } from '../../helpers/CSVHelper';
 import { PreviewDripEmailContentComponent } from '../preview-drip-email-content/preview-drip-email-content.component';
+import { LeadMagnetService } from '../../services/lead-magnet.service';
 
 @Component({
   selector: 'generate-drip-campaign',
@@ -99,6 +100,7 @@ export class GenerateDripCampaignComponent implements OnInit {
     private router: Router,
     private modal: NgbModal,
     private sseService: SseService,
+    private leadMagnetService: LeadMagnetService,
     private dripCampaignService: DripCampaignService,
     private prospectingService: ProspectingService,
     private campaignService: CampaignService,
@@ -346,6 +348,11 @@ export class GenerateDripCampaignComponent implements OnInit {
 
     this.emails = [];
     console.log(this.dripCampaign.details);
+    const lead_magnet = [];
+    const web_scrapper = {};
+    const google_map_scrapper = {};
+    const sports_scrapper = {};
+    const linkedin_scrapper = {};
     // return;
     const data = {
       count: this.dripCampaign.details.numberOfEmails,
@@ -368,6 +375,11 @@ export class GenerateDripCampaignComponent implements OnInit {
       promotion_info: !!this.selectedPromotionsProductName,
       prospect_email_address: this.contactList[0]?.email,
       drip_campaign_id: this.dripCampaign.id,
+      lead_magnet,
+      linkedin_scrapper,
+      sports_scrapper,
+      google_map_scrapper,
+      web_scrapper,
       prospect: {
         name: this.contactList[0]?.contactName,
         company: this.contactList[0]?.companyName,
