@@ -12,10 +12,11 @@ import { KexySelectDropdownComponent } from '../kexy-select-dropdown/kexy-select
 import { ErrorMessageCardComponent } from '../error-message-card/error-message-card.component';
 import { CommonModule } from '@angular/common';
 import { Contact } from '../../models/Contact';
+import { KexyButtonComponent } from '../kexy-button/kexy-button.component';
 
 @Component({
   selector: 'add-contacts-to-drip-campaign',
-  imports: [FormsModule, KexySelectDropdownComponent, ErrorMessageCardComponent, CommonModule],
+  imports: [FormsModule, KexySelectDropdownComponent, ErrorMessageCardComponent, CommonModule, KexyButtonComponent],
   templateUrl: './add-contacts-to-drip-campaign.component.html',
   styleUrl: './add-contacts-to-drip-campaign.component.scss',
 })
@@ -40,21 +41,16 @@ export class AddContactsToDripCampaignComponent implements OnInit, OnDestroy {
     private prospectingService: ProspectingService,
     private dripCampaignService: DripCampaignService,
     private route: ActivatedRoute,
-  ) {}
+  ) {
+  }
 
   async ngOnInit() {
     this.userData = this._authService.userTokenValue;
     this.selectedContacts = this.prospectingService.selectedContactsInContactsPage;
+    console.log(this.selectedContacts);
 
-    this.route.queryParams.subscribe((params) => {
-      if (params['addToDripCampaignId']) {
-        this.addToDripCampaignId = params['addToDripCampaignId'];
-      }
-    });
 
-    await this.getAndSetDripCampaignTitleSubscription();
     this.getDripCampaignsApiCall();
-    this.getAndSetLabels();
   }
 
   ngOnDestroy() {
@@ -80,7 +76,7 @@ export class AddContactsToDripCampaignComponent implements OnInit, OnDestroy {
 
   getDripCampaignsApiCall = async () => {
     this.dripCampaignList =
-      await this.dripCampaignService.getListOfDripCampaignsWithoutPagination(true);
+      await this.dripCampaignService.getListOfDripCampaignsWithoutPagination(false);
     if (this.dripCampaignList.length) {
       this.dripCampaignList = this.dripCampaignList.filter((i) => {
         return i.status === constants.ACTIVE || i.status === constants.PAUSE;
@@ -128,23 +124,47 @@ export class AddContactsToDripCampaignComponent implements OnInit, OnDestroy {
     );
   };
 
+  labelOptions = [];
+  selectedLabel: object;
+
   onDripCampaignSelect = async (selectedValue, index = 0, rowIndex = 0) => {
     console.log('labels', selectedValue);
+    this.labels = [];
+    this.selectedLabel = null;
     this.selectedDripCampaign = selectedValue;
     this.addToDripCampaignId = selectedValue.id;
+    selectedValue.lists.forEach((l) => {
+      this.labels.push(l.list);
+    });
+
+    this.labelOptions = [];
+    this.labels.forEach(i => {
+      if (!i.contactListCount) {
+        const labelObj = {
+          key: i.label,
+          value: i.label,
+          itemBgColor: i.bgColor,
+          itemTextColor: i.textColor,
+          id: i.id,
+        };
+        this.labelOptions.push(labelObj);
+      }
+    });
+
+    console.log(this.labels);
   };
 
-  // parseContactDetails = (data) => {
-  //   console.log('data', data);
-  //   const contacts = [];
-  //   data.forEach((contact: Contact) => {
-  //     const details = contact.details;
-  //     details['id'] = contact.id;
-  //     contacts.push({ ...contact, details: details });
-  //     console.log('details', details);
-  //   });
-  //   return contacts;
-  // };
+  onLabelSelect = (selectedValue, index = null, rowIndex = null) => {
+    if (!selectedValue.key) {
+      this.selectedLabel = null;
+      return;
+    }
+    this.selectedLabel = selectedValue;
+    console.log(this.selectedContacts.listIds);
+    // id need to be as string as we save it as string in DB.
+    this.selectedLabelIds = [selectedValue.id.toString()];
+
+  };
 
   setAndGetEditMultipleContactApiPayload = () => {
     const contacts = this.selectedContacts.map((c: Contact) => {
@@ -182,39 +202,37 @@ export class AddContactsToDripCampaignComponent implements OnInit, OnDestroy {
     // this.setSelectedLabelIds();
 
     // Validation
-    if (!this.selectedDripCampaign['value']) return;
+    if (!this.selectedDripCampaign['value'] || !this.selectedLabel) return;
 
-    let postData;
+
     const getContactApiPostData = this.getContactsApiPayload();
     this.isLoading = true;
     try {
-      let contacts: Contact[] = [];
-      contacts = this.selectedContacts;
+      let contacts: Contact[] = this.selectedContacts;
       console.log(contacts);
 
       // Edit Contact(s)
-      postData = this.setAndGetEditMultipleContactApiPayload();
-      if (this.prospectingService.selectedAllContacts) {
-        postData['selectedAllContacts'] = true;
-        postData['selectedAllContactsPayload'] = getContactApiPostData;
-        postData['contacts'] = [];
-      }
-      await this.prospectingService.editContacts(postData);
-
-      const assignApiPostData = {
+      const postData =  {
         companyId: this.userData.supplier_id,
-        contacts,
-        listIds: [],
-        notify: false,
+        listIds: this.selectedLabelIds,
+        contacts: this.selectedContacts,
+      }
+      console.log(postData);
+      await this.prospectingService.assignList(postData);
+
+      const mappedContacts = contacts.map((c: Contact): any => {
+        return c.id;
+      });
+      const assignApiPostData = {
+        contactIds: mappedContacts,
         dripCampaignId: this.addToDripCampaignId,
       };
       await this.dripCampaignService.assignContactsAndLabelsInCampaign(assignApiPostData);
 
-      this.getAndSetLabels();
       await this.prospectingService.getContacts(getContactApiPostData, true);
       this.prospectingService.selectedContactsInContactsPage = [];
 
-      Swal.fire('Done!', 'Contact(s) added successfully!', 'success');
+      await Swal.fire('Done!', 'Contact(s) added successfully!', 'success');
 
       this.activeCanvas.dismiss('Cross click');
     } catch (e) {

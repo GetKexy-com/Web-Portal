@@ -1,13 +1,18 @@
 <div class="kexy-dropdown">
   <!--LABEL: This the label of the dropdown-->
-  <div class="d-flex kexy-drop-label-wrap non-hide-from-toggle" *ngIf="label">
-    <p class="label non-hide-from-toggle">
-      {{ label }} <span *ngIf="shortNoteBesideLabel">({{ shortNoteBesideLabel }})</span>
-    </p>
-    <p class="required-icon-wrap non-hide-from-toggle" *ngIf="required">
-      <i class="fa fa-asterisk non-hide-from-toggle" aria-hidden="true"></i>
-    </p>
-  </div>
+  @if (label) {
+    <div class="d-flex kexy-drop-label-wrap non-hide-from-toggle">
+      <p class="label non-hide-from-toggle">
+        {{ label }} <span *ngIf="shortNoteBesideLabel">({{ shortNoteBesideLabel }})</span>
+      </p>
+      <p class="required-icon-wrap non-hide-from-toggle" *ngIf="required">
+        <i class="fa fa-asterisk non-hide-from-toggle" aria-hidden="true"></i>
+      </p>
+    </div>
+  }
+  @if (label && labelBelowContent) {
+    <p class="label-additional-content">{{ labelBelowContent }}</p>
+  }
   <!--END LABEL: This the label of the dropdown-->
 
   <!--INPUT: The main INPUT of the dropdown-->

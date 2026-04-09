@@ -3,17 +3,17 @@
     <div class="top-btns">
       <!--Buttons for large screen-->
       <div class="buttons-for-large-screen">
-<!--        <app-kexy-button-->
-<!--          *ngIf="selectedContacts.length"-->
-<!--          [disabled]="isWaitingFlag || isLoading || selectAllContacts"-->
-<!--          (click)="handleAddToDripCampaign()"-->
-<!--          style="margin-right: 10px"-->
-<!--          label="Add To Drip Campaign"-->
-<!--          iconLeft="fa-plus"-->
-<!--          bgColor="#e7f6fe"-->
-<!--          textColor="#2847cc"-->
-<!--          radius="8px"-->
-<!--        ></app-kexy-button>-->
+        <app-kexy-button
+          *ngIf="selectedContacts.length"
+          [disabled]="isWaitingFlag || isLoading || selectAllContacts"
+          (click)="handleAddToDripCampaign()"
+          style="margin-right: 10px"
+          label="Add To Drip Campaign"
+          iconLeft="fa-plus"
+          bgColor="#e7f6fe"
+          textColor="#2847cc"
+          radius="8px"
+        ></app-kexy-button>
 
         <app-kexy-button
           *ngIf="selectedContacts.length && !addToDripCampaignId"

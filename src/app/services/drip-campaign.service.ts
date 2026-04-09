@@ -504,7 +504,7 @@ export class DripCampaignService {
   assignContactsAndLabelsInCampaign = async (postData) => {
     return new Promise(async (resolve, reject) => {
       this.httpService
-        .post('drip-campaigns/assignContactsAndLabelsInCampaign', postData)
+        .post('drip-campaigns/assignContactsAndList', postData)
         .subscribe({
           next: () => resolve(true),
           error: (err) => {

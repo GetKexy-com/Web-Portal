@@ -22,6 +22,7 @@ export class KexySelectDropdownComponent {
   @Input() options: any[];
   @Input() onAddNewClick: any;
   @Input() label: string;
+  @Input() labelBelowContent: string = "";
   @Input() selectedOption: any;
   @Input() placeholder = '';
   @Input() onSelectSingleItem: any;

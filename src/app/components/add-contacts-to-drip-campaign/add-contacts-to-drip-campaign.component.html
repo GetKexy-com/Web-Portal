@@ -12,7 +12,9 @@
             <div class="input-wrap">
               <kexy-select-dropdown
                 label="Select Drip campaign"
+                labelBelowContent="Only active drip campaign will be listed."
                 [selectAllBtn]="false"
+                [isClearable]="false"
                 [editIcon]="false"
                 [deleteIcon]="false"
                 [required]="true"
@@ -30,16 +32,53 @@
               </div>
             </div>
           </div>
+          <div class="col-12">
+            <div *ngIf="labels.length" class="mt-3">
+              <kexy-select-dropdown
+                label="Lists"
+                shortNoteBesideLabel=""
+                [selectAllBtn]="false"
+                [required]="true"
+                [options]="labelOptions"
+                [addNewBtn]="false"
+                [selectedOption]="selectedLabel"
+                [onSelectSingleItem]="onLabelSelect"
+                [editIcon]="false"
+                [onEditClick]=""
+                [deleteIcon]="false"
+                [onDeleteClick]=""
+                [isSearchAble]="false"
+                [isClearable]="true"
+                optionStyle="button"
+                backgroundColor="white"
+                placeholder="Please Select"
+              ></kexy-select-dropdown>
+              <div *ngIf="submitted && !selectedLabel">
+                <error-message-card message="Field is required!"></error-message-card>
+              </div>
+
+            </div>
+
+          </div>
         </div>
       </div>
 
-      <div class="buttons">
-        <button class="blue-button me-3" type="submit" [disabled]="isLoading">
-          Save<i *ngIf="isLoading" class="fa fa-spinner fa-spin ms-2" aria-hidden="true" style="color: white"></i>
-        </button>
-        <button class="blue-border-white-bg-button" type="button" (click)="activeCanvas.dismiss('Cross click')">
-          Cancel
-        </button>
+      <div class="d-flex">
+        <app-kexy-button
+          [label]="isLoading ? 'Please wait...' : 'Save' "
+          style="width: 100%"
+          [disabled]="isLoading"
+          [iconLeft]="isLoading ? 'fa-refresh fa-spin' : 'fa-floppy-o'"
+          type="submit"
+        />
+        <app-kexy-button
+          label="Cancel"
+          class="ms-2"
+          style="width: 100%"
+          bgColor="#e7f6fe"
+          textColor="#2847cc"
+          (click)="activeCanvas.dismiss('Cross click')"
+        />
       </div>
     </form>
   </div>

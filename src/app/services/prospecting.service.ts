@@ -587,6 +587,19 @@ export class ProspectingService {
     });
   };
 
+  assignList = async (postData) => {
+    return new Promise(async (resolve, reject) => {
+      this.httpService.patch('contacts/assign-list', postData).subscribe({
+        next: () => resolve(true),
+        error: (err) => {
+          if (err.error) {
+            reject(err.error);
+          }
+        },
+      });
+    });
+  };
+
   removeContactsFromList = async (postData) => {
     return new Promise(async (resolve, reject) => {
       const url = `contacts/removeContactsFromList/${postData.listId}`;
