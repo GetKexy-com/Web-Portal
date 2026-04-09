@@ -158,8 +158,11 @@
       </div>
 
       <!--If no options is available-->
-      <div *ngIf="!options.length && !addNewBtn && !allOptions?.length && !isSearchAble" class="p-3 text-center">
+      <div *ngIf="!options.length && !addNewBtn && !allOptions?.length && !isSearchAble && !isContentLoading" class="p-3 text-center">
         No options available
+      </div>
+      <div *ngIf="!options.length && !addNewBtn && !allOptions?.length && !isSearchAble && isContentLoading" class="p-3 text-center">
+        Loading...
       </div>
     </div>
 

@@ -75,8 +75,10 @@ export class AddContactsToDripCampaignComponent implements OnInit, OnDestroy {
   };
 
   getDripCampaignsApiCall = async () => {
+    // this.isLoading = true;
     this.dripCampaignList =
       await this.dripCampaignService.getListOfDripCampaignsWithoutPagination(false);
+    // this.isLoading = false;
     if (this.dripCampaignList.length) {
       this.dripCampaignList = this.dripCampaignList.filter((i) => {
         return i.status === constants.ACTIVE || i.status === constants.PAUSE;
@@ -212,11 +214,11 @@ export class AddContactsToDripCampaignComponent implements OnInit, OnDestroy {
       console.log(contacts);
 
       // Edit Contact(s)
-      const postData =  {
+      const postData = {
         companyId: this.userData.supplier_id,
         listIds: this.selectedLabelIds,
         contacts: this.selectedContacts,
-      }
+      };
       console.log(postData);
       await this.prospectingService.assignList(postData);
 

@@ -22,7 +22,7 @@ export class KexySelectDropdownComponent {
   @Input() options: any[];
   @Input() onAddNewClick: any;
   @Input() label: string;
-  @Input() labelBelowContent: string = "";
+  @Input() labelBelowContent: string = '';
   @Input() selectedOption: any;
   @Input() placeholder = '';
   @Input() onSelectSingleItem: any;
@@ -48,6 +48,7 @@ export class KexySelectDropdownComponent {
   @Input() isClearable = true;
   @Input() isHideDropdown = false;
   @Input() isLoading = false;
+  @Input() isContentLoading: boolean = true;
   @Input() isUseSearchQueryAsOption = true;
   filteredOptions = [];
   queryString = '';
@@ -62,9 +63,11 @@ export class KexySelectDropdownComponent {
   constructor(
     private eRef: ElementRef,
     private cdRef: ChangeDetectorRef,
-  ) {}
+  ) {
+  }
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+  }
 
   getSelectedAll() {
     this.areSelectedAll = this.options.every((o) => o.isSelected);
