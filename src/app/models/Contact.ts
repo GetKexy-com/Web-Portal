@@ -40,8 +40,8 @@ export class Contact {
 
   private parseDetails(detailsString: string): ContactDetails {
     try {
-      const parsed = JSON.parse(detailsString);
-      return this.convertToCamelCase(parsed);
+      // const parsed = JSON.parse(detailsString);
+      return this.convertToCamelCase(detailsString);
     } catch (error) {
       console.error('Failed to parse contact details:', error);
       return {} as ContactDetails;
