@@ -13,11 +13,17 @@ import { ChangeDetectorRef } from '@angular/core';
 import { BrandLayoutComponent } from '../../layouts/brand-layout/brand-layout.component';
 import { KexyButtonComponent } from '../../components/kexy-button/kexy-button.component';
 import { ContactListCardComponent } from '../../components/contact-list-card/contact-list-card.component';
-import { UploadFileModalContentComponent } from '../../components/upload-file-modal-content/upload-file-modal-content.component';
-import { SearchContactModalContentComponent } from '../../components/search-contact-modal-content/search-contact-modal-content.component';
-import { AddContactsToDripCampaignComponent } from '../../components/add-contacts-to-drip-campaign/add-contacts-to-drip-campaign.component';
+import {
+  UploadFileModalContentComponent,
+} from '../../components/upload-file-modal-content/upload-file-modal-content.component';
+import {
+  SearchContactModalContentComponent,
+} from '../../components/search-contact-modal-content/search-contact-modal-content.component';
+import {
+  AddContactsToDripCampaignComponent,
+} from '../../components/add-contacts-to-drip-campaign/add-contacts-to-drip-campaign.component';
 import { CommonModule } from '@angular/common';
-import { Contact } from '../../models/Contact';
+import { Contact, ContactOrganization } from '../../models/Contact';
 
 @Component({
   selector: 'brand-contacts',
@@ -78,7 +84,7 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
     private cdr: ChangeDetectorRef,
   ) {
     // override the route reuse strategy
-    this.router.routeReuseStrategy.shouldReuseRoute = function () {
+    this.router.routeReuseStrategy.shouldReuseRoute = function() {
       return false;
     };
   }
@@ -485,8 +491,6 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
   getImportedFileData = async (data) => {
     this.isLoading = true;
     const contacts = [];
-    console.log({ data });
-
     data.map((contact: any) => {
       const c: Contact = Contact.empty();
       c.email = contact['Email'].trim();
@@ -499,11 +503,17 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
       c.details.linkedinUrl = contact['Linkedin'].trim();
       c.details.title = contact['Job Title'];
       c.details.headline = contact['Job Title'];
+      c.details.city = contact['City'];
+      c.details.state = contact['State'];
+      c.details.country = contact['Country'];
+      c.details.organization = {};
       c.details.organization.name = contact['Company Name'];
       c.details.organization.phone = contact['Phone Number'];
       c.details.organization.city = contact['City'];
       c.details.organization.state = contact['State'];
       c.details.organization.country = contact['Country'];
+      c.details.organization.linkedinUrl = contact['Company Linkedin Url'] || '';
+      c.details.organization.websiteUrl = contact['Website'] || '';
       contacts.push(Contact.contactPostDto(c));
     });
 
@@ -513,7 +523,6 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
       contacts: contacts,
       listIds: labelId ? [labelId] : [],
     };
-    console.log({ payload });
 
     if (this.zerobounceBypass) {
       payload['bypassZerobounce'] = true;
@@ -601,7 +610,7 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
   deleteContacts = async () => {
     let isConfirm = await Swal.fire({
       title: 'Are you sure?',
-      text: "You won't be able to revert this!",
+      text: 'You won\'t be able to revert this!',
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#3085d6',

@@ -1,5 +1,3 @@
-First Name,Last Name,Linkedin,Email,Job Title,Company Name,Phone Number,City,State,Country
-Michael,Jordan,linked url,michael_jordan@gmail.com,Manager,Jordan Enterprises, +1 (123) 456-7890,San Diego,California,United States
-John,Smith,linked url,john_smith@gmail.com,CEO,ABC Company, +1 (123) 456-7890,Oakland,California,United States
-Karen,David,linked url,k.david@aerodynamics.com,"VP, Sales",Aero Dynamics, +1 (123) 456-7890,Tulsa,Oklahoma,United States
-Jan, Agovida,linked url,jan_agovida@yahoo.com,Head of Marketing,Social Club, +1 (123) 456-7890,Miami,Florida,United States
+First Name,Email,Last Name,Job Title,Company Name,Phone Number,Company Phone,# Employees,Linkedin,Website,Company Linkedin Url,City,State,Country
+John,sample@email.com,Doe,CEO & Chairman,BlackIce Enterprise Risk Management,,123-123-1234,4,http://www.linkedin.com/in/linkedinusername,https://website.com,http://www.linkedin.com/company/companyusername,Vancouver,British Columbia,Canada
+Will,will@email.com,Smith,Chief Executive Officer,Million Dollar Company,,123-123-1234,15,http://www.linkedin.com/in/linkedinusername,https://domain.com,http://www.linkedin.com/company/companyusername,Vancouver,British Columbia,Canada
