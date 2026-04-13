@@ -161,7 +161,7 @@ export class DripCampaignContentComponent implements OnInit {
         lm.forEach((item) => {
           this.leadMagnetOptions.push({
             key: item.id,
-            value: item.leadMagnetUrl,
+            value: item.title,
             isSelected: dripCampaign.details.leadMagnetIds?.find(l => l === item.id),
             ...item,
           });
