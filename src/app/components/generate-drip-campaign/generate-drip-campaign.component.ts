@@ -165,9 +165,9 @@ export class GenerateDripCampaignComponent implements OnInit {
     this.showAiEmailError();
     this.numberOfEmail = this.dripCampaign.details.numberOfEmails;
 
-    if (this.dripCampaign.details.campaignId) {
-      this.getCampaignThenProductName();
-    }
+    // if (this.dripCampaign.details.campaignId) {
+    //   this.getCampaignThenProductName();
+    // }
 
     // Set 1st index as the default which is 'short' if not find anything in service for this field
     // const emailLength = this.dripCampaignService.getEmailLength();
@@ -222,29 +222,29 @@ export class GenerateDripCampaignComponent implements OnInit {
 
   getCampaignThenProductName = async () => {
     // Get campaign api call
-    const postData = {
-      campaign_id: this.dripCampaign.details.campaignId,
-      supplier_id: this.userData.supplier_id,
-    };
-    const campaign = await this.campaignService.getCampaign(postData);
+    // const postData = {
+    //   campaign_id: this.dripCampaign.details.campaignId,
+    //   supplier_id: this.userData.supplier_id,
+    // };
+    // const campaign = await this.campaignService.getCampaign(postData);
 
     // Get products api call
-    await this.prospectingService.getProducts({
-      supplier_id: this.userData.supplier_id,
-      page: 1,
-      limit: 1000,
-      get_total_count: 'false',
-    });
+    // await this.prospectingService.getProducts({
+    //   supplier_id: this.userData.supplier_id,
+    //   page: 1,
+    //   limit: 1000,
+    //   get_total_count: 'false',
+    // });
 
     // Set subscription to get up to date products
-    this.productsSubscription = this.prospectingService.allProduct.subscribe((products) => {
-      this.products = products;
-
-      const index = this.products.findIndex(p => p.id === campaign['campaign_detail'].prospecting_product_id);
-      if (index > -1) {
-        this.selectedPromotionsProductName = this.products[index].name;
-      }
-    });
+    // this.productsSubscription = this.prospectingService.allProduct.subscribe((products) => {
+    //   this.products = products;
+    //
+    //   const index = this.products.findIndex(p => p.id === campaign['campaign_detail'].prospecting_product_id);
+    //   if (index > -1) {
+    //     this.selectedPromotionsProductName = this.products[index].name;
+    //   }
+    // });
   };
 
   hideToastify = () => {
@@ -347,13 +347,13 @@ export class GenerateDripCampaignComponent implements OnInit {
 
 
     this.emails = [];
-    console.log(this.dripCampaign.details);
-    const lead_magnet = [];
-    const web_scrapper = {};
-    const google_map_scrapper = {};
-    const sports_scrapper = {};
-    const linkedin_scrapper = {};
-    // return;
+    console.log(this.dripCampaign);
+    this.isContentLoading = true;
+    const contact: Contact = this.contactList[0];
+    const linkedinUsername = this.getLinkedInUsername(contact?.details?.linkedinUrl);
+    const linkedinData: any = await this.dripCampaignService.getLinkedinData({ contactId: contact.id });
+    const websiteData: any = await this.dripCampaignService.getWebsiteData({ contactId: contact.id });
+    const locationData: any = await this.dripCampaignService.getLocationData({ contactId: contact.id });
     const data = {
       count: this.dripCampaign.details.numberOfEmails,
       email_tone: this.selectedEmailToneKey || this.dripCampaign.details.emailTone,
@@ -373,24 +373,23 @@ export class GenerateDripCampaignComponent implements OnInit {
       negative_prompt: this.userData.negative_prompts,
       isSpintax: this.selectedEmailTemplate.key === constants.PROSPECT_INSIGHTS_KEY,
       promotion_info: !!this.selectedPromotionsProductName,
-      prospect_email_address: this.contactList[0]?.email,
+      prospect_email_address: contact?.email,
       drip_campaign_id: this.dripCampaign.id,
-      lead_magnet,
-      linkedin_scrapper,
-      sports_scrapper,
-      google_map_scrapper,
-      web_scrapper,
+      lead_magnet: this.dripCampaign.leadMagnet,
+      linkedin_scrapper: linkedinData,
+      sports_scrapper: {},
+      google_map_scrapper: locationData.scrapedData,
+      web_scrapper: websiteData.rawData,
       prospect: {
-        name: this.contactList[0]?.contactName,
-        company: this.contactList[0]?.companyName,
-        industry: this.contactList[0]?.details?.organization?.industry,
-        location: `${this.contactList[0]?.details?.city}, ${this.contactList[0].details?.state}, ${this.contactList[0].details?.country}`,
+        name: contact?.contactName,
+        company: contact?.companyName,
+        industry: contact?.details?.organization?.industry,
+        location: `${contact?.details?.city}, ${contact.details?.state}, ${contact.details?.country}`,
         website: '',
-        linkedinUrl: this.contactList[0]?.details?.linkedinUrl,
-        username: this.getLinkedInUsername(this.contactList[0]?.details?.linkedinUrl),
+        linkedinUrl: contact?.details?.linkedinUrl,
+        username: linkedinUsername,
       },
     };
-
     try {
       await this.sseService.dripBulkEmailContentStream(data, this.dripCampaign.userPromptPriority);
     } catch (e) {

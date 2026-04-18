@@ -13,6 +13,7 @@ export class DripCampaign {
   emails: ICampaignEmail[];
   settings: ICampaignSetting[];
   lists: ICampaignList[];
+  leadMagnet: [];
   isSelected?: boolean;
 
   constructor(rawData: IRawDripCampaign) {
@@ -30,24 +31,26 @@ export class DripCampaign {
     this.details = {
       ...rawData.details,
       title: {
-        ...rawData.details.title
+        ...rawData.details.title,
       },
       companyDescription: {
-        ...rawData.details.companyDescription
-      }
+        ...rawData.details.companyDescription,
+      },
     };
     this.emails = rawData.emails.map(email => {
       return {
         ...email,
-        delayBetweenPreviousEmail: JSON.parse(email.delayBetweenPreviousEmail)
-      }
+        delayBetweenPreviousEmail: JSON.parse(email.delayBetweenPreviousEmail),
+      };
     });
     this.settings = rawData.settings.map(setting => ({
       ...setting,
-      settingsValue: JSON.parse(setting.settingsValue)
+      settingsValue: JSON.parse(setting.settingsValue),
     }));
 
     this.lists = [...rawData.lists];
+    this.leadMagnet = rawData.leadMagnet;
+
   }
 
   static empty(): DripCampaign {
@@ -78,19 +81,20 @@ export class DripCampaign {
           title: '',
           status: 'inactive',
           titleType: 'drip',
-          createdAt: new Date().toISOString()
+          createdAt: new Date().toISOString(),
         },
         companyDescription: {
           id: 0,
           status: 'inactive',
-          companyName: "",
-          description: "",
-          createdAt: new Date().toISOString()
-        }
+          companyName: '',
+          description: '',
+          createdAt: new Date().toISOString(),
+        },
       },
       emails: [],
       settings: [],
-      lists: []
+      lists: [],
+      leadMagnet: [],
     };
 
     return new DripCampaign(emptyRawData);
@@ -106,12 +110,12 @@ export class DripCampaign {
           title: '',
           status: 'inactive',
           titleType: 'drip',
-          createdAt: new Date().toISOString()
-        }
+          createdAt: new Date().toISOString(),
+        },
       },
       emails: json.emails || [],
       settings: json.settings || [],
-      lists: json.lists || []
+      lists: json.lists || [],
     });
   }
 }
@@ -132,6 +136,7 @@ export interface IRawDripCampaign {
   emails: IRawCampaignEmail[];
   settings: IRawCampaignSetting[];
   lists: IRawCampaignList[];
+  leadMagnet: [];
 }
 
 interface IDripCampaignDetails {
@@ -191,7 +196,8 @@ interface IRawCampaignSetting extends Omit<ICampaignSetting, 'settingsValue'> {
   settingsValue: string;
 }
 
-interface IRawCampaignList extends ICampaignList {}
+interface IRawCampaignList extends ICampaignList {
+}
 
 interface ICampaignTitle {
   id: number;
@@ -200,6 +206,7 @@ interface ICampaignTitle {
   titleType: string;
   createdAt: string;
 }
+
 interface ICompanyDescription {
   id: number;
   companyName: string;

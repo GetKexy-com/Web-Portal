@@ -73,6 +73,7 @@ export class DripCampaignService {
           if (res.data) {
             let campaign = res.data;
             const dripCampaign = new DripCampaign(res.data);
+            console.log({ dripCampaign });
             this.setDripCampaign(dripCampaign);
             this._dripCampaignStatus.next(campaign.status);
             this.sseService.addToDripBulkEmails(dripCampaign.emails);
@@ -85,6 +86,67 @@ export class DripCampaignService {
         },
         error: (err) => {
           this._loading.next(false);
+          if (err.error) {
+            reject(err.error);
+          }
+        },
+      });
+    });
+  };
+
+  getLinkedinData = async (postData) => {
+    return new Promise(async (resolve, reject) => {
+      const url = `drip-campaigns/getLinkedinData/${postData.contactId}`;
+      this.httpService.get(url).subscribe({
+        next: (res) => {
+          if (res) {
+            resolve(res.data);
+          } else {
+            reject(false);
+          }
+        },
+        error: (err) => {
+          if (err.error) {
+            reject(err.error);
+          }
+        },
+      });
+    });
+  };
+
+  getLocationData = async (postData) => {
+    return new Promise(async (resolve, reject) => {
+      const url = `map-scraper/getLocationData/${postData.contactId}`;
+      this.httpService.get(url).subscribe({
+        next: (res) => {
+          if (res) {
+            console.log(res);
+            resolve(res.data);
+          } else {
+            reject(false);
+          }
+        },
+        error: (err) => {
+          if (err.error) {
+            reject(err.error);
+          }
+        },
+      });
+    });
+  };
+
+  getWebsiteData = async (postData) => {
+    return new Promise(async (resolve, reject) => {
+      const url = `website-scrapper/getWebsiteData/${postData.contactId}`;
+      this.httpService.get(url).subscribe({
+        next: (res) => {
+          if (res) {
+            resolve(res.data);
+          } else {
+            reject(false);
+          }
+        },
+        error: (err) => {
           if (err.error) {
             reject(err.error);
           }

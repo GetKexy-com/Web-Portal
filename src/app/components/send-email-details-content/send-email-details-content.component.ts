@@ -15,6 +15,7 @@ import { KexySelectDropdownComponent } from '../kexy-select-dropdown/kexy-select
 import { FormsModule } from '@angular/forms';
 import { KexyRichEditorComponent } from '../kexy-rich-editor/kexy-rich-editor.component';
 import { CommonModule } from '@angular/common';
+import { Contact } from '../../models/Contact';
 
 @Component({
   selector: 'send-email-details-content',
@@ -68,6 +69,7 @@ export class SendEmailDetailsContentComponent implements OnInit, OnDestroy {
     this.supplierId = this.userData.supplier_id;
     this.dripEmail = this.dripCampaignService.getEditEmail();
     this.hasPromotion = this.dripCampaignService.getHasPromotion();
+    this.dripCampaign = this.dripCampaignService.getDripCampaignContentPageData();
     console.log(this.dripEmail);
     this.emailContent = this.dripEmail['emailContent'];
     this.emailSubject = this.dripEmail['emailSubject'];
@@ -206,7 +208,12 @@ export class SendEmailDetailsContentComponent implements OnInit, OnDestroy {
   };
 
   generateEmailContent = async () => {
+    this.isLoading = true;
     this.contactList = this.dripCampaignService.generateDripCampaignListContact;
+    const contact: Contact = this.contactList[0];
+    const linkedinData: any = await this.dripCampaignService.getLinkedinData({ contactId: contact.id });
+    const websiteData: any = await this.dripCampaignService.getWebsiteData({ contactId: contact.id });
+    const locationData: any = await this.dripCampaignService.getLocationData({ contactId: contact.id });
 
     const content = this.emailSubject + this.emailContent;
     const data = {
@@ -216,6 +223,11 @@ export class SendEmailDetailsContentComponent implements OnInit, OnDestroy {
       promotion_info: this.hasPromotion,
       isSpintax: this.isSpintax,
       content,
+      lead_magnet: this.dripCampaign.leadMagnet,
+      linkedin_scrapper: linkedinData,
+      sports_scrapper: {},
+      google_map_scrapper: locationData.scrapedData,
+      web_scrapper: websiteData.rawData,
       prospect: {
         name: this.contactList[0]?.contactName,
         company: this.contactList[0]?.companyName,
