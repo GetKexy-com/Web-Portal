@@ -378,8 +378,8 @@ export class GenerateDripCampaignComponent implements OnInit {
       lead_magnet: this.dripCampaign.leadMagnet,
       linkedin_scrapper: linkedinData,
       sports_scrapper: {},
-      google_map_scrapper: locationData.scrapedData,
-      web_scrapper: websiteData.rawData,
+      google_map_scrapper: locationData ? locationData.scrapedData : {},
+      web_scrapper: websiteData ? websiteData.rawData : {},
       prospect: {
         name: contact?.contactName,
         company: contact?.companyName,

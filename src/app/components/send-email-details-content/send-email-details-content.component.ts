@@ -226,8 +226,8 @@ export class SendEmailDetailsContentComponent implements OnInit, OnDestroy {
       lead_magnet: this.dripCampaign.leadMagnet,
       linkedin_scrapper: linkedinData,
       sports_scrapper: {},
-      google_map_scrapper: locationData.scrapedData,
-      web_scrapper: websiteData.rawData,
+      google_map_scrapper: locationData ? locationData.scrapedData : {},
+      web_scrapper: websiteData ? websiteData.rawData : {},
       prospect: {
         name: this.contactList[0]?.contactName,
         company: this.contactList[0]?.companyName,
