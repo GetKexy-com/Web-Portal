@@ -448,8 +448,9 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
   };
 
   setAndGetAddOrEditSingleContactApiPayload = (formData) => {
-
+    console.log(formData);
     const contactDetails: ContactDetails = this.contact.details;
+    console.log(contactDetails, this.contact);
     contactDetails.firstName = formData.firstName;
     contactDetails.lastName = formData.lastName;
     contactDetails.name = `${formData.firstName} ${formData.lastName}`;
@@ -461,6 +462,9 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
     contactDetails.country = formData.country;
     contactDetails.notes = formData.notes;
     contactDetails.isLikelyToEngage = true;
+    if(!contactDetails.organization) {
+      contactDetails.organization = {};
+    }
     contactDetails.organization.name = formData.organizationName;
     contactDetails.organization.phone = formData.organizationPhone;
     contactDetails.organization.city = formData.city;
@@ -573,6 +577,7 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
     try {
       if (!this.selectedContacts?.length) {
         postData = this.setAndGetAddOrEditSingleContactApiPayload(formData);
+        console.log(postData);
         // Create Contact
         await this.prospectingService.addContacts(postData);
       } else if (this.selectedContacts?.length && !this.isMultipleContactsSelected) {
