@@ -25,16 +25,7 @@ export class OrgInfoComponent implements OnInit {
   }
 
   get orgName(): string {
-    const type = this.userData.type;
-    if (type === constants.RESTAURANT) {
-      return this.userData ? this.userData.restaurant_name : '';
-    } else if (type === constants.DISTRIBUTOR) {
-      return this.userData ? this.userData.distributor_name : '';
-    } else if (type === constants.BRAND) {
-      return this.userData ? this.userData.supplier_name : '';
-    } else {
-      return '';
-    }
+    return this.userData.supplier_name;
   }
 
   get orgLogo(): string {
