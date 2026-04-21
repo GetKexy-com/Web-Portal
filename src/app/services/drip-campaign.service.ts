@@ -72,8 +72,8 @@ export class DripCampaignService {
         next: (res) => {
           if (res.data) {
             let campaign = res.data;
+            console.log({ campaign });
             const dripCampaign = new DripCampaign(res.data);
-            console.log({ dripCampaign });
             this.setDripCampaign(dripCampaign);
             this._dripCampaignStatus.next(campaign.status);
             this.sseService.addToDripBulkEmails(dripCampaign.emails);

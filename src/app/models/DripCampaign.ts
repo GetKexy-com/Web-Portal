@@ -1,3 +1,11 @@
+export const CAMPAIGN_STATUS = {
+  PENDING: 'PENDING',
+  SUCCEEDED: 'SUCCEEDED',
+  RUNNING: 'RUNNING',
+} as const;
+
+export type CampaignStatus = typeof CAMPAIGN_STATUS[keyof typeof CAMPAIGN_STATUS];
+
 export class DripCampaign {
   id: number;
   company: object;
@@ -8,6 +16,8 @@ export class DripCampaign {
   currentStep: string;
   status: string;
   contactStatus: string;
+  webScrapeStatus: CampaignStatus;
+  mapScrapeStatus: CampaignStatus;
   createdAt: string;
   details: IDripCampaignDetails;
   emails: ICampaignEmail[];
@@ -26,6 +36,8 @@ export class DripCampaign {
     this.currentStep = rawData.currentStep;
     this.status = rawData.status;
     this.contactStatus = rawData.contactStatus;
+    this.webScrapeStatus = rawData.webScrapeStatus;
+    this.mapScrapeStatus = rawData.mapScrapeStatus;
     this.createdAt = rawData.createdAt;
 
     this.details = {
@@ -63,7 +75,9 @@ export class DripCampaign {
       userPromptPriority: false,
       currentStep: '1',
       status: 'inactive',
-      contactStatus: 'PENDING',
+      contactStatus: CAMPAIGN_STATUS.PENDING,
+      webScrapeStatus: CAMPAIGN_STATUS.PENDING,
+      mapScrapeStatus: CAMPAIGN_STATUS.PENDING,
       createdAt: new Date().toISOString(),
       details: {
         id: 0,
@@ -131,6 +145,8 @@ export interface IRawDripCampaign {
   currentStep: string;
   status: string;
   contactStatus: string;
+  webScrapeStatus: CampaignStatus;
+  mapScrapeStatus: CampaignStatus;
   createdAt: string;
   details: IRawDripCampaignDetails;
   emails: IRawCampaignEmail[];

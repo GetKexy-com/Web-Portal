@@ -4,10 +4,30 @@
       <progress-count [currentStep]="currentStep" [steps]="steps"></progress-count>
     </div>
     <div class="page-content">
+
+      <div class="scraper-notification-card m-4" *ngIf="scrapeProgress">
+        <div class="title">
+          <span class="icon-orbit">
+            <span class="lens">🔎</span>
+          </span>
+          {{scrapeProgressDetails.title}}
+        </div>
+        <div class="subtitle">{{scrapeProgressDetails.subTitle}}</div>
+
+        <div class="progress-container">
+          <div class="progress-bar"></div>
+        </div>
+
+        <div class="status" *ngIf="this.dripCampaign.webScrapeStatus === CAMPAIGN_STATUS.RUNNING">
+          {{scrapeProgressDetails.details}}<span class="dots"></span>
+        </div>
+      </div>
+
       <div *ngIf="isWaitingFlag" class="loading">
         <i class="fa me-2 fa-spinner fa-spin" aria-hidden="true"></i>
         Please wait....
       </div>
+
       <div class="content">
         <div *ngIf="currentStep === 1">
           <drip-campaign-content [nextBtnClick]="nextBtnClick" [backBtnClick]="backBtnClick" />
