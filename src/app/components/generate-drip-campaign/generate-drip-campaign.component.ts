@@ -34,6 +34,7 @@ import { Contact, IRawContact } from '../../models/Contact';
 import { ExportToCsv } from '../../helpers/CSVHelper';
 import { PreviewDripEmailContentComponent } from '../preview-drip-email-content/preview-drip-email-content.component';
 import { LeadMagnetService } from '../../services/lead-magnet.service';
+import { CAMPAIGN_STATUS } from '../../models/DripCampaign';
 
 @Component({
   selector: 'generate-drip-campaign',
@@ -115,6 +116,7 @@ export class GenerateDripCampaignComponent implements OnInit {
       if (params['id']) {
         this.dripCampaignId = params['id'];
         this.dripCampaign = this.dripCampaignService.getDripCampaignContentPageData();
+        this.getScrapeStatusDetails();
         this.selectedEmailTemplate = this.spintaxOptions.find(o => {
           return o.key === this.dripCampaign.emails[0].templateOptions;
         });
@@ -191,6 +193,102 @@ export class GenerateDripCampaignComponent implements OnInit {
 
     this.getDripCampaignProspects();
   }
+
+  scrapeProgress: boolean = false;
+  scrapeProgressDetails: any = {
+    title: '',
+    subTitle: '',
+    mapText: 'Loading',
+    webText: 'Loading',
+  };
+  //TODO - These should come from server
+  WEB_SCRAPE_MESSAGES = [
+    'Analyzing website structure',
+    'Extracting business details',
+    'Collecting contact information',
+    'Scanning pages for insights',
+    'Organizing website data',
+  ];
+
+  MAP_SCRAPE_MESSAGES = [
+    'Capturing local venues',
+    'Searching local sports teams',
+    'Finding the top restaurants',
+    'Exploring nearby businesses',
+    'Mapping popular locations',
+  ];
+  private messageIndex = {
+    web: 0,
+    map: 0,
+  };
+
+  getNextMessage(type: 'web' | 'map'): string {
+    const pool = type === 'web' ? this.WEB_SCRAPE_MESSAGES : this.MAP_SCRAPE_MESSAGES;
+
+    const index = this.messageIndex[type];
+    const message = pool[index];
+
+    // rotate
+    this.messageIndex[type] = (index + 1) % pool.length;
+
+    return message;
+  }
+
+  startMessageRotation() {
+    setTimeout(() => {
+      if (this.dripCampaign.mapScrapeStatus === CAMPAIGN_STATUS.RUNNING) {
+        this.scrapeProgressDetails.mapText = this.getNextMessage('map');
+      }
+      if (this.dripCampaign.webScrapeStatus === CAMPAIGN_STATUS.RUNNING) {
+        this.scrapeProgressDetails.webText = this.getNextMessage('web');
+      }
+    }, 5000);
+    setInterval(() => {
+      if (this.dripCampaign.mapScrapeStatus === CAMPAIGN_STATUS.RUNNING) {
+        this.scrapeProgressDetails.mapText = this.getNextMessage('map');
+      }
+    }, 60000);
+    setInterval(() => {
+      if (this.dripCampaign.webScrapeStatus === CAMPAIGN_STATUS.RUNNING) {
+        this.scrapeProgressDetails.webText = this.getNextMessage('web');
+      }
+    }, 90000);
+
+  }
+
+  getScrapeStatusDetails = () => {
+    const { webScrapeStatus, mapScrapeStatus, status } = this.dripCampaign;
+
+    const isWebDone = webScrapeStatus === CAMPAIGN_STATUS.SUCCEEDED;
+    const isMapDone = mapScrapeStatus === CAMPAIGN_STATUS.SUCCEEDED;
+
+    this.scrapeProgress =
+      status !== constants.INACTIVE && (!isWebDone || !isMapDone);
+    console.log(isWebDone);
+    console.log(isMapDone);
+    console.log(this.scrapeProgress);
+
+    switch (this.dripCampaign.webScrapeStatus) {
+      case CAMPAIGN_STATUS.RUNNING:
+        this.scrapeProgressDetails.title = 'Scraping Data';
+        this.scrapeProgressDetails.subTitle = 'Please wait while we collect information';
+        break;
+      case CAMPAIGN_STATUS.PENDING:
+        this.scrapeProgressDetails.title = 'Scrape Queued';
+        this.scrapeProgressDetails.subTitle = 'Please wait! Scrape will start soon.';
+    }
+    switch (this.dripCampaign.mapScrapeStatus) {
+      case CAMPAIGN_STATUS.RUNNING:
+        this.scrapeProgressDetails.title = 'Scraping Data';
+        this.scrapeProgressDetails.subTitle = 'Please wait while we collect information';
+        break;
+      case CAMPAIGN_STATUS.PENDING:
+        this.scrapeProgressDetails.title = 'Scrape Queued';
+        this.scrapeProgressDetails.subTitle = 'Please wait! Scrape will start soon.';
+    }
+    this.startMessageRotation();
+  };
+
 
   getDripCampaignProspects = async () => {
     const postData = {
@@ -923,4 +1021,5 @@ export class GenerateDripCampaignComponent implements OnInit {
 
     await ExportToCsv.download('insights.csv', `${headers}\n${rows}`);
   };
+  protected readonly CAMPAIGN_STATUS = CAMPAIGN_STATUS;
 }

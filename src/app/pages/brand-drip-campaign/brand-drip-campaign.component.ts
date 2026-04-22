@@ -149,31 +149,8 @@ export class BrandDripCampaignComponent implements OnInit, OnDestroy {
     }
 
     this.dripCampaign = this.dripCampaignService.getDripCampaignContentPageData();
-    this.getScrapeStatusDetails();
   };
 
-  scrapeProgress: boolean = false;
-  scrapeProgressDetails: any = {
-    title: '',
-    subTitle: '',
-    details: '',
-  };
-  getScrapeStatusDetails = () => {
-    this.scrapeProgress = this.dripCampaign.webScrapeStatus !== CAMPAIGN_STATUS.SUCCEEDED;
-    console.log(this.dripCampaign.webScrapeStatus);
-    switch (this.dripCampaign.webScrapeStatus) {
-      case CAMPAIGN_STATUS.RUNNING:
-        this.scrapeProgressDetails.title = 'Scraping Data';
-        this.scrapeProgressDetails.subTitle = 'Please wait while we collect information';
-        this.scrapeProgressDetails.details = 'Fetching website data';
-        break;
-      case CAMPAIGN_STATUS.PENDING:
-        this.scrapeProgressDetails.title = 'Scrape Queued';
-        this.scrapeProgressDetails.subTitle = 'Please wait! Scrape will start soon.';
-        this.scrapeProgressDetails.details = '';
-
-    }
-  };
 
   nextBtnClick = async (campaignId = '', overwrite = false) => {
     this.currentStep = ++this.currentStep;

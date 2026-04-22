@@ -1,4 +1,28 @@
 <section class="drip-campaign-content">
+  <div class="scraper-notification-card" *ngIf="scrapeProgress">
+    <div class="title">
+          <span class="icon-orbit">
+            <span class="lens">🔎</span>
+          </span>
+      {{ scrapeProgressDetails.title }}
+    </div>
+    <div class="subtitle">{{ scrapeProgressDetails.subTitle }}</div>
+
+    <div class="progress-container">
+      <div class="progress-bar"></div>
+    </div>
+
+    <div class="status">
+      <div *ngIf="dripCampaign.webScrapeStatus === CAMPAIGN_STATUS.RUNNING">
+        ⏳ {{ scrapeProgressDetails.webText }}<span class="dots"></span>
+      </div>
+
+      <div *ngIf="dripCampaign.mapScrapeStatus === CAMPAIGN_STATUS.RUNNING">
+        ⏳ {{ scrapeProgressDetails.mapText }}<span class="dots"></span>
+      </div>
+    </div>
+  </div>
+
   <div class="drip-campaign-fields mt-3">
     <div class="title-and-shortener-wrap">
       <p class="title">Drip Campaign Emails</p>

@@ -2,6 +2,7 @@ export const CAMPAIGN_STATUS = {
   PENDING: 'PENDING',
   SUCCEEDED: 'SUCCEEDED',
   RUNNING: 'RUNNING',
+  FAILED: 'FAILED',
 } as const;
 
 export type CampaignStatus = typeof CAMPAIGN_STATUS[keyof typeof CAMPAIGN_STATUS];
