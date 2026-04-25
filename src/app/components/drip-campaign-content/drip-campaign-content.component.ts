@@ -31,8 +31,6 @@ import { LeadMagnetService } from '../../services/lead-magnet.service';
     KexySelectDropdownComponent,
     FormsModule,
     ErrorMessageCardComponent,
-    DripCampaignPromotionsTableComponent,
-    NgClass,
     CampaignLayoutBottmBtnsComponent,
     CommonModule,
     KexyToggleSwitchComponent,

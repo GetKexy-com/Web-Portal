@@ -25,7 +25,6 @@ import { KexyButtonComponent } from '../kexy-button/kexy-button.component';
     KexySelectDropdownComponent,
     KexyToggleSwitchComponent,
     CommonModule,
-    ErrorMessageCardComponent,
     ReactiveFormsModule,
     KexyButtonComponent,
   ],

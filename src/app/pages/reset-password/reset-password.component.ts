@@ -15,7 +15,6 @@ import { ErrorMessageCardComponent } from '../../components/error-message-card/e
     LoginLayoutComponent,
     ReactiveFormsModule,
     CommonModule,
-    ErrorMessageCardComponent,
   ],
   templateUrl: './reset-password.component.html',
   styleUrl: './reset-password.component.scss'

@@ -22,8 +22,6 @@ import { LeadMagnetFormComponent } from '../../components/lead-magnet-form/lead-
     BrandLayoutComponent,
     KexyButtonComponent,
     NgIf,
-    DatePipe,
-    DecimalPipe,
     FormsModule,
     NgForOf,
     ReactiveFormsModule,

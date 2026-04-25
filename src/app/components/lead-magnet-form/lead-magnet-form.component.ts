@@ -20,9 +20,6 @@ import { KexyButtonComponent } from '../kexy-button/kexy-button.component';
   selector: 'app-lead-magnet-form',
   imports: [
     ErrorMessageCardComponent,
-    KexySelectDropdownComponent,
-    NgForOf,
-    NgIf,
     ReactiveFormsModule,
     KexyButtonComponent,
   ],

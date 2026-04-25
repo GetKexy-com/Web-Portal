@@ -24,7 +24,7 @@ import { countries } from 'src/assets/countries';
 
 @Component({
   selector: 'app-edit-brand-user',
-  imports: [BrandLayoutComponent, ReactiveFormsModule, CommonModule, ProspectingCommonCardComponent, KexyButtonComponent, ErrorMessageCardComponent, KexyProTipsModalContentComponent, ModalComponent, FormsModule],
+  imports: [BrandLayoutComponent, ReactiveFormsModule, CommonModule, ProspectingCommonCardComponent, KexyButtonComponent, ErrorMessageCardComponent, ModalComponent, FormsModule],
   templateUrl: './edit-brand-user.component.html',
   styleUrl: './edit-brand-user.component.scss',
 })
