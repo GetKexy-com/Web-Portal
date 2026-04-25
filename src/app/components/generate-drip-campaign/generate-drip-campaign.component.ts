@@ -34,7 +34,7 @@ import { Contact, IRawContact } from '../../models/Contact';
 import { ExportToCsv } from '../../helpers/CSVHelper';
 import { PreviewDripEmailContentComponent } from '../preview-drip-email-content/preview-drip-email-content.component';
 import { LeadMagnetService } from '../../services/lead-magnet.service';
-import { CAMPAIGN_STATUS } from '../../models/DripCampaign';
+import { CAMPAIGN_STATUS, DripCampaign } from '../../models/DripCampaign';
 
 @Component({
   selector: 'generate-drip-campaign',
@@ -52,7 +52,7 @@ import { CAMPAIGN_STATUS } from '../../models/DripCampaign';
   templateUrl: './generate-drip-campaign.component.html',
   styleUrl: './generate-drip-campaign.component.scss',
 })
-export class GenerateDripCampaignComponent implements OnInit {
+export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
   @Input() nextBtnClick;
   @Input() backBtnClick;
   userData;
@@ -137,11 +137,10 @@ export class GenerateDripCampaignComponent implements OnInit {
         this.showToastifyMessage = true;
         // Save the emails in DB
         this.saveEmails('true').then(async () => {
-          const postData = {
-            drip_campaign_id: this.dripCampaignId,
-            supplier_id: this.userData.supplier_id,
-          };
-          this.dripCampaign = await this.dripCampaignService.getCampaign(postData);
+          await this.__refreshDripCampaign();
+          if (this.dripCampaign.status === constants.ACTIVE) {
+            this.startAutoRefresh();
+          }
         });
       }
     });
@@ -318,32 +317,6 @@ export class GenerateDripCampaignComponent implements OnInit {
     this.dripCampaignService.setEmailLength(selectedValue.key);
   };
 
-  getCampaignThenProductName = async () => {
-    // Get campaign api call
-    // const postData = {
-    //   campaign_id: this.dripCampaign.details.campaignId,
-    //   supplier_id: this.userData.supplier_id,
-    // };
-    // const campaign = await this.campaignService.getCampaign(postData);
-
-    // Get products api call
-    // await this.prospectingService.getProducts({
-    //   supplier_id: this.userData.supplier_id,
-    //   page: 1,
-    //   limit: 1000,
-    //   get_total_count: 'false',
-    // });
-
-    // Set subscription to get up to date products
-    // this.productsSubscription = this.prospectingService.allProduct.subscribe((products) => {
-    //   this.products = products;
-    //
-    //   const index = this.products.findIndex(p => p.id === campaign['campaign_detail'].prospecting_product_id);
-    //   if (index > -1) {
-    //     this.selectedPromotionsProductName = this.products[index].name;
-    //   }
-    // });
-  };
 
   hideToastify = () => {
     this.showToastifyMessage = false;
@@ -371,6 +344,9 @@ export class GenerateDripCampaignComponent implements OnInit {
     if (this.dripCampaignStatus !== constants.ACTIVE) {
       this.sseService.removeDripBulkEmailData();
     }
+
+    this.stopAutoRefresh();
+
   }
 
   getContacts = async (listId) => {
@@ -617,21 +593,56 @@ export class GenerateDripCampaignComponent implements OnInit {
         text: 'Drip campaign is now active.',
         icon: 'success',
       });
-      await this.router.navigate([routeConstants.BRAND.LIST_DRIP_CAMPAIGN]);
+
+      await this.__refreshDripCampaign();
+      if (this.dripCampaign.status === constants.ACTIVE) {
+        this.startAutoRefresh();
+      }
     }
   };
 
+  __refreshDripCampaign = async () => {
+    const postData = {
+      drip_campaign_id: this.dripCampaignId,
+      supplier_id: this.userData.supplier_id,
+    };
+    await this.dripCampaignService.getCampaign(postData);
+    this.dripCampaign = this.dripCampaignService.getDripCampaignContentPageData();
+  };
+
+  private refreshInterval: any = null;
+
+  startAutoRefresh() {
+    if (this.refreshInterval) return; // prevent duplicate intervals
+
+    this.refreshInterval = setInterval(async () => {
+      await this.__refreshDripCampaign();
+
+      const campaign = this.dripCampaign;
+
+      const isActive = campaign.status === constants.ACTIVE;
+
+      const isScrapingDone =
+        campaign.webScrapeStatus === CAMPAIGN_STATUS.SUCCEEDED &&
+        campaign.mapScrapeStatus === CAMPAIGN_STATUS.SUCCEEDED;
+
+      // ❌ Stop if not active OR scraping finished
+      if (!isActive || isScrapingDone) {
+        this.stopAutoRefresh();
+      }
+
+    }, 30000); // 30 sec
+  }
+
+  stopAutoRefresh() {
+    if (this.refreshInterval) {
+      clearInterval(this.refreshInterval);
+      this.refreshInterval = null;
+    }
+  }
+
   __launchDripCampaign = async () => {
     try {
-      // const assignContactPostData = {
-      //   drip_campaign_id: this.dripCampaignId,
-      //   supplier_id: this.userData.supplier_id,
-      //   contacts: [],
-      //   label_ids: [],
-      //   notify: "true",
-      // };
-      // await this.dripCampaignService.assignContactsAndLabelsInCampaign(assignContactPostData);
-
       const postData = {
         drip_campaign_id: this.dripCampaignId,
         companyId: this.userData.supplier_id,
