@@ -86,6 +86,7 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
       !this.prospectingService.clickedContactInContactPage.length
     ) {
       this.selectedContacts = this.prospectingService.selectedContactsInContactsPage;
+      console.log('selectedContact', this.selectedContacts);
     }
 
     // Get label ids for comparing later in assignLabel api for edit single contact
@@ -301,6 +302,7 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
         Validators.compose([]),
       ),
       city: new FormControl(contactDetails.city),
+      websiteUrl: new FormControl(contactDetails.organization?.websiteUrl),
       state: new FormControl(contactDetails.state),
       country: new FormControl(
         contactDetails.country ? contactDetails.country : constants.UNITED_STATES,
@@ -476,6 +478,10 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
       contactDetails.organization.linkedinUrl = formData.linkedinUrl;
     }
 
+    if (formData.websiteUrl) {
+      contactDetails.organization.websiteUrl = formData.websiteUrl;
+    }
+
     this.contact.companyName = formData.organizationName;
     this.contact.details = contactDetails;
 
@@ -583,6 +589,7 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
       } else if (this.selectedContacts?.length && !this.isMultipleContactsSelected) {
         // Edit Single Contact
         postData = this.setAndGetAddOrEditSingleContactApiPayload(formData);
+        console.log(postData);
         await this.prospectingService.editContacts(postData);
       } else {
         // Edit Multiple Contact
