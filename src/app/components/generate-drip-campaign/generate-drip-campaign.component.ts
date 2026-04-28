@@ -117,9 +117,13 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
         this.dripCampaignId = params['id'];
         this.dripCampaign = this.dripCampaignService.getDripCampaignContentPageData();
         this.getScrapeStatusDetails();
-        this.selectedEmailTemplate = this.spintaxOptions.find(o => {
-          return o.key === this.dripCampaign.emails[0].templateOptions;
-        });
+        if(this.dripCampaign.emails[0]) {
+          this.selectedEmailTemplate = this.spintaxOptions.find(o => {
+            return o.key === this.dripCampaign.emails[0].templateOptions;
+          });
+        } else {
+          this.selectedEmailTemplate = this.spintaxOptions[0];
+        }
       }
     });
 
