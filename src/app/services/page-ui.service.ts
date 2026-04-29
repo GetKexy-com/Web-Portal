@@ -27,6 +27,17 @@ export class PageUiService {
     this.prospectingSalesLeadCurrentStep = step;
   }
 
+  isJsonString(value: unknown): boolean {
+    if (typeof value !== 'string') return false;
+
+    try {
+      JSON.parse(value);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   private __checkDateValue(str, max) {
     if (str.charAt(0) !== "0" || str == "00") {
       let num = parseInt(str);

@@ -24,6 +24,7 @@ import {
 } from '../../components/add-contacts-to-drip-campaign/add-contacts-to-drip-campaign.component';
 import { CommonModule } from '@angular/common';
 import { Contact, ContactOrganization } from '../../models/Contact';
+import { PageUiService } from '../../services/page-ui.service';
 
 @Component({
   selector: 'brand-contacts',
@@ -77,6 +78,7 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
   constructor(
     private _authService: AuthService,
     private prospectingService: ProspectingService,
+    private pageUiService: PageUiService,
     private ngbOffcanvas: NgbOffcanvas,
     private modal: NgbModal,
     private route: ActivatedRoute,
@@ -578,28 +580,34 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
   exportCSV = async () => {
     await this.getAllContacts();
 
-    const headers = `First Name,Last Name,Linkedin,Email,Email Status,Job Title,Company Name,Phone Number,City,State,Country,Marketing Status,List`;
+    const headers = `First Name,Last Name,Linkedin,Website,Email,Email Status,Job Title,Company Name,Phone Number,City,State,Country,Marketing Status,List`;
     let rows = '';
     this.allContacts.forEach((contact) => {
-      // console.log('contact', contact);
+      console.log('contact', contact);
       let labels = [];
-      contact.kexy_contact_labels.forEach((label) => {
-        labels.push(label.kexy_label.label);
+      contact.lists.forEach((list) => {
+        labels.push(list.label);
       });
 
-      let contactDetails = JSON.parse(contact.details);
-      rows += `${contactDetails.first_name?.replace(/,/g, ' ')}, `;
-      rows += `${contactDetails.last_name?.replace(/,/g, ' ')}, `;
-      rows += `${contactDetails.linkedin_url?.replace(/,/g, ' ')}, `;
+      let contactDetails;
+      if (this.pageUiService.isJsonString(contact.details)) {
+        contactDetails = JSON.parse(contact.details);
+      } else {
+        contactDetails = contact.details;
+      }
+      rows += `${contactDetails.firstName?.replace(/,/g, ' ')}, `;
+      rows += `${contactDetails.lastName?.replace(/,/g, ' ')}, `;
+      rows += `${contactDetails.linkedinUrl?.replace(/,/g, ' ')}, `;
+      rows += `${contactDetails.organization.websiteUrl?.replace(/,/g, ' ')}, `;
       rows += `${contactDetails.email?.replace(/,/g, ' ')}, `;
-      rows += `${contactDetails.email_status?.replace(/,/g, ' ')}, `;
+      rows += `${contactDetails.emailStatus?.replace(/,/g, ' ')}, `;
       rows += `${contactDetails.title?.replace(/,/g, ' ')}, `;
       rows += `${contactDetails.organization.name?.replace(/,/g, ' ')}, `;
       rows += `${contactDetails.organization.phone?.replace(/,/g, ' ')}, `;
       rows += `${contactDetails.city?.replace(/,/g, ' ')}, `;
       rows += `${contactDetails.state?.replace(/,/g, ' ')}, `;
       rows += `${contactDetails.country?.replace(/,/g, ' ')}, `;
-      rows += `${contact.marketing_status?.replace(/,/g, ' ')}, `;
+      rows += `${contact.marketingStatus?.replace(/,/g, ' ')}, `;
       rows += `${labels.length ? labels.join('/') : ''}\n`;
     });
     // console.log(rows);
