@@ -1,16 +1,17 @@
-import { AfterViewChecked, Component, EventEmitter, Input, OnDestroy, OnInit, Output } from "@angular/core";
-import { constants } from "../../helpers/constants";
-import { routeConstants } from "../../helpers/routeConstants";
-import { Router } from "@angular/router";
-import { ProspectingService } from "../../services/prospecting.service";
-import { Subscription } from "rxjs";
-import { NgbModal } from "@ng-bootstrap/ng-bootstrap";
-import {FormsModule} from '@angular/forms';
-import {CommonModule, DatePipe, DecimalPipe, NgClass} from '@angular/common';
+import { AfterViewChecked, Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import { constants } from '../../helpers/constants';
+import { routeConstants } from '../../helpers/routeConstants';
+import { Router } from '@angular/router';
+import { ProspectingService } from '../../services/prospecting.service';
+import { Subscription } from 'rxjs';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { FormsModule } from '@angular/forms';
+import { CommonModule, DatePipe, DecimalPipe, NgClass } from '@angular/common';
 import {
-  ContactLabelsModalContentComponent
+  ContactLabelsModalContentComponent,
 } from '../contact-labels-modal-content/contact-labels-modal-content.component';
-import {DripCampaign} from '../../models/DripCampaign';
+import { DripCampaign } from '../../models/DripCampaign';
+import { KexySelectDropdownComponent } from '../kexy-select-dropdown/kexy-select-dropdown.component';
 
 @Component({
   selector: 'list-of-drip-campaign-table',
@@ -20,9 +21,10 @@ import {DripCampaign} from '../../models/DripCampaign';
     NgClass,
     DecimalPipe,
     CommonModule,
+    KexySelectDropdownComponent,
   ],
   templateUrl: './list-of-drip-campaign-table.component.html',
-  styleUrl: './list-of-drip-campaign-table.component.scss'
+  styleUrl: './list-of-drip-campaign-table.component.scss',
 })
 export class ListOfDripCampaignTableComponent implements OnInit, AfterViewChecked, OnDestroy {
   @Input() tableHeaderBg;
@@ -42,12 +44,15 @@ export class ListOfDripCampaignTableComponent implements OnInit, AfterViewChecke
   @Input() selectedAllDripCampaigns;
   @Input() toggleSelectAllSelection;
   @Output() selectedLimit: EventEmitter<any> = new EventEmitter();
+  @Output() selectedStatus: EventEmitter<any> = new EventEmitter();
 
   public tableWidth = 500;
   public columnList: any[];
   public labelOptions: any[] = [];
   public list;
   public contactLabelsSubscription: Subscription;
+  dripCampaignStatuses = constants.DRIP_CAMPAIGN_STATUS;
+  selectedStatusKey = constants.DRIP_CAMPAIGN_STATUS[0];
 
   constructor(private router: Router, private modal: NgbModal, private prospectingService: ProspectingService) {
   }
@@ -70,24 +75,31 @@ export class ListOfDripCampaignTableComponent implements OnInit, AfterViewChecke
     this.calcWidth();
   }
 
+  onStatusSelect = (status, index = null, rowIndex = null) => {
+    this.selectedStatusKey = status.value;
+    console.log(status);
+    this.selectedStatus.emit(status.key);
+  };
+
+
   getListViewData = () => {
     let columnList: any;
     columnList = [
-      { name: "", key: "action", width: 50 },
-      { name: "Drip Campaign Title", key: "drip_campaign_title", width: 200 },
-      { name: "Number Of Emails", key: "number_of_emails", width: 142 },
-      { name: "Email Tone", key: "email_tone", width: 120 },
-      { name: "Status", key: "status", width: 100 },
-      { name: "Lists", key: "label", width: 130 },
-      { name: "Date Created", key: "date_created", width: 180 },
-      { name: "", key: "edit", width: 50 },
+      { name: '', key: 'action', width: 50 },
+      { name: 'Drip Campaign Title', key: 'drip_campaign_title', width: 200 },
+      { name: 'Number Of Emails', key: 'number_of_emails', width: 142 },
+      { name: 'Email Tone', key: 'email_tone', width: 120 },
+      { name: 'Status', key: 'status', width: 100 },
+      { name: 'Lists', key: 'label', width: 130 },
+      { name: 'Date Created', key: 'date_created', width: 180 },
+      { name: '', key: 'edit', width: 50 },
     ];
     this.columnList = columnList;
   };
 
   browserWidthForTable;
   calcWidth = () => {
-    const sidebarWidth = document.getElementById("main-sidebar")?.clientWidth;
+    const sidebarWidth = document.getElementById('main-sidebar')?.clientWidth;
     const pageMargin = 48;
     let sum = 300;
     let map = {};
@@ -129,7 +141,7 @@ export class ListOfDripCampaignTableComponent implements OnInit, AfterViewChecke
 
   enrolledLists = [];
   getList = (lists) => {
-    this.enrolledLists = lists.filter(i => i.type === "enroll_list");
+    this.enrolledLists = lists.filter(i => i.type === 'enroll_list');
     if (!this.enrolledLists.length) {
       this.list = {};
       return false;
@@ -156,9 +168,9 @@ export class ListOfDripCampaignTableComponent implements OnInit, AfterViewChecke
   };
 
   getCheckboxIcon(): string {
-    if (this.selectedItemCount === 0) return "fa fa-square-o checkbox-icon";
-    if (this.selectedItemCount > 0 && this.selectedItemCount < this.cardData.length) return "fa fa-minus-square-o";
-    return "fa fa-check-square-o";
+    if (this.selectedItemCount === 0) return 'fa fa-square-o checkbox-icon';
+    if (this.selectedItemCount > 0 && this.selectedItemCount < this.cardData.length) return 'fa fa-minus-square-o';
+    return 'fa fa-check-square-o';
   }
 
   protected readonly constants = constants;

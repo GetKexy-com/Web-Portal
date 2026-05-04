@@ -12,11 +12,32 @@
       </span>
     </p>
 
-    <div *ngIf="totalPage" class="d-flex">
+    <div *ngIf="totalPage" class="d-flex align-items-center">
+      <kexy-select-dropdown
+        style="margin-right: 20px; width: 100px"
+        label="Status"
+        shortNoteBesideLabel=""
+        [selectAllBtn]="false"
+        [required]="false"
+        [options]="dripCampaignStatuses"
+        [addNewBtn]="false"
+        [onAddNewClick]=""
+        [selectedOption]="selectedStatusKey"
+        [onSelectSingleItem]="onStatusSelect"
+        [rowIndex]="1"
+        [editIcon]="false"
+        [deleteIcon]="false"
+        [onDeleteClick]=""
+        [onEditClick]=""
+        [isClearable]="false"
+        optionStyle="button"
+        backgroundColor="white"
+        placeholder="Filter"
+      />
+
       <div class="kexy-table-entry-count">
         Per Page:
         <select class="form-control" style="width: auto" [(ngModel)]="limit" (change)="onShowEntriesSelect($event)">
-          <!--          <option value="2">2</option>-->
           <option value="25">25</option>
           <option value="50">50</option>
           <option value="100">100</option>

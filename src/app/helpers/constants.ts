@@ -222,6 +222,11 @@ export const constants = {
     { key: 'medium', value: 'Medium' },
     { key: 'long', value: 'Long' },
   ],
+  DRIP_CAMPAIGN_STATUS: [
+    { key: 'all', value: 'All' },
+    { key: 'active', value: 'Active' },
+    { key: 'inactive', value: 'Draft' },
+  ],
   DRIP_CAMPAIGN: 'Drip Campaigns',
   PROMOTIONS: 'Promotions',
   SALES_LEAD_COUNTRY: 'sales-lead-country',

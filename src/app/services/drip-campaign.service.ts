@@ -372,7 +372,8 @@ export class DripCampaignService {
     return this.editDripCampaignTitleItem;
   };
 
-  getListOfDripCampaigns = async (limit = 10, page = 1) => {
+  getListOfDripCampaigns = async (limit = 10, page = 1, status: string) => {
+    console.log({ status });
     let tempDealList = [];
     return new Promise(async (resolve, reject) => {
       const url = `drip-campaigns?limit=${limit}&page=${page}`;

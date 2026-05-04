@@ -76,6 +76,7 @@
         [currentPage]="page()"
         [limit]="limit()"
         (selectedLimit)="receivedLimitNumber($event)"
+        (selectedStatus)="receivedDripStatusFilter($event)"
         [paginationLeftArrowClick]="paginationLeftArrowClick"
         [paginationRightArrowClick]="paginationRightArrowClick"
         [isWaitingFlag]="isWaitingFlag()"
