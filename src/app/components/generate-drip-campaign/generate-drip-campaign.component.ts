@@ -392,7 +392,7 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
   };
 
   generateEmailContent = async () => {
-    if (!this.contactList?.length) {
+    if (!this.contactList?.length && this.selectedEmailTemplate.key !== constants.TEMPLATE_KEY) {
       const enrollList = this.getEnrolledList();
       if (!enrollList?.length) {
         this.openSettingsCanvas();
