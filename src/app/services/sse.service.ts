@@ -210,6 +210,168 @@ export class SseService {
   dripBulkEmailContentStream = async (data, userPromptPriority = false) => {
     let emails: DripEmail[] = [];
     let emailSequence = 1;
+
+    let emailSubject = '';
+    let emailContent = '';
+    let aiEmailData = '';
+
+    let delayBetweenPreviousEmail: EmailDelay = { days: 3, hours: 0, minutes: 0 };
+
+    let buffer = '';
+
+    enum State {
+      WAITING_SUBJECT,
+      READING_SUBJECT,
+      READING_CONTENT,
+    }
+
+    let state: State = State.WAITING_SUBJECT;
+
+    this._dripBulkEmailLoading.next(true);
+
+    const url = userPromptPriority
+      ? this.dripBulkEmailApiUrlUserPrompt
+      : this.dripBulkEmailApiUrl;
+
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          Accept: 'text/event-stream,application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+
+      while (true) {
+        const { done, value } = await reader.read();
+
+        if (value) {
+          const chunk = decoder.decode(value);
+          buffer += chunk;
+          aiEmailData += chunk;
+
+          // Handle error stream
+          if (buffer.includes(this.emailErrorSign)) {
+            this.addToEmailError(buffer);
+            this._dripBulkEmailLoading.next(false);
+            return;
+          }
+
+          // Process buffer safely
+          while (buffer.length > 0) {
+            // 🔵 WAITING FOR SUBJECT START
+            if (state === State.WAITING_SUBJECT) {
+              const startIdx = buffer.indexOf(this.subjectStartSign);
+
+              if (startIdx === -1) {
+                // No subject start yet → discard junk before it
+                buffer = '';
+                break;
+              }
+
+              // Remove everything before ^^
+              buffer = buffer.substring(startIdx + this.subjectStartSign.length);
+              state = State.READING_SUBJECT;
+            }
+
+            // 🟡 READING SUBJECT
+            else if (state === State.READING_SUBJECT) {
+              const endIdx = buffer.indexOf(this.subjectEndSign);
+
+              if (endIdx === -1) {
+                // Subject not complete yet → wait for next chunk
+                emailSubject += buffer;
+                buffer = '';
+                break;
+              }
+
+              // Extract subject
+              emailSubject += buffer.substring(0, endIdx);
+
+              // Move buffer forward
+              buffer = buffer.substring(endIdx + this.subjectEndSign.length);
+
+              state = State.READING_CONTENT;
+            }
+
+            // 🟢 READING CONTENT
+            else if (state === State.READING_CONTENT) {
+              const newEmailIdx = buffer.indexOf(this.newEmailStartSign);
+
+              if (newEmailIdx === -1) {
+                // No new email yet → all is content
+                emailContent += buffer;
+                buffer = '';
+                break;
+              }
+
+              // Extract content until next email
+              emailContent += buffer.substring(0, newEmailIdx);
+
+              // Finalize current email
+              const formattedContent = this.__formatEmailContent(emailContent);
+
+              const email: DripEmail = {
+                delayBetweenPreviousEmail,
+                emailSequence,
+                emailSubject,
+                emailContent: formattedContent,
+                aiRawData: aiEmailData,
+              };
+
+              emails.push(email);
+              this.addToDripBulkEmails(emails);
+
+              // Reset for next email
+              emailSequence++;
+              emailSubject = '';
+              emailContent = '';
+              aiEmailData = '';
+
+              // Move buffer forward past #####
+              buffer = buffer.substring(
+                newEmailIdx + this.newEmailStartSign.length
+              );
+
+              state = State.WAITING_SUBJECT;
+            }
+          }
+        }
+
+        // 🔚 STREAM END
+        if (done) {
+          if (emailSubject && emailContent) {
+            const formattedContent = this.__formatEmailContent(emailContent);
+
+            const email: DripEmail = {
+              delayBetweenPreviousEmail,
+              emailSequence,
+              emailSubject,
+              emailContent: formattedContent,
+              aiRawData: aiEmailData,
+            };
+
+            emails.push(email);
+            this.addToDripBulkEmails(emails);
+          }
+
+          this._dripBulkEmailLoading.next(false);
+          return;
+        }
+      }
+    } catch (err) {
+      console.error(err);
+      this._dripBulkEmailLoading.next(false);
+    }
+  };
+
+  dripBulkEmailContentStreamOld = async (data, userPromptPriority = false) => {
+    let emails: DripEmail[] = [];
+    let emailSequence = 1;
     let emailSubject = '';
     let emailContent = '';
     let aiEmailData = '';

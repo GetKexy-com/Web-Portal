@@ -392,7 +392,14 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
   };
 
   generateEmailContent = async () => {
-    if (!this.contactList?.length && this.selectedEmailTemplate.key !== constants.TEMPLATE_KEY) {
+    if (this.selectedEmailTemplate.key === constants.TEMPLATE_KEY) {
+      this.sseService.setupEmptyDripEmailTemplate({
+        count: this.dripCampaign.details.numberOfEmails,
+      });
+      return;
+    }
+
+    if (!this.contactList?.length) {
       const enrollList = this.getEnrolledList();
       if (!enrollList?.length) {
         this.openSettingsCanvas();
@@ -421,17 +428,8 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
         return;
       }
     }
-    if (this.selectedEmailTemplate.key === constants.TEMPLATE_KEY) {
-      console.log(this.selectedEmailTemplate);
-      this.sseService.setupEmptyDripEmailTemplate({
-        count: this.dripCampaign.details.numberOfEmails,
-      });
-      return;
-    }
-
 
     this.emails = [];
-    console.log(this.dripCampaign);
     this.isContentLoading = true;
     const contact: Contact = this.contactList[0];
     const linkedinUsername = this.getLinkedInUsername(contact?.details?.linkedinUrl);
