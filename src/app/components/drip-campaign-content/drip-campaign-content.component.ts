@@ -146,7 +146,9 @@ export class DripCampaignContentComponent implements OnInit {
     this.userPromptPriority = !this.userPromptPriority;
   };
 
+  lmLoading = false;
   getLeadMagnets = () => {
+    this.lmLoading = true;
     let dripCampaign: DripCampaign = this.dripCampaignService.getDripCampaignContentPageData();
     console.log(dripCampaign.details);
     this.leadMagnetService.getAll({
@@ -155,6 +157,8 @@ export class DripCampaignContentComponent implements OnInit {
       companyId: this.userData.supplier_id,
     }).then((response: any) => {
       const lm = response.leadMagnets;
+      console.log({ lm });
+      this.lmLoading = false;
       if (response.total > 0) {
         lm.forEach((item) => {
           this.leadMagnetOptions.push({
