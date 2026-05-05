@@ -554,47 +554,21 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
   };
 
   labelOptions = [];
-  // getAndSetLabels = async () => {
-  //   // Get Label
-  //   const getLabelApiPostData = {
-  //     companyId: this.userData.supplier_id,
-  //     page: 1,
-  //     limit: 1000,
-  //   };
-  //   await this.prospectingService.getLabelsOnly(getLabelApiPostData);
-  //
-  //   // Set Label Subscription
-  //   this.contactLabelsSubscription = this.prospectingService.labelsOnly.subscribe((labels: ListDetail[]) => {
-  //     // Set label dropdown options
-  //     this.enrollmentLabelOptions = [];
-  //     this.unenrollmentLabelOptions = [];
-  //     this.labelOptions = [];
-  //     labels.forEach(i => {
-  //       const labelObj = {
-  //         key: i.label,
-  //         value: i.label,
-  //         itemBgColor: i.bgColor,
-  //         itemTextColor: i.textColor,
-  //         id: i.id,
-  //         isSelected: false,
-  //       };
-  //       this.enrollmentLabelOptions.push({ ...labelObj });
-  //       this.unenrollmentLabelOptions.push({ ...labelObj });
-  //       this.labelOptions.push({ ...labelObj });
-  //     });
-  //   });
-  // };
 
+  listLoading = false;
   getAndSetLabels = async () => {
+    this.listLoading = true;
     await this.prospectingService.getLists({ companyId: this.userData.supplier_id, page: 1, limit: 9999999 }, false);
 
     this.labelsSubscription = this.prospectingService.lists.subscribe((labels) => {
+      this.listLoading = false;
       // Set label dropdown options
       this.enrollmentLabelOptions = [];
       this.unenrollmentLabelOptions = [];
       this.labelOptions = [];
       labels.forEach(i => {
-        if(i.contactListCount) {
+        // We now allow all list including empty list
+        // if(i.contactListCount) {
           const labelObj = {
             key: i.label,
             value: i.label,
@@ -606,7 +580,7 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
           this.enrollmentLabelOptions.push({ ...labelObj });
           this.unenrollmentLabelOptions.push({ ...labelObj });
           this.labelOptions.push({ ...labelObj });
-        }
+        // }
       });
     });
   };

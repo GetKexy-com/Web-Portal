@@ -117,7 +117,7 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
         this.dripCampaignId = params['id'];
         this.dripCampaign = this.dripCampaignService.getDripCampaignContentPageData();
         this.getScrapeStatusDetails();
-        if(this.dripCampaign.emails[0]) {
+        if (this.dripCampaign.emails[0]) {
           this.selectedEmailTemplate = this.spintaxOptions.find(o => {
             return o.key === this.dripCampaign.emails[0].templateOptions;
           });
@@ -412,8 +412,14 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
       // If the selected list does not have contact in it then show old emails again
       if (!this.contactList?.length) {
         this.emails = emailBackup;
+        this.isContentLoading = false;
+        await Swal.fire({
+          title: `Error`,
+          text: 'No contacts are assigned to this drip yet.',
+          icon: 'warning',
+        });
+        return;
       }
-      this.isContentLoading = false;
     }
     if (this.selectedEmailTemplate.key === constants.TEMPLATE_KEY) {
       console.log(this.selectedEmailTemplate);
