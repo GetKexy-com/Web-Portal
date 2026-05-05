@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { constants } from '../../helpers/constants';
 import { CommonModule, DatePipe, NgClass } from '@angular/common';
 import { NgbOffcanvas } from '@ng-bootstrap/ng-bootstrap';
@@ -38,7 +38,7 @@ import { LeadMagnetService } from '../../services/lead-magnet.service';
   templateUrl: './drip-campaign-content.component.html',
   styleUrl: './drip-campaign-content.component.scss',
 })
-export class DripCampaignContentComponent implements OnInit {
+export class DripCampaignContentComponent implements OnInit, OnDestroy {
   @Input() nextBtnClick;
   @Input() backBtnClick;
 

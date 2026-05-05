@@ -271,8 +271,11 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
     });
   };
 
+  loadingDripInSettings = false;
   getDripCampaignsApiCall = async () => {
+    this.loadingDripInSettings = true;
     this.dripCampaignList = await this.dripCampaignService.getListOfDripCampaignsWithoutPagination(false);
+    this.loadingDripInSettings = false;
     if (this.dripCampaignList.length) {
       this.dripCampaignList = this.dripCampaignList.filter(i => {
         return (i.status === constants.PUBLISHED || i.status === constants.ACTIVE);

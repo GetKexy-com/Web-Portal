@@ -257,6 +257,7 @@
                 [deleteIcon]="false"
                 [onDeleteClick]=""
                 [onEditClick]=""
+                [isContentLoading]="loadingDripInSettings"
                 optionStyle="checkbox"
                 backgroundColor="white"
                 placeholder="Please Select"
@@ -396,7 +397,8 @@
           <span class="cursor-pointer link-text" (click)="addAnalyticUserRow()">+ Add</span>
         </p>
         <div class="section-content mt-2">
-          <div class="analytic-user d-flex justify-content-center" *ngFor="let people of analyticsReceiverArray; let i = index">
+          <div class="analytic-user d-flex justify-content-center"
+               *ngFor="let people of analyticsReceiverArray; let i = index">
             <div class="form-group">
               <label *ngIf="i===0" class="input-label-text">Name</label>
               <input
