@@ -376,7 +376,7 @@ export class DripCampaignService {
     console.log({ status });
     let tempDealList = [];
     return new Promise(async (resolve, reject) => {
-      const url = `drip-campaigns?limit=${limit}&page=${page}`;
+      const url = `drip-campaigns?limit=${limit}&page=${page}&status=${status}`;
       this.httpService.get(url).subscribe({
         next: (res) => {
           let totalPageCounts = Math.ceil(res.data.total / limit);

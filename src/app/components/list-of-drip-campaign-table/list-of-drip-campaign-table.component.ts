@@ -37,7 +37,7 @@ export class ListOfDripCampaignTableComponent implements OnInit, AfterViewChecke
   @Input() checkboxClicked;
   @Input() paginationLeftArrowClick;
   @Input() paginationRightArrowClick;
-  @Input() totalPage;
+  @Input() totalPage = 1;
   @Input() currentPage;
   @Input() limit;
   @Input() totalRecordsCount;

@@ -12,7 +12,7 @@
       </span>
     </p>
 
-    <div *ngIf="totalPage" class="d-flex align-items-center">
+    <div class="d-flex align-items-center">
       <kexy-select-dropdown
         style="margin-right: 20px; width: 100px"
         label="Status"
@@ -38,14 +38,14 @@
       <div class="kexy-table-entry-count">
         Per Page:
         <select class="form-control" style="width: auto" [(ngModel)]="limit" (change)="onShowEntriesSelect($event)">
-          <option value="25">25</option>
+          <option value="1">1</option>
           <option value="50">50</option>
           <option value="100">100</option>
           <option value="200">200</option>
           <option value="500">500</option>
         </select>
       </div>
-      <div class="pagination-section">
+      <div class="pagination-section" *ngIf="totalPage">
         <div class="conv-pagination-wrap">
           <div class="conv-pagination">
             <p>
@@ -176,7 +176,7 @@
     </div>
   </section>
 
-  <section *ngIf="totalPage" class="card-footer justify-content-end">
+  <section class="card-footer justify-content-end">
     <div class="d-flex">
       <div class="kexy-table-entry-count">
         Per Page:
@@ -188,7 +188,7 @@
           <option value="500">500</option>
         </select>
       </div>
-      <div class="pagination-section">
+      <div class="pagination-section" *ngIf="totalPage">
         <div class="conv-pagination-wrap">
           <div class="conv-pagination">
             <p>
