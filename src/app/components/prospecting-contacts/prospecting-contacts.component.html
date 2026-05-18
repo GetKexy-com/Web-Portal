@@ -200,13 +200,18 @@
                 <p>Drip Campaigns:</p>
                 <div>
                   <ng-container *ngIf="contactDripCampaigns.length > 0 && !initialLoading">
-                    <span class="ms-2 mb-1 drip-campaign-title"
-                          *ngFor="let campaign of contactDripCampaigns; let i = index" href="javascript: void(0);"
-                          (click)="redirectToEditPage(campaign)">
-                      <span>{{ i + 1 }}.</span>
-                      {{ campaign.title }}
-                      <span class="ms-2 link-text border-0" (click)="removeContactFromDripCampaign(campaign)"><i
-                        class="fa fa-trash-o me-1" aria-hidden="true"></i>Delete</span>
+                    <span
+                      class="ms-2 mb-1 drip-campaign-title"
+                      *ngFor="let campaign of contactDripCampaigns; let i = index"
+                      (click)="redirectToEditPage(campaign)">
+                      <span>{{ i + 1 }}. </span>
+                      <span class="link-text">{{ campaign.details.title.title }}</span>
+<!--                      <span class="ms-2 link-text border-0" (click)="removeContactFromDripCampaign(campaign)">-->
+<!--                        <i class="fa fa-trash-o me-1" aria-hidden="true"></i>Delete-->
+<!--                      </span>-->
+                      <span class="ms-2 border-0 text-capitalize">
+                        - {{campaign.status}}
+                      </span>
                     </span>
                   </ng-container>
                   <span *ngIf="contactDripCampaigns.length === 0 && !initialLoading" class="ms-2">None</span>

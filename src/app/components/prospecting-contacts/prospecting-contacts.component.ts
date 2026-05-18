@@ -65,12 +65,14 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
 
   constructor(
     public activeCanvas: NgbActiveOffcanvas,
+    private router: Router,
     private _authService: AuthService,
     private prospectingService: ProspectingService,
     private dripCampaignService: DripCampaignService,
     private pageUiService: PageUiService,
     private ngbOffcanvas: NgbOffcanvas,
-  ) {}
+  ) {
+  }
 
   ngOnInit(): void {
     this.userData = this._authService.userTokenValue;
@@ -106,7 +108,6 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
 
     // Get contact drip campaign
     // this.getDripCampaignTitle();
-    this.getContactDripCampaign();
 
     // get labelId from service to check if user is trying to add contact in a list from list-contact page
     this.labelIdFromListContactPage = this.prospectingService.selectedLabelIdInListContactPage;
@@ -146,7 +147,7 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
     );
   };
 
-  getContactDripCampaign = async () => {
+  getContactDripCampaign = () => {
     if (
       this.isMultipleContactsSelected ||
       this.prospectingService.isAddNewButtonClickedInContactPage
@@ -154,31 +155,10 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
       this.initialLoading = false;
       return;
     }
-
-    await this.getDripCampaignTitle();
-
-    // const postData = {
-    //   supplier_id: this.supplierId,
-    //   contact_id: parseInt(this.selectedContacts[0].id),
-    // };
-    try {
-      // TODO - Later
-      // const contactDripCampaigns: any = await this.prospectingService.getContactDripCampaigns(postData);
-      // contactDripCampaigns.forEach(campaign => {
-      //   const index = this.dripCampaignTitles.findIndex(d => d.id.toString() === campaign.drip_campaign_title_id.toString());
-      //   console.log("index", campaign);
-      //   if (index > -1) {
-      //     this.contactDripCampaigns.push({
-      //       ...this.dripCampaignTitles[index],
-      //       drip_campaign_id: campaign.drip_campaign_id,
-      //     });
-      //   }
-      // });
-      this.initialLoading = false;
-    } catch (e) {
-      this.initialLoading = false;
-      Swal.fire('Error', e.message);
-    }
+    const contactDripCampaigns = this.contact.lists.flatMap(l => l.dripCampaignList);
+    this.contactDripCampaigns = contactDripCampaigns.map(c => c.dripCampaign);
+    console.log(this.contactDripCampaigns);
+    this.initialLoading = false;
   };
 
   setLabelForListContactAdd = () => {
@@ -204,6 +184,7 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
     this.contactLabelsSubscription = this.prospectingService.lists.subscribe((labels) => {
       // Set label dropdown options
       this.labelOptions = [];
+      console.log({ labels });
       labels.forEach((i) => {
         const labelObj = {
           key: i.label,
@@ -236,13 +217,14 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
   };
 
   redirectToEditPage = (dripCampaign) => {
-    // console.log(dripCampaign); return;
-    // const queryParams: any = {
-    //   id: dripCampaign.id,
-    // };
-    // this.router.navigate([routeConstants.BRAND.CREATE_DRIP_CAMPAIGN], {
-    //   queryParams
-    // });
+    const queryParams: any = {
+      id: dripCampaign.id,
+    };
+    this.router.navigate([routeConstants.BRAND.CREATE_DRIP_CAMPAIGN], {
+      queryParams,
+    }).then(r => {
+      this.activeCanvas.dismiss('Cross click');
+    });
   };
 
   setPrimaryForm = () => {
@@ -250,7 +232,10 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
     if (this.selectedContacts.length) {
       this.contact = this.selectedContacts[0];
     }
-    console.log(this.contact);
+
+    // To display all drip campaign this contact is attached to
+    this.getContactDripCampaign();
+
     contactDetails = this.contact.details;
 
     if (this.selectedContacts?.length && !this.isMultipleContactsSelected) {
@@ -428,7 +413,7 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
   __isDeleteConfirmed = async (confirmBtnText: string = 'Yes, delete it!') => {
     let isConfirm = await Swal.fire({
       title: `Are you sure?`,
-      text: "You won't be able to revert this!",
+      text: 'You won\'t be able to revert this!',
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#3085d6',
@@ -464,7 +449,7 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
     contactDetails.country = formData.country;
     contactDetails.notes = formData.notes;
     contactDetails.isLikelyToEngage = true;
-    if(!contactDetails.organization) {
+    if (!contactDetails.organization) {
       contactDetails.organization = {};
     }
     contactDetails.organization.name = formData.organizationName;
