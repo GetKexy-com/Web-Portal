@@ -156,7 +156,11 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
       return;
     }
     const contactDripCampaigns = this.contact.lists.flatMap(l => l.dripCampaignList);
-    this.contactDripCampaigns = contactDripCampaigns.map(c => c.dripCampaign);
+    this.contactDripCampaigns = contactDripCampaigns.filter(c => {
+      if (c.dripCampaign.status != constants.DELETED) {
+        return c.dripCampaign;
+      }
+    });
     console.log(this.contactDripCampaigns);
     this.initialLoading = false;
   };
