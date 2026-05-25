@@ -19,6 +19,7 @@ import { KexyButtonComponent } from '../../components/kexy-button/kexy-button.co
 import { ErrorMessageCardComponent } from '../../components/error-message-card/error-message-card.component';
 import { PageUiService } from '../../services/page-ui.service';
 import { constants } from '../../helpers/constants';
+import { PhoneNumberMaskDirective } from '../../directive/phone-number-mask.directive';
 
 @Component({
   selector: 'app-edit-brand',
@@ -29,6 +30,7 @@ import { constants } from '../../helpers/constants';
     ProspectingCommonCardComponent,
     KexyButtonComponent,
     ErrorMessageCardComponent,
+    PhoneNumberMaskDirective,
   ],
   templateUrl: './edit-brand.component.html',
   styleUrl: './edit-brand.component.scss',

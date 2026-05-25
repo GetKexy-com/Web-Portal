@@ -21,10 +21,11 @@ import { ModalComponent } from '../../components/modal/modal.component';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { PageUiService } from '../../services/page-ui.service';
 import { countries } from 'src/assets/countries';
+import { PhoneNumberMaskDirective } from '../../directive/phone-number-mask.directive';
 
 @Component({
   selector: 'app-edit-brand-user',
-  imports: [BrandLayoutComponent, ReactiveFormsModule, CommonModule, ProspectingCommonCardComponent, KexyButtonComponent, ErrorMessageCardComponent, ModalComponent, FormsModule],
+  imports: [BrandLayoutComponent, ReactiveFormsModule, CommonModule, ProspectingCommonCardComponent, KexyButtonComponent, ErrorMessageCardComponent, ModalComponent, FormsModule, PhoneNumberMaskDirective],
   templateUrl: './edit-brand-user.component.html',
   styleUrl: './edit-brand-user.component.scss',
 })

@@ -126,12 +126,12 @@
                 <p>Phone Number</p>
                 <div class="d-flex form-control">
                   <!--                  <span class="me-2">+1</span>-->
-                  <input style="border: none; flex: 1" formControlName="organizationPhone" type="text"
+                  <input style="border: none; flex: 1" formControlName="organizationPhone" type="text" appPhoneNumberMask
                          placeholder="+1 (123) 123-1231" />
                 </div>
               </div>
-              <div *ngIf="formValidationErrorCheck('organizationPhone')">
-                <error-message-card message="Invalid Number!"></error-message-card>
+              <div *ngIf="(submitted || primaryForm.controls['organizationPhone'].dirty) && primaryForm.controls['organizationPhone'].errors?.['wrongNumber']">
+                <error-message-card [message]="primaryForm.controls['organizationPhone'].errors?.['wrongNumber'].message"></error-message-card>
               </div>
             </div>
           </div>

@@ -130,13 +130,13 @@
                       [class.error]="(submitted || primaryForm.controls['phone'].dirty) && primaryForm.controls['phone'].invalid"
                       class="form-control"
                       formControlName="phone"
+                      appPhoneNumberMask
                       placeholder="Mobile Phone"
                       type="tel"
                     />
                   </div>
-                  <div
-                    *ngIf="primaryForm.controls['phone'].invalid && (submitted || primaryForm.controls['phone'].dirty)">
-                    <error-message-card message="Please enter a valid mobile phone."></error-message-card>
+                  <div *ngIf="(submitted || primaryForm.controls['phone'].dirty) && primaryForm.controls['phone'].errors?.['wrongNumber']">
+                    <error-message-card [message]="primaryForm.controls['phone'].errors?.['wrongNumber'].message"></error-message-card>
                   </div>
                 </div>
               </div>

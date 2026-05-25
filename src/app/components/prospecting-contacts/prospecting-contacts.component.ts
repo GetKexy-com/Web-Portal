@@ -23,6 +23,7 @@ import { KexySelectDropdownComponent } from '../kexy-select-dropdown/kexy-select
 import { ErrorMessageCardComponent } from '../error-message-card/error-message-card.component';
 import { CommonModule } from '@angular/common';
 import { Contact, ContactDetails } from '../../models/Contact';
+import { PhoneNumberMaskDirective } from '../../directive/phone-number-mask.directive';
 
 @Component({
   selector: 'prospecting-contacts',
@@ -31,6 +32,7 @@ import { Contact, ContactDetails } from '../../models/Contact';
     KexySelectDropdownComponent,
     ErrorMessageCardComponent,
     CommonModule,
+    PhoneNumberMaskDirective,
   ],
   templateUrl: './prospecting-contacts.component.html',
   styleUrl: './prospecting-contacts.component.scss',
