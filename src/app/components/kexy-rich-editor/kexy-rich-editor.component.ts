@@ -139,7 +139,15 @@ export class KexyRichEditorComponent {
 
   onChange = ({ editor }) => {
     setTimeout(() => {
-      this.onContentUpdate(editor);
+      const rawHtml = editor.getData();
+      const emailSafeHtml = convertImagesToEmailSafe(rawHtml);
+      console.log(emailSafeHtml);
+      // Pass a proxy editor object so callers get email-safe HTML via editor.getData()
+      const editorProxy = {
+        ...editor,
+        getData: () => emailSafeHtml,
+      };
+      this.onContentUpdate(editorProxy);
     }, 10);
   };
 }
@@ -212,4 +220,106 @@ class CustomUploadAdapter {
   abort(): void {
     // Abort upload logic (if needed)
   }
+}
+
+/**
+ * Converts CKEditor's resized image markup to email-safe HTML.
+ *
+ * CKEditor outputs:
+ *   <figure class="image image_resized" style="width:50%;">
+ *     <img src="..." style="aspect-ratio:...">
+ *   </figure>
+ *
+ * Email clients ignore CSS, so we:
+ *   1. Pull the % width off the <figure> and write it as width="50%" on <img>
+ *   2. Unwrap the <figure> (most email clients don't support it)
+ *   3. Keep the src and alt intact
+ */
+function convertImagesToEmailSafe(html: string): string {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+
+  doc.querySelectorAll('figure.image').forEach((figure: Element) => {
+    const img = figure.querySelector('img');
+    if (!img) return;
+
+    const figureEl = figure as HTMLElement;
+
+    // --- 1. Extract true width ---
+    // CKEditor puts the real resize % on the <img> width attribute (e.g. "60.28%")
+    // The <figure> style.width is the container width (often 100%), not the resize value
+    const imgWidthAttr = img.getAttribute('width') ?? '';
+    const figureStyleWidth = figureEl.style.width ?? '';
+
+    // Use img width attr if it's a percentage, else fall back to figure style
+    const isPercentage = (v: string) => v.includes('%');
+    const resolvedWidth = isPercentage(imgWidthAttr)
+      ? imgWidthAttr                          // e.g. "60.28%"
+      : isPercentage(figureStyleWidth) && figureStyleWidth !== '100%'
+        ? figureStyleWidth
+        : null;                               // null = no explicit resize, use full width
+
+    // Remove invalid % from width attribute — email clients expect px or nothing
+    img.removeAttribute('width');
+    img.removeAttribute('height');            // aspect-ratio height is also meaningless in email
+
+    if (resolvedWidth) {
+      img.style.width = resolvedWidth;
+      img.style.maxWidth = '100%';
+    } else {
+      img.style.width = '100%';
+      img.style.maxWidth = '100%';
+    }
+    img.style.height = 'auto';               // always override CKEditor's aspect-ratio height
+    img.style.display = 'block';
+
+    // Remove aspect-ratio from img style (set by CKEditor, breaks email layout)
+    img.style.removeProperty('aspect-ratio');
+
+    // --- 2. Alignment ---
+    const classList = figure.classList;
+    let wrapperStyle = '';
+    let imgAlign = '';
+
+    if (classList.contains('image-style-align-left') || classList.contains('image-style-side-left')) {
+      wrapperStyle = `float: left; margin: 0 16px 8px 0;`;
+      if (resolvedWidth) wrapperStyle += ` width: ${resolvedWidth};`;
+      imgAlign = 'left';
+    } else if (
+      classList.contains('image-style-align-right') ||
+      classList.contains('image-style-side') ||
+      classList.contains('image-style-side-right')
+    ) {
+      wrapperStyle = `float: right; margin: 0 0 8px 16px;`;
+      if (resolvedWidth) wrapperStyle += ` width: ${resolvedWidth};`;
+      imgAlign = 'right';
+    } else {
+      // Center or default
+      wrapperStyle = `text-align: center; margin-left: auto; margin-right: auto;`;
+      if (resolvedWidth) wrapperStyle += ` width: ${resolvedWidth};`;
+      else wrapperStyle += ` width: 100%;`;
+    }
+
+    if (imgAlign) {
+      img.setAttribute('align', imgAlign);
+    }
+
+    // --- 3. Replace <figure> with <div> ---
+    const wrapper = doc.createElement('div');
+    wrapper.setAttribute('style', wrapperStyle);
+
+    while (figure.firstChild) {
+      wrapper.appendChild(figure.firstChild);
+    }
+    figure.parentNode?.replaceChild(wrapper, figure);
+  });
+
+  // Clearfix after floated wrappers
+  doc.querySelectorAll('div[style*="float"]').forEach((floatDiv) => {
+    const clearfix = doc.createElement('div');
+    clearfix.setAttribute('style', 'clear: both;');
+    floatDiv.parentNode?.insertBefore(clearfix, floatDiv.nextSibling);
+  });
+
+  return doc.body.innerHTML;
 }
