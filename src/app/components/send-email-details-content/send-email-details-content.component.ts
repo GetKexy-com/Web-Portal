@@ -71,7 +71,7 @@ export class SendEmailDetailsContentComponent implements OnInit, OnDestroy {
     this.hasPromotion = this.dripCampaignService.getHasPromotion();
     this.dripCampaign = this.dripCampaignService.getDripCampaignContentPageData();
     console.log(this.dripEmail);
-    this.emailContent = this.dripEmail['emailContent'];
+    this.emailContent = this.dripEmail['rawEditorContent'] || this.dripEmail['emailContent'];
     this.emailSubject = this.dripEmail['emailSubject'];
 
 
@@ -156,10 +156,11 @@ export class SendEmailDetailsContentComponent implements OnInit, OnDestroy {
   };
 
   updatedEmailContent;
-  onEmailContentChange = (editor) => {
+  rawEditorContent;
+  onEmailContentChange = ({ rawHtml, emailHtml }: { rawHtml: string; emailHtml: string }) => {
     setTimeout(() => {
-      this.updatedEmailContent = editor.getData();
-      // this.updatedEmailContent = this.updatedEmailContent.replace(/\\n/g, '<br>');
+      this.updatedEmailContent = emailHtml;
+      this.rawEditorContent = rawHtml;
     }, 10);
   };
 
@@ -172,6 +173,7 @@ export class SendEmailDetailsContentComponent implements OnInit, OnDestroy {
     this.isLoading = true;
     this.dripEmail['emailSubject'] = this.emailSubject;
     this.dripEmail['emailContent'] = this.updatedEmailContent || this.emailContent;
+    this.dripEmail['rawEditorContent'] = this.rawEditorContent;
     this.dripEmail['emailTone'] = this.selectedEmailToneKey;
     this.dripEmail['emailLength'] = this.selectedEmailLength.value;
     this.dripEmail['isAddUnsubscribeLink'] = this.isCheckedAddUnsubscribeLink ? 1 : 0;
@@ -184,7 +186,8 @@ export class SendEmailDetailsContentComponent implements OnInit, OnDestroy {
     const postData = {
       drip_campaign_email_id: this.dripEmail.id,
       emailSubject: this.dripEmail.emailSubject,
-      emailContent: this.dripEmail.emailContent,
+      emailContent: this.updatedEmailContent,
+      rawEditorContent: this.rawEditorContent,
       emailTone: this.selectedEmailToneKey,
       emailLength: this.selectedEmailLength.value,
       delayBetweenPreviousEmail: JSON.stringify(this.dripEmail.delayBetweenPreviousEmail),

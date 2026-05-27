@@ -320,6 +320,7 @@ export class SseService {
                 emailSequence,
                 emailSubject,
                 emailContent: formattedContent,
+                rawEditorContent: formattedContent,
                 aiRawData: aiEmailData,
               };
 
@@ -352,6 +353,7 @@ export class SseService {
               emailSequence,
               emailSubject,
               emailContent: formattedContent,
+              rawEditorContent: formattedContent,
               aiRawData: aiEmailData,
             };
 
@@ -442,6 +444,7 @@ export class SseService {
                   emailSequence,
                   emailSubject: current_subject,
                   emailContent: current_content,
+                  rawEditorContent: current_content,
                   aiRawData: currentAiData,
                 };
                 console.log({ email });
@@ -492,6 +495,7 @@ export class SseService {
                 emailSequence,
                 emailSubject,
                 emailContent,
+                rawEditorContent: emailContent,
                 aiRawData: aiEmailData,
               };
               console.log({ email });
@@ -521,6 +525,7 @@ export class SseService {
         emailSequence: i + 1,
         emailSubject: `Subject ${i + 1}`,
         emailContent: `Content ${i + 1}`,
+        rawEditorContent: `Content ${i + 1}`,
         aiRawData: `Content ${i + 1}`,
       };
       console.log({ email });

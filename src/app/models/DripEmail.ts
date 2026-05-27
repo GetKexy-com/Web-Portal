@@ -8,6 +8,7 @@ export class DripEmail {
   delayBetweenPreviousEmail?: EmailDelay;
   emailSubject: string = "";
   emailContent: string = "";
+  rawEditorContent: string = "";
   aiRawData: string = "";
   templateOptions?: string = "";
   isSpintax?: boolean = true;
