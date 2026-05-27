@@ -27,8 +27,13 @@ export class KexyRichEditorComponent {
   @Input() onContentUpdate: (data: { rawHtml: string; emailHtml: string }) => void;
 
   @Input() set content(value: string) {
-    this._rawContent = value ?? '';
+    const incoming = value ?? '';
+    // Only update if genuinely different — prevents re-binding on every parent change detection cycle
+    if (incoming !== this._rawContent) {
+      this._rawContent = incoming;
+    }
   }
+
   get content(): string {
     return this._rawContent;
   }
@@ -88,10 +93,16 @@ export class KexyRichEditorComponent {
   };
 
   onChange = ({ editor }) => {
+    if (!editor) return;
+
     setTimeout(() => {
-      this._rawContent = editor.getData();
-      const emailHtml = convertImagesToEmailSafe(this._rawContent);
-      this.onContentUpdate({ rawHtml: this._rawContent, emailHtml });
+      if (!editor.getData || !this.onContentUpdate) return;
+
+      // DO NOT assign this._rawContent here — it causes [data] to re-bind
+      // and resets the editor on every keystroke
+      const rawHtml = editor.getData();
+      const emailHtml = convertImagesToEmailSafe(rawHtml);
+      this.onContentUpdate({ rawHtml, emailHtml });
     }, 10);
   };
 }
@@ -245,5 +256,6 @@ class CustomUploadAdapter {
     });
   }
 
-  abort(): void {}
+  abort(): void {
+  }
 }
