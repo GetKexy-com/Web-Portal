@@ -673,6 +673,7 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
         emailSubject: e.emailSubject,
         emailContent: e.emailContent,
         aiRawData: e.aiRawData,
+        rawEditorContent: e.rawEditorContent,
         delayBetweenPreviousEmail: JSON.stringify(e.delayBetweenPreviousEmail),
         emailLength: this.selectedEmailLength.value,
         emailTone: this.selectedEmailToneKey,
