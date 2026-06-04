@@ -494,6 +494,14 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
     this.isLoading = true;
     const contacts = [];
     data.map((contact: any) => {
+      let linkedin = contact['Linkedin'] || '';
+      if(!linkedin) {
+        linkedin = 'https://www.linkedin.com';
+      }
+      let companyLinkedin = contact['Company Linkedin Url'] || '';
+      if(!companyLinkedin) {
+        companyLinkedin = 'https://www.linkedin.com';
+      }
       const c: Contact = Contact.empty();
       c.email = contact['Email'].trim();
       c.state = contact['State'];
@@ -502,7 +510,7 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
       c.details.firstName = contact['First Name'];
       c.details.lastName = contact['Last Name'];
       c.details.name = `${contact['First Name']} ${contact['Last Name']}`;
-      c.details.linkedinUrl = contact['Linkedin'].trim();
+      c.details.linkedinUrl = linkedin.trim();
       c.details.title = contact['Job Title'];
       c.details.headline = contact['Job Title'];
       c.details.city = contact['City'];
@@ -514,7 +522,7 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
       c.details.organization.city = contact['City'];
       c.details.organization.state = contact['State'];
       c.details.organization.country = contact['Country'];
-      c.details.organization.linkedinUrl = contact['Company Linkedin Url'] || '';
+      c.details.organization.linkedinUrl = companyLinkedin.trim();
       c.details.organization.websiteUrl = contact['Website'] || '';
       contacts.push(Contact.contactPostDto(c));
     });
@@ -573,7 +581,14 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
       this.closeModal();
     } catch (e) {
       this.isLoading = false;
-      await Swal.fire('Error', e.message);
+      console.log(e);
+      let message = '';
+      if (Array.isArray(e)) {
+        message = e.join('<br>');
+      } else if (e?.message) {
+        message = e.message;
+      }
+      await Swal.fire('Error', message);
     }
   };
 
