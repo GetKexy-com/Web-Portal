@@ -25,6 +25,7 @@ import {
 import { CommonModule } from '@angular/common';
 import { Contact, ContactOrganization } from '../../models/Contact';
 import { PageUiService } from '../../services/page-ui.service';
+import freeEmailDomains from 'free-email-domains';
 
 @Component({
   selector: 'brand-contacts',
@@ -74,7 +75,8 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
   activeFilterCount = 0;
   selectAllContacts = false;
   contactIds;
-  FREE_EMAIL_DOMAINS = new Set(constants.FREE_EMAIL_DOMAINS);
+
+  //FREE_EMAIL_DOMAINS = new Set(constants.FREE_EMAIL_DOMAINS);
 
   constructor(
     private _authService: AuthService,
@@ -494,6 +496,7 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
   getImportedFileData = async (data) => {
     this.isLoading = true;
     const contacts = [];
+
     data.map((contact: any) => {
       const email = contact['Email'].trim();
       let linkedin = contact['Linkedin'] || '';
@@ -508,7 +511,7 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
       let website = contact['Website'] || '';
       if (!website) {
         const emailDomain = email.split('@')[1];
-        if (!this.FREE_EMAIL_DOMAINS.has(emailDomain)) {
+        if (!freeEmailDomains.includes(emailDomain)) {
           website = emailDomain;
         }
       }
