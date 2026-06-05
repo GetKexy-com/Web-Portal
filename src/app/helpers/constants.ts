@@ -168,10 +168,10 @@ export const constants = {
   SCOTT_BRAND_ACCOUNT_ID: 95,
   PROSPECTING_CALENDLY_LINKS: 'prospectingCalendlyLinks',
   PROSPECTING_WEBSITE: 'prospectingWebsite',
-  PROSPECT_INSIGHTS: "Prospect Insights",
+  PROSPECT_INSIGHTS: 'Prospect Insights',
   SPINTAX: 'Spintax',
   TEMPLATE: 'Template',
-  PROSPECT_INSIGHTS_KEY: "prospect_insights",
+  PROSPECT_INSIGHTS_KEY: 'prospect_insights',
   SPINTAX_KEY: 'spintax',
   TEMPLATE_KEY: 'template',
   SALES_LEAD_SEARCH_PAYLOAD: 'sales-lead-search-payload',
@@ -371,7 +371,7 @@ export const constants = {
   IMPORT_CAMPAIGN: 'Import Campaign',
   WHO_COVER:
     'Objective: [i.e. request feedback, tell a story, etc.]\n\n' +
-    "Email content: [What's the email about? Enter your email's main points here\n" +
+    'Email content: [What\'s the email about? Enter your email\'s main points here\n' +
     '- point 1\n' +
     '- point 2]\n\n' +
     'Call to action: [i.e. - book a meeting, purchase now]',
@@ -1771,4 +1771,9 @@ export const constants = {
   OLD_USER_TOKEN: 'oldUserToken',
   GOOGLE: 'google',
   UNSUBSCRIBED: 'Unsubscribed',
+  FREE_EMAIL_DOMAINS: [
+    'gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'aol.com',
+    'icloud.com', 'mail.com', 'protonmail.com', 'zoho.com', 'yandex.com',
+    'live.com', 'msn.com', 'me.com', 'inbox.com', 'gmx.com',
+  ],
 };

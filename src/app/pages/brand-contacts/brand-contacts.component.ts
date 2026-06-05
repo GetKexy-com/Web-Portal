@@ -74,6 +74,7 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
   activeFilterCount = 0;
   selectAllContacts = false;
   contactIds;
+  FREE_EMAIL_DOMAINS = new Set(constants.FREE_EMAIL_DOMAINS);
 
   constructor(
     private _authService: AuthService,
@@ -494,16 +495,26 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
     this.isLoading = true;
     const contacts = [];
     data.map((contact: any) => {
+      const email = contact['Email'].trim();
       let linkedin = contact['Linkedin'] || '';
-      if(!linkedin) {
+      if (!linkedin) {
         linkedin = 'https://www.linkedin.com';
       }
       let companyLinkedin = contact['Company Linkedin Url'] || '';
-      if(!companyLinkedin) {
+      if (!companyLinkedin) {
         companyLinkedin = 'https://www.linkedin.com';
       }
+
+      let website = contact['Website'] || '';
+      if (!website) {
+        const emailDomain = email.split('@')[1];
+        if (!this.FREE_EMAIL_DOMAINS.has(emailDomain)) {
+          website = emailDomain;
+        }
+      }
+
       const c: Contact = Contact.empty();
-      c.email = contact['Email'].trim();
+      c.email = email;
       c.state = contact['State'];
       c.city = contact['City'];
       c.country = contact['Country'];
@@ -523,7 +534,7 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
       c.details.organization.state = contact['State'];
       c.details.organization.country = contact['Country'];
       c.details.organization.linkedinUrl = companyLinkedin.trim();
-      c.details.organization.websiteUrl = contact['Website'] || '';
+      c.details.organization.websiteUrl = website;
       contacts.push(Contact.contactPostDto(c));
     });
 
@@ -540,42 +551,6 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
 
     try {
       await this.prospectingService.addContacts(payload);
-
-      if (labelId) {
-        // TODO - Later
-        // const notifyApiPostData = {
-        //   companyId: this.userData.supplier_id,
-        //   listId: labelId,
-        // };
-        // const notifyApiRes = await this.prospectingService.notifyAddContactsInDrip(notifyApiPostData);
-        // if (notifyApiRes && notifyApiRes['drip_campaign_id']) {
-        //   const dripCampaign = await this.dripCampaignService.getDripCampaignTitle({ drip_campaign_id: notifyApiRes['drip_campaign_id'] });
-        //   let isConfirm = await Swal.fire({
-        //     title: 'Are you sure?',
-        //     text: `Selected "${this.selectedLabel['value']}" is connected to a drip campaign "${dripCampaign['title']}". Do you want to add these contacts to this drip campaign?`,
-        //     icon: 'warning',
-        //     showCancelButton: true,
-        //     confirmButtonColor: '#3085d6',
-        //     cancelButtonColor: '#d33',
-        //     allowOutsideClick: false,
-        //     allowEscapeKey: false,
-        //     confirmButtonText: 'Yes, do it!',
-        //     showLoaderOnConfirm: true,
-        //   });
-        //
-        //   if (!isConfirm.dismiss) {
-        //     const assignApiPostData = {
-        //       companyId: this.userData.supplier_id,
-        //       contacts,
-        //       listIds: [labelId],
-        //       notify: false,
-        //       dripCampaignId: notifyApiRes['drip_campaign_id'],
-        //     };
-        //     await this.dripCampaignService.assignContactsAndLabelsInCampaign(assignApiPostData);
-        //   }
-        // }
-      }
-
       await this.getContacts(true);
       this.isLoading = false;
       this.closeModal();
