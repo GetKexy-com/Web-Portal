@@ -19,6 +19,7 @@ import {
 import { ProspectingContactsComponent } from '../../components/prospecting-contacts/prospecting-contacts.component';
 import { CommonModule } from '@angular/common';
 import { Contact } from '../../models/Contact';
+import freeEmailDomains from 'free-email-domains';
 
 @Component({
   selector: 'app-brand-list-contacts',
@@ -386,89 +387,52 @@ export class BrandListContactsComponent implements OnInit, OnDestroy {
 
   getImportedFileData = async (data) => {
     this.isLoading = true;
-    // const contacts = [];
-    //
-    // data.map(contact => {
-    //   contacts.push({
-    //     id: '',
-    //     first_name: contact['First Name'],
-    //     last_name: contact['Last Name'],
-    //     name: `${contact['First Name']} ${contact['Last Name']}`,
-    //     linkedin_url: contact['Linkedin'],
-    //     title: contact['Job Title'],
-    //     email_status: null,
-    //     photo_url: null,
-    //     twitter_url: null,
-    //     github_url: null,
-    //     facebook_url: null,
-    //     headline: contact['Job Title'],
-    //     email: contact['Email'],
-    //     organization_id: '',
-    //     employment_history: [{}],
-    //     state: contact['State'],
-    //     city: contact['City'],
-    //     country: contact['Country'],
-    //     organization: {
-    //       name: contact['Company Name'],
-    //       website_url: null,
-    //       blog_url: null,
-    //       angellist_url: null,
-    //       linkedin_url: contact['Linkedin'],
-    //       twitter_url: null,
-    //       facebook_url: null,
-    //       logo_url: null,
-    //       phone: contact['Phone Number'],
-    //       industry: null,
-    //       founded_year: null,
-    //       estimated_num_employees: null,
-    //       street_address: '',
-    //       city: contact['City'],
-    //       state: contact['State'],
-    //       postal_code: '',
-    //       country: contact['Country'],
-    //     },
-    //     is_likely_to_engage: true,
-    //   });
-    // });
-    //
-    // const payload = {
-    //   supplier_id: this.userData.supplier_id,
-    //   contacts: contacts,
-    //   label_ids: [this.listId],
-    // };
-    // console.log('payload', payload);
-    //
-    // if (this.zerobounceBypass) {
-    //   payload['bypass_zerobounce'] = 'true';
-    // }
-
 
     const contacts = [];
 
-    for (const contact of data) {
-      const c: Contact = Contact.empty();
-      c.email = contact['Email'].trim();
-      c.state = contact['State']?.trim();
-      c.city = contact['City']?.trim();
-      c.country = contact['Country']?.trim();
-      c.details.firstName = contact['First Name']?.trim();
-      c.details.lastName = contact['Last Name']?.trim();
-      c.details.name = `${contact['First Name']} ${contact['Last Name']}`;
-      c.details.linkedinUrl = contact['Linkedin']?.trim();
-      c.details.title = contact['Job Title']?.trim();
-      c.details.headline = contact['Job Title']?.trim();
-      c.details.organization.name = contact['Company Name']?.trim();
-      c.details.organization.phone = contact['Phone Number']?.trim();
-      c.details.organization.city = contact['City']?.trim();
-      c.details.organization.state = contact['State']?.trim();
-      c.details.organization.country = contact['Country']?.trim();
-      if(!contact['Linkedin']) {
-        await Swal.fire('Error', `Contact with ${c.email} does not have a valid linkedin url.`);
-        this.isLoading = false;
-        return;
+    data.map((contact: any) => {
+      const email = contact['Email'].trim();
+      let linkedin = contact['Linkedin'] || '';
+      if (!linkedin) {
+        linkedin = 'https://www.linkedin.com';
       }
+      let companyLinkedin = contact['Company Linkedin Url'] || '';
+      if (!companyLinkedin) {
+        companyLinkedin = 'https://www.linkedin.com';
+      }
+
+      let website = contact['Website'] || '';
+      if (!website) {
+        const emailDomain = email.split('@')[1];
+        if (!freeEmailDomains.includes(emailDomain)) {
+          website = emailDomain;
+        }
+      }
+
+      const c: Contact = Contact.empty();
+      c.email = email;
+      c.state = contact['State'];
+      c.city = contact['City'];
+      c.country = contact['Country'];
+      c.details.firstName = contact['First Name'];
+      c.details.lastName = contact['Last Name'];
+      c.details.name = `${contact['First Name']} ${contact['Last Name']}`;
+      c.details.linkedinUrl = linkedin.trim();
+      c.details.title = contact['Job Title'];
+      c.details.headline = contact['Job Title'];
+      c.details.city = contact['City'];
+      c.details.state = contact['State'];
+      c.details.country = contact['Country'];
+      c.details.organization = {};
+      c.details.organization.name = contact['Company Name'];
+      c.details.organization.phone = contact['Phone Number'];
+      c.details.organization.city = contact['City'];
+      c.details.organization.state = contact['State'];
+      c.details.organization.country = contact['Country'];
+      c.details.organization.linkedinUrl = companyLinkedin.trim();
+      c.details.organization.websiteUrl = website;
       contacts.push(Contact.contactPostDto(c));
-    }
+    });
 
     const payload = {
       companyId: this.userData.supplier_id,
