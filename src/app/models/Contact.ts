@@ -1,3 +1,5 @@
+import freeEmailDomains from 'free-email-domains';
+
 export class Contact {
   id: number;
   isSelected?: boolean;
@@ -204,6 +206,58 @@ export class Contact {
       createdAt: new Date().toISOString(),
     };
     return new Contact(emptyRawData);
+  }
+
+  static parseCsvDataToContact(csvData) {
+    const contacts = [];
+    csvData.data.map((contact: any) => {
+      const email = contact['Email'].trim();
+      let linkedin = contact['Linkedin'] || '';
+      if (!linkedin) {
+        linkedin = 'https://www.linkedin.com';
+      }
+      let companyLinkedin = contact['Company Linkedin Url'] || '';
+      if (!companyLinkedin) {
+        companyLinkedin = 'https://www.linkedin.com';
+      }
+
+      let website = contact['Website'] || '';
+      if (website && !website.startsWith('http')) {
+        website = `https://${website}`;
+      }
+      if (!website) {
+        const emailDomain = email.split('@')[1];
+        if (!freeEmailDomains.includes(emailDomain)) {
+          website = `https://${emailDomain}`;
+        }
+      }
+
+      const c: Contact = Contact.empty();
+      c.email = email;
+      c.state = contact['State'];
+      c.city = contact['City'];
+      c.country = contact['Country'];
+      c.details.firstName = contact['First Name'];
+      c.details.lastName = contact['Last Name'];
+      c.details.name = `${contact['First Name']} ${contact['Last Name']}`;
+      c.details.linkedinUrl = linkedin.trim();
+      c.details.title = contact['Job Title'];
+      c.details.headline = contact['Job Title'];
+      c.details.city = contact['City'];
+      c.details.state = contact['State'];
+      c.details.country = contact['Country'];
+      c.details.organization = {};
+      c.details.organization.name = contact['Company Name'];
+      c.details.organization.phone = contact['Phone Number'];
+      c.details.organization.city = contact['City'];
+      c.details.organization.state = contact['State'];
+      c.details.organization.country = contact['Country'];
+      c.details.organization.linkedinUrl = companyLinkedin.trim();
+      c.details.organization.websiteUrl = website;
+      contacts.push(Contact.contactPostDto(c));
+    });
+
+    return contacts;
   }
 
   static fromJSON(json: any): Contact {

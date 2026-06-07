@@ -9,6 +9,7 @@ import { Subscription } from 'rxjs';
 import { FileDropComponent } from '../file-drop/file-drop.component';
 import { KexyButtonComponent } from '../kexy-button/kexy-button.component';
 import { KexySelectDropdownComponent } from '../kexy-select-dropdown/kexy-select-dropdown.component';
+import { CsvHelper } from '../../helpers/CSVHelper';
 
 @Component({
   selector: 'upload-file-modal-content',
@@ -78,15 +79,7 @@ export class UploadFileModalContentComponent implements OnInit, OnDestroy {
   fileInfo;
   getSelectedFile = (file, fileInfo) => {
     this.fileInfo = fileInfo;
-    const base64Data = file.split(',')[1];
-    const decodedString = atob(base64Data);
-    Papa.parse(decodedString, {
-      header: true,  // Set to true if the first contact contains headers
-      skipEmptyLines: true,  // Skip empty lines in the CSV
-      complete: (results) => {
-        this.parsedData = results.data;
-      },
-    });
+    this.parsedData = CsvHelper.getCsvFileData(file);
   };
 
   removeSelectedFile = () => {

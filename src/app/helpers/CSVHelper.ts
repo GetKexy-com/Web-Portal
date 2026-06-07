@@ -1,3 +1,5 @@
+import Papa from 'papaparse';
+
 export class CsvHelper {
   static download(name: string, data: string) {
     const blob = new Blob([data], { type: "text/csv;charset=utf-8;" });
@@ -23,4 +25,17 @@ export class CsvHelper {
       document.body.removeChild(link);
     }
   }
+
+  static getCsvFileData = (file) => {
+    const base64Data = file.split(',')[1];
+    const decodedString = atob(base64Data);
+    return Papa.parse(decodedString, {
+      header: true,  // Set to true if the first contact contains headers
+      skipEmptyLines: true,  // Skip empty lines in the CSV
+      complete: (results) => {
+        return results.data;
+      },
+    });
+  };
+
 }
