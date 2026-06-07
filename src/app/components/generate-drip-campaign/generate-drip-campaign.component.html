@@ -19,8 +19,8 @@
         dripCampaign.mapScrapeStatus === CAMPAIGN_STATUS.RUNNING"
       >
         <div>
-          <p>Prospect(s) remaining: {{scrapeRemainProspects}} of {{totalProspects}}</p>
-          <p>Estimated time remaining: {{scrapeRemainProspects * 2}} minute(s)</p>
+          <p class="m-0">Prospect(s) remaining: {{scrapeRemainProspects}} of {{totalProspects}}</p>
+          <p>Estimated time remaining: <strong>{{scrapeRemainProspects * 2}}</strong> minute(s)</p>
         </div>
         <img [src]="scrapeProgressDetails.icon" alt="" />
         {{ scrapeProgressDetails.webText }}<span
