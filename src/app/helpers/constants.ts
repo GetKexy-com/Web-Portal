@@ -223,9 +223,9 @@ export const constants = {
     { key: 'long', value: 'Long' },
   ],
   DRIP_CAMPAIGN_STATUS: [
-    { key: 'all', value: 'ALL' },
-    { key: 'active', value: 'ACTIVE' },
-    { key: 'inactive', value: 'DRAFT' },
+    { key: 'all', value: 'All' },
+    { key: 'active', value: 'Active' },
+    { key: 'inactive', value: 'Draft' },
   ],
   DRIP_CAMPAIGN: 'Drip Campaigns',
   PROMOTIONS: 'Promotions',
