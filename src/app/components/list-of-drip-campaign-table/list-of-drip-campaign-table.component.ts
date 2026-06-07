@@ -76,7 +76,8 @@ export class ListOfDripCampaignTableComponent implements OnInit, AfterViewChecke
   }
 
   onStatusSelect = (status, index = null, rowIndex = null) => {
-    this.selectedStatusKey = status.value;
+    console.log(status);
+    this.selectedStatusKey = status;
     console.log(status);
     this.selectedStatus.emit(status.key);
   };

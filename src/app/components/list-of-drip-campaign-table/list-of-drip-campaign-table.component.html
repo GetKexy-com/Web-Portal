@@ -13,27 +13,16 @@
     </p>
 
     <div class="d-flex align-items-center">
-      <kexy-select-dropdown
-        style="margin-right: 20px; width: 100px"
-        label="Status"
-        shortNoteBesideLabel=""
-        [selectAllBtn]="false"
-        [required]="false"
-        [options]="dripCampaignStatuses"
-        [addNewBtn]="false"
-        [onAddNewClick]=""
-        [selectedOption]="selectedStatusKey"
-        [onSelectSingleItem]="onStatusSelect"
-        [rowIndex]="1"
-        [editIcon]="false"
-        [deleteIcon]="false"
-        [onDeleteClick]=""
-        [onEditClick]=""
-        [isClearable]="false"
-        optionStyle="button"
-        backgroundColor="white"
-        placeholder="Filter"
-      />
+      <div class="kexy-table-entry-count me-2">
+        Status:
+        <select class="form-control" style="width: auto" [(ngModel)]="selectedStatusKey"
+                (ngModelChange)="onStatusSelect($event)">
+          <option [selected]="selectedStatusKey.key === status.key" *ngFor="let status of dripCampaignStatuses"
+                  [ngValue]="status">
+            {{ status.value }}
+          </option>
+        </select>
+      </div>
 
       <div class="kexy-table-entry-count">
         Per Page:
