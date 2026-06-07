@@ -4,7 +4,7 @@ import { DripCampaignService } from "../../services/drip-campaign.service";
 import { constants } from "../../helpers/constants";
 import {InsightsStatisticsCardComponent} from '../insights-statistics-card/insights-statistics-card.component';
 import {InsightsContactsOrLinksComponent} from '../insights-contacts-or-links/insights-contacts-or-links.component';
-import {ExportToCsv} from '../../helpers/CSVHelper';
+import {CsvHelper} from '../../helpers/CSVHelper';
 import {KexyButtonComponent} from '../kexy-button/kexy-button.component';
 
 @Component({
@@ -162,6 +162,6 @@ export class EmailInsightsContentComponent implements OnInit{
       rows += `${contactDetails.country?.replace(/,/g, " ")}, `;
       rows += `${contact.insight?.createdAt?.replace(/,/g, " ")}\n`;
     });
-    await ExportToCsv.download("Contacts.csv", headers + "\n" + rows);
+    await CsvHelper.download("Contacts.csv", headers + "\n" + rows);
   };
 }

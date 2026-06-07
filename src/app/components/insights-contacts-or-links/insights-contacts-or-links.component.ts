@@ -1,6 +1,6 @@
 import { Component, Input, OnInit } from "@angular/core";
 import { constants } from "../../helpers/constants";
-import { ExportToCsv } from "../../helpers/CSVHelper";
+import { CsvHelper } from "../../helpers/CSVHelper";
 import {NgbTooltip} from '@ng-bootstrap/ng-bootstrap';
 import {KexyTabComponent} from '../kexy-tab/kexy-tab.component';
 import {CommonModule} from '@angular/common';
@@ -102,7 +102,7 @@ export class InsightsContactsOrLinksComponent {
       }
     });
 
-    await ExportToCsv.download("contacts.csv", headers + "\n" + rows);
+    await CsvHelper.download("contacts.csv", headers + "\n" + rows);
   }
 
   setPaginatedClickedContacts = () => {

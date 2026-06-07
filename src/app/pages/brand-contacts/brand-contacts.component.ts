@@ -5,7 +5,7 @@ import { NgbModal, NgbOffcanvas } from '@ng-bootstrap/ng-bootstrap';
 import { ProspectingContactsComponent } from 'src/app/components/prospecting-contacts/prospecting-contacts.component';
 import { ProspectingService } from 'src/app/services/prospecting.service';
 import Swal from 'sweetalert2';
-import { ExportToCsv } from 'src/app/helpers/CSVHelper';
+import { CsvHelper } from 'src/app/helpers/CSVHelper';
 import { constants } from 'src/app/helpers/constants';
 import { DripCampaignService } from 'src/app/services/drip-campaign.service';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -604,7 +604,7 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
       rows += `${labels.length ? labels.join('/') : ''}\n`;
     });
     // console.log(rows);
-    await ExportToCsv.download('Contacts.csv', headers + '\n' + rows);
+    await CsvHelper.download('Contacts.csv', headers + '\n' + rows);
     this.isWaitingFlag = false;
   };
 

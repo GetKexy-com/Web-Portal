@@ -31,7 +31,7 @@ import {
 import { CommonModule } from '@angular/common';
 import { PageUiService } from '../../services/page-ui.service';
 import { Contact, IRawContact } from '../../models/Contact';
-import { ExportToCsv } from '../../helpers/CSVHelper';
+import { CsvHelper } from '../../helpers/CSVHelper';
 import { PreviewDripEmailContentComponent } from '../preview-drip-email-content/preview-drip-email-content.component';
 import { LeadMagnetService } from '../../services/lead-magnet.service';
 import { CAMPAIGN_STATUS, DripCampaign } from '../../models/DripCampaign';
@@ -1039,7 +1039,7 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
       }),
     ).join('\n');
 
-    await ExportToCsv.download('insights.csv', `${headers}\n${rows}`);
+    await CsvHelper.download('insights.csv', `${headers}\n${rows}`);
   };
   protected readonly CAMPAIGN_STATUS = CAMPAIGN_STATUS;
 }

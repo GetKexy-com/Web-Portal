@@ -5,7 +5,7 @@ import { ProspectingService } from 'src/app/services/prospecting.service';
 import { NgbOffcanvas } from '@ng-bootstrap/ng-bootstrap';
 import Swal from 'sweetalert2';
 import { constants } from 'src/app/helpers/constants';
-import { ExportToCsv } from 'src/app/helpers/CSVHelper';
+import { CsvHelper } from 'src/app/helpers/CSVHelper';
 import { DripCampaignService } from 'src/app/services/drip-campaign.service';
 import { PageUiService } from 'src/app/services/page-ui.service';
 import { BrandLayoutComponent } from '../../layouts/brand-layout/brand-layout.component';
@@ -292,7 +292,7 @@ export class ManageListComponent implements OnInit, OnDestroy {
       rows += `${labels.length ? labels.join('/') : ''}\n`;
     });
     // console.log(rows);
-    ExportToCsv.download('Contacts.csv', headers + '\n' + rows);
+    CsvHelper.download('Contacts.csv', headers + '\n' + rows);
     this.isWaitingFlag = false;
   };
 }
