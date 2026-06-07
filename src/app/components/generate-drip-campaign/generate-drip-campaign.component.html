@@ -13,12 +13,18 @@
     </div>
 
     <div class="status">
-      <div *ngIf="dripCampaign.webScrapeStatus === CAMPAIGN_STATUS.RUNNING">
-        ⏳ {{ scrapeProgressDetails.webText }}<span class="dots"></span>
-      </div>
-
-      <div *ngIf="dripCampaign.mapScrapeStatus === CAMPAIGN_STATUS.RUNNING">
-        ⏳ {{ scrapeProgressDetails.mapText }}<span class="dots"></span>
+      <div
+        *ngIf="
+        dripCampaign.webScrapeStatus === CAMPAIGN_STATUS.RUNNING ||
+        dripCampaign.mapScrapeStatus === CAMPAIGN_STATUS.RUNNING"
+      >
+        <div>
+          <p>Prospect(s) remaining: {{scrapeRemainProspects}} of {{totalProspects}}</p>
+          <p>Estimated time remaining: {{scrapeRemainProspects * 2}} minute(s)</p>
+        </div>
+        <img [src]="scrapeProgressDetails.icon" alt="" />
+        {{ scrapeProgressDetails.webText }}<span
+        class="dots"></span>
       </div>
     </div>
   </div>

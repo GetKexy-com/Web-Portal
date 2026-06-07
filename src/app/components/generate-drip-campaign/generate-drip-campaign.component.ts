@@ -35,6 +35,7 @@ import { CsvHelper } from '../../helpers/CSVHelper';
 import { PreviewDripEmailContentComponent } from '../preview-drip-email-content/preview-drip-email-content.component';
 import { LeadMagnetService } from '../../services/lead-magnet.service';
 import { CAMPAIGN_STATUS, DripCampaign } from '../../models/DripCampaign';
+import { StorageService } from '../../services/storage.service';
 
 @Component({
   selector: 'generate-drip-campaign',
@@ -98,13 +99,11 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
 
   constructor(
     private ngbOffcanvas: NgbOffcanvas,
-    private router: Router,
+    private storageService: StorageService,
     private modal: NgbModal,
     private sseService: SseService,
-    private leadMagnetService: LeadMagnetService,
     private dripCampaignService: DripCampaignService,
     private prospectingService: ProspectingService,
-    private campaignService: CampaignService,
     private pageUiService: PageUiService,
     private _authService: AuthService,
     private route: ActivatedRoute,
@@ -116,7 +115,6 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
       if (params['id']) {
         this.dripCampaignId = params['id'];
         this.dripCampaign = this.dripCampaignService.getDripCampaignContentPageData();
-        this.getScrapeStatusDetails();
         if (this.dripCampaign.emails[0]) {
           this.selectedEmailTemplate = this.spintaxOptions.find(o => {
             return o.key === this.dripCampaign.emails[0].templateOptions;
@@ -142,9 +140,6 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
         // Save the emails in DB
         this.saveEmails('true').then(async () => {
           await this.__refreshDripCampaign();
-          if (this.dripCampaign.status === constants.ACTIVE) {
-            this.startAutoRefresh();
-          }
         });
       }
     });
@@ -194,7 +189,15 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
       this.onEmailToneSelect(this.emailTones[0]);
     }
 
-    this.getDripCampaignProspects();
+    this.getDripCampaignProspects().then(res => {
+      this.getScrapeStatusDetails();
+      this.calculateProspectScrapeTime();
+      if (this.scrapeRemainProspects === 0) {
+        this.scrapeProgress = false;
+        console.log(this.scrapeProgress);
+      }
+      this.startAutoRefresh();
+    });
   }
 
   scrapeProgress: boolean = false;
@@ -203,59 +206,55 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
     subTitle: '',
     mapText: 'Loading',
     webText: 'Loading',
+    icon: 'assets/icon/1f50e.png',
   };
-  //TODO - These should come from server
+
   WEB_SCRAPE_MESSAGES = [
-    'Analyzing website structure',
-    'Extracting business details',
-    'Collecting contact information',
-    'Scanning pages for insights',
-    'Organizing website data',
+    { icon: 'assets/icon/1f50e.png', message: 'Prospect Research' },
+    { icon: 'assets/icon/1f4f0.png', message: 'Reviewing recent company developments' },
+    { icon: 'assets/icon/1f4c8.png', message: 'Identifying growth and expansion signals' },
+    { icon: 'assets/icon/1f4b0.png', message: 'Detecting funding, hiring, and investment activity' },
+    { icon: 'assets/icon/1f30e.png', message: 'Gathering local market intelligence' },
+    { icon: 'assets/icon/1f4f1.png', message: 'Monitoring social and professional activity' },
+    { icon: 'assets/icon/26a1.png', message: 'Identifying engagement and buying signals' },
+    { icon: 'assets/icon/1f578-fe0f.png', message: 'Mapping relationships and influence networks' },
+    { icon: 'assets/icon/1f4ca.png', message: 'Evaluating industry trends impacting prospects' },
+    { icon: 'assets/icon/1f3af.png', message: 'Discovering personalization opportunities' },
+    { icon: 'assets/icon/270d-fe0f.png', message: 'Extracting relevant talking points' },
+    { icon: 'assets/icon/1f525.png', message: 'Discovering outreach opportunities' },
+    { icon: 'assets/icon/1f9e0.png', message: 'Organizing key prospect insights' },
+    { icon: 'assets/icon/2728.png', message: 'Creating prospect profiles' },
   ];
 
-  MAP_SCRAPE_MESSAGES = [
-    'Capturing local venues',
-    'Searching local sports teams',
-    'Finding the top restaurants',
-    'Exploring nearby businesses',
-    'Mapping popular locations',
-  ];
-  private messageIndex = {
-    web: 0,
-    map: 0,
-  };
+  private messageIndex = 0;
 
-  getNextMessage(type: 'web' | 'map'): string {
-    const pool = type === 'web' ? this.WEB_SCRAPE_MESSAGES : this.MAP_SCRAPE_MESSAGES;
+  getNextMessage() {
+    const pool = this.WEB_SCRAPE_MESSAGES;
 
-    const index = this.messageIndex[type];
+    const index = this.messageIndex;
     const message = pool[index];
 
     // rotate
-    this.messageIndex[type] = (index + 1) % pool.length;
-
+    this.messageIndex = (index + 1) % pool.length;
+    console.log(message);
     return message;
   }
 
   startMessageRotation() {
     setTimeout(() => {
-      if (this.dripCampaign.mapScrapeStatus === CAMPAIGN_STATUS.RUNNING) {
-        this.scrapeProgressDetails.mapText = this.getNextMessage('map');
-      }
-      if (this.dripCampaign.webScrapeStatus === CAMPAIGN_STATUS.RUNNING) {
-        this.scrapeProgressDetails.webText = this.getNextMessage('web');
+      if (this.dripCampaign.webScrapeStatus === CAMPAIGN_STATUS.RUNNING || this.dripCampaign.mapScrapeStatus === CAMPAIGN_STATUS.RUNNING) {
+        const { icon, message } = this.getNextMessage();
+        this.scrapeProgressDetails.webText = message;
+        this.scrapeProgressDetails.icon = icon;
       }
     }, 5000);
     setInterval(() => {
-      if (this.dripCampaign.mapScrapeStatus === CAMPAIGN_STATUS.RUNNING) {
-        this.scrapeProgressDetails.mapText = this.getNextMessage('map');
+      if (this.dripCampaign.webScrapeStatus === CAMPAIGN_STATUS.RUNNING || this.dripCampaign.mapScrapeStatus === CAMPAIGN_STATUS.RUNNING) {
+        const { icon, message } = this.getNextMessage();
+        this.scrapeProgressDetails.webText = message;
+        this.scrapeProgressDetails.icon = icon;
       }
     }, 60000);
-    setInterval(() => {
-      if (this.dripCampaign.webScrapeStatus === CAMPAIGN_STATUS.RUNNING) {
-        this.scrapeProgressDetails.webText = this.getNextMessage('web');
-      }
-    }, 90000);
 
   }
 
@@ -265,13 +264,17 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
     const isWebDone = webScrapeStatus === CAMPAIGN_STATUS.SUCCEEDED;
     const isMapDone = mapScrapeStatus === CAMPAIGN_STATUS.SUCCEEDED;
 
-    this.scrapeProgress =
-      status !== constants.INACTIVE && (!isWebDone || !isMapDone);
-    console.log(isWebDone);
-    console.log(isMapDone);
-    console.log(this.scrapeProgress);
+    this.scrapeProgress = status !== constants.INACTIVE && (!isWebDone || !isMapDone);
+    // console.log(this.scrapeProgress);
+    const scrapeStatus = this.dripCampaign.webScrapeStatus === CAMPAIGN_STATUS.RUNNING ||
+    this.dripCampaign.mapScrapeStatus === CAMPAIGN_STATUS.RUNNING
+      ? CAMPAIGN_STATUS.RUNNING
+      : this.dripCampaign.webScrapeStatus === CAMPAIGN_STATUS.PENDING ||
+      this.dripCampaign.mapScrapeStatus === CAMPAIGN_STATUS.PENDING
+        ? CAMPAIGN_STATUS.PENDING
+        : null;
 
-    switch (this.dripCampaign.webScrapeStatus) {
+    switch (scrapeStatus) {
       case CAMPAIGN_STATUS.RUNNING:
         this.scrapeProgressDetails.title = 'Scraping Data';
         this.scrapeProgressDetails.subTitle = 'Please wait while we collect information';
@@ -279,15 +282,7 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
       case CAMPAIGN_STATUS.PENDING:
         this.scrapeProgressDetails.title = 'Scrape Queued';
         this.scrapeProgressDetails.subTitle = 'Please wait! Scrape will start soon.';
-    }
-    switch (this.dripCampaign.mapScrapeStatus) {
-      case CAMPAIGN_STATUS.RUNNING:
-        this.scrapeProgressDetails.title = 'Scraping Data';
-        this.scrapeProgressDetails.subTitle = 'Please wait while we collect information';
         break;
-      case CAMPAIGN_STATUS.PENDING:
-        this.scrapeProgressDetails.title = 'Scrape Queued';
-        this.scrapeProgressDetails.subTitle = 'Please wait! Scrape will start soon.';
     }
     this.startMessageRotation();
   };
@@ -303,9 +298,9 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
         this.dripCampaignProspects = data['prospects'];
         console.log('prospects', this.dripCampaignProspects);
       });
-
+      this.calculateProspectScrapeTime();
     } catch (e) {
-      Swal.fire('Error', e.message);
+      Swal.fire('Error', e.message).then();
     }
   };
 
@@ -325,10 +320,6 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
   hideToastify = () => {
     this.showToastifyMessage = false;
   };
-
-  // changeKexyBoostOption = (e) => {
-  //   this.emailShortener = e.target.checked;
-  // };
 
   ngAfterViewChecked() {
     if (!this.disableScroll)
@@ -620,12 +611,30 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
 
   private refreshInterval: any = null;
 
+  totalProspects = 0;
+  scrapeRemainProspects = 0;
+
+  calculateProspectScrapeTime() {
+    this.totalProspects = this.dripCampaignProspects.length;
+    const webScrapeRemaining = this.dripCampaignProspects.filter(r => {
+      return r.webScrapeStatus === CAMPAIGN_STATUS.PENDING || r.webScrapeStatus === CAMPAIGN_STATUS.RUNNING;
+    });
+    const mapScrapeRemaining = this.dripCampaignProspects.filter(r => {
+      return r.mapScrapeStatus === CAMPAIGN_STATUS.PENDING || r.mapScrapeStatus === CAMPAIGN_STATUS.RUNNING;
+    });
+    this.scrapeRemainProspects = Math.max(webScrapeRemaining.length, mapScrapeRemaining.length);
+  }
+
   startAutoRefresh() {
     if (this.refreshInterval) return; // prevent duplicate intervals
 
+    console.log('startAutoRefresh');
     this.refreshInterval = setInterval(async () => {
+      console.log('Start looping...');
       await this.__refreshDripCampaign();
-
+      await this.getDripCampaignProspects();
+      this.calculateProspectScrapeTime();
+      this.scrapeProgress = true;
       const campaign = this.dripCampaign;
 
       const isActive = campaign.status === constants.ACTIVE;
@@ -635,15 +644,18 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
         campaign.mapScrapeStatus === CAMPAIGN_STATUS.SUCCEEDED;
 
       // ❌ Stop if not active OR scraping finished
-      if (!isActive || isScrapingDone) {
+      if (!isActive || isScrapingDone || this.scrapeRemainProspects === 0) {
         this.stopAutoRefresh();
+        this.scrapeProgress = false;
       }
 
-    }, 30000); // 30 sec
+    }, 10000); // 30 sec
   }
 
   stopAutoRefresh() {
+    console.log('stopAutoRefresh');
     if (this.refreshInterval) {
+      console.log('stopAutoRefresh');
       clearInterval(this.refreshInterval);
       this.refreshInterval = null;
     }
