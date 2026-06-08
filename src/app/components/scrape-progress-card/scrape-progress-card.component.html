@@ -1,0 +1,29 @@
+<div class="scraper-notification-card" *ngIf="scrapeProgress">
+  <div class="title">
+          <span class="icon-orbit">
+            <span class="lens">🔎</span>
+          </span>
+    {{ scrapeProgressDetails.title }}
+  </div>
+  <div class="subtitle">{{ scrapeProgressDetails.subTitle }}</div>
+
+  <div class="progress-container">
+    <div class="progress-bar"></div>
+  </div>
+
+  <div class="status">
+    <div
+      *ngIf="
+        dripCampaign.webScrapeStatus === CAMPAIGN_STATUS.RUNNING ||
+        dripCampaign.mapScrapeStatus === CAMPAIGN_STATUS.RUNNING"
+    >
+      <div>
+        <p class="m-0">Prospect(s) remaining: {{scrapeRemainProspects}} of {{totalProspects}}</p>
+        <p>Estimated time remaining: <strong>{{scrapeRemainProspects * 2}}</strong> minute(s)</p>
+      </div>
+      <img [src]="scrapeProgressDetails.icon" alt="" />
+      {{ scrapeProgressDetails.webText }}<span
+      class="dots"></span>
+    </div>
+  </div>
+</div>
