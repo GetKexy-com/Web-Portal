@@ -42,13 +42,13 @@ export class ScrapeProgressCardComponent implements OnInit, OnDestroy {
     await this.__refreshDripCampaign();
 
     this.getDripCampaignProspects().then(res => {
-      this.getScrapeStatusDetails();
+      this.startAutoRefresh();
       this.calculateProspectScrapeTime();
+      this.getScrapeStatusDetails();
       if (this.scrapeRemainProspects === 0) {
         this.scrapeProgress = false;
         console.log(this.scrapeProgress);
       }
-      this.startAutoRefresh();
     });
 
   }

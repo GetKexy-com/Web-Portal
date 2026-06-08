@@ -462,6 +462,7 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
     return enrollList;
   };
 
+  showScrapeProgress = false; // 👈 trigger the card
   handleClickNextButton = async () => {
     if (!this.emails.length) {
       await Swal.fire({
@@ -494,6 +495,7 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
         icon: 'success',
       });
 
+      this.showScrapeProgress = true;
       await this.__refreshDripCampaign();
     }
   };
