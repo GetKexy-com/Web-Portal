@@ -226,36 +226,52 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
     { icon: 'assets/icon/2728.png', message: 'Creating prospect profiles' },
   ];
 
-  private messageIndex = 0;
+  private messagePool: typeof this.WEB_SCRAPE_MESSAGES = [];
+  private rotationInterval: any = null;
+
+  getShuffled() {
+    return [...this.WEB_SCRAPE_MESSAGES]
+      .map(item => ({ item, sort: Math.random() }))
+      .sort((a, b) => a.sort - b.sort)
+      .map(({ item }) => item);
+  }
 
   getNextMessage() {
-    const pool = this.WEB_SCRAPE_MESSAGES;
-
-    const index = this.messageIndex;
-    const message = pool[index];
-
-    // rotate
-    this.messageIndex = (index + 1) % pool.length;
-    console.log(message);
-    return message;
+    // Refill and reshuffle when pool is empty
+    if (this.messagePool.length === 0) {
+      this.messagePool = this.getShuffled();
+    }
+    return this.messagePool.pop();
   }
 
   startMessageRotation() {
-    setTimeout(() => {
-      if (this.dripCampaign.webScrapeStatus === CAMPAIGN_STATUS.RUNNING || this.dripCampaign.mapScrapeStatus === CAMPAIGN_STATUS.RUNNING) {
-        const { icon, message } = this.getNextMessage();
-        this.scrapeProgressDetails.webText = message;
-        this.scrapeProgressDetails.icon = icon;
-      }
-    }, 5000);
-    setInterval(() => {
-      if (this.dripCampaign.webScrapeStatus === CAMPAIGN_STATUS.RUNNING || this.dripCampaign.mapScrapeStatus === CAMPAIGN_STATUS.RUNNING) {
-        const { icon, message } = this.getNextMessage();
-        this.scrapeProgressDetails.webText = message;
-        this.scrapeProgressDetails.icon = icon;
-      }
-    }, 60000);
+    // Show first message immediately
+    this.showNextMessage();
 
+    this.rotationInterval = setInterval(() => {
+      const isRunning =
+        this.dripCampaign.webScrapeStatus === CAMPAIGN_STATUS.RUNNING ||
+        this.dripCampaign.mapScrapeStatus === CAMPAIGN_STATUS.RUNNING;
+
+      if (isRunning) {
+        this.showNextMessage();
+      } else {
+        this.stopMessageRotation();
+      }
+    }, 20000); // 👈 every 5s, adjust as needed
+  }
+
+  stopMessageRotation() {
+    if (this.rotationInterval) {
+      clearInterval(this.rotationInterval);
+      this.rotationInterval = null;
+    }
+  }
+
+  showNextMessage() {
+    const { icon, message } = this.getNextMessage();
+    this.scrapeProgressDetails.webText = message;
+    this.scrapeProgressDetails.icon = icon;
   }
 
   getScrapeStatusDetails = () => {
@@ -341,7 +357,7 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
     }
 
     this.stopAutoRefresh();
-
+    this.stopMessageRotation();
   }
 
   getContacts = async (listId) => {
@@ -567,10 +583,6 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // this.dripCampaign = this.dripCampaignService.getDripCampaignContentPageData();
-    // const enrollment = this.dripCampaign.lists;
-    // const enrollList = enrollment.filter(r => r.type === "enroll_list");
-
     const enrollList = this.getEnrolledList();
     if (!enrollList?.length) {
       this.openSettingsCanvas();
@@ -627,12 +639,13 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
 
   startAutoRefresh() {
     if (this.refreshInterval) return; // prevent duplicate intervals
-
     console.log('startAutoRefresh');
+
     this.refreshInterval = setInterval(async () => {
       console.log('Start looping...');
       await this.__refreshDripCampaign();
       await this.getDripCampaignProspects();
+      this.getScrapeStatusDetails();
       this.calculateProspectScrapeTime();
       this.scrapeProgress = true;
       const campaign = this.dripCampaign;
@@ -649,7 +662,7 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
         this.scrapeProgress = false;
       }
 
-    }, 10000); // 30 sec
+    }, 30000); // 30 sec
   }
 
   stopAutoRefresh() {
