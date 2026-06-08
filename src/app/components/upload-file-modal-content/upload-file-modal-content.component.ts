@@ -26,7 +26,7 @@ export class UploadFileModalContentComponent implements OnInit, OnDestroy {
   @Input() closeModal;
   @Input() sampleCsvUrl;
   @Input() isLoading = false;
-  @Input() bypassZerobounce;
+  @Input() bypassEmailVerification;
   @Input() additionalFileRelatedText;
   @Input() showListsDropdown = false;
   @Output() parsedFileData = new EventEmitter<any>();
@@ -98,9 +98,9 @@ export class UploadFileModalContentComponent implements OnInit, OnDestroy {
   checkHiddenClick = () => {
     this.clickCount += 1;
     if (this.clickCount > 4) {
-      this.bypassZerobounce(true);
+      this.bypassEmailVerification(true);
     } else {
-      this.bypassZerobounce(false);
+      this.bypassEmailVerification(false);
     }
   };
 

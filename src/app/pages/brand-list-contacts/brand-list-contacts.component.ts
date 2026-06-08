@@ -380,9 +380,9 @@ export class BrandListContactsComponent implements OnInit, OnDestroy {
     this.modalReference.close();
   };
 
-  zerobounceBypass = false;
-  handleBypassZerobounce = (bypass) => {
-    this.zerobounceBypass = bypass;
+  bypassEmailVerification = false;
+  handleBypassEmailVerification = (bypass) => {
+    this.bypassEmailVerification = bypass;
   };
 
   getImportedFileData = async (data) => {
@@ -396,8 +396,8 @@ export class BrandListContactsComponent implements OnInit, OnDestroy {
       listIds: [this.listId],
     };
 
-    if (this.zerobounceBypass) {
-      payload['bypassZerobounce'] = true;
+    if (this.bypassEmailVerification) {
+      payload['bypassEmailVerification'] = true;
     }
 
     try {

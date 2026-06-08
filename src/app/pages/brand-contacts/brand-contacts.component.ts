@@ -503,8 +503,8 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
       listIds: labelId ? [labelId] : [],
     };
 
-    if (this.zerobounceBypass) {
-      payload['bypassZerobounce'] = true;
+    if (this.bypassEmailVerification) {
+      payload['bypassEmailVerification'] = true;
     }
 
     try {
@@ -636,9 +636,9 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
     this.isWaitingFlag = false;
   };
 
-  zerobounceBypass = false;
-  handleBypassZerobounce = (bypass) => {
-    this.zerobounceBypass = bypass;
+  bypassEmailVerification = false;
+  handleBypassEmailVerification = (bypass) => {
+    this.bypassEmailVerification = bypass;
   };
 
   handleAddToDripCampaign = () => {
