@@ -213,6 +213,7 @@ export class EditBrandUserComponent implements OnInit {
   };
 
   async createApiKey() {
+    return;
     const postData = {
       name: this.userData.supplier_name,
       companyId: this.userData.supplier_id,
