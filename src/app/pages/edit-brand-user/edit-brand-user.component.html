@@ -38,6 +38,13 @@
             iconLeft="fa-pencil"
             (click)="updatePassModal(changePasswordModal)"
           ></app-kexy-button>
+          <app-kexy-button
+            label="Create Api Key"
+            type="button"
+            style="width: 100%"
+            iconLeft="fa-pencil"
+            (click)="createApiKey()"
+          ></app-kexy-button>
         </div>
         <div class="col-md-9 ps-3">
           <form class="" [formGroup]="primaryForm" (ngSubmit)="primaryFormSubmitted()">

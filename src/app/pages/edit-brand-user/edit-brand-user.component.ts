@@ -212,6 +212,25 @@ export class EditBrandUserComponent implements OnInit {
     this.changePasswordModalRef = this.modal.open(modalContent);
   };
 
+  async createApiKey() {
+    const postData = {
+      name: this.userData.supplier_name,
+      companyId: this.userData.supplier_id,
+    };
+    return new Promise(async (resolve, reject) => {
+      this.httpService.post('api-keys', postData).subscribe({
+        next: (res) => {
+          resolve(res.data);
+        },
+        error: (err) => {
+          if (err) {
+            reject(err);
+          }
+        },
+      });
+    });
+  }
+
 
   async updatePassword() {
     this.changePasswordSubmitted = true;
