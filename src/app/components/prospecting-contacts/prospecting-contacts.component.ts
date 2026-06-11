@@ -223,6 +223,7 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
   };
 
   redirectToEditPage = (dripCampaign) => {
+    console.log('redirectToEditPage', dripCampaign);
     const queryParams: any = {
       id: dripCampaign.id,
     };
