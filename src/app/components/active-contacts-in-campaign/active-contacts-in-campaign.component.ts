@@ -14,7 +14,7 @@ import {ActiveContactsTableComponent} from '../active-contacts-table/active-cont
   templateUrl: './active-contacts-in-campaign.component.html',
   styleUrl: './active-contacts-in-campaign.component.scss'
 })
-export class ActiveContactsInCampaignComponent {
+export class ActiveContactsInCampaignComponent implements OnInit {
   public isLoading: boolean = false;
   public submitted: boolean = false;
   public contacts = [];
