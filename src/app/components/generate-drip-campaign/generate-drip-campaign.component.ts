@@ -495,8 +495,10 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
         icon: 'success',
       });
 
-      this.showScrapeProgress = true;
       await this.__refreshDripCampaign();
+      if (this.selectedEmailTemplate.key === constants.PROSPECT_INSIGHTS_KEY) {
+        this.showScrapeProgress = true;
+      }
     }
   };
 
