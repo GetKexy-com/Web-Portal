@@ -397,10 +397,13 @@
           <span class="cursor-pointer link-text" (click)="addAnalyticUserRow()">+ Add</span>
         </p>
         <div class="section-content mt-2">
-          <div class="analytic-user d-flex justify-content-center"
+          <div class="analytic-user d-flex align-items-start"
                *ngFor="let people of analyticsReceiverArray; let i = index">
-            <div class="form-group">
-              <label *ngIf="i===0" class="input-label-text">Name</label>
+
+            <!-- Name -->
+            <div class="form-group flex-shrink-0" style="width: 140px;">
+              <label *ngIf="i === 0" class="input-label-text d-block">Name</label>
+              <div *ngIf="i !== 0" class="label-spacer"></div>
               <input
                 type="text"
                 class="form-control"
@@ -409,8 +412,11 @@
                 placeholder="Name"
               />
             </div>
-            <div class="form-group w-100 ms-2">
-              <label *ngIf="i===0" class="input-label-text">Email Address</label>
+
+            <!-- Email Address -->
+            <div class="form-group flex-grow-1 ms-2">
+              <label *ngIf="i === 0" class="input-label-text d-block">Email Address</label>
+              <div *ngIf="i !== 0" class="label-spacer"></div>
               <input
                 type="email"
                 class="form-control"
@@ -419,7 +425,41 @@
                 placeholder="Email Address"
               />
             </div>
-            <div class="remove ms-2">
+
+            <!-- Warm Leads -->
+            <div class="form-group text-center ms-2 flex-shrink-0" style="width: 80px;">
+              <label *ngIf="i === 0" class="input-label-text d-block">Warm Leads</label>
+              <div *ngIf="i !== 0" class="label-spacer"></div>
+              <div class="d-flex justify-content-center align-items-center" style="height: 38px;">
+                <input
+                  type="checkbox"
+                  style="height: 18px; width: 18px"
+                  class="cursor-pointer"
+                  [(ngModel)]="people.warmLeads"
+                  [ngModelOptions]="{standalone: true}"
+                />
+              </div>
+            </div>
+
+            <!-- Prospect Reply -->
+            <div class="form-group text-center ms-2 flex-shrink-0" style="width: 110px;">
+              <label *ngIf="i === 0" class="input-label-text d-block">Prospect Reply</label>
+              <div *ngIf="i !== 0" class="label-spacer"></div>
+              <div class="d-flex justify-content-center align-items-center" style="height: 38px;">
+                <input
+                  type="checkbox"
+                  style="height: 18px; width: 18px;"
+                  class="cursor-pointer"
+                  [(ngModel)]="people.userReply"
+                  [ngModelOptions]="{standalone: true}"
+                />
+              </div>
+            </div>
+
+            <!-- Delete Button -->
+            <div class="ms-2 flex-shrink-0" style="width: 42px;">
+              <label *ngIf="i === 0" class="input-label-text d-block">&nbsp;</label>
+              <div *ngIf="i !== 0" class="label-spacer"></div>
               <app-kexy-button
                 [class.invisible]="i === 0"
                 label=""
@@ -432,6 +472,7 @@
                 (click)="deleteAnalyticUser(i)"
               ></app-kexy-button>
             </div>
+
           </div>
         </div>
 

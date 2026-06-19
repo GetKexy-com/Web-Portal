@@ -43,6 +43,8 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
   analyticsFields = {
     name: '',
     email: '',
+    warmLeads: false,
+    userReply: false,
   };
   analyticsReceiverArray = [{...this.analyticsFields}];
   runCampaignFields = {
@@ -119,6 +121,8 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
     this.analyticsReceiverArray.push({
       name: '',
       email: '',
+      warmLeads: false,
+      userReply: false,
     });
   };
 
