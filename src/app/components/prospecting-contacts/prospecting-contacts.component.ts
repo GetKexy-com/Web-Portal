@@ -24,6 +24,7 @@ import { ErrorMessageCardComponent } from '../error-message-card/error-message-c
 import { CommonModule } from '@angular/common';
 import { Contact, ContactDetails } from '../../models/Contact';
 import { PhoneNumberMaskDirective } from '../../directive/phone-number-mask.directive';
+import { CAMPAIGN_STATUS } from '../../models/DripCampaign';
 
 @Component({
   selector: 'prospecting-contacts',
@@ -160,6 +161,9 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
     const contactDripCampaigns = this.contact.lists.flatMap(l => l.dripCampaignList);
     this.contactDripCampaigns = contactDripCampaigns.filter(c => {
       if (c.dripCampaign.status != constants.DELETED) {
+        if(c.dripCampaign.status === constants.INACTIVE) {
+          c.dripCampaign.status = constants.DRAFT;
+        }
         return c.dripCampaign;
       }
     });

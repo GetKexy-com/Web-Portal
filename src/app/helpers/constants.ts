@@ -40,6 +40,7 @@ export const constants = {
   RECCURING_TYPE: 'recurring_type',
   ACTIVE: 'active',
   INACTIVE: 'inactive',
+  DRAFT: 'draft',
   PUBLISHED: 'published',
   SUCCESS: 'success',
   DELETED: 'deleted',
