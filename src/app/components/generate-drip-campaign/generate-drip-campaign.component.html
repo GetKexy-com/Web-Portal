@@ -167,32 +167,11 @@
     </div>
   </div>
   <div class="row justify-content-center mt-3" id="emailContainer">
-    <!--    headerTitle="1. Send dripEmail # 1"-->
     <div class="col-12 col-md-7">
-      <!--      <div class="enrollment-trigger-card" (click)="openEnrollmentTriggerCanvas()">-->
-      <!--        <div class="top-border"></div>-->
-      <!--        <p>Enrollment Triggers</p>-->
-      <!--      </div>-->
-
       <ng-container *ngFor="let email of emails; let i = index">
-        <drip-campaign-card
-          headerIcon="/assets/icon/message-sent-white-icon.svg"
-          [headerTitle]="'Email #' + (i + 1)"
-          [emailText]="email.emailSubject"
-          [email]="email"
-          clickRate="50% click rate"
-          [showBlueBorder]="true"
-          [showDetailsBtnClick]="showEmailDetailsBtnClick"
-          [previewBtnClick]="handlePreviewBtnClick"
-          [insightsBtnClick]="insightsBtnClick"
-          [deleteEmptyEmail]="deleteEmptyEmail"
-          [onDeleteUpdateEmail]="onDeleteUpdateEmail"
-        ></drip-campaign-card>
-        <ng-container *ngIf="i < emails.length - 1">
-          <div class="separating-line-wrap">
+        <ng-container *ngIf="i < emails.length">
+          <div class="separating-line-wrap" *ngIf="i > 0">
             <div class="line"></div>
-            <!--            <div class="plus-icon-wrap" (click)="handleClickPlusBtn(email, false, i)"><i class="fa fa-plus" aria-hidden="true"></i></div>-->
-            <!--            <div class="line"></div>-->
           </div>
           <drip-campaign-card
             headerIcon="/assets/icon/loading-white-icon.svg"
@@ -206,10 +185,22 @@
           ></drip-campaign-card>
           <div class="separating-line-wrap">
             <div class="line"></div>
-            <!--            <div class="plus-icon-wrap" (click)="handleClickPlusBtn(email, true, i)"><i class="fa fa-plus" aria-hidden="true"></i></div>-->
-            <!--            <div class="line"></div>-->
           </div>
         </ng-container>
+
+        <drip-campaign-card
+          headerIcon="/assets/icon/message-sent-white-icon.svg"
+          [headerTitle]="'Email #' + (i + 1)"
+          [emailText]="email.emailSubject"
+          [email]="email"
+          clickRate="50% click rate"
+          [showBlueBorder]="true"
+          [showDetailsBtnClick]="showEmailDetailsBtnClick"
+          [previewBtnClick]="handlePreviewBtnClick"
+          [insightsBtnClick]="insightsBtnClick"
+          [deleteEmptyEmail]="deleteEmptyEmail"
+          [onDeleteUpdateEmail]="onDeleteUpdateEmail"
+        ></drip-campaign-card>
       </ng-container>
 
 

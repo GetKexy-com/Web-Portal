@@ -528,7 +528,6 @@ export class SseService {
         rawEditorContent: `Content ${i + 1}`,
         aiRawData: `Content ${i + 1}`,
       };
-      console.log({ email });
       emails.push(email);
       this.addToDripBulkEmails(emails);
     }
