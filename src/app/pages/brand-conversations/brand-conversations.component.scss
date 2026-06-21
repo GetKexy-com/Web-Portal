@@ -71,31 +71,6 @@ $left-side-width: 365px;
   .conv-top-right {
     width: 100%;
 
-    .user-info-section {
-      background-color: white;
-      height: 50px;
-      border-bottom: 1px solid #ededed;
-      align-items: center;
-
-      .user-info {
-        span {
-          font-size: 13px;
-          font-weight: 600;
-        }
-
-        .unsubscribe-link {
-          cursor: pointer !important;
-          font-weight: 400 !important;
-          text-decoration: underline !important;
-          color: #0D6EFD;
-        }
-      }
-
-      .convo-actions {
-        min-width: fit-content;
-      }
-    }
-
     .user-extra-info {
       background-color: white;
       border-bottom: 1px solid #ededed;
@@ -129,6 +104,31 @@ $left-side-width: 365px;
       p {
         font-size: 15px;
       }
+    }
+  }
+
+  .user-info-section {
+    background-color: white;
+    height: 50px;
+    border-bottom: 1px solid #ededed;
+    align-items: center;
+
+    .user-info {
+      span {
+        font-size: 13px !important;
+        font-weight: 600;
+      }
+
+      .unsubscribe-link {
+        cursor: pointer !important;
+        font-weight: 400 !important;
+        text-decoration: underline !important;
+        color: #0D6EFD;
+      }
+    }
+
+    .convo-actions {
+      min-width: fit-content;
     }
   }
 

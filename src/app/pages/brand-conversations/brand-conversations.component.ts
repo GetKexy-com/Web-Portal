@@ -116,14 +116,25 @@ export class BrandConversationsComponent implements OnInit, OnDestroy {
 
   setConversation = async (conversations) => {
     conversations.forEach((conversation) => {
-      if(!conversation.receiverDetails.details) {
-        conversation.receiverDetails.details = conversation.receiverDetails;
+      // FIX: previously this assigned `conversation.receiverDetails.details =
+      // conversation.receiverDetails`, which made `details` point back at its
+      // own parent object (a circular reference). That circular object later
+      // gets passed straight into an HTTP POST body in
+      // addMessageToConversation(), and JSON.stringify() (used internally by
+      // Angular's HttpClient to serialize the request body) throws
+      // synchronously on circular structures -- before any request is ever
+      // sent. That's why no network call showed up and the error had no
+      // status/url: it never made it past serialization.
+      //
+      // Fix: shallow-copy the existing fields into `details` instead of
+      // aliasing the same object.
+      if (!conversation.receiverDetails.details) {
+        conversation.receiverDetails.details = { ...conversation.receiverDetails };
       }
 
-      if(typeof conversation.receiverDetails.details === 'string') {
+      if (typeof conversation.receiverDetails.details === 'string') {
         conversation.receiverDetails.details = JSON.parse(conversation.receiverDetails.details);
       }
-
     })
     this.filteredConversations = this.conversations = conversations;
     await this.conversationTapped(conversations[0]);
@@ -204,9 +215,18 @@ export class BrandConversationsComponent implements OnInit, OnDestroy {
   sendBtnClicked = false;
 
   updatedEmailContent = '';
-  onEmailContentChange = (editor) => {
-    this.updatedEmailContent = editor.getData();
+  // onEmailContentChange = (editor) => {
+  //   this.updatedEmailContent = editor.getData();
+  //   console.log(this.updatedEmailContent);
+  // };
+
+  onEmailContentChange = ({ rawHtml, emailHtml }: { rawHtml: string; emailHtml: string }) => {
+    setTimeout(() => {
+      this.updatedEmailContent = emailHtml;
+      // this.rawEditorContent = rawHtml;
+    }, 10);
   };
+
 
 
   addMessageToConversation = async () => {
@@ -222,7 +242,9 @@ export class BrandConversationsComponent implements OnInit, OnDestroy {
     };
     try {
       this.isLoading = true;
-      await this.prospectingService.addMessageToConversation(data);
+      console.log("A");
+      const res = await this.prospectingService.addMessageToConversationSrv(data);
+      console.log({ res });
       await this.getAllConversation(true);
       this.emailContent = '';
       this.modal.dismissAll();

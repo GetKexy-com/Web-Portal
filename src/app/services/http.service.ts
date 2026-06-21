@@ -27,7 +27,8 @@ export class HttpService {
     return this._http
       .post(urlStr, body, { headers: headers })
       .pipe(map((response) => {
-        if (response['error'] && response['code'] && response['trace']) {
+        console.log(response);
+        if (response && response['error'] && response['code'] && response['trace']) {
           response['success'] = false;
           response['error']['message'] = 'Something went wrong. Please contact us.';
         }

@@ -82,7 +82,8 @@ export class ProspectingService {
   constructor(
     private httpService: HttpService,
     private campaignService: CampaignService,
-  ) {}
+  ) {
+  }
 
   getProducts = async (postData) => {
     return new Promise(async (resolve, reject) => {
@@ -279,18 +280,29 @@ export class ProspectingService {
     });
   };
 
-  addMessageToConversation = async (postData) => {
-    return new Promise(async (resolve, reject) => {
-      const url = `messages/conversations/${postData.prospectingConversationId}`;
-      delete postData.prospectingConversationId;
-
+  /**
+   * FIX: previously wrapped a `new Promise(async (resolve, reject) => {...})`
+   * (the "async executor" antipattern). There's no `await` in this body, so
+   * it's safe and cleaner as a plain synchronous executor. Debug logs kept
+   * in place from the current investigation -- remove once you've confirmed
+   * the upstream circular-reference fix (in setConversation) resolves this.
+   */
+  addMessageToConversationSrv = (postData) => {
+    const url = `messages/conversations/${postData.prospectingConversationId}`;
+    delete postData.prospectingConversationId;
+    return new Promise((resolve, reject) => {
+      console.log(postData);
       this.httpService.post(url, postData).subscribe({
-        next: () => {
+        next: (res) => {
+          console.log(res);
           resolve(true);
         },
         error: (err) => {
-          if (err.error) {
-            reject(err.error);
+          console.log('FULL ERROR:', err);
+          console.log('status:', err?.status, 'url:', err?.url, 'message:', err?.message);
+
+          if (err?.error) {
+            reject(err?.error);
           }
         },
       });
@@ -522,7 +534,7 @@ export class ProspectingService {
     if (contact?.lastName) c2 = contact.lastName;
     if (contact?.first_name) c1 = contact.first_name;
     if (contact?.last_name) c2 = contact.last_name;
-    return c1 + c2;
+    return c1 + ' ' + c2;
   };
 
   deleteSpecificCalendlyLink = async (link, supplierId) => {
@@ -705,12 +717,7 @@ export class ProspectingService {
       const labelId = postData.label_ids;
       this.httpService.delete(`lists/${labelId}`).subscribe({
         next: () => {
-          // labels = labels.filter((p) => {
-          //   const index = postData.label_ids.findIndex((l) => l === p.id);
-          //   return index === -1;
-          // });
           resolve(true);
-          // this._labels.next(labels);
         },
         error: (err) => {
           if (err.error) {

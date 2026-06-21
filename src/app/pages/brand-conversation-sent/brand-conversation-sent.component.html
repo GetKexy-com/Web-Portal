@@ -135,24 +135,24 @@
               ></brand-convo-avatar>
             </div>
             <span>
-              {{ selectedConversation.receiverDetails.contactName }}
+              {{ getFullName(selectedConversation.receiverDetails.details) }}
               <span class="unsubscribe-link" (click)="unsubscribeBtnClick()">Unsubscribe</span>
               <br>
               <span style="font-weight: normal">
-                    {{ selectedConversation.receiverDetails.jobTitle }}
-                {{ (selectedConversation.receiverDetails.jobTitle && selectedConversation.receiverDetails.companyName) ? 'at' : '' }}
+                    {{ selectedConversation.receiverDetails.details.title }}
+                {{ (selectedConversation.receiverDetails.details.title && selectedConversation.receiverDetails.details.organization.name) ? 'at' : '' }}
                 <a
-                  *ngIf="selectedConversation.receiverDetails.companyWebsite"
-                  [href]="selectedConversation.receiverDetails.companyWebsite"
+                  *ngIf="selectedConversation.receiverDetails.details.organization.websiteUrl"
+                  [href]="selectedConversation.receiverDetails.details.organization.websiteUrl"
                   target="_blank"
                   class="company-name"
                 >
-                  {{ selectedConversation.receiverDetails.companyName }}
+                  {{ selectedConversation.receiverDetails.details.organization.name }}
                 </a>
                 <span
-                  *ngIf="selectedConversation.receiverDetails.companyName"
+                  *ngIf="selectedConversation.receiverDetails.details.organization.name"
                 >
-                  {{ selectedConversation.receiverDetails.companyName }}
+                  {{ selectedConversation.receiverDetails.details.organization.name }}
                 </span>
               </span>
             </span>
@@ -213,8 +213,7 @@
   <ng-template #sendEmailModal let-c="close" let-d="dismiss">
     <div class="send-email-modal-content">
       <div class="title-and-close-btn">
-        <p class="modal-of-title">Send an email to {{ selectedConversation.receiverDetails.first_name }}
-          {{ selectedConversation.receiverDetails.last_name }}</p>
+        <p class="modal-of-title">Send an email to {{ getFullName(selectedConversation.receiverDetails.details) }}</p>
         <div class="close-icon-wrap" (click)="c()">
           <img src="/assets/images/close-icon.png" alt="close-icon" />
         </div>
@@ -222,28 +221,36 @@
       <div class="send-email-modal-body">
         <div class="top-area">
 
-          <div class="text-content">
+          <div class="text-content" style="font-size: 13px; font-weight: bold">
             <div class="user-info d-flex align-items-center" *ngIf="selectedConversation">
               <brand-convo-avatar
                 [text]="getNameInitials(selectedConversation.receiverDetails.details)"
                 [color]="'blue'"
               ></brand-convo-avatar>
               <span class="m-2">
-                <strong>
-                  {{ selectedConversation.receiverDetails.details.firstName }}
-                  {{ selectedConversation.receiverDetails.details.lastName }}
-                </strong>
+              {{ getFullName(selectedConversation.receiverDetails.details) }}
                 <br>
-                <span style="font-size: 14px">
-                  {{ selectedConversation.receiverDetails.jobTitle }} at
-                  <a
-                    [href]="selectedConversation.receiverDetails.details.organization.name"
-                    target="_blank"
-                    class="company-name">
-                    {{ selectedConversation.receiverDetails.details.organization.name }}
-                  </a>
+              <span>
+                    {{ selectedConversation.receiverDetails.details.title }}
+                {{ (selectedConversation.receiverDetails.details.title && selectedConversation.receiverDetails.details.organization.name) ? 'at' : '' }}
+                <a
+                  *ngIf="selectedConversation.receiverDetails.details.organization.websiteUrl"
+                  [href]="selectedConversation.receiverDetails.details.organization.websiteUrl"
+                  target="_blank"
+                  class="company-name"
+                >
+                  {{ selectedConversation.receiverDetails.details.organization.name }}
+                </a>
+                <span
+                  *ngIf="selectedConversation.receiverDetails.details.organization.name"
+                >
+                  {{ selectedConversation.receiverDetails.details.organization.name }}
                 </span>
               </span>
+            </span>
+
+
+
             </div>
           </div>
         </div>

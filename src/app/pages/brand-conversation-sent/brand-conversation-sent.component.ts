@@ -116,8 +116,18 @@ export class BrandConversationSentComponent {
 
   setConversation = async (conversations) => {
     conversations.forEach((conversation) => {
+      // FIX: previously this assigned `conversation.receiverDetails.details =
+      // conversation.receiverDetails`, which made `details` point back at its
+      // own parent object (a circular reference). That circular object later
+      // gets passed straight into an HTTP POST body in
+      // addMessageToConversation(), and JSON.stringify() (used internally by
+      // Angular's HttpClient to serialize the request body) throws
+      // synchronously on circular structures -- before any request is ever
+      // sent. Same root cause as the inbox component; fixed the same way:
+      // shallow-copy the existing fields into `details` instead of aliasing
+      // the same object.
       if(!conversation.receiverDetails.details) {
-        conversation.receiverDetails.details = conversation.receiverDetails;
+        conversation.receiverDetails.details = { ...conversation.receiverDetails };
       }
 
       if(typeof conversation.receiverDetails.details === 'string') {
@@ -199,8 +209,11 @@ export class BrandConversationSentComponent {
   sendBtnClicked = false;
 
   updatedEmailContent = '';
-  onEmailContentChange = (editor) => {
-    this.updatedEmailContent = editor.getData();
+  onEmailContentChange = ({ rawHtml, emailHtml }: { rawHtml: string; emailHtml: string }) => {
+    setTimeout(() => {
+      this.updatedEmailContent = emailHtml;
+      // this.rawEditorContent = rawHtml;
+    }, 10);
   };
 
 
@@ -217,7 +230,7 @@ export class BrandConversationSentComponent {
     };
     try {
       this.isLoading = true;
-      await this.prospectingService.addMessageToConversation(data);
+      await this.prospectingService.addMessageToConversationSrv(data);
       await this.getAllConversation(true);
       this.emailContent = '';
       this.modal.dismissAll();
@@ -441,6 +454,11 @@ export class BrandConversationSentComponent {
       this.selectedContacts.push(contact);
     }
   };
+
+  getFullName = (obj) => {
+    return this.prospectingService.getSalesLeadName(obj);
+  };
+
 
   deleteConversations = async () => {
     let isConfirm = await Swal.fire({
