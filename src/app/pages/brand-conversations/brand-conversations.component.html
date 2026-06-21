@@ -135,24 +135,24 @@
               ></brand-convo-avatar>
             </div>
             <span>
-              {{ selectedConversation.receiverDetails.contactName }}
+              {{ getFullName(selectedConversation.receiverDetails.details) }}
               <span class="unsubscribe-link" (click)="unsubscribeBtnClick()">Unsubscribe</span>
               <br>
               <span style="font-weight: normal">
-                    {{ selectedConversation.receiverDetails.jobTitle }}
-                {{ (selectedConversation.receiverDetails.jobTitle && selectedConversation.receiverDetails.companyName) ? 'at' : '' }}
+                    {{ selectedConversation.receiverDetails.details.title }}
+                {{ (selectedConversation.receiverDetails.details.title && selectedConversation.receiverDetails.details.organization.name) ? 'at' : '' }}
                 <a
-                  *ngIf="selectedConversation.receiverDetails.companyWebsite"
-                  [href]="selectedConversation.receiverDetails.companyWebsite"
+                  *ngIf="selectedConversation.receiverDetails.details.organization.websiteUrl"
+                  [href]="selectedConversation.receiverDetails.details.organization.websiteUrl"
                   target="_blank"
                   class="company-name"
                 >
-                  {{ selectedConversation.receiverDetails.companyName }}
+                  {{ selectedConversation.receiverDetails.details.organization.name }}
                 </a>
                 <span
-                  *ngIf="selectedConversation.receiverDetails.companyName"
+                  *ngIf="selectedConversation.receiverDetails.details.organization.name"
                 >
-                  {{ selectedConversation.receiverDetails.companyName }}
+                  {{ selectedConversation.receiverDetails.details.organization.name }}
                 </span>
               </span>
             </span>

@@ -63,6 +63,10 @@ export class BrandConvoCardComponent implements OnInit {
     return this.prospectingService.getSalesLeadNameInitials(obj);
   };
 
+  getFullName = (obj) => {
+    return this.prospectingService.getSalesLeadName(obj);
+  };
+
   getLatestMessageDate = () => {
     this.prospect['messages'] =
       this.prospect['messages'].sort((a, b) => {

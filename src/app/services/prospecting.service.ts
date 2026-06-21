@@ -515,6 +515,15 @@ export class ProspectingService {
     if (contact?.last_name) c2 = contact.last_name[0];
     return c1 + c2;
   };
+  getSalesLeadName = (contact) => {
+    let c1 = '',
+      c2 = '';
+    if (contact?.firstName) c1 = contact.firstName;
+    if (contact?.lastName) c2 = contact.lastName;
+    if (contact?.first_name) c1 = contact.first_name;
+    if (contact?.last_name) c2 = contact.last_name;
+    return c1 + c2;
+  };
 
   deleteSpecificCalendlyLink = async (link, supplierId) => {
     let calendlyLinks = this._calendlyLinks.getValue();

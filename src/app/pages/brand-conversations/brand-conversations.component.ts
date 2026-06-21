@@ -134,6 +134,11 @@ export class BrandConversationsComponent implements OnInit, OnDestroy {
     return this.prospectingService.getSalesLeadNameInitials(obj);
   };
 
+  getFullName = (obj) => {
+    return this.prospectingService.getSalesLeadName(obj);
+  };
+
+
   previousBtnClick = async () => {
     if (this.page === 1) return;
     this.page--;
