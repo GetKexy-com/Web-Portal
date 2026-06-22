@@ -132,13 +132,19 @@ export class EditorUtilsService {
       const alt = el.dataset['alt'] || '';
       const kind = el.dataset['kind'];
 
+      // Inline styles are assembled into variables (rather than written directly
+      // in the style="..." attribute) so the IDE's embedded CSS validator doesn't
+      // try to parse the ${...} interpolations as CSS values and flag them.
+      const imgStyle = `display:block; width:${width}px; height:${height}px; border:0; outline:none; text-decoration:none;`;
+
       if (kind === 'image') {
-        const img = `<img src="${escAttr(el.dataset['src'] || '')}" alt="${escAttr(alt)}" width="${width}" height="${height}" style="display:block; width:${width}px; height:${height}px; border:0; outline:none; text-decoration:none;" />`;
+        const imageTableStyle = `margin:${blockMargin}; border-collapse:collapse;`;
+        const img = `<img src="${escAttr(el.dataset['src'] || '')}" alt="${escAttr(alt)}" width="${width}" height="${height}" style="${imgStyle}" />`;
         const content = link
           ? `<a href="${escAttr(link)}" target="_blank" rel="noopener" style="text-decoration:none;">${img}</a>`
           : img;
         this.replaceNodeWithHtml(el, `
-          <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="${alignAttr}" style="margin:${blockMargin}; border-collapse:collapse;">
+          <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="${alignAttr}" style="${imageTableStyle}">
             <tr><td align="${alignAttr}" style="padding:0; border:0;">${content}</td></tr>
           </table>
         `);
@@ -146,12 +152,13 @@ export class EditorUtilsService {
         const href = link || '#';
         const poster = el.dataset['poster'] || '';
         const fileName = el.dataset['fileName'] || 'Video';
+        const videoTableStyle = `margin:${blockMargin}; border-collapse:collapse; width:${width}px;`;
         this.replaceNodeWithHtml(el, `
-          <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="${alignAttr}" style="margin:${blockMargin}; border-collapse:collapse; width:${width}px;">
+          <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="${alignAttr}" style="${videoTableStyle}">
             <tr>
               <td align="${alignAttr}" style="padding:0; border:0;">
                 <a href="${escAttr(href)}" target="_blank" rel="noopener" style="text-decoration:none; display:block;">
-                  <img src="${escAttr(poster)}" alt="${escAttr(alt)}" width="${width}" height="${height}" style="display:block; width:${width}px; height:${height}px; border:0; outline:none; text-decoration:none;" />
+                  <img src="${escAttr(poster)}" alt="${escAttr(alt)}" width="${width}" height="${height}" style="${imgStyle}" />
                 </a>
               </td>
             </tr>
