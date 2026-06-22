@@ -46,7 +46,6 @@ kexy-custom-rich-editor textarea { font: inherit; }
   display: flex;
   align-items: stretch;
   justify-content: center;
-  padding: 22px;
 }
 
 .editor-modal {
@@ -129,7 +128,7 @@ button.primary {
 }
 
 button.primary:hover { background: var(--primary-dark); filter: brightness(0.98); }
-button.ghost, .tab, button.small { padding: 9px 12px; }
+button.ghost, .tab, button.small { padding: 3px 12px; }
 button.ghost:hover, .tab:hover, button.small:hover { filter: brightness(0.98); }
 button.danger { background: var(--danger); color: #fff; border: 1px solid var(--danger); }
 button.small { height: 34px; }
