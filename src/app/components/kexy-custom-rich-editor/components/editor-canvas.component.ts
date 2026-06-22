@@ -1,6 +1,6 @@
 import {
   Component, ElementRef, ViewChild, AfterViewInit, OnDestroy,
-  inject, output, Input, HostListener
+  inject, output, Input, HostListener,
 } from '@angular/core';
 import { EditorStateService } from '../services/editor-state.service';
 import { EditorUtilsService } from '../services/editor-utils.service';
@@ -44,7 +44,7 @@ import { InsertImageOptions, InsertVideoOptions } from '../models/editor.models'
     </div>
 
     <app-fallback-popover #fallbackPopover (fallbackChanged)="refreshChipIndicators()"></app-fallback-popover>
-  `
+  `,
 })
 export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
   @ViewChild('canvas') canvasRef!: ElementRef<HTMLDivElement>;
@@ -156,7 +156,7 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
   /** Re-sync every chip's "fallback set" marker after a fallback changes. */
   refreshChipIndicators(): void {
     this.canvas.querySelectorAll('.merge-tag-chip').forEach(chip =>
-      this.mergeTags.decorateChip(chip as HTMLElement)
+      this.mergeTags.decorateChip(chip as HTMLElement),
     );
     this.refreshOutputs();
   }
@@ -209,7 +209,7 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
   applyLegacyFontSize(px: string): void {
     const map: Record<string, string> = {
       '12px': '2', '14px': '3', '16px': '4',
-      '18px': '5', '20px': '5', '24px': '6'
+      '18px': '5', '20px': '5', '24px': '6',
     };
     this.focusEditor();
     document.execCommand('fontSize', false, map[px] || '3');
@@ -369,7 +369,11 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
     if (isImg) {
       block.style.height = `${height}px`;
       const img = block.querySelector('img') as HTMLImageElement;
-      if (img) { img.width = width; img.height = height; img.style.height = `${height}px`; }
+      if (img) {
+        img.width = width;
+        img.height = height;
+        img.style.height = `${height}px`;
+      }
     } else {
       block.style.height = `${height + 44}px`;
       const img = block.querySelector('img') as HTMLImageElement;
@@ -427,21 +431,29 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
   }
 
   toggleSourceMode(): void {
-    const entering = !this.state.sourceMode();
-    this.state.toggleSourceMode();
-    if (entering) {
-      // Show raw [tag] text in the source view rather than chip markup
-      this.mergeTags.stripChipsToRaw(this.canvas);
-      this.refreshOutputs();
-      setTimeout(() => {
-        this.sourceEditorRef.nativeElement.value = this.canvas.innerHTML;
-      });
+    if(this.state.mode() === 'html') {
+      this.state.setMode('design');
     } else {
-      this.canvas.innerHTML = this.sourceEditorRef.nativeElement.value;
-      this.hydrateEditorBlocks();
-      this.mergeTags.renderChipsInElement(this.canvas);
-      this.refreshOutputs();
+      this.state.setMode('html');
     }
+
+
+    this.refreshOutputs();
+    // return;
+    // const entering = !this.state.sourceMode();
+    // this.state.toggleSourceMode();
+    // if (entering) {
+    //   // Show raw [tag] text in the source view rather than chip markup
+    //   this.mergeTags.stripChipsToRaw(this.canvas);
+    //   setTimeout(() => {
+    //     this.sourceEditorRef.nativeElement.value = this.canvas.innerHTML;
+    //   });
+    // } else {
+    //   this.canvas.innerHTML = this.sourceEditorRef.nativeElement.value;
+    //   this.hydrateEditorBlocks();
+    //   this.mergeTags.renderChipsInElement(this.canvas);
+    //   this.refreshOutputs();
+    // }
   }
 
   /**
@@ -467,8 +479,23 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
       <p>If you are still considering coverage, I would be happy to help. As an independent brokerage, we work with a range of leading insurance providers to help you find the right coverage at the lowest available rate.</p>
       <p>If life insurance is still on your to-do list, reply to this email with the best number to reach you, and I will give you a quick call to discuss your options.</p>
     `;
-    this.insertImageBlock({ src: imageSvg, alt: 'Uploaded image', width: 360, height: 203, ratio: 1200 / 675, skipSpacer: true });
-    this.insertVideoBlock({ poster: videoSvg, fileName: 'Video placeholder', alt: 'Video placeholder', width: 360, height: 203, ratio: 16 / 9, skipSpacer: true });
+    this.insertImageBlock({
+      src: imageSvg,
+      alt: 'Uploaded image',
+      width: 360,
+      height: 203,
+      ratio: 1200 / 675,
+      skipSpacer: true,
+    });
+    this.insertVideoBlock({
+      poster: videoSvg,
+      fileName: 'Video placeholder',
+      alt: 'Video placeholder',
+      width: 360,
+      height: 203,
+      ratio: 16 / 9,
+      skipSpacer: true,
+    });
     this.canvas.insertAdjacentHTML('beforeend', '<p>Best regards,<br />Karen Mening</p>');
     this.mergeTags.renderChipsInElement(this.canvas);
     this.selectBlock(null);
@@ -487,7 +514,7 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
     this.utils.transformMediaBlocks(
       clone,
       (v) => this.utils.escapeHtml(v),
-      (v) => this.utils.escapeAttribute(v)
+      (v) => this.utils.escapeAttribute(v),
     );
     const body = clone.innerHTML.trim() || '<p>&nbsp;</p>';
 
