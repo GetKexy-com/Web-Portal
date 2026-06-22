@@ -43,7 +43,7 @@ const html = this.editor.getHtml();                           // export-ready HT
 - **Angular ≥ 17.3** — uses signals, the `output()` function, and `@if`/`@for` control flow.
 - Only `@angular/core` and `@angular/forms`. No third-party libraries, no NgModule, no `provideAnimations`.
 - **Self-contained**: design tokens, base font, and resets are defined in the component stylesheet **scoped to the `kexy-custom-rich-editor` host** (see `kexy-custom-rich-editor.component.css`). Copying this folder + importing the component is enough — **no external CSS required**.
-- To fill available height, give the host's parent a height; otherwise the host falls back to `min-height: 100vh`.
+- The host uses `height: 100%` so it fills whatever height its parent/container gives it, with a `min-height: 360px` fallback for auto-height containers (forms, offcanvas, etc.) — it does NOT force `100vh`. Give the host (or an ancestor) a bounded height to control its size; the internal canvas scrolls when content overflows. Example: the send-email offcanvas sets `kexy-custom-rich-editor { height: calc(100vh - 460px) }` so it fills the panel minus the surrounding form rows.
 
 NOTE: the `editor-test-host.component.ts` / `app.component.ts` in the parent project are just a demo harness — NOT part of this package. Don't copy them.
 

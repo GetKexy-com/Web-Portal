@@ -109,6 +109,13 @@ export class KexyCustomRichEditorComponent implements AfterViewInit {
     return this.state.htmlOutput();
   }
 
+  /** Public API: read the raw, re-editable HTML (merge tags as [tags], media
+   *  blocks kept as editable divs). Persist this and feed it back via [content]
+   *  / loadContent() to resume editing. */
+  getRawHtml(): string {
+    return this.editorCanvasRef.getRawHtml();
+  }
+
   switchMode(mode: EditorMode): void {
     this.state.setMode(mode);
     this.editorCanvasRef.refreshOutputs();

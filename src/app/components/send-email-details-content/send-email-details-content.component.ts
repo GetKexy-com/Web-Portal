@@ -13,7 +13,6 @@ import { KexyButtonComponent } from '../kexy-button/kexy-button.component';
 import { ErrorMessageCardComponent } from '../error-message-card/error-message-card.component';
 import { KexySelectDropdownComponent } from '../kexy-select-dropdown/kexy-select-dropdown.component';
 import { FormsModule } from '@angular/forms';
-import { KexyRichEditorComponent } from '../kexy-rich-editor/kexy-rich-editor.component';
 import { CommonModule } from '@angular/common';
 import { Contact } from '../../models/Contact';
 import { KexyCustomRichEditorComponent } from '../kexy-custom-rich-editor/kexy-custom-rich-editor.component';
@@ -26,7 +25,6 @@ import { KexyCustomRichEditorComponent } from '../kexy-custom-rich-editor/kexy-c
     ErrorMessageCardComponent,
     KexySelectDropdownComponent,
     FormsModule,
-    KexyRichEditorComponent,
     KexyCustomRichEditorComponent,
     CommonModule,
   ],
@@ -163,15 +161,6 @@ export class SendEmailDetailsContentComponent implements OnInit, OnDestroy {
     return this.isLoading;
   };
 
-  updatedEmailContent;
-  rawEditorContent;
-  onEmailContentChange = ({ rawHtml, emailHtml }: { rawHtml: string; emailHtml: string }) => {
-    setTimeout(() => {
-      this.updatedEmailContent = emailHtml;
-      this.rawEditorContent = rawHtml;
-    }, 10);
-  };
-
   onEmailToneSelect = (tone, index = null, rowIndex = null) => {
     this.selectedEmailToneKey = tone.value;
   };
@@ -179,9 +168,13 @@ export class SendEmailDetailsContentComponent implements OnInit, OnDestroy {
   handleSubmit = async () => {
     this.submitted = true;
     this.isLoading = true;
+    // Pull the latest content straight from the editor: getHtml() is the
+    // send-ready inlined email, getRawHtml() is the re-editable source.
+    const emailContent = this.editor?.getHtml() || this.emailContent;
+    const rawEditorContent = this.editor?.getHtml() || this.emailContent;
     this.dripEmail['emailSubject'] = this.emailSubject;
-    this.dripEmail['emailContent'] = this.updatedEmailContent || this.emailContent;
-    this.dripEmail['rawEditorContent'] = this.rawEditorContent;
+    this.dripEmail['emailContent'] = emailContent;
+    this.dripEmail['rawEditorContent'] = rawEditorContent;
     this.dripEmail['emailTone'] = this.selectedEmailToneKey;
     this.dripEmail['emailLength'] = this.selectedEmailLength.value;
     this.dripEmail['isAddUnsubscribeLink'] = this.isCheckedAddUnsubscribeLink ? 1 : 0;
@@ -194,8 +187,8 @@ export class SendEmailDetailsContentComponent implements OnInit, OnDestroy {
     const postData = {
       drip_campaign_email_id: this.dripEmail.id,
       emailSubject: this.dripEmail.emailSubject,
-      emailContent: this.updatedEmailContent,
-      rawEditorContent: this.rawEditorContent,
+      emailContent,
+      rawEditorContent,
       emailTone: this.selectedEmailToneKey,
       emailLength: this.selectedEmailLength.value,
       delayBetweenPreviousEmail: JSON.stringify(this.dripEmail.delayBetweenPreviousEmail),
@@ -226,7 +219,7 @@ export class SendEmailDetailsContentComponent implements OnInit, OnDestroy {
     const websiteData: any = await this.dripCampaignService.getWebsiteData({ contactId: contact.id });
     const locationData: any = await this.dripCampaignService.getLocationData({ contactId: contact.id });
 
-    const content = this.emailSubject + this.emailContent;
+    const content = this.emailSubject + (this.editor?.getHtml() || this.emailContent);
     const data = {
       email_tone: this.selectedEmailToneKey,
       email_number: this.dripEmail.emailSequence,

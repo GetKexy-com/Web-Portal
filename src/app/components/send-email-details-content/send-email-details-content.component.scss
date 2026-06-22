@@ -57,6 +57,18 @@
         select.form-control {
           padding: 12px;
         }
+        // Bound the rich editor's height so its canvas scrolls internally
+        // instead of growing the offcanvas and hiding the buttons below it.
+        // Height = full panel (100vh) minus the other fixed areas around it:
+        //   head-area ~50 + tone/length row ~96 + subject ~96
+        //   + this label/paddings ~60 + unsubscribe row ~60 + bottom buttons ~98
+        //   ≈ 380px of surrounding chrome (the old second editor is gone, so the
+        //   editor can take more of the panel).
+        .ckeditor-wrap kexy-custom-rich-editor {
+          display: block;
+          height: calc(100vh - 380px);
+          min-height: 360px;
+        }
       }
     }
     .bottom-buttons {

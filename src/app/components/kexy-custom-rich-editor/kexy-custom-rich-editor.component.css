@@ -24,7 +24,11 @@ kexy-custom-rich-editor {
 
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  /* Fill whatever height the host/parent provides; fall back to a modest
+     height (NOT 100vh) so the editor doesn't blow out auto-height containers
+     like a form/offcanvas. The internal canvas scrolls when content overflows. */
+  height: 100%;
+  min-height: 360px;
   font-family: Arial, Helvetica, sans-serif;
   color: var(--text);
 }

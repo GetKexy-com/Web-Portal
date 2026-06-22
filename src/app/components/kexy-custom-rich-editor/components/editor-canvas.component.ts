@@ -516,6 +516,21 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
 </html>`;
   }
 
+  /**
+   * Return the editor's raw, re-editable HTML: media blocks stay as editable
+   * `.media-block` divs (with their data-* attributes) and merge tags as raw
+   * `[tags]` — no inline-style email shell. This is what should be persisted
+   * and fed back through setContent() to keep editing later.
+   */
+  getRawHtml(): string {
+    const clone = this.canvas.cloneNode(true) as HTMLElement;
+    clone.querySelectorAll('.selected').forEach(n => n.classList.remove('selected'));
+    clone.querySelectorAll('.resize-handle').forEach(n => n.remove());
+    clone.querySelectorAll('[contenteditable]').forEach(n => n.removeAttribute('contenteditable'));
+    this.mergeTags.stripChipsToRaw(clone);
+    return clone.innerHTML.trim();
+  }
+
   refreshOutputs(): void {
     this.utils.normalizeFontTags(this.canvas);
     if (this.state.sourceMode()) {
