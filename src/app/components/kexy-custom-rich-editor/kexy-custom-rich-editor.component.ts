@@ -7,6 +7,7 @@ import { EditorCanvasComponent } from './components/editor-canvas.component';
 import { EditorToolbarComponent } from './components/editor-toolbar.component';
 import { MediaInspectorComponent } from './components/media-inspector.component';
 import { EditorMode } from './models/editor.models';
+import { environment } from '../../../environments/environment';
 
 /**
  * Self-contained rich email editor.
@@ -83,6 +84,7 @@ export class KexyCustomRichEditorComponent implements AfterViewInit {
 
   readonly state = inject(EditorStateService);
   private readonly utils = inject(EditorUtilsService);
+  private apiUrl: string = environment.baseUrl + `landing-pages/save-image`;
 
   ngAfterViewInit(): void {
     // Wire canvas reference to toolbar and inspector
@@ -148,5 +150,34 @@ export class KexyCustomRichEditorComponent implements AfterViewInit {
 
   onContentChanged(): void {
     // Could trigger change detection or other side effects here
+  }
+
+  async sendFile(file: File): Promise<any> {
+    const base64String = await this.getBase64FromFile(file);
+    const userToken = localStorage.getItem('userToken');
+    if (!userToken) throw new Error('Unauthorized');
+    const authToken = JSON.parse(userToken);
+
+    return new Promise(async (resolve, reject) => {
+      const response: Response = await fetch(this.apiUrl, {
+        method: 'PATCH',
+        body: JSON.stringify({ imageData: base64String }),
+        headers: {
+          'Authorization': `Bearer ${authToken.token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      const responseData = await response.json();
+      resolve({ default: environment.imageUrl + responseData['data'].name });
+    });
+  }
+
+  getBase64FromFile(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = (error) => reject(error);
+      reader.readAsDataURL(file);
+    });
   }
 }

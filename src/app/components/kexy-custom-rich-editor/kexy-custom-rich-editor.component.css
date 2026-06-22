@@ -50,6 +50,9 @@ kexy-custom-rich-editor textarea { font: inherit; }
   display: flex;
   align-items: stretch;
   justify-content: center;
+  height: 100%;
+  height: stretch; /* Future standard */
+  height: -webkit-fill-available; /* Chrome, Safari, Edge */
 }
 
 .editor-modal {
