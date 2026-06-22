@@ -168,10 +168,13 @@ export class SendEmailDetailsContentComponent implements OnInit, OnDestroy {
   handleSubmit = async () => {
     this.submitted = true;
     this.isLoading = true;
-    // Pull the latest content straight from the editor: getHtml() is the
-    // send-ready inlined email, getRawHtml() is the re-editable source.
+    // One source of truth = the raw editor HTML (rawEditorContent). That is what
+    // the editor loads back into design mode and round-trips perfectly.
+    // emailContent is a derived, one-way export: getHtml() inlines styles + wraps
+    // the email shell so the styling survives in the recipient's inbox. It is sent
+    // / previewed, never loaded back into the editor.
+    const rawEditorContent = this.editor?.getRawHtml() || this.emailContent;
     const emailContent = this.editor?.getHtml() || this.emailContent;
-    const rawEditorContent = this.editor?.getHtml() || this.emailContent;
     this.dripEmail['emailSubject'] = this.emailSubject;
     this.dripEmail['emailContent'] = emailContent;
     this.dripEmail['rawEditorContent'] = rawEditorContent;
@@ -219,7 +222,7 @@ export class SendEmailDetailsContentComponent implements OnInit, OnDestroy {
     const websiteData: any = await this.dripCampaignService.getWebsiteData({ contactId: contact.id });
     const locationData: any = await this.dripCampaignService.getLocationData({ contactId: contact.id });
 
-    const content = this.emailSubject + (this.editor?.getHtml() || this.emailContent);
+    const content = this.emailSubject + (this.editor?.getRawHtml() || this.emailContent);
     const data = {
       email_tone: this.selectedEmailToneKey,
       email_number: this.dripEmail.emailSequence,
