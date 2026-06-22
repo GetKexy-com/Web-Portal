@@ -76,6 +76,7 @@
           <p>Tweak the Email to your liking! <span style="text-transform: none; font-size: 14px">(learn more about
             <a (click)="showPersonalizationTagsInfoPopup($event)" href="#">personalization tags</a>)</span></p>
           <div class="ckeditor-wrap">
+            <kexy-custom-rich-editor [content]="emailContent"></kexy-custom-rich-editor>
             <kexy-rich-editor
               [border]="false"
               [content]="emailContent"

@@ -16,6 +16,7 @@ import { FormsModule } from '@angular/forms';
 import { KexyRichEditorComponent } from '../kexy-rich-editor/kexy-rich-editor.component';
 import { CommonModule } from '@angular/common';
 import { Contact } from '../../models/Contact';
+import { KexyCustomRichEditorComponent } from '../kexy-custom-rich-editor/kexy-custom-rich-editor.component';
 
 @Component({
   selector: 'send-email-details-content',
@@ -26,6 +27,7 @@ import { Contact } from '../../models/Contact';
     KexySelectDropdownComponent,
     FormsModule,
     KexyRichEditorComponent,
+    KexyCustomRichEditorComponent,
     CommonModule,
   ],
   templateUrl: './send-email-details-content.component.html',
@@ -56,6 +58,10 @@ export class SendEmailDetailsContentComponent implements OnInit, OnDestroy {
   public isCheckedAddUnsubscribeLink = true;
   public contactList;
 
+  /** Reference to the editor so we can push new content on demand. */
+  @ViewChild(KexyCustomRichEditorComponent) editor!: KexyCustomRichEditorComponent;
+
+
   constructor(
     public activeCanvas: NgbActiveOffcanvas,
     private modal: NgbModal,
@@ -73,7 +79,8 @@ export class SendEmailDetailsContentComponent implements OnInit, OnDestroy {
     console.log(this.dripEmail);
     this.emailContent = this.dripEmail['rawEditorContent'] || this.dripEmail['emailContent'];
     this.emailSubject = this.dripEmail['emailSubject'];
-
+    // Initial content reaches the editor via the [content] input binding in the template.
+    // Do NOT call this.editor.loadContent() here — @ViewChild isn't resolved until ngAfterViewInit.
 
     this.dripCampaignStatusSubscription = this.dripCampaignService.dripCampaignStatus.subscribe(
       (status) => {
@@ -91,6 +98,7 @@ export class SendEmailDetailsContentComponent implements OnInit, OnDestroy {
       (content) => {
         if (content) {
           this.emailContent = content;
+          this.editor?.loadContent(this.emailContent);
         }
       },
     );

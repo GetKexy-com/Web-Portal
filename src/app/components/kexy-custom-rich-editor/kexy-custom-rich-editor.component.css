@@ -1,0 +1,656 @@
+/*
+ * Styles for the Kexy custom rich editor.
+ *
+ * Attached to KexyCustomRichEditorComponent with ViewEncapsulation.None so they
+ * also apply to elements the editor creates imperatively (merge-tag chips,
+ * media blocks, resize handles) which never pass through an Angular template.
+ *
+ * Self-contained: the design tokens below are scoped to the host element, so
+ * dropping this folder into any Angular 17.3+ project and using
+ * <kexy-custom-rich-editor> works with no external CSS.
+ */
+
+/* The editor fills the height it is given by its host */
+kexy-custom-rich-editor {
+  /* Design tokens (scoped to the editor so they don't leak into the host app) */
+  --card: #ffffff;
+  --border: #d7deea;
+  --text: #1f2937;
+  --muted: #6b7280;
+  --primary: #2ea3f2;
+  --primary-dark: #0f84d4;
+  --danger: #dc2626;
+  --shadow: 0 18px 44px rgba(15, 23, 42, 0.12);
+
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  font-family: Arial, Helvetica, sans-serif;
+  color: var(--text);
+}
+
+/* Scoped resets so the editor renders correctly regardless of the host app's globals */
+kexy-custom-rich-editor,
+kexy-custom-rich-editor *,
+kexy-custom-rich-editor *::before,
+kexy-custom-rich-editor *::after { box-sizing: border-box; }
+kexy-custom-rich-editor button { cursor: pointer; }
+kexy-custom-rich-editor button,
+kexy-custom-rich-editor input,
+kexy-custom-rich-editor select,
+kexy-custom-rich-editor textarea { font: inherit; }
+
+.page-shell {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  padding: 22px;
+}
+
+.editor-modal {
+  width: min(760px, calc(100vw - 28px));
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--card);
+  border: 1px solid var(--border);
+  /*border-radius: 5px;*/
+  /*box-shadow: var(--shadow);*/
+  overflow: hidden;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* Highlight the editor border while the editing area (or its toolbar) is focused */
+.editor-modal:focus-within {
+  border-color: var(--primary);
+  /*box-shadow: 0 0 0 3px rgba(46, 163, 242, 0.15);*/
+}
+
+/* Section (toolbar + tabs + canvas) and the canvas grow to fill the modal */
+.editor-modal > section {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+app-editor-canvas {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+  padding: 18px 20px 12px;
+  border-bottom: 1px solid #edf2f7;
+}
+
+.modal-header h1 {
+  margin: 0 0 4px;
+  font-size: 22px;
+}
+
+.modal-header p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+button.primary,
+button.ghost,
+.tab,
+button.small {
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: #fff;
+  color: var(--text);
+}
+
+button.primary {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+  padding: 9px 12px;
+}
+
+button.primary:hover { background: var(--primary-dark); filter: brightness(0.98); }
+button.ghost, .tab, button.small { padding: 9px 12px; }
+button.ghost:hover, .tab:hover, button.small:hover { filter: brightness(0.98); }
+button.danger { background: var(--danger); color: #fff; border: 1px solid var(--danger); }
+button.small { height: 34px; }
+
+/* ── Flat, icon-first toolbar buttons ── */
+button.tool-btn {
+  min-width: 30px;
+  height: 32px;
+  padding: 0 7px;
+  border: none;
+  border-radius: 5px;
+  background: transparent;
+  color: #3f4754;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+button.tool-btn:hover { background: #eef1f6; }
+button.tool-btn.active { background: #e8f3fd; color: #0b72b7; }
+button.tool-btn.with-label { padding: 0 10px; font-size: 13px; font-weight: 600; }
+button.tool-btn.with-caret { padding: 0 6px; gap: 2px; }
+button.tool-btn.fmt { font-size: 15px; }
+button.tool-btn .u { text-decoration: underline; }
+button.tool-btn .hash { font-weight: 700; font-size: 15px; color: #0b72b7; }
+
+.tool-ic { width: 18px; height: 18px; display: block; flex-shrink: 0; }
+.tool-ic.caret { width: 14px; height: 14px; opacity: 0.65; }
+
+.tool-divider {
+  width: 1px;
+  height: 22px;
+  background: #e5e7eb;
+  margin: 0 5px;
+  flex-shrink: 0;
+}
+.tool-divider.spacer { margin-left: auto; }
+
+/* Alignment dropdown */
+.align-tool { position: relative; display: inline-flex; }
+.align-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 9997;
+  display: flex;
+  gap: 2px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.16);
+  padding: 6px;
+}
+
+.email-meta {
+  padding: 14px 20px 10px;
+}
+
+.email-meta label,
+.media-inspector label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.email-meta input,
+.media-inspector input,
+.tool-select,
+.html-output,
+.source-editor {
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 9px 10px;
+  background: #fff;
+}
+
+.editor-card {
+  margin: 0 20px 14px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.toolbar-strip {
+  border-bottom: 1px solid #e9edf3;
+  background: #fff;
+}
+
+.toolbar-scroll {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 2px;
+  align-items: center;
+  padding: 6px 8px;
+  overflow: visible;
+}
+
+/* ── Overflow (⋮) menu holding the secondary tools ── */
+.overflow-tool {
+  position: relative;
+  display: inline-flex;
+}
+
+.overflow-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 9997;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  width: 232px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.18);
+  padding: 10px;
+}
+
+/* Labelled buttons in the overflow (Video, Merge tag) match the bordered controls */
+.overflow-menu .tool-btn.with-label {
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: #fff;
+}
+.overflow-menu .tool-btn.with-label:hover { background: #f1f5f9; }
+
+/* ── Merge tag picker (# toolbar button + dropdown) ── */
+.merge-tag-tool {
+  position: relative;
+  display: inline-flex;
+}
+
+.merge-tag-tool .tool-btn { font-weight: 700; }
+.merge-tag-tool .tool-btn.active { background: #e8f5fe; border-color: #b8dff8; color: #0b72b7; }
+
+.merge-tag-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 9998;
+  width: 262px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.18);
+  padding: 10px;
+}
+
+.merge-tag-search {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 10px 12px;
+  font-size: 14px;
+  color: var(--text);
+  background: #fff;
+  outline: none;
+  margin-bottom: 6px;
+}
+
+.merge-tag-search::placeholder { color: #9aa3b2; }
+.merge-tag-search:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(46, 163, 242, 0.15);
+}
+
+.merge-tag-list {
+  display: flex;
+  flex-direction: column;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.merge-tag-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  border: none;
+  background: transparent;
+  border-radius: 5px;
+  padding: 9px 8px;
+  font-size: 14px;
+  color: var(--text);
+  cursor: pointer;
+  text-align: left;
+}
+
+.merge-tag-option:hover { background: #f1f5f9; }
+
+.merge-tag-badge {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.merge-tag-option-label { font-weight: 500; }
+
+.merge-tag-empty {
+  margin: 8px 10px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.tool-select {
+  height: 32px;
+  padding: 0 8px;
+  font-size: 13px;
+}
+
+.compact-select { width: 98px; }
+.font-select { width: 112px; }
+.mini-select { width: 62px; }
+.format-select {
+  min-width: 132px;
+  height: 32px;
+  padding: 0 8px;
+  font-size: 13px;
+  border-color: #e4e8f0;
+}
+.color-input {
+  width: 32px;
+  height: 32px;
+  padding: 2px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.tab-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-bottom: 1px solid #edf2f7;
+  background: #fff;
+}
+
+.tab.active { background: #e8f5fe; border-color: #b8dff8; color: #0b72b7; }
+.status-pill {
+  margin-left: auto;
+  font-size: 12px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #f5f7fb;
+  border: 1px solid var(--border);
+  color: var(--muted);
+}
+
+.editor-stage,
+.preview-stage { padding: 0; }
+.mode-panel { display: none; }
+.mode-panel.active {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.editor-canvas,
+.source-editor,
+.html-output {
+  width: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 14px;
+  line-height: 1.6;
+  font-size: 14px;
+  overflow-y: auto;
+}
+
+.editor-canvas {
+  outline: none;
+  background: #fff;
+}
+
+.editor-canvas p,
+.editor-canvas h1,
+.editor-canvas h2,
+.editor-canvas h3,
+.editor-canvas ul,
+.editor-canvas ol,
+.editor-canvas blockquote,
+.editor-canvas table {
+  margin-top: 0;
+}
+
+.editor-canvas h1 { font-size: 28px; }
+.editor-canvas h2 { font-size: 22px; }
+.editor-canvas h3 { font-size: 18px; }
+.editor-canvas blockquote {
+  border-left: 4px solid #b8dff8;
+  padding-left: 12px;
+  color: #475569;
+}
+
+.editor-canvas table { width: 100%; border-collapse: collapse; margin-bottom: 14px; }
+.editor-canvas td, .editor-canvas th { border: 1px solid var(--border); padding: 8px; }
+
+/* Checklist (unordered list rendered with checkbox markers) */
+.editor-canvas ul.kx-checklist { list-style: none; padding-left: 4px; }
+.editor-canvas ul.kx-checklist li {
+  position: relative;
+  padding-left: 28px;
+  margin-bottom: 4px;
+}
+.editor-canvas ul.kx-checklist li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 3px;
+  width: 16px;
+  height: 16px;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 5px;
+  background: #fff;
+}
+
+.source-editor,
+.html-output {
+  resize: none;
+  border: 0;
+  border-top: 0;
+}
+
+.html-output {
+  min-height: 0;
+  background: #0f172a;
+  color: #e2e8f0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.preview-stage iframe {
+  width: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
+  border: 0;
+  background: #fff;
+}
+
+/* Media blocks rendered inside contenteditable */
+.media-block {
+  display: block;
+  position: relative;
+  margin-bottom: 14px;
+  border: 2px solid transparent;
+}
+
+.media-block.align-left { margin-left: 0; margin-right: auto; }
+.media-block.align-center { margin-left: auto; margin-right: auto; }
+.media-block.align-right { margin-left: auto; margin-right: 0; }
+.media-block.selected {
+  border-color: #2ea3f2;
+  box-shadow: 0 0 0 3px rgba(46,163,242,0.18);
+}
+
+.image-block img,
+.video-block .video-thumb img {
+  display: block;
+  width: 100%;
+  border-radius: 5px;
+}
+
+.video-block {
+  background: #f8fbff;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.video-thumb {
+  position: relative;
+  background: #111827;
+}
+
+.video-thumb-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(17,24,39,0.85);
+  color: #fff;
+  border-radius: 999px;
+  font-size: 11px;
+  padding: 5px 8px;
+  letter-spacing: 0.4px;
+}
+
+.video-caption {
+  padding: 10px 12px 12px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.resize-handle {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  right: -7px;
+  bottom: -7px;
+  border-radius: 50%;
+  background: #2ea3f2;
+  border: 2px solid #fff;
+  cursor: nwse-resize;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+}
+
+.media-inspector {
+  margin: 0 20px 20px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 14px;
+  background: #f9fbff;
+}
+
+.inspector-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.inspector-header h2 { margin: 0; font-size: 16px; }
+.mini-pill {
+  border: 1px solid #b8dff8;
+  background: #e8f5fe;
+  color: #0b72b7;
+  border-radius: 999px;
+  padding: 4px 8px;
+  font-size: 11px;
+}
+
+.inspector-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1.4fr 100px 100px;
+  gap: 10px;
+  align-items: end;
+}
+
+.inspector-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.align-group { display: flex; gap: 8px; }
+.check-row {
+  flex-direction: row !important;
+  align-items: center;
+  gap: 8px !important;
+}
+
+.inspector-note {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.hidden { display: none !important; }
+
+@media (max-width: 700px) {
+  .page-shell { padding: 10px; }
+  .modal-header { flex-direction: column; }
+  .header-actions { justify-content: flex-start; }
+  .inspector-grid { grid-template-columns: 1fr 1fr; }
+}
+
+/* ── Merge tag chips (design canvas only) ── */
+.merge-tag-chip {
+  display: inline-flex;
+  align-items: center;
+  background: #2ea3f2;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: Arial, Helvetica, sans-serif;
+  padding: 2px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  vertical-align: baseline;
+  line-height: 1.6;
+  transition: background 0.12s;
+}
+
+.merge-tag-chip:hover {
+  background: #0f84d4;
+}
+
+/* A chip that has a fallback configured shows a small marker (color stays blue) */
+.merge-tag-fallback-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  margin-left: 6px;
+  margin-right: -2px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.28);
+  font-size: 11px;
+  line-height: 1;
+}
