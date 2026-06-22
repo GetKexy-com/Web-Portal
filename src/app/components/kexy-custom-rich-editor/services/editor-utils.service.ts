@@ -120,7 +120,12 @@ export class EditorUtilsService {
       const el = block as HTMLElement;
       const align = el.dataset['align'] || 'center';
       const alignAttr = align === 'left' ? 'left' : align === 'right' ? 'right' : 'center';
-      const marginAuto = align === 'center' ? 'auto' : '0';
+      // Full margin per alignment. Centering needs BOTH side margins auto; right
+      // needs left auto; left needs right auto. (margin: top right bottom left)
+      const blockMargin =
+        align === 'right' ? '0 0 16px auto' :
+        align === 'left' ? '0 auto 16px 0' :
+        '0 auto 16px';
       const width = Number(el.dataset['width']) || 320;
       const height = Number(el.dataset['height']) || 180;
       const link = el.dataset['link'] || '';
@@ -133,7 +138,7 @@ export class EditorUtilsService {
           ? `<a href="${escAttr(link)}" target="_blank" rel="noopener" style="text-decoration:none;">${img}</a>`
           : img;
         this.replaceNodeWithHtml(el, `
-          <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="${alignAttr}" style="margin:0 0 16px ${marginAuto}; border-collapse:collapse;">
+          <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="${alignAttr}" style="margin:${blockMargin}; border-collapse:collapse;">
             <tr><td align="${alignAttr}" style="padding:0; border:0;">${content}</td></tr>
           </table>
         `);
@@ -142,7 +147,7 @@ export class EditorUtilsService {
         const poster = el.dataset['poster'] || '';
         const fileName = el.dataset['fileName'] || 'Video';
         this.replaceNodeWithHtml(el, `
-          <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="${alignAttr}" style="margin:0 0 16px ${marginAuto}; border-collapse:collapse; width:${width}px;">
+          <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="${alignAttr}" style="margin:${blockMargin}; border-collapse:collapse; width:${width}px;">
             <tr>
               <td align="${alignAttr}" style="padding:0; border:0;">
                 <a href="${escAttr(href)}" target="_blank" rel="noopener" style="text-decoration:none; display:block;">
