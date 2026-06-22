@@ -38,11 +38,11 @@ import { EditorCanvasComponent } from './editor-canvas.component';
             Preserve ratio
           </label>
           <div class="align-group">
-            <button class="ghost small" (click)="canvas?.applyAlignment('left')">Left</button>
-            <button class="ghost small" (click)="canvas?.applyAlignment('center')">Center</button>
-            <button class="ghost small" (click)="canvas?.applyAlignment('right')">Right</button>
+            <button type="button" class="ghost small" (click)="canvas?.applyAlignment('left')">Left</button>
+            <button type="button" class="ghost small" (click)="canvas?.applyAlignment('center')">Center</button>
+            <button type="button" class="ghost small" (click)="canvas?.applyAlignment('right')">Right</button>
           </div>
-          <button class="danger small" (click)="canvas?.removeSelectedBlock()">Remove</button>
+          <button type="button" class="danger small" (click)="canvas?.removeSelectedBlock()">Remove</button>
         </div>
         <p class="inspector-note">
           Drag the bottom-right handle on the selected image/video to resize directly on canvas.

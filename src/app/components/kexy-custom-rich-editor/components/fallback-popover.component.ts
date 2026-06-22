@@ -174,8 +174,8 @@ export interface PopoverPosition {
           }
         </div>
         <div class="popover-actions">
-          <button class="btn-clear" (click)="clear()">Clear</button>
-          <button class="btn-save" (click)="save()">Save</button>
+          <button type="button" class="btn-clear" (click)="clear()">Clear</button>
+          <button type="button" class="btn-save" (click)="save()">Save</button>
         </div>
       </div>
     }

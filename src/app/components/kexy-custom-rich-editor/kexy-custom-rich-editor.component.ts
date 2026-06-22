@@ -42,17 +42,17 @@ import { EditorMode } from './models/editor.models';
 
           <!-- Tabs -->
           <div class="tab-row">
-            <button
+            <button type="button"
               class="tab"
               [class.active]="state.mode() === 'design'"
               (click)="switchMode('design')"
             >Design</button>
-            <button
+            <button type="button"
               class="tab"
               [class.active]="state.mode() === 'preview'"
               (click)="switchMode('preview')"
             >Preview</button>
-            <button
+            <button type="button"
               class="tab"
               [class.active]="state.mode() === 'html'"
               (click)="switchMode('html')"
