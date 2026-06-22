@@ -91,6 +91,13 @@ export class KexyCustomRichEditorComponent implements AfterViewInit {
     this.toolbarRef.canvas = this.editorCanvasRef;
     this.inspectorRef.canvas = this.editorCanvasRef;
 
+    // Wire image uploads: the toolbar hands us the already-encoded base64 image,
+    // we upload it and return the hosted URL to use as the image src.
+    this.toolbarRef.uploadImage = async (imageData: string) => {
+      const result = await this.sendFile(imageData);
+      return result.default;
+    };
+
     // Load the supplied content, or the built-in sample when none was given
     if (this.content != null) {
       this.loadContent(this.content);
@@ -152,32 +159,26 @@ export class KexyCustomRichEditorComponent implements AfterViewInit {
     // Could trigger change detection or other side effects here
   }
 
-  async sendFile(file: File): Promise<any> {
-    const base64String = await this.getBase64FromFile(file);
+  /**
+   * Upload an already-base64-encoded image (a `data:` URL) to the host's image
+   * API and resolve `{ default: <hosted url> }`. The toolbar encodes the file
+   * once (via EditorUtilsService.readFileAsDataUrl) and passes it in, so there
+   * is no second base64 encode here.
+   */
+  async sendFile(base64String: string): Promise<any> {
     const userToken = localStorage.getItem('userToken');
     if (!userToken) throw new Error('Unauthorized');
     const authToken = JSON.parse(userToken);
 
-    return new Promise(async (resolve, reject) => {
-      const response: Response = await fetch(this.apiUrl, {
-        method: 'PATCH',
-        body: JSON.stringify({ imageData: base64String }),
-        headers: {
-          'Authorization': `Bearer ${authToken.token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-      const responseData = await response.json();
-      resolve({ default: environment.imageUrl + responseData['data'].name });
+    const response: Response = await fetch(this.apiUrl, {
+      method: 'PATCH',
+      body: JSON.stringify({ imageData: base64String }),
+      headers: {
+        'Authorization': `Bearer ${authToken.token}`,
+        'Content-Type': 'application/json',
+      },
     });
-  }
-
-  getBase64FromFile(file: File): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = (error) => reject(error);
-      reader.readAsDataURL(file);
-    });
+    const responseData = await response.json();
+    return { default: environment.imageUrl + responseData['data'].name };
   }
 }

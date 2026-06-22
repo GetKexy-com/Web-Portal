@@ -197,6 +197,14 @@ export class EditorToolbarComponent {
   readonly mergeTags = inject(MergeTagService);
   canvas: EditorCanvasComponent | null = null;
 
+  /**
+   * Optional uploader wired in by the host editor component. Given the image as
+   * a base64 data URL (encoded once here), it uploads and resolves the hosted
+   * image URL to use as the block src. When unset, images fall back to the inline
+   * data URL.
+   */
+  uploadImage: ((imageData: string) => Promise<string>) | null = null;
+
   @ViewChild('mergeSearch') mergeSearchRef?: ElementRef<HTMLInputElement>;
 
   readonly overflowOpen = signal(false);
@@ -282,11 +290,32 @@ export class EditorToolbarComponent {
     const { EditorUtilsService } = await import('../services/editor-utils.service');
     const utils = new EditorUtilsService();
 
-    const dataUrl = await utils.readFileAsDataUrl(file);
-    const ratio = await utils.getImageRatio(dataUrl);
+    // Measure dimensions from an object URL — no base64 needed just for the ratio.
+    const objectUrl = URL.createObjectURL(file);
+    const ratio = await utils.getImageRatio(objectUrl);
+    URL.revokeObjectURL(objectUrl);
     const width = Math.min(420, Math.round(520 * ratio));
     const height = Math.round(width / ratio);
-    this.canvas.insertImageBlock({ src: dataUrl, alt: file.name, width, height, ratio }, true);
+
+    // Encode the file to base64 ONCE here — it's needed both as the upload
+    // payload and as the inline fallback src. Upload to the host's image API and
+    // use the returned hosted URL as the src so the exported email references a
+    // hosted image instead of embedding base64; on failure (or with no uploader)
+    // fall back to the inline data URL we already encoded.
+    const dataUrl = await utils.readFileAsDataUrl(file);
+    let src = dataUrl;
+    if (this.uploadImage) {
+      try {
+        this.state.setStatus('Uploading image…');
+        src = await this.uploadImage(dataUrl);
+        this.state.setStatus('Image uploaded');
+      } catch {
+        this.state.setStatus('Image upload failed — using inline copy');
+        src = dataUrl;
+      }
+    }
+
+    this.canvas.insertImageBlock({ src, alt: file.name, width, height, ratio }, true);
     input.value = '';
   }
 
