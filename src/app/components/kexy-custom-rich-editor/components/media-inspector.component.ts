@@ -41,6 +41,10 @@ import { EditorCanvasComponent } from './editor-canvas.component';
             <button type="button" class="ghost small" (click)="canvas?.applyAlignment('left')">Left</button>
             <button type="button" class="ghost small" (click)="canvas?.applyAlignment('center')">Center</button>
             <button type="button" class="ghost small" (click)="canvas?.applyAlignment('right')">Right</button>
+            @if (!state.isImageBlock(state.selectedBlock())) {
+              <button type="button" class="ghost small" (click)="thumbInput.click()">Upload Video Thumbnail</button>
+              <input #thumbInput type="file" accept="image/*" hidden (change)="onThumbFile($event)" />
+            }
           </div>
           <button type="button" class="danger small" (click)="canvas?.removeSelectedBlock()">Remove</button>
         </div>
@@ -99,5 +103,13 @@ export class MediaInspectorComponent {
 
   onLockChange(event: Event): void {
     this.canvas?.setLockAspect((event.target as HTMLInputElement).checked);
+  }
+
+  /** Replace the selected video's poster with a user-picked image. */
+  onThumbFile(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (file) this.canvas?.replaceSelectedVideoPoster(file);
+    input.value = '';
   }
 }

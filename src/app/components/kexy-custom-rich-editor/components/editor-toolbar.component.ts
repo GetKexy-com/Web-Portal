@@ -393,10 +393,38 @@ export class EditorToolbarComponent {
     const { EditorUtilsService } = await import('../services/editor-utils.service');
     const utils = new EditorUtilsService();
 
-    const placeholder = utils.buildVideoPlaceholderSvg(file.name, 1280, 720);
+    // Grab a real still frame from the video as its thumbnail/poster. On any
+    // failure (codec the browser can't decode, etc.) fall back to the generic
+    // play-button placeholder so insertion always works.
+    let poster: string;
+    let ratio = 16 / 9;
+    try {
+      this.state.setStatus('Capturing video frame…');
+      const frame = await utils.captureVideoPoster(file);
+      ratio = frame.ratio;
+      poster = frame.poster;
+      // Upload the captured frame like images so the exported email references a
+      // hosted poster URL instead of a large base64 string; fall back to inline.
+      if (this.uploadImage) {
+        try {
+          this.state.setStatus('Uploading video thumbnail…');
+          poster = await this.uploadImage(poster);
+          this.state.setStatus('Video thumbnail ready');
+        } catch {
+          this.state.setStatus('Thumbnail upload failed — using inline frame');
+        }
+      } else {
+        this.state.setStatus('Video frame captured');
+      }
+    } catch {
+      poster = utils.buildVideoPlaceholderSvg(file.name, 1280, 720);
+      this.state.setStatus('Could not read video frame — using placeholder');
+    }
+
+    const width = 420;
+    const height = Math.round(width / ratio);
     this.canvas.insertVideoBlock({
-      poster: placeholder, fileName: file.name,
-      alt: file.name, width: 420, height: 236, ratio: 16 / 9
+      poster, fileName: file.name, alt: file.name, width, height, ratio,
     }, true);
     input.value = '';
   }

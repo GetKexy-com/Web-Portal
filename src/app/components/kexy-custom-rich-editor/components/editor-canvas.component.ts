@@ -68,6 +68,10 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
   private mergeTagTarget: 'subject' | 'editor' = 'editor';
   private subjectSavedRange: Range | null = null;
 
+  /** Optional uploader (wired by the host, shared with the toolbar) used to host
+   *  a custom video-poster image. Falls back to an inline data URL when unset. */
+  uploadImage: ((imageData: string) => Promise<string>) | null = null;
+
   private dragState: {
     block: HTMLElement;
     startX: number; startY: number;
@@ -742,6 +746,34 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
     `;
     block.appendChild(this.createResizeHandle());
     this.insertBlock(block, !opts.skipSpacer, undoable);
+    this.refreshOutputs();
+  }
+
+  /**
+   * Replace the selected video block's poster/thumbnail with a custom image
+   * file. Uploads it (hosted URL in exports) via the shared uploader, falling
+   * back to an inline data URL. Updates both the visible <img> and `data-poster`
+   * so design, preview and export all pick up the new thumbnail.
+   */
+  async replaceSelectedVideoPoster(file: File): Promise<void> {
+    const block = this.state.selectedBlock();
+    if (!block || !file || this.state.isImageBlock(block)) return;
+
+    const dataUrl = await this.utils.readFileAsDataUrl(file);
+    let src = dataUrl;
+    if (this.uploadImage) {
+      try {
+        this.state.setStatus('Uploading thumbnail…');
+        src = await this.uploadImage(dataUrl);
+        this.state.setStatus('Thumbnail updated');
+      } catch {
+        this.state.setStatus('Thumbnail upload failed — using inline image');
+        src = dataUrl;
+      }
+    }
+    block.dataset['poster'] = src;
+    const img = block.querySelector('.video-thumb img') as HTMLImageElement | null;
+    if (img) img.src = src;
     this.refreshOutputs();
   }
 

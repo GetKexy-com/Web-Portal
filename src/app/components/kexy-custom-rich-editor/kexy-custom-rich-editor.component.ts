@@ -123,12 +123,15 @@ export class KexyCustomRichEditorComponent implements AfterViewInit {
     this.editorCanvasRef.registerSubject(this.subjectFieldRef.nativeElement);
     if (this.subject != null) this.editorCanvasRef.setSubjectContent(this.subject);
 
-    // Wire image uploads: the toolbar hands us the already-encoded base64 image,
-    // we upload it and return the hosted URL to use as the image src.
-    this.toolbarRef.uploadImage = async (imageData: string) => {
+    // Wire image uploads: given an already-encoded base64 image, upload it and
+    // return the hosted URL. Shared by the toolbar (inserted images / captured
+    // video posters) and the canvas (custom video thumbnail replacement).
+    const uploader = async (imageData: string) => {
       const result = await this.sendFile(imageData);
       return result.default;
     };
+    this.toolbarRef.uploadImage = uploader;
+    this.editorCanvasRef.uploadImage = uploader;
 
     // Load the supplied content, or the built-in sample when none was given
     if (this.content != null) {

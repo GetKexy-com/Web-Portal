@@ -45,6 +45,54 @@ export class EditorUtilsService {
     });
   }
 
+  /**
+   * Grab a still frame from a local video file to use as its poster/thumbnail.
+   * Loads the file into an off-DOM <video> (object URL, same-origin → canvas is
+   * not tainted), seeks slightly past the start to avoid a black first frame,
+   * draws it to a canvas and returns a JPEG data URL plus the real dimensions.
+   * Rejects on error/timeout so the caller can fall back to a placeholder.
+   */
+  captureVideoPoster(file: File, seekTime = 0.2): Promise<{ poster: string; width: number; height: number; ratio: number }> {
+    return new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(file);
+      const video = document.createElement('video');
+      video.preload = 'metadata';
+      video.muted = true;
+      (video as HTMLVideoElement & { playsInline: boolean }).playsInline = true;
+      video.crossOrigin = 'anonymous';
+
+      let settled = false;
+      const cleanup = () => { URL.revokeObjectURL(url); video.removeAttribute('src'); video.load(); };
+      const done = (v: { poster: string; width: number; height: number; ratio: number }) => {
+        if (settled) return; settled = true; clearTimeout(timer); cleanup(); resolve(v);
+      };
+      const fail = (e: unknown) => {
+        if (settled) return; settled = true; clearTimeout(timer); cleanup(); reject(e);
+      };
+      const timer = setTimeout(() => fail(new Error('video poster capture timed out')), 8000);
+
+      video.onloadedmetadata = () => {
+        const dur = isFinite(video.duration) ? video.duration : 0;
+        video.currentTime = dur ? Math.min(seekTime, dur / 2) : 0;
+      };
+      video.onseeked = () => {
+        try {
+          const width = video.videoWidth || 1280;
+          const height = video.videoHeight || 720;
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) { fail(new Error('no 2d context')); return; }
+          ctx.drawImage(video, 0, 0, width, height);
+          done({ poster: canvas.toDataURL('image/jpeg', 0.82), width, height, ratio: width / height || 16 / 9 });
+        } catch (e) { fail(e); }
+      };
+      video.onerror = () => fail(new Error('could not load video for poster capture'));
+      video.src = url;
+    });
+  }
+
   clamp(value: number, min: number, max: number): number {
     return Math.min(max, Math.max(min, value));
   }
@@ -164,11 +212,6 @@ export class EditorUtilsService {
             </tr>
             <tr>
               <td align="${alignAttr}" style="padding:10px 0 0; border:0; font-size:13px; font-family:Arial, Helvetica, sans-serif; font-weight:700; color:#1f2937;">${escHtml(alt || fileName)}</td>
-            </tr>
-            <tr>
-              <td align="${alignAttr}" style="padding:10px 0 0; border:0;">
-                <a href="${escAttr(href)}" target="_blank" rel="noopener" style="display:inline-block; padding:10px 16px; border-radius:999px; background:#111827; color:#ffffff; text-decoration:none; font-size:13px; font-weight:700; font-family:Arial, Helvetica, sans-serif;">&#9654; Watch video</a>
-              </td>
             </tr>
           </table>
         `);
