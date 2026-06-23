@@ -51,6 +51,7 @@
             placeholder="Please Select"
           ></kexy-select-dropdown>
           <app-kexy-button
+            *ngIf="this.dripEmail.templateOptions !== 'template'"
             [label]="isLoading ? 'Please wait...' : 'Generate Email' "
             [disabled]="generateEmailOrSaveDisabled()"
             [title]="disableTitle"
