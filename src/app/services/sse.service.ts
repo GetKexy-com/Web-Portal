@@ -315,8 +315,14 @@ export class SseService {
               // Finalize current email
               const formattedContent = this.__formatEmailContent(emailContent);
 
+              // First email starts almost immediately; the rest keep the default delay.
+              const emailDelay: EmailDelay =
+                emailSequence === 1
+                  ? { days: 0, hours: 0, minutes: 1 }
+                  : delayBetweenPreviousEmail;
+
               const email: DripEmail = {
-                delayBetweenPreviousEmail,
+                delayBetweenPreviousEmail: emailDelay,
                 emailSequence,
                 emailSubject,
                 emailContent: formattedContent,
@@ -348,8 +354,14 @@ export class SseService {
           if (emailSubject && emailContent) {
             const formattedContent = this.__formatEmailContent(emailContent);
 
+            // First email starts almost immediately; the rest keep the default delay.
+            const emailDelay: EmailDelay =
+              emailSequence === 1
+                ? { days: 0, hours: 0, minutes: 1 }
+                : delayBetweenPreviousEmail;
+
             const email: DripEmail = {
-              delayBetweenPreviousEmail,
+              delayBetweenPreviousEmail: emailDelay,
               emailSequence,
               emailSubject,
               emailContent: formattedContent,
