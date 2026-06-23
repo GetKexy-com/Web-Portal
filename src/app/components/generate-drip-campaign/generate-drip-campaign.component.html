@@ -179,7 +179,7 @@
             [emailText]="email.emailText"
             [email]="email"
             [isDelayCard]="true"
-            [emailContacts]="getEmailContactsInAction(i+2)"
+            [emailContacts]="getEmailContactsInAction(email.emailSequence)"
             [showDripCampaignContacts]="showDripCampaignContacts"
             [showDetailsBtnClick]="showEmailDelayBtnClick"
           ></drip-campaign-card>
