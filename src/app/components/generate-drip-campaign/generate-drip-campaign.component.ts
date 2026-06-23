@@ -439,7 +439,7 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
     this.__createRightSideSlide(ActiveContactsInCampaignComponent, 'email-content');
   };
 
-  __createRightSideSlide = (Component, panelClass = 'attributes-bg') => {
+  __createRightSideSlide = (Component, panelClass = 'email-time-settings-slider') => {
     this.ngbOffcanvas.open(Component, {
       panelClass: `${panelClass} edit-rep-canvas`,
       backdropClass: 'edit-rep-canvas-backdrop',
