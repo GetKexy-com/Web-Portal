@@ -21,10 +21,10 @@ import { EditorCanvasComponent } from './editor-canvas.component';
         <span class="tool-divider"></span>
 
         <!-- Lists -->
-        <button type="button" class="tool-btn" title="Bullet list" (click)="canvas?.execCommand('insertUnorderedList')">
+        <button type="button" class="tool-btn" title="Bullet list" [class.active]="ulActive()" (click)="format('insertUnorderedList')">
           <svg class="tool-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><circle cx="3.5" cy="6" r="1.1" fill="currentColor" stroke="none"/><circle cx="3.5" cy="12" r="1.1" fill="currentColor" stroke="none"/><circle cx="3.5" cy="18" r="1.1" fill="currentColor" stroke="none"/></svg>
         </button>
-        <button type="button" class="tool-btn" title="Numbered list" (click)="canvas?.execCommand('insertOrderedList')">
+        <button type="button" class="tool-btn" title="Numbered list" [class.active]="olActive()" (click)="format('insertOrderedList')">
           <svg class="tool-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="10" y1="6" x2="21" y2="6"/><line x1="10" y1="12" x2="21" y2="12"/><line x1="10" y1="18" x2="21" y2="18"/><path d="M4 6h1v4"/><path d="M4 10h2"/><path d="M6 18H4c0-1 2-1.3 2-2.3S5 14 4 14.4"/></svg>
         </button>
         <button type="button" class="tool-btn" title="Checklist" (click)="canvas?.insertChecklist()">
@@ -65,10 +65,10 @@ import { EditorCanvasComponent } from './editor-canvas.component';
         <span class="tool-divider"></span>
 
         <!-- Text format -->
-        <button type="button" class="tool-btn fmt" title="Bold" (click)="canvas?.execCommand('bold')"><strong>B</strong></button>
-        <button type="button" class="tool-btn fmt" title="Italic" (click)="canvas?.execCommand('italic')"><em>I</em></button>
-        <button type="button" class="tool-btn fmt" title="Underline" (click)="canvas?.execCommand('underline')"><span class="u">U</span></button>
-        <button type="button" class="tool-btn fmt" title="Strikethrough" (click)="canvas?.execCommand('strikeThrough')"><s>S</s></button>
+        <button type="button" class="tool-btn fmt" title="Bold" [class.active]="boldActive()" (click)="format('bold')"><strong>B</strong></button>
+        <button type="button" class="tool-btn fmt" title="Italic" [class.active]="italicActive()" (click)="format('italic')"><em>I</em></button>
+        <button type="button" class="tool-btn fmt" title="Underline" [class.active]="underlineActive()" (click)="format('underline')"><span class="u">U</span></button>
+        <button type="button" class="tool-btn fmt" title="Strikethrough" [class.active]="strikeActive()" (click)="format('strikeThrough')"><s>S</s></button>
 
         <span class="tool-divider"></span>
 
@@ -240,6 +240,15 @@ export class EditorToolbarComponent {
   /** Currently-selected font size, e.g. '14px' (drives the size <select>'s value). */
   readonly fontSize = signal('14px');
 
+  // Active-state of the format buttons, synced to the current selection so the
+  // toolbar reflects whether the highlighted text is bold/italic/etc.
+  readonly boldActive = signal(false);
+  readonly italicActive = signal(false);
+  readonly underlineActive = signal(false);
+  readonly strikeActive = signal(false);
+  readonly ulActive = signal(false);
+  readonly olActive = signal(false);
+
   readonly overflowOpen = signal(false);
   readonly alignOpen = signal(false);
   readonly menuOpen = signal(false);
@@ -329,6 +338,31 @@ export class EditorToolbarComponent {
     if (this.alignOpen() && !target.closest('.align-tool')) {
       this.alignOpen.set(false);
     }
+  }
+
+  /** Run a format command, then refresh the toolbar's active states. */
+  format(command: string): void {
+    this.canvas?.execCommand(command);
+    this.syncFormatState();
+  }
+
+  /** Keep the B/I/U/S + list buttons in sync with the current selection. */
+  @HostListener('document:selectionchange')
+  syncFormatState(): void {
+    const el = this.canvas?.canvas;
+    const sel = window.getSelection();
+    // Only reflect the body selection; leave states as-is when the caret is
+    // elsewhere (subject, toolbar inputs, etc.).
+    if (!el || !sel || sel.rangeCount === 0) return;
+    if (!el.contains(sel.getRangeAt(0).commonAncestorContainer)) return;
+    try {
+      this.boldActive.set(document.queryCommandState('bold'));
+      this.italicActive.set(document.queryCommandState('italic'));
+      this.underlineActive.set(document.queryCommandState('underline'));
+      this.strikeActive.set(document.queryCommandState('strikeThrough'));
+      this.ulActive.set(document.queryCommandState('insertUnorderedList'));
+      this.olActive.set(document.queryCommandState('insertOrderedList'));
+    } catch { /* queryCommandState can throw if focus isn't in an editable */ }
   }
 
   onBlockFormat(event: Event): void {
