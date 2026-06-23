@@ -423,7 +423,7 @@ button[disabled] {
 
 .email-content, .contact-slide-content {
   border-radius: 10px 0 0 10px !important;
-  width: 800px !important;
+  width: calc(100% - 200px) !important;
 }
 
 .email-insights {
