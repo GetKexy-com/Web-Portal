@@ -138,18 +138,53 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
   private onBlockDrop = (event: DragEvent): void => {
     if (!this.draggedBlock) return;
     event.preventDefault();
-    const block = this.draggedBlock;
+    const original = this.draggedBlock;
     const range = this.dropRange;
     this.hideDropCaret();
+    original.classList.remove('dragging');
     if (!range || !this.canvas.contains(range.startContainer)) return;
     // Never drop the block into itself / its own subtree.
-    if (range.startContainer === block || block.contains(range.startContainer)) return;
+    if (range.startContainer === original || original.contains(range.startContainer)) return;
 
-    // Precise: insert at the caret — lands between <br> lines, between paragraphs,
-    // inside table cells, etc. (insertNode pre-removes the block from its old spot).
-    range.insertNode(block);
-    this.hoistOutOfParagraph(block);
-    this.selectBlock(block);
+    const selection = window.getSelection();
+    if (!selection) return;
+
+    // Clean HTML for the moved copy — drop transient classes; the resize handle and
+    // draggable/contenteditable attrs stay in the markup so the copy is functional.
+    const clone = original.cloneNode(true) as HTMLElement;
+    clone.classList.remove('dragging', 'selected');
+    const html = clone.outerHTML;
+
+    const before = new Set(this.canvas.querySelectorAll('.media-block'));
+    this.canvas.focus();
+
+    // The move runs through execCommand so it lands on the browser's NATIVE undo
+    // stack (direct DOM moves like range.insertNode are not undoable):
+    //   1) insert the copy at the drop caret (splits the paragraph cleanly),
+    selection.removeAllRanges();
+    selection.addRange(range);
+    document.execCommand('insertHTML', false, html);
+    //   2) delete the original.
+    const delRange = document.createRange();
+    delRange.selectNode(original);
+    selection.removeAllRanges();
+    selection.addRange(delRange);
+    document.execCommand('delete');
+
+    // Safety net: execCommand('delete') intermittently no-ops on a contenteditable
+    // =false block, which would leave the image duplicated (copy + original). If the
+    // original is still attached, remove it directly so it never shows twice. (In
+    // that fallback case this move isn't on the undo stack — correctness over undo.)
+    if (this.canvas.contains(original)) original.remove();
+
+    // Re-hydrate (handles/draggable) and select the moved copy.
+    this.hydrateEditorBlocks();
+    const moved = Array.from(this.canvas.querySelectorAll('.media-block'))
+      .find(b => !before.has(b)) as HTMLElement | undefined;
+    if (moved) {
+      this.hoistOutOfParagraph(moved);
+      this.selectBlock(moved);
+    }
     this.refreshOutputs();
   };
 
