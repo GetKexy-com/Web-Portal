@@ -529,11 +529,31 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
     }
     this.focusEditor();
     const chip = this.mergeTags.createChip(key);
-    // Insert via execCommand so it joins the native undo stack; the trailing
-    // space gives the caret somewhere to continue typing after the chip.
-    document.execCommand('insertHTML', false, chip.outerHTML + '&nbsp;');
+    // Insert at the caret with the Range API (NOT execCommand('insertHTML') —
+    // that promotes the chip to a new line when the caret is at the END of a
+    // paragraph). The trailing space lets the caret continue after the chip.
+    this.insertInlineNodeAtCaret(chip, this.canvas);
+    this.insertInlineNodeAtCaret(document.createTextNode(' '), this.canvas);
     this.saveSelection();
     this.refreshOutputs();
+  }
+
+  /**
+   * Insert a node at the current caret inside `container`, keeping it INLINE
+   * (so a chip at the end of a paragraph stays in that paragraph). Falls back to
+   * appending when there's no usable selection. Mirrors the approved build.
+   */
+  private insertInlineNodeAtCaret(node: Node, container: HTMLElement): void {
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) { container.appendChild(node); return; }
+    const range = selection.getRangeAt(0);
+    if (!container.contains(range.commonAncestorContainer)) { container.appendChild(node); return; }
+    range.deleteContents();
+    range.insertNode(node);
+    range.setStartAfter(node);
+    range.collapse(true);
+    selection.removeAllRanges();
+    selection.addRange(range);
   }
 
   // ── Subject-line API (used by the host editor component + toolbar) ──
@@ -592,8 +612,9 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
     this.subjectEl.focus();
     this.restoreSubjectSelection();
     const chip = this.mergeTags.createChip(key);
-    // execCommand keeps the insert on the subject's native undo stack
-    document.execCommand('insertHTML', false, chip.outerHTML + '&nbsp;');
+    // Caret-based insert (see insertMergeTag) keeps the chip inline at the caret
+    this.insertInlineNodeAtCaret(chip, this.subjectEl);
+    this.insertInlineNodeAtCaret(document.createTextNode(' '), this.subjectEl);
     this.saveSubjectSelection();
     this.refreshOutputs();
   }
