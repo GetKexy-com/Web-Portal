@@ -62,6 +62,23 @@ import { EditorCanvasComponent } from './editor-canvas.component';
           <option value="BLOCKQUOTE">Quote</option>
         </select>
 
+        <!-- Font family -->
+        <select class="tool-select font-select" [style.font-family]="fontFamily()"
+          (mousedown)="canvas?.captureMergeSelection()" (change)="onFontName($event)">
+          @for (font of fontFamilies; track font.value) {
+            <option [value]="font.value" [style.font-family]="font.value"
+              [selected]="font.value === fontFamily()">{{ font.label }}</option>
+          }
+        </select>
+
+        <!-- Font size -->
+        <select class="tool-select mini-select"
+          (mousedown)="canvas?.captureMergeSelection()" (change)="onFontSize($event)">
+          @for (size of fontSizes; track size) {
+            <option [value]="size + 'px'" [selected]="(size + 'px') === fontSize()">{{ size }}</option>
+          }
+        </select>
+
         <span class="tool-divider"></span>
 
         <!-- Text format -->
@@ -111,21 +128,6 @@ import { EditorCanvasComponent } from './editor-canvas.component';
           </button>
           @if (overflowOpen()) {
             <div class="overflow-menu" role="menu">
-              <select class="tool-select font-select" [style.font-family]="fontFamily()"
-                (mousedown)="canvas?.captureMergeSelection()" (change)="onFontName($event)">
-                @for (font of fontFamilies; track font.value) {
-                  <option [value]="font.value" [style.font-family]="font.value"
-                    [selected]="font.value === fontFamily()">{{ font.label }}</option>
-                }
-              </select>
-
-              <select class="tool-select mini-select"
-                (mousedown)="canvas?.captureMergeSelection()" (change)="onFontSize($event)">
-                @for (size of fontSizes; track size) {
-                  <option [value]="size + 'px'" [selected]="(size + 'px') === fontSize()">{{ size }}</option>
-                }
-              </select>
-
               <input #textColor class="color-input" type="color" value="#1f2937" title="Text color"
                 (input)="canvas?.execCommandWithValue('foreColor', textColor.value)" />
               <input #highlightColor class="color-input" type="color" value="#fff2b2" title="Highlight color"
@@ -264,10 +266,6 @@ export class EditorToolbarComponent {
 
   toggleOverflow(): void {
     const opening = !this.overflowOpen();
-    // When opening, reflect the current selection's font in the dropdowns so
-    // they SHOW the active font (not a stale default). The menu is recreated
-    // each open, so this also restores the last-applied value.
-    if (opening) this.syncFontControls();
     this.overflowOpen.set(opening);
     if (!opening) this.menuOpen.set(false);
   }
@@ -363,6 +361,9 @@ export class EditorToolbarComponent {
       this.ulActive.set(document.queryCommandState('insertUnorderedList'));
       this.olActive.set(document.queryCommandState('insertOrderedList'));
     } catch { /* queryCommandState can throw if focus isn't in an editable */ }
+    // Font family/size selects now live in the main strip, so reflect the
+    // current selection's font in them live (they used to sync on overflow-open).
+    this.syncFontControls();
   }
 
   onBlockFormat(event: Event): void {

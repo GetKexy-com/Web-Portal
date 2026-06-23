@@ -270,7 +270,8 @@ button.tool-btn .hash { font-weight: 700; font-size: 15px; color: #0b72b7; }
 
 .toolbar-scroll {
   display: flex;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
+  row-gap: 4px;
   gap: 2px;
   align-items: center;
   padding: 6px 8px;
@@ -401,6 +402,7 @@ button.tool-btn .hash { font-weight: 700; font-size: 15px; color: #0b72b7; }
   height: 32px;
   padding: 0 8px;
   font-size: 13px;
+  flex-shrink: 0;
 }
 
 .compact-select { width: 98px; }
