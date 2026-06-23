@@ -499,6 +499,8 @@ button.tool-btn .hash { font-weight: 700; font-size: 15px; color: #0b72b7; }
   position: relative;
   margin-bottom: 14px;
   border: 2px solid transparent;
+  /* Signals the block can be dragged to reposition it. */
+  cursor: move;
 }
 
 .media-block.align-left { margin-left: 0; margin-right: auto; }
@@ -508,6 +510,18 @@ button.tool-btn .hash { font-weight: 700; font-size: 15px; color: #0b72b7; }
   border-color: #2ea3f2;
   box-shadow: 0 0 0 3px rgba(46,163,242,0.18);
 }
+
+/* The block being dragged to a new position. pointer-events:none is REQUIRED so
+   document.elementFromPoint() during dragover hits the element UNDER the dragged
+   block (e.g. a table cell) instead of the dragged block itself — otherwise drops
+   can't target what's beneath it. */
+.media-block.dragging { opacity: 0.4; pointer-events: none; }
+
+/* Insertion line shown on the hovered element while dragging (no layout shift). */
+.editor-canvas .drop-before { box-shadow: 0 -3px 0 0 var(--primary); }
+.editor-canvas .drop-after { box-shadow: 0 3px 0 0 var(--primary); }
+/* Dropping into an empty container (e.g. a table cell) → outline it. */
+.editor-canvas .drop-into { outline: 2px solid var(--primary); outline-offset: -2px; }
 
 .image-block img,
 .video-block .video-thumb img {

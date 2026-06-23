@@ -65,6 +65,11 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
     width: number; height: number;
     ratio: number; lockAspect: boolean;
   } | null = null;
+  // Native drag-and-drop reposition state. The drop lands inside `container`
+  // (the canvas, or a table cell when hovering one), before/after `ref` — or at
+  // the end of the container when `ref` is null.
+  private draggedBlock: HTMLElement | null = null;
+  private dropTarget: { container: HTMLElement; ref: HTMLElement | null; after: boolean } | null = null;
 
   ngAfterViewInit(): void {
     document.addEventListener('selectionchange', this.onSelectionChange);
@@ -74,6 +79,11 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
     // Delegate resize-handle drags so handles work even when a block is added
     // via insertHTML (undo/redo, source edit, paste) and has no bound listener.
     this.canvas.addEventListener('pointerdown', this.onResizePointerDown);
+    // Native drag-and-drop to reposition media blocks within the canvas.
+    this.canvas.addEventListener('dragstart', this.onBlockDragStart);
+    this.canvas.addEventListener('dragover', this.onBlockDragOver);
+    this.canvas.addEventListener('drop', this.onBlockDrop);
+    this.canvas.addEventListener('dragend', this.onBlockDragEnd);
   }
 
   ngOnDestroy(): void {
@@ -82,6 +92,10 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
     document.removeEventListener('pointerup', this.onPointerUp);
     document.removeEventListener('click', this.onDocumentClick);
     this.canvas.removeEventListener('pointerdown', this.onResizePointerDown);
+    this.canvas.removeEventListener('dragstart', this.onBlockDragStart);
+    this.canvas.removeEventListener('dragover', this.onBlockDragOver);
+    this.canvas.removeEventListener('drop', this.onBlockDrop);
+    this.canvas.removeEventListener('dragend', this.onBlockDragEnd);
   }
 
   private onResizePointerDown = (event: PointerEvent): void => {
@@ -89,6 +103,129 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
       this.startResizeDrag(event);
     }
   };
+
+  // ── Drag-and-drop reposition of media blocks ──
+  private onBlockDragStart = (event: DragEvent): void => {
+    const target = event.target as HTMLElement;
+    // Grabbing the resize handle is a resize, not a move.
+    if (target.closest('.resize-handle')) { event.preventDefault(); return; }
+    const block = target.closest('.media-block') as HTMLElement | null;
+    if (!block || !this.canvas.contains(block)) return;
+    this.draggedBlock = block;
+    if (event.dataTransfer) {
+      event.dataTransfer.effectAllowed = 'move';
+      // Firefox requires data on the transfer for the drag to actually start.
+      event.dataTransfer.setData('text/plain', '');
+    }
+    // Apply the dragging style (opacity + pointer-events:none) on the NEXT tick.
+    // Mutating the dragged element synchronously inside dragstart — pointer-events
+    // in particular — aborts the drag in some browsers before the drag image is
+    // captured. Deferring lets the drag start, then makes the block click-through
+    // so elementFromPoint can target what's underneath (e.g. table cells).
+    setTimeout(() => { if (this.draggedBlock === block) block.classList.add('dragging'); });
+  };
+
+  private onBlockDragOver = (event: DragEvent): void => {
+    if (!this.draggedBlock) return;
+    event.preventDefault(); // required so a drop is allowed here
+    if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
+    this.updateDropIndicator(event.clientX, event.clientY);
+  };
+
+  private onBlockDrop = (event: DragEvent): void => {
+    if (!this.draggedBlock) return;
+    event.preventDefault();
+    const block = this.draggedBlock;
+    const target = this.dropTarget;
+    this.clearDropIndicator();
+    if (!target) return;
+    // Never drop the block into itself or its own subtree.
+    if (target.container === block || block.contains(target.container)) return;
+    if (target.ref === block || (target.ref && block.contains(target.ref))) return;
+
+    block.remove();
+    if (target.ref) {
+      if (target.after) target.ref.after(block);
+      else target.ref.before(block);
+    } else {
+      target.container.appendChild(block);
+    }
+    this.selectBlock(block);
+    this.refreshOutputs();
+  };
+
+  private onBlockDragEnd = (): void => {
+    this.draggedBlock?.classList.remove('dragging');
+    this.clearDropIndicator();
+    this.draggedBlock = null;
+    this.dropTarget = null;
+  };
+
+  /**
+   * Resolve where a drop at (x,y) lands. The drop container is the table cell
+   * under the cursor (so media can be dropped INTO a table), otherwise the
+   * canvas. Within that container the nearest direct child decides before/after;
+   * a null ref means "append to the end of the container".
+   */
+  private dropLocationFromPoint(x: number, y: number):
+    { container: HTMLElement; ref: HTMLElement | null; after: boolean } | null {
+    const el = document.elementFromPoint(x, y) as HTMLElement | null;
+    if (!el || !this.canvas.contains(el)) return null;
+
+    // Climb to the nearest element that directly holds block-level children —
+    // a table cell, list item, blockquote, or a generic <div> (e.g. the wrapper
+    // execCommand puts around paragraphs) — otherwise the canvas itself. We skip
+    // media blocks since we never drop INTO one. This lets a block land BETWEEN
+    // <p>s even when they're nested inside a wrapper div, not just before/after it.
+    let container: HTMLElement | null = el;
+    while (container && container !== this.canvas) {
+      if (!container.classList.contains('media-block') &&
+          container.matches('td, th, li, blockquote, div')) break;
+      container = container.parentElement;
+    }
+    if (!container) container = this.canvas;
+
+    const ref = this.childOfContainerUnderPoint(container, x, y);
+    if (ref) {
+      const rect = ref.getBoundingClientRect();
+      return { container, ref, after: y > rect.top + rect.height / 2 };
+    }
+    return { container, ref: null, after: true };
+  }
+
+  /** The direct child of `container` under the point, or null if none. */
+  private childOfContainerUnderPoint(container: HTMLElement, x: number, y: number): HTMLElement | null {
+    let el = document.elementFromPoint(x, y) as HTMLElement | null;
+    if (!el || !container.contains(el)) return null;
+    while (el && el.parentElement !== container) {
+      el = el.parentElement;
+    }
+    return el && el.parentElement === container ? el : null;
+  }
+
+  /** Show an insertion line on the hovered child and record where a drop lands. */
+  private updateDropIndicator(x: number, y: number): void {
+    this.clearDropIndicator();
+    const loc = this.dropLocationFromPoint(x, y);
+    if (!loc) { this.dropTarget = null; return; }
+    // Skip if the target would be the dragged block itself / its subtree.
+    if (loc.container === this.draggedBlock || (loc.ref && loc.ref === this.draggedBlock)) {
+      this.dropTarget = null; return;
+    }
+    this.dropTarget = loc;
+    if (loc.ref) {
+      loc.ref.classList.add(loc.after ? 'drop-after' : 'drop-before');
+    } else {
+      // Dropping into an empty container (e.g. an empty cell) → outline it.
+      loc.container.classList.add('drop-into');
+    }
+  }
+
+  private clearDropIndicator(): void {
+    this.canvas.querySelectorAll('.drop-before, .drop-after, .drop-into').forEach(el =>
+      el.classList.remove('drop-before', 'drop-after', 'drop-into')
+    );
+  }
 
   get canvas(): HTMLDivElement {
     return this.canvasRef.nativeElement;
@@ -287,6 +424,7 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
     const block = document.createElement('div');
     block.className = 'media-block image-block align-center';
     block.contentEditable = 'false';
+    block.setAttribute('draggable', 'true'); // allow drag-to-reposition in the canvas
     block.dataset['kind'] = 'image';
     block.dataset['src'] = opts.src;
     block.dataset['alt'] = opts.alt || '';
@@ -316,6 +454,7 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
     const block = document.createElement('div');
     block.className = 'media-block video-block align-center';
     block.contentEditable = 'false';
+    block.setAttribute('draggable', 'true'); // allow drag-to-reposition in the canvas
     block.dataset['kind'] = 'video';
     block.dataset['poster'] = opts.poster;
     block.dataset['fileName'] = opts.fileName || 'Video';
@@ -651,6 +790,7 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
       if (!el.dataset['align']) el.dataset['align'] = 'center';
       el.classList.add(`align-${el.dataset['align']}`);
       el.contentEditable = 'false';
+      el.setAttribute('draggable', 'true'); // allow drag-to-reposition in the canvas
     });
   }
 }
