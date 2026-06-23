@@ -469,6 +469,23 @@ button.tool-btn .hash { font-weight: 700; font-size: 15px; color: #0b72b7; }
   overflow: visible;
 }
 
+/* ── Defend editor typography against host global font resets ──
+   The host app sets `font-family: "Lato", sans-serif !important` on a broad
+   element/reset list (src/styles.scss), which would force ALL editor text to
+   Lato and stop applied fonts from showing. Re-assert the editor base font on
+   the canvas/subject and their children with higher-specificity !important so
+   the host reset loses. User-applied fonts STILL win: applyFontFamily writes an
+   inline `!important` declaration, and an inline !important outranks any
+   selector !important. */
+kexy-custom-rich-editor .editor-canvas,
+kexy-custom-rich-editor .email-meta .subject-input {
+  font-family: Arial, Helvetica, sans-serif !important;
+}
+kexy-custom-rich-editor .editor-canvas *,
+kexy-custom-rich-editor .email-meta .subject-input * {
+  font-family: inherit !important;
+}
+
 .editor-canvas p,
 .editor-canvas h1,
 .editor-canvas h2,

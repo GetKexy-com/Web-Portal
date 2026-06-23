@@ -385,6 +385,30 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
     }
   }
 
+  /** The element holding the current selection/caret inside the body (or null). */
+  private selectionAnchorEl(): HTMLElement | null {
+    const sel = window.getSelection();
+    const range = (sel && sel.rangeCount && this.canvas.contains(sel.getRangeAt(0).commonAncestorContainer))
+      ? sel.getRangeAt(0)
+      : this.savedRange;
+    if (!range || !this.canvas.contains(range.commonAncestorContainer)) return null;
+    const node = range.commonAncestorContainer;
+    return node.nodeType === Node.TEXT_NODE ? node.parentElement : (node as HTMLElement);
+  }
+
+  /** Computed font-family of the current selection (for toolbar sync), or null. */
+  getSelectionFontFamily(): string | null {
+    const el = this.selectionAnchorEl();
+    return el ? getComputedStyle(el).fontFamily : null;
+  }
+
+  /** Computed font-size in px of the current selection (for toolbar sync), or null. */
+  getSelectionFontSize(): string | null {
+    const el = this.selectionAnchorEl();
+    if (!el) return null;
+    return `${Math.round(parseFloat(getComputedStyle(el).fontSize || '14'))}px`;
+  }
+
   focusEditor(): void {
     this.restoreSelection();
     this.canvas.focus();
@@ -419,13 +443,26 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
    * so we wrap the selection in an inline-styled <span> like the approved build.
    */
   applyFontSize(px: string): void {
-    this.applyInlineTextStyle({ fontSize: px });
+    this.applyInlineTextStyle({ 'font-size': px });
+  }
+
+  /**
+   * Apply a font family to the selection. NOT execCommand('fontName') — that
+   * emits a `<font face>` attribute (weakest priority) which the host app's
+   * global `font-family: ... !important` reset overrides, so picked fonts never
+   * showed. An inline `!important` declaration (written by applyInlineTextStyle)
+   * beats a selector `!important`, so the chosen font wins.
+   */
+  applyFontFamily(family: string): void {
+    this.applyInlineTextStyle({ 'font-family': family });
   }
 
   /**
    * Wrap the current (non-collapsed) selection in a <span> carrying the given
    * inline styles. Supports any px value; collapses redundant nested spans.
-   * Mirrors the approved standalone's applyInlineTextStyle.
+   * Styles are written with `!important` so they survive host global resets
+   * (e.g. `* { font-family: "Lato" !important }`). Mirrors the approved build.
+   * Keys must be CSS property names (kebab-case), e.g. 'font-family'.
    */
   applyInlineTextStyle(styleMap: Record<string, string>): void {
     if (this.state.sourceMode()) return;
@@ -436,8 +473,8 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
     if (range.collapsed || !this.canvas.contains(range.commonAncestorContainer)) return;
 
     const span = document.createElement('span');
-    Object.entries(styleMap).forEach(([key, value]) => {
-      (span.style as unknown as Record<string, string>)[key] = value;
+    Object.entries(styleMap).forEach(([prop, value]) => {
+      span.style.setProperty(prop, value, 'important');
     });
     const fragment = range.extractContents();
     span.appendChild(fragment);

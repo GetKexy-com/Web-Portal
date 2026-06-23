@@ -111,15 +111,18 @@ import { EditorCanvasComponent } from './editor-canvas.component';
           </button>
           @if (overflowOpen()) {
             <div class="overflow-menu" role="menu">
-              <select class="tool-select font-select" [style.font-family]="fontFamily()" (change)="onFontName($event)">
+              <select class="tool-select font-select" [style.font-family]="fontFamily()"
+                (mousedown)="canvas?.captureMergeSelection()" (change)="onFontName($event)">
                 @for (font of fontFamilies; track font.value) {
-                  <option [value]="font.value" [style.font-family]="font.value">{{ font.label }}</option>
+                  <option [value]="font.value" [style.font-family]="font.value"
+                    [selected]="font.value === fontFamily()">{{ font.label }}</option>
                 }
               </select>
 
-              <select class="tool-select mini-select" (change)="onFontSize($event)">
+              <select class="tool-select mini-select"
+                (mousedown)="canvas?.captureMergeSelection()" (change)="onFontSize($event)">
                 @for (size of fontSizes; track size) {
-                  <option [value]="size + 'px'" [selected]="size === 14">{{ size }}</option>
+                  <option [value]="size + 'px'" [selected]="(size + 'px') === fontSize()">{{ size }}</option>
                 }
               </select>
 
@@ -232,8 +235,10 @@ export class EditorToolbarComponent {
     8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 20, 22, 24, 26, 28, 32, 36, 40, 48, 56, 64, 72,
   ];
 
-  /** Drives the font-family <select>'s own preview face. */
+  /** Currently-selected font family (drives the <select>'s value + preview face). */
   readonly fontFamily = signal(this.fontFamilies[0].value);
+  /** Currently-selected font size, e.g. '14px' (drives the size <select>'s value). */
+  readonly fontSize = signal('14px');
 
   readonly overflowOpen = signal(false);
   readonly alignOpen = signal(false);
@@ -249,8 +254,34 @@ export class EditorToolbarComponent {
   });
 
   toggleOverflow(): void {
-    this.overflowOpen.update(v => !v);
-    if (!this.overflowOpen()) this.menuOpen.set(false);
+    const opening = !this.overflowOpen();
+    // When opening, reflect the current selection's font in the dropdowns so
+    // they SHOW the active font (not a stale default). The menu is recreated
+    // each open, so this also restores the last-applied value.
+    if (opening) this.syncFontControls();
+    this.overflowOpen.set(opening);
+    if (!opening) this.menuOpen.set(false);
+  }
+
+  /** Point the font/size dropdowns at the current selection's font. */
+  private syncFontControls(): void {
+    const family = this.canvas?.getSelectionFontFamily();
+    if (family) {
+      const first = this.normalizeFamily(family);
+      const match = this.fontFamilies.find(f => this.normalizeFamily(f.value) === first);
+      if (match) this.fontFamily.set(match.value);
+    }
+    const size = this.canvas?.getSelectionFontSize();
+    if (size) {
+      const px = parseInt(size, 10);
+      const closest = this.fontSizes.reduce((a, b) => Math.abs(b - px) < Math.abs(a - px) ? b : a);
+      this.fontSize.set(closest + 'px');
+    }
+  }
+
+  /** First family token, lower-cased and unquoted, for fuzzy matching. */
+  private normalizeFamily(value: string): string {
+    return (value.split(',')[0] || '').replace(/["']/g, '').trim().toLowerCase();
   }
 
   toggleAlign(): void {
@@ -308,11 +339,12 @@ export class EditorToolbarComponent {
   onFontName(event: Event): void {
     const value = (event.target as HTMLSelectElement).value;
     this.fontFamily.set(value);
-    this.canvas?.execCommandWithValue('fontName', value);
+    this.canvas?.applyFontFamily(value);
   }
 
   onFontSize(event: Event): void {
     const value = (event.target as HTMLSelectElement).value;
+    this.fontSize.set(value);
     this.canvas?.applyFontSize(value);
   }
 
