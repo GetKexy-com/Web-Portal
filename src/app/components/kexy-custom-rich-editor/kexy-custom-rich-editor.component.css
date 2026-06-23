@@ -602,13 +602,16 @@ kexy-custom-rich-editor .email-meta .subject-input * {
   background: #111827;
 }
 
-/* Centered play overlay drawn over the thumbnail. Added via a pseudo-element so
-   it appears on EVERY .video-thumb (real captured frames + already-saved videos)
-   without touching the block markup or export. Built to stay visible on ANY
-   thumbnail color: a semi-transparent dark disc (stands out on light frames) +
-   a white ring and white triangle (stand out on dark frames) + a drop shadow.
-   Size scales with the thumbnail (clamp + % width) and stays circular. */
-.video-thumb::after {
+/* Design-view-only play overlay, drawn via a pseudo-element. It is SUPPRESSED on
+   blocks whose poster already has the play button baked into the image
+   (`.has-baked-overlay` — set for captured frames, custom thumbnails and the
+   placeholder SVG) so it isn't drawn twice; those carry the overlay through
+   export/preview/email via the image itself. It still renders for legacy
+   already-saved videos whose posters predate baking, so they keep a play button
+   in design view. Built to stay visible on ANY thumbnail color: a semi-
+   transparent dark disc (light frames) + a white ring and white triangle (dark
+   frames) + a drop shadow. Size scales with the thumbnail and stays circular. */
+.video-block:not(.has-baked-overlay) .video-thumb::after {
   content: "";
   position: absolute;
   /* inset:0 + margin:auto centers a fixed-size box in BOTH axes, reliably. */
@@ -618,10 +621,14 @@ kexy-custom-rich-editor .email-meta .subject-input * {
   aspect-ratio: 1 / 1;
   border-radius: 50%;
   background-color: rgba(17, 24, 39, 0.5);
-  background-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Cpolygon%20points='40,28%2040,72%2074,50'%20fill='white'/%3E%3C/svg%3E");
+  /* Triangle points chosen so the polygon's CENTROID is at (50,50) of the
+     viewBox — centroid x = (39+39+73)/3 = 50.3, y = (30+70+50)/3 = 50 — so the
+     play icon's optical center sits dead-center in the disc with plain
+     `background-position: center` (no horizontal nudge needed). */
+  background-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Cpolygon%20points='39,30%2039,70%2073,50'%20fill='white'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
-  background-position: 55% center;
-  background-size: 46%;
+  background-position: center;
+  background-size: 21%;
   border: 2px solid rgba(255, 255, 255, 0.92);
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.45);
   pointer-events: none;
