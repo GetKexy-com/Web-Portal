@@ -517,11 +517,8 @@ button.tool-btn .hash { font-weight: 700; font-size: 15px; color: #0b72b7; }
    can't target what's beneath it. */
 .media-block.dragging { opacity: 0.4; pointer-events: none; }
 
-/* Insertion line shown on the hovered element while dragging (no layout shift). */
-.editor-canvas .drop-before { box-shadow: 0 -3px 0 0 var(--primary); }
-.editor-canvas .drop-after { box-shadow: 0 3px 0 0 var(--primary); }
-/* Dropping into an empty container (e.g. a table cell) → outline it. */
-.editor-canvas .drop-into { outline: 2px solid var(--primary); outline-offset: -2px; }
+/* The drop position while dragging is shown by a thin caret element created in
+   the canvas component (position:fixed, appended to <body>), not by a CSS class. */
 
 .image-block img,
 .video-block .video-thumb img {

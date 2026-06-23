@@ -65,11 +65,13 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
     width: number; height: number;
     ratio: number; lockAspect: boolean;
   } | null = null;
-  // Native drag-and-drop reposition state. The drop lands inside `container`
-  // (the canvas, or a table cell when hovering one), before/after `ref` — or at
-  // the end of the container when `ref` is null.
+  // Native drag-and-drop reposition state. The drop lands at the caret position
+  // under the cursor (dropRange), so a block can be placed between <br> lines and
+  // anywhere else, not just before/after block elements. dropCaretEl is the thin
+  // insertion-caret indicator shown during the drag.
   private draggedBlock: HTMLElement | null = null;
-  private dropTarget: { container: HTMLElement; ref: HTMLElement | null; after: boolean } | null = null;
+  private dropRange: Range | null = null;
+  private dropCaretEl: HTMLElement | null = null;
 
   ngAfterViewInit(): void {
     document.addEventListener('selectionchange', this.onSelectionChange);
@@ -96,6 +98,7 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
     this.canvas.removeEventListener('dragover', this.onBlockDragOver);
     this.canvas.removeEventListener('drop', this.onBlockDrop);
     this.canvas.removeEventListener('dragend', this.onBlockDragEnd);
+    this.dropCaretEl?.remove();
   }
 
   private onResizePointerDown = (event: PointerEvent): void => {
@@ -129,102 +132,115 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
     if (!this.draggedBlock) return;
     event.preventDefault(); // required so a drop is allowed here
     if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
-    this.updateDropIndicator(event.clientX, event.clientY);
+    this.updateDropCaret(event.clientX, event.clientY);
   };
 
   private onBlockDrop = (event: DragEvent): void => {
     if (!this.draggedBlock) return;
     event.preventDefault();
     const block = this.draggedBlock;
-    const target = this.dropTarget;
-    this.clearDropIndicator();
-    if (!target) return;
-    // Never drop the block into itself or its own subtree.
-    if (target.container === block || block.contains(target.container)) return;
-    if (target.ref === block || (target.ref && block.contains(target.ref))) return;
+    const range = this.dropRange;
+    this.hideDropCaret();
+    if (!range || !this.canvas.contains(range.startContainer)) return;
+    // Never drop the block into itself / its own subtree.
+    if (range.startContainer === block || block.contains(range.startContainer)) return;
 
-    block.remove();
-    if (target.ref) {
-      if (target.after) target.ref.after(block);
-      else target.ref.before(block);
-    } else {
-      target.container.appendChild(block);
-    }
+    // Precise: insert at the caret — lands between <br> lines, between paragraphs,
+    // inside table cells, etc. (insertNode pre-removes the block from its old spot).
+    range.insertNode(block);
+    this.hoistOutOfParagraph(block);
     this.selectBlock(block);
     this.refreshOutputs();
   };
 
   private onBlockDragEnd = (): void => {
     this.draggedBlock?.classList.remove('dragging');
-    this.clearDropIndicator();
+    this.hideDropCaret();
     this.draggedBlock = null;
-    this.dropTarget = null;
+    this.dropRange = null;
   };
 
+  /** Caret Range at a viewport point (cross-browser). */
+  private caretRangeFromPoint(x: number, y: number): Range | null {
+    const doc = document as any;
+    if (typeof doc.caretRangeFromPoint === 'function') {
+      return doc.caretRangeFromPoint(x, y);
+    }
+    if (typeof doc.caretPositionFromPoint === 'function') {
+      const pos = doc.caretPositionFromPoint(x, y);
+      if (!pos) return null;
+      const r = document.createRange();
+      r.setStart(pos.offsetNode, pos.offset);
+      r.collapse(true);
+      return r;
+    }
+    return null;
+  }
+
+  /** Track the caret under the cursor and show a thin insertion caret there. */
+  private updateDropCaret(x: number, y: number): void {
+    const range = this.caretRangeFromPoint(x, y);
+    if (
+      !range ||
+      !this.canvas.contains(range.startContainer) ||
+      range.startContainer === this.draggedBlock ||
+      (this.draggedBlock?.contains(range.startContainer))
+    ) {
+      this.dropRange = null;
+      this.hideDropCaret();
+      return;
+    }
+    this.dropRange = range;
+    this.showDropCaret(range);
+  }
+
+  private ensureDropCaret(): HTMLElement {
+    if (!this.dropCaretEl) {
+      const el = document.createElement('div');
+      el.style.position = 'fixed';
+      el.style.width = '2px';
+      el.style.background = '#2ea3f2';
+      el.style.pointerEvents = 'none';
+      el.style.zIndex = '99999';
+      el.style.display = 'none';
+      document.body.appendChild(el);
+      this.dropCaretEl = el;
+    }
+    return this.dropCaretEl;
+  }
+
+  private showDropCaret(range: Range): void {
+    let rect = range.getBoundingClientRect();
+    if (rect.height === 0 && rect.width === 0) {
+      // A collapsed caret can yield an empty rect; fall back to its line element.
+      const node = range.startContainer;
+      const el = (node.nodeType === Node.TEXT_NODE ? node.parentElement : node) as HTMLElement | null;
+      const elRect = el?.getBoundingClientRect();
+      if (elRect) rect = elRect;
+    }
+    const caret = this.ensureDropCaret();
+    caret.style.display = 'block';
+    caret.style.left = `${rect.left}px`;
+    caret.style.top = `${rect.top}px`;
+    caret.style.height = `${rect.height || 18}px`;
+  }
+
+  private hideDropCaret(): void {
+    if (this.dropCaretEl) this.dropCaretEl.style.display = 'none';
+  }
+
   /**
-   * Resolve where a drop at (x,y) lands. The drop container is the table cell
-   * under the cursor (so media can be dropped INTO a table), otherwise the
-   * canvas. Within that container the nearest direct child decides before/after;
-   * a null ref means "append to the end of the container".
+   * After a caret insert, if the block landed at the very start or end of a
+   * paragraph/heading, move it OUT as a sibling so we don't nest a block inside a
+   * <p>. Interior inserts (e.g. between two <br> lines) are left in place.
    */
-  private dropLocationFromPoint(x: number, y: number):
-    { container: HTMLElement; ref: HTMLElement | null; after: boolean } | null {
-    const el = document.elementFromPoint(x, y) as HTMLElement | null;
-    if (!el || !this.canvas.contains(el)) return null;
-
-    // Climb to the nearest element that directly holds block-level children —
-    // a table cell, list item, blockquote, or a generic <div> (e.g. the wrapper
-    // execCommand puts around paragraphs) — otherwise the canvas itself. We skip
-    // media blocks since we never drop INTO one. This lets a block land BETWEEN
-    // <p>s even when they're nested inside a wrapper div, not just before/after it.
-    let container: HTMLElement | null = el;
-    while (container && container !== this.canvas) {
-      if (!container.classList.contains('media-block') &&
-          container.matches('td, th, li, blockquote, div')) break;
-      container = container.parentElement;
+  private hoistOutOfParagraph(block: HTMLElement): void {
+    const parent = block.parentElement;
+    if (!parent || parent === this.canvas) return;
+    if (/^(P|H1|H2|H3|H4|H5|H6)$/.test(parent.tagName)) {
+      if (!block.previousSibling) parent.before(block);
+      else if (!block.nextSibling) parent.after(block);
     }
-    if (!container) container = this.canvas;
-
-    const ref = this.childOfContainerUnderPoint(container, x, y);
-    if (ref) {
-      const rect = ref.getBoundingClientRect();
-      return { container, ref, after: y > rect.top + rect.height / 2 };
-    }
-    return { container, ref: null, after: true };
-  }
-
-  /** The direct child of `container` under the point, or null if none. */
-  private childOfContainerUnderPoint(container: HTMLElement, x: number, y: number): HTMLElement | null {
-    let el = document.elementFromPoint(x, y) as HTMLElement | null;
-    if (!el || !container.contains(el)) return null;
-    while (el && el.parentElement !== container) {
-      el = el.parentElement;
-    }
-    return el && el.parentElement === container ? el : null;
-  }
-
-  /** Show an insertion line on the hovered child and record where a drop lands. */
-  private updateDropIndicator(x: number, y: number): void {
-    this.clearDropIndicator();
-    const loc = this.dropLocationFromPoint(x, y);
-    if (!loc) { this.dropTarget = null; return; }
-    // Skip if the target would be the dragged block itself / its subtree.
-    if (loc.container === this.draggedBlock || (loc.ref && loc.ref === this.draggedBlock)) {
-      this.dropTarget = null; return;
-    }
-    this.dropTarget = loc;
-    if (loc.ref) {
-      loc.ref.classList.add(loc.after ? 'drop-after' : 'drop-before');
-    } else {
-      // Dropping into an empty container (e.g. an empty cell) → outline it.
-      loc.container.classList.add('drop-into');
-    }
-  }
-
-  private clearDropIndicator(): void {
-    this.canvas.querySelectorAll('.drop-before, .drop-after, .drop-into').forEach(el =>
-      el.classList.remove('drop-before', 'drop-after', 'drop-into')
-    );
   }
 
   get canvas(): HTMLDivElement {
