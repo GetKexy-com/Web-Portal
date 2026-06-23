@@ -50,6 +50,12 @@ import { EditorCanvasComponent } from './editor-canvas.component';
         <button type="button" class="tool-btn" title="Insert link" (click)="canvas?.insertLink()">
           <svg class="tool-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
         </button>
+        <button type="button" class="tool-btn" title="Remove link" (click)="canvas?.unlink()">
+          <svg class="tool-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 17H7A5 5 0 0 1 7 7h2"/><path d="M15 7h2a5 5 0 0 1 3.5 8.5"/><line x1="8" y1="12" x2="12" y2="12"/><line x1="2" y1="2" x2="22" y2="22"/></svg>
+        </button>
+        <button type="button" class="tool-btn" title="Insert table" (click)="canvas?.insertTable(2, 2)">
+          <svg class="tool-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
+        </button>
 
         <span class="tool-divider"></span>
 
@@ -86,6 +92,14 @@ import { EditorCanvasComponent } from './editor-canvas.component';
         <button type="button" class="tool-btn fmt" title="Italic" [class.active]="italicActive()" (click)="format('italic')"><em>I</em></button>
         <button type="button" class="tool-btn fmt" title="Underline" [class.active]="underlineActive()" (click)="format('underline')"><span class="u">U</span></button>
         <button type="button" class="tool-btn fmt" title="Strikethrough" [class.active]="strikeActive()" (click)="format('strikeThrough')"><s>S</s></button>
+
+        <span class="tool-divider"></span>
+
+        <!-- Text / highlight color -->
+        <input #textColor class="color-input" type="color" value="#1f2937" title="Text color"
+          (input)="canvas?.execCommandWithValue('foreColor', textColor.value)" />
+        <input #highlightColor class="color-input" type="color" value="#fff2b2" title="Highlight color"
+          (input)="canvas?.execCommandWithValue('hiliteColor', highlightColor.value)" />
 
         <span class="tool-divider"></span>
 
@@ -128,17 +142,6 @@ import { EditorCanvasComponent } from './editor-canvas.component';
           </button>
           @if (overflowOpen()) {
             <div class="overflow-menu" role="menu">
-              <input #textColor class="color-input" type="color" value="#1f2937" title="Text color"
-                (input)="canvas?.execCommandWithValue('foreColor', textColor.value)" />
-              <input #highlightColor class="color-input" type="color" value="#fff2b2" title="Highlight color"
-                (input)="canvas?.execCommandWithValue('hiliteColor', highlightColor.value)" />
-
-              <button type="button" class="tool-btn" title="Insert table" (click)="canvas?.insertTable(2, 2)">
-                <svg class="tool-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
-              </button>
-              <button type="button" class="tool-btn" title="Remove link" (click)="canvas?.unlink()">
-                <svg class="tool-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 17H7A5 5 0 0 1 7 7h2"/><path d="M15 7h2a5 5 0 0 1 3.5 8.5"/><line x1="8" y1="12" x2="12" y2="12"/><line x1="2" y1="2" x2="22" y2="22"/></svg>
-              </button>
               <button type="button" class="tool-btn with-label" title="Insert video" (click)="videoFileInput.click()">
                 <svg class="tool-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 8-6 4 6 4V8Z"/><rect x="2" y="6" width="14" height="12" rx="2"/></svg>
                 <span>Video</span>

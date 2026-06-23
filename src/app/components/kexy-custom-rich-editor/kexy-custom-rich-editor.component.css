@@ -423,6 +423,7 @@ button.tool-btn .hash { font-weight: 700; font-size: 15px; color: #0b72b7; }
   border-radius: 5px;
   background: #fff;
   cursor: pointer;
+  flex-shrink: 0;
 }
 
 .tab-row {
