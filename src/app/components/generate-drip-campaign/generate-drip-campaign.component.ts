@@ -436,7 +436,7 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
 
   showDripCampaignContacts = (prospects) => {
     this.dripCampaignService.emailProspects = prospects;
-    this.__createRightSideSlide(ActiveContactsInCampaignComponent, 'email-content');
+    this.__createRightSideSlide(ActiveContactsInCampaignComponent, 'contact-slide-content');
   };
 
   __createRightSideSlide = (Component, panelClass = 'email-time-settings-slider') => {

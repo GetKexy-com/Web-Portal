@@ -421,9 +421,13 @@ button[disabled] {
   width: 900px !important;
 }
 
-.email-content, .contact-slide-content {
+.email-content {
   border-radius: 10px 0 0 10px !important;
   width: calc(100% - 200px) !important;
+}
+.contact-slide-content {
+  border-radius: 10px 0 0 10px !important;
+  width: 800px !important;
 }
 
 .email-insights {
