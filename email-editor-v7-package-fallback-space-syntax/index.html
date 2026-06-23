@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Compact Email Editor Demo</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="page-shell">
+    <div class="editor-modal">
+      <div class="modal-header">
+        <div>
+          <h1>Email Content Editor</h1>
+          <p>Compact toolbar layout sized for the same editor region as your current modal.</p>
+        </div>
+        <div class="header-actions">
+          <button id="loadSampleBtn" class="ghost">Load sample</button>
+          <button id="copyHtmlBtn" class="ghost">Copy HTML</button>
+          <button id="downloadHtmlBtn" class="primary">Download HTML</button>
+        </div>
+      </div>
+
+      <div class="email-meta">
+        <label>
+          Subject line
+          <div id="subjectInput" class="subject-input" contenteditable="true" spellcheck="true">You recently requested information about life insurance</div>
+        </label>
+      </div>
+
+      <section class="editor-card">
+        <div class="toolbar-strip">
+          <div class="toolbar-scroll">
+            <button class="tool-btn icon-only" data-source-toggle="true" title="Source">&lt;/&gt;</button>
+            <button class="tool-btn icon-only" data-cmd="undo" title="Undo">↶</button>
+            <button class="tool-btn icon-only" data-cmd="redo" title="Redo">↷</button>
+            <select id="blockFormat" class="tool-select compact-select" title="Paragraph style">
+              <option value="P">Paragraph</option>
+              <option value="H1">Heading 1</option>
+              <option value="H2">Heading 2</option>
+              <option value="H3">Heading 3</option>
+              <option value="BLOCKQUOTE">Quote</option>
+            </select>
+            <select id="fontName" class="tool-select compact-select font-select" title="Font family">
+              <option value="Arial, sans-serif">Arial</option>
+              <option value="Helvetica, Arial, sans-serif">Helvetica</option>
+              <option value="Verdana, sans-serif">Verdana</option>
+              <option value="Tahoma, sans-serif">Tahoma</option>
+              <option value="Trebuchet MS, sans-serif">Trebuchet MS</option>
+              <option value="Gill Sans, sans-serif">Gill Sans</option>
+              <option value="Lucida Sans Unicode, sans-serif">Lucida Sans</option>
+              <option value="Segoe UI, Arial, sans-serif">Segoe UI</option>
+              <option value="Geneva, sans-serif">Geneva</option>
+              <option value="Georgia, serif">Georgia</option>
+              <option value="Times New Roman, serif">Times New Roman</option>
+              <option value="Palatino, serif">Palatino</option>
+              <option value="Garamond, serif">Garamond</option>
+              <option value="Baskerville, serif">Baskerville</option>
+              <option value="Cambria, serif">Cambria</option>
+              <option value="Courier New, monospace">Courier New</option>
+              <option value="Lucida Console, monospace">Lucida Console</option>
+              <option value="Monaco, monospace">Monaco</option>
+              <option value="Impact, sans-serif">Impact</option>
+              <option value="Arial Black, sans-serif">Arial Black</option>
+              <option value="Comic Sans MS, cursive">Comic Sans MS</option>
+            </select>
+            <select id="fontSize" class="tool-select mini-select" title="Font size">
+              <option value="8px">8</option>
+              <option value="9px">9</option>
+              <option value="10px">10</option>
+              <option value="11px">11</option>
+              <option value="12px">12</option>
+              <option value="13px">13</option>
+              <option value="14px" selected>14</option>
+              <option value="15px">15</option>
+              <option value="16px">16</option>
+              <option value="18px">18</option>
+              <option value="20px">20</option>
+              <option value="22px">22</option>
+              <option value="24px">24</option>
+              <option value="26px">26</option>
+              <option value="28px">28</option>
+              <option value="32px">32</option>
+              <option value="36px">36</option>
+              <option value="40px">40</option>
+              <option value="48px">48</option>
+              <option value="56px">56</option>
+              <option value="64px">64</option>
+              <option value="72px">72</option>
+            </select>
+            <button class="tool-btn icon-only" data-cmd="bold" title="Bold"><strong>B</strong></button>
+            <button class="tool-btn icon-only" data-cmd="italic" title="Italic"><em>I</em></button>
+            <button class="tool-btn icon-only" data-cmd="underline" title="Underline"><u>U</u></button>
+            <button class="tool-btn icon-only" data-cmd="strikeThrough" title="Strikethrough"><s>S</s></button>
+            <button class="tool-btn icon-only" data-cmd="insertUnorderedList" title="Bulleted list">•</button>
+            <button class="tool-btn icon-only" data-cmd="insertOrderedList" title="Numbered list">1.</button>
+          </div>
+          <button id="toolbarMoreBtn" class="tool-btn icon-only toolbar-more-btn" title="More">⋮</button>
+          <div id="toolbarOverflowMenu" class="toolbar-overflow-menu hidden">
+            <div class="toolbar-overflow-inner">
+              <button class="tool-btn icon-only" data-cmd="justifyLeft" title="Align left">⟸</button>
+              <button class="tool-btn icon-only" data-cmd="justifyCenter" title="Align center">≡</button>
+              <button class="tool-btn icon-only" data-cmd="justifyRight" title="Align right">⟹</button>
+              <button id="linkBtn" class="tool-btn icon-only" title="Insert link">🔗</button>
+              <button id="unlinkBtn" class="tool-btn icon-only" title="Remove link">⛓</button>
+              <button id="tableBtn" class="tool-btn icon-only" title="Insert table">▦</button>
+              <button id="mergeTagBtn" class="tool-btn icon-only" title="Merge tags">#</button>
+              <input id="textColor" class="color-input" type="color" value="#1f2937" title="Text color" />
+              <input id="highlightColor" class="color-input" type="color" value="#fff2b2" title="Highlight color" />
+              <button id="uploadImageBtn" class="tool-btn icon-only accent" title="Upload image">🖼</button>
+              <button id="uploadVideoBtn" class="tool-btn icon-only accent" title="Upload video">▶</button>
+            </div>
+          </div>
+          <div id="mergeTagMenu" class="merge-tag-menu hidden">
+            <div class="merge-tag-menu-inner">
+              <input id="mergeTagSearch" class="merge-tag-search" type="text" placeholder="Search merge tags" />
+              <div id="mergeTagList" class="merge-tag-list"></div>
+            </div>
+          </div>
+          <div id="mergeTagFallbackMenu" class="merge-tag-fallback-menu hidden">
+            <div class="merge-tag-fallback-inner">
+              <div class="merge-tag-fallback-header">
+                <button id="mergeTagFallbackBackBtn" class="ghost icon-only small" type="button" title="Back">↩</button>
+                <span>Fallback</span>
+              </div>
+              <label class="merge-tag-fallback-field">
+                <span id="mergeTagFallbackLabel" class="merge-tag-fallback-label">If we can't find this merge tag</span>
+                <input id="mergeTagFallbackInput" type="text" placeholder="there" />
+              </label>
+              <div class="merge-tag-fallback-actions">
+                <button id="mergeTagFallbackClearBtn" class="ghost small" type="button">Clear</button>
+                <button id="mergeTagFallbackSaveBtn" class="primary small" type="button">Save</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-row">
+          <button class="tab active" data-mode="design">Design</button>
+          <button class="tab" data-mode="preview">Preview</button>
+          <button class="tab" data-mode="html">HTML</button>
+          <span id="statusBadge" class="status-pill">Ready</span>
+        </div>
+
+        <div class="editor-stage mode-panel active" data-panel="design">
+          <div class="design-frame">
+            <div id="editorCanvas" class="editor-canvas" contenteditable="true" spellcheck="true"></div>
+            <textarea id="sourceEditor" class="source-editor hidden" spellcheck="false"></textarea>
+          </div>
+        </div>
+
+        <div class="preview-stage mode-panel" data-panel="preview">
+          <div class="preview-frame-wrap">
+            <iframe id="previewFrame" title="Email preview"></iframe>
+          </div>
+        </div>
+
+        <div class="mode-panel" data-panel="html">
+          <textarea id="htmlOutput" class="html-output" spellcheck="false"></textarea>
+        </div>
+      </section>
+
+      <section id="mediaInspector" class="media-inspector hidden">
+        <div class="inspector-header">
+          <h2>Selected media</h2>
+          <span id="selectedTypeBadge" class="mini-pill"></span>
+        </div>
+        <div class="inspector-grid">
+          <label>
+            Alt / label
+            <input id="mediaAltInput" type="text" />
+          </label>
+          <label>
+            Click URL
+            <input id="mediaLinkInput" type="text" placeholder="https://example.com" />
+          </label>
+          <label>
+            Width
+            <input id="mediaWidthInput" type="number" min="40" max="1200" step="1" inputmode="numeric" />
+          </label>
+          <label>
+            Height
+            <input id="mediaHeightInput" type="number" min="40" max="1200" step="1" inputmode="numeric" />
+          </label>
+        </div>
+        <div class="selected-media-preview-card">
+          <div id="selectedMediaPreview" class="selected-media-preview-frame">Select an image or video block to preview it here.</div>
+          <div id="selectedMediaMeta" class="selected-media-meta">No media selected</div>
+        </div>
+        <div class="inspector-actions">
+          <label class="check-row">
+            <input id="lockAspectInput" type="checkbox" checked />
+            Preserve ratio
+          </label>
+          <div class="align-group">
+            <button id="alignLeftBtn" class="ghost small">Left</button>
+            <button id="alignCenterBtn" class="ghost small">Center</button>
+            <button id="alignRightBtn" class="ghost small">Right</button>
+          </div>
+          <div class="video-poster-actions">
+            <button id="changeVideoPosterBtn" class="ghost small hidden">Video thumbnail</button>
+          </div>
+          <button id="removeMediaBtn" class="danger small">Remove</button>
+        </div>
+        <p class="inspector-note">Drag the bottom-right handle on the selected image/video to resize directly on canvas. Video thumbnail changes now update instantly in both the block and this preview area, and the play overlay stays visible. Uploaded videos are exported as email-safe thumbnail links, not inline playable video.</p>
+      </section>
+
+      <input id="imageFileInput" type="file" accept="image/*" hidden />
+      <input id="videoFileInput" type="file" accept="video/*" hidden />
+      <input id="videoPosterFileInput" type="file" accept="image/*" hidden />
+    </div>
+  </div>
+  <script src="./app.js"></script>
+</body>
+</html>

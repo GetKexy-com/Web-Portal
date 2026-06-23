@@ -3,18 +3,21 @@ import { Injectable, signal } from '@angular/core';
 export interface MergeTag {
   key: string;           // e.g. "receiver_first_name"
   label: string;         // e.g. "First Name"
-  fallback: string;      // e.g. "there"
 }
 
 @Injectable({ providedIn: 'root' })
 export class MergeTagService {
-  /** All known merge tags with their current fallback values */
+  /**
+   * All known merge tags. Fallback is NOT stored here — it lives PER CHIP on
+   * `chip.dataset.mergeFallback`, so two chips of the same tag can carry
+   * different fallbacks (matches the approved standalone build).
+   */
   private readonly tags = signal<MergeTag[]>([
-    { key: 'receiver_first_name', label: 'First Name',     fallback: '' },
-    { key: 'receiver_last_name',  label: 'Last Name',      fallback: '' },
-    { key: 'receiver_phone',      label: 'Phone Number',   fallback: '' },
-    { key: 'receiver_email',      label: 'E-Mail Address', fallback: '' },
-    { key: 'website',             label: 'Website',        fallback: '' },
+    { key: 'receiver_first_name',    label: 'First Name' },
+    { key: 'receiver_last_name',     label: 'Last Name' },
+    { key: 'receiver_phone_number',  label: 'Phone Number' },
+    { key: 'receiver_email_address', label: 'E-Mail Address' },
+    { key: 'receiver_website',       label: 'Website' },
   ]);
 
   getAll(): MergeTag[] {
@@ -32,23 +35,24 @@ export class MergeTagService {
   }
 
   /** Build a styled, non-editable chip element for a merge tag key. */
-  createChip(key: string): HTMLElement {
+  createChip(key: string, fallback = ''): HTMLElement {
     const chip = document.createElement('span');
     chip.className = 'merge-tag-chip';
     chip.contentEditable = 'false';
     chip.dataset['mergeKey'] = key;
+    chip.dataset['mergeFallback'] = fallback;
     chip.textContent = this.labelFor(key);
     this.decorateChip(chip);
     return chip;
   }
 
   /**
-   * Show or hide the "fallback set" marker on a chip based on the current
-   * fallback for its key. Call after the fallback changes to keep chips in sync.
+   * Show or hide the "fallback set" marker on a chip based on THIS chip's own
+   * fallback (`dataset.mergeFallback`). Call after the fallback changes to keep
+   * the chip in sync.
    */
   decorateChip(chip: HTMLElement): void {
-    const key = chip.dataset['mergeKey'] || '';
-    const fallback = this.getTag(key)?.fallback ?? '';
+    const fallback = (chip.dataset['mergeFallback'] ?? '').trim();
     const hasFallback = fallback.length > 0;
     chip.classList.toggle('has-fallback', hasFallback);
 
@@ -67,19 +71,15 @@ export class MergeTagService {
     }
   }
 
-  setFallback(key: string, fallback: string): void {
-    this.tags.update(list =>
-      list.map(t => t.key === key ? { ...t, fallback } : t)
-    );
-  }
-
   /**
    * Regex that matches [snake_case_tag] with an optional fallback, e.g.
    *   [receiver_first_name]
-   *   [receiver_first_name fallback=there]
-   * Group 1 = key, group 2 = fallback text (undefined when absent).
+   *   [receiver_first_name fallback=there]   (canonical space syntax)
+   *   [receiver_first_name|fallback=there]   (legacy pipe syntax — parsed, never emitted)
+   * Group 1 = key, group 2 = space-syntax fallback, group 3 = legacy pipe fallback
+   * (each undefined when absent). Use `match[2] ?? match[3]` to read the fallback.
    */
-  static readonly TAG_REGEX = /\[([a-z][a-z0-9_]*)(?:\s+fallback=([^\]]*))?]/g;
+  static readonly TAG_REGEX = /\[([a-z][a-z0-9_]*)(?:\s+fallback=([^\]]*)|\|fallback=([^\]]*))?]/g;
 
   /** Serialize a tag back to raw text, only emitting fallback when set. */
   static buildRawTag(key: string, fallback: string): string {
@@ -110,12 +110,10 @@ export class MergeTagService {
         }
         // The chip span
         const key = match[1];
-        const rawFallback = match[2];
-        // Seed the per-key fallback from the text when one is present
-        if (rawFallback !== undefined) {
-          this.setFallback(key, rawFallback);
-        }
-        const chip = this.createChip(key);
+        // Accept canonical space syntax (group 2) or legacy pipe syntax (group 3)
+        const rawFallback = match[2] ?? match[3];
+        // Carry the fallback onto the chip itself (per-chip, not per-key)
+        const chip = this.createChip(key, rawFallback ?? '');
         frag.appendChild(chip);
         lastIndex = match.index + match[0].length;
       }
@@ -133,9 +131,10 @@ export class MergeTagService {
    */
   stripChipsToRaw(root: HTMLElement): void {
     root.querySelectorAll('.merge-tag-chip').forEach(chip => {
-      const key = (chip as HTMLElement).dataset['mergeKey'] || '';
-      const tag = this.getTag(key);
-      const raw = MergeTagService.buildRawTag(key, tag?.fallback ?? '');
+      const el = chip as HTMLElement;
+      const key = el.dataset['mergeKey'] || '';
+      const fallback = (el.dataset['mergeFallback'] ?? '').trim();
+      const raw = MergeTagService.buildRawTag(key, fallback);
       chip.replaceWith(document.createTextNode(raw));
     });
   }

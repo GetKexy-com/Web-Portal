@@ -81,9 +81,10 @@ Wiring: the host component (`ngAfterViewInit`) injects the `EditorCanvasComponen
 ## Key concepts & decisions
 
 ### Merge tags
-- Syntax in HTML: `[snake_case_key]` with optional fallback `[key fallback=some value]`.
+- Canonical keys (must match the approved build + the backend's send-time resolver): `receiver_first_name`, `receiver_last_name`, `receiver_phone_number`, `receiver_email_address`, `receiver_website`. (These were briefly wrong — `receiver_phone`/`receiver_email`/`website` — a post-integration regression; fixed back to canonical.)
+- Syntax in HTML: `[snake_case_key]` with optional fallback `[key fallback=some value]` (canonical **space** syntax). Legacy **pipe** syntax `[key|fallback=…]` is *parsed* for back-compat (`TAG_REGEX` group 3) but **never emitted** — `buildRawTag` always writes the space form.
 - In the design canvas they render as **blue pill chips** (label, e.g. "First Name"); on export they're stripped back to raw `[key]` / `[key fallback=…]`.
-- Registry + per-key fallback live in `MergeTagService` (`getAll`, `getTag`, `setFallback`, `createChip`, `decorateChip`, `renderChipsInElement`, `stripChipsToRaw`, `TAG_REGEX`, `buildRawTag`).
+- **Fallback is stored PER CHIP** on `chip.dataset.mergeFallback` (NOT per-key) so two chips of the same tag can carry different fallbacks — matches the approved build. The `MergeTagService` registry holds only `key` + `label`. Relevant methods: `getAll`, `getTag`, `labelFor`, `createChip(key, fallback?)`, `decorateChip` (reads the chip's own dataset), `renderChipsInElement`, `stripChipsToRaw` (reads the chip's own dataset), `TAG_REGEX`, `buildRawTag`. The fallback popover writes straight to `currentChip.dataset.mergeFallback`.
 - Fallback defaults are empty — `fallback=` is only emitted when a fallback is actually set.
 - Clicking a chip opens the **fallback popover**; it shows an **undo (↺) icon** once you change the value (reverts to the value it opened with). When a fallback is set, the chip shows a small **↩ marker** (and `has-fallback` class) — color stays blue.
 - The toolbar **`#` picker** (in the overflow menu) has a search box and inserts a chip at the caret.
@@ -93,10 +94,21 @@ Wiring: the host component (`ngAfterViewInit`) injects the `EditorCanvasComponen
 - Single line, flat **inline-SVG icons**, grouped with `.tool-divider` separators.
 - Order: Source(`</>`) │ lists (bullet/numbered/checklist) │ undo/redo │ image/link │ Paragraph select │ B I U S │ alignment dropdown │ (spacer) │ `⋮` overflow.
 - The `⋮` **overflow menu** holds secondary tools: font family, font size, text/highlight color, table, remove-link, video, merge-tag `#` picker.
+- **Font lists must match the approved build** (`fontFamilies`/`fontSizes` arrays on the toolbar component): 21 families (Arial…Comic Sans MS), each `<option>` previewing in its own face via `[style.font-family]`; 22 sizes (8–72px, 14 default). Don't truncate these (they regressed to 5/6 once).
+- Opening the merge `#` picker first calls `canvas.captureMergeSelection()` so the caret (body OR subject) is saved before the picker's search input autofocuses and steals it.
 - Dropdowns (overflow, merge-tag, alignment) anchor with `right: 0` and close on outside-click via a single `document:click` HostListener. They MUST be right-anchored because `.editor-modal` has `overflow: hidden` — a left-anchored menu near the right edge gets clipped.
 
+### Subject line (chips, shared toolbar)
+- The subject is a **contenteditable** rendered by the host editor component (`.email-meta .subject-input`, above the toolbar), NOT a host `<input>`. It supports the same merge-tag chips as the body — this matches the approved build (the standalone's `subjectInput`).
+- Logic lives in `EditorCanvasComponent` (it already owns `MergeTagService` + the fallback popover). The host component registers the element via `editorCanvas.registerSubject(el)` in `ngAfterViewInit`.
+- `mergeTagTarget: 'subject' | 'editor'` decides where the toolbar `#` picker inserts. It's derived from **where the caret actually is** — `saveSelection()` sets it to `'editor'` when the range is in the body, `saveSubjectSelection()` sets it to `'subject'` when in the subject (both run on every `selectionchange`).
+- `insertMergeTagIntoSubject` restores the saved subject range, then `execCommand('insertHTML', chip+'&nbsp;')` (undoable). Public API on the host component: `@Input() subject`, `(subjectChanged)` output (emits serialized raw on input/blur), `getSubject()` (= `serializeSubjectRaw()`: clone → `stripChipsToRaw` → `textContent`, raw `[tokens]`), `setSubject(raw)` (= `setSubjectContent`: text → `renderChipsInElement`).
+- Subject chips hydrate on **load** and on **blur** (NOT live while typing — same caret rule as the body). Clicking a subject chip opens the same fallback popover (`onSubjectClick`); `refreshChipIndicators` re-decorates chips in BOTH the body and the subject.
+- Host wiring (`send-email-details-content`): `[subject]="emailSubject" (subjectChanged)="emailSubject = $event"`; `handleSubmit`/`generateEmailContent` read `editor.getSubject()`; the SSE subject push calls `editor.setSubject()`.
+
 ### Canvas / editing (`editor-canvas.component.ts`)
-- Built on `document.execCommand` (deprecated but works in all current browsers). Bold/italic/lists/align/font/color/link all go through execCommand and are natively undoable.
+- Built on `document.execCommand` (deprecated but works in all current browsers). Bold/italic/lists/align/color/link go through execCommand and are natively undoable.
+- **Font SIZE** is NOT execCommand (the legacy `fontSize` 1–7 scale can't express arbitrary px). `applyFontSize(px)` → `applyInlineTextStyle({fontSize})` wraps the selection in an inline-styled `<span>` (then `normalizeStyledSpans` collapses nested spans), matching the approved build. Trade-off: font-size changes are NOT on the native undo stack (acceptable — correctness over undo, as in the approved build). Font FAMILY still uses `execCommand('fontName')` (exported via `normalizeFontTags`).
 - **Undo correctness**: anything inserted via direct DOM mutation is NOT on the browser undo stack. So table, merge-tag chips, images, and videos are inserted via `execCommand('insertHTML', …)` so Undo/Redo works. (Table also appends a `<p><br></p>` spacer.)
 - **Resize handles use event delegation** (`onResizePointerDown` on the canvas), NOT per-element listeners — so media blocks inserted as HTML (insertHTML / undo-redo / source edit / paste) stay resizable. `createResizeHandle()` only creates the div.
 - `insertImageBlock(opts, undoable=false)` / `insertVideoBlock(opts, undoable=false)`: toolbar passes `undoable:true` (uses `insertHTML` + `insertBlock` helper); programmatic sample loading uses `false` (direct append, no undo needed).
@@ -108,8 +120,8 @@ Wiring: the host component (`ngAfterViewInit`) injects the `EditorCanvasComponen
 
 ### Layout / styling
 - All editor styles live in `kexy-custom-rich-editor.component.css`, applied globally via `ViewEncapsulation.None` (REQUIRED — chips, media blocks and resize handles are created imperatively and never pass through an Angular template, so scoped styles wouldn't reach them).
-- Full height via a flex chain: host (flex column) → `.page-shell` (flex:1) → `.editor-modal` (flex column) → `section` → `app-editor-canvas` → active `.mode-panel` → canvas (`flex:1; overflow-y:auto`).
-- Focus highlight: `.editor-modal:focus-within` (the modal is the real bordered box; there is NO `.editor-card` element in the template even though the class exists in CSS).
+- Full height via a flex chain: host (flex column) → `.page-shell` (flex:1) → `.editor-modal` (flex column) → `section` (flex:1; children = `.email-meta` subject row [above the toolbar, flex:0 0 auto], toolbar, `.tab-row`, `app-editor-canvas`) → active `.mode-panel` → canvas (`flex:1; overflow-y:auto`). The `app-media-inspector` ("Selected media") is the last child of `.editor-modal` with `flex:0 0 auto`. To keep the editor from SHRINKING when it appears, `.editor-modal` is `overflow-y:auto` and `section` has `min-height: calc(100% - 90px)` (≈ the subject block height) so flex can't shrink it — the inspector pushes the column past the viewport and the whole `.editor-modal` scrolls instead. The canvas still scrolls inside `section`.
+- The bordered "card" is the inner `<section>` (border/background/radius/overflow + `:focus-within` highlight live there), NOT `.editor-modal` (which is just a layout column). This is deliberate: the `.email-meta` subject line sits ABOVE `<section>` and OUTSIDE its border, so it reads as a separate field. There is NO `.editor-card` element in the template even though the class exists in CSS.
 - Border radii: boxes/controls/menus = **5px**; pill shapes (chips, status pill) = `999px`; true circles (the `#` badge in the picker, resize handle, fallback ↩ marker) = `50%`.
 
 ---

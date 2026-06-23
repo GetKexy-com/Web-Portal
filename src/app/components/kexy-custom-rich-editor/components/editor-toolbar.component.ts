@@ -111,21 +111,16 @@ import { EditorCanvasComponent } from './editor-canvas.component';
           </button>
           @if (overflowOpen()) {
             <div class="overflow-menu" role="menu">
-              <select class="tool-select font-select" (change)="onFontName($event)">
-                <option value="Arial, sans-serif">Arial</option>
-                <option value="Helvetica, Arial, sans-serif">Helvetica</option>
-                <option value="Georgia, serif">Georgia</option>
-                <option value="Tahoma, sans-serif">Tahoma</option>
-                <option value="Verdana, sans-serif">Verdana</option>
+              <select class="tool-select font-select" [style.font-family]="fontFamily()" (change)="onFontName($event)">
+                @for (font of fontFamilies; track font.value) {
+                  <option [value]="font.value" [style.font-family]="font.value">{{ font.label }}</option>
+                }
               </select>
 
               <select class="tool-select mini-select" (change)="onFontSize($event)">
-                <option value="12px">12</option>
-                <option value="14px" selected>14</option>
-                <option value="16px">16</option>
-                <option value="18px">18</option>
-                <option value="20px">20</option>
-                <option value="24px">24</option>
+                @for (size of fontSizes; track size) {
+                  <option [value]="size + 'px'" [selected]="size === 14">{{ size }}</option>
+                }
               </select>
 
               <input #textColor class="color-input" type="color" value="#1f2937" title="Text color"
@@ -207,6 +202,39 @@ export class EditorToolbarComponent {
 
   @ViewChild('mergeSearch') mergeSearchRef?: ElementRef<HTMLInputElement>;
 
+  /** Approved font-family list (each option previews in its own face). */
+  readonly fontFamilies: ReadonlyArray<{ value: string; label: string }> = [
+    { value: 'Arial, sans-serif',                  label: 'Arial' },
+    { value: 'Helvetica, Arial, sans-serif',       label: 'Helvetica' },
+    { value: 'Verdana, sans-serif',                label: 'Verdana' },
+    { value: 'Tahoma, sans-serif',                 label: 'Tahoma' },
+    { value: 'Trebuchet MS, sans-serif',           label: 'Trebuchet MS' },
+    { value: 'Gill Sans, sans-serif',              label: 'Gill Sans' },
+    { value: 'Lucida Sans Unicode, sans-serif',    label: 'Lucida Sans' },
+    { value: 'Segoe UI, Arial, sans-serif',        label: 'Segoe UI' },
+    { value: 'Geneva, sans-serif',                 label: 'Geneva' },
+    { value: 'Georgia, serif',                     label: 'Georgia' },
+    { value: 'Times New Roman, serif',             label: 'Times New Roman' },
+    { value: 'Palatino, serif',                    label: 'Palatino' },
+    { value: 'Garamond, serif',                    label: 'Garamond' },
+    { value: 'Baskerville, serif',                 label: 'Baskerville' },
+    { value: 'Cambria, serif',                     label: 'Cambria' },
+    { value: 'Courier New, monospace',             label: 'Courier New' },
+    { value: 'Lucida Console, monospace',          label: 'Lucida Console' },
+    { value: 'Monaco, monospace',                  label: 'Monaco' },
+    { value: 'Impact, sans-serif',                 label: 'Impact' },
+    { value: 'Arial Black, sans-serif',            label: 'Arial Black' },
+    { value: 'Comic Sans MS, cursive',             label: 'Comic Sans MS' },
+  ];
+
+  /** Approved font-size list (px). */
+  readonly fontSizes: ReadonlyArray<number> = [
+    8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 20, 22, 24, 26, 28, 32, 36, 40, 48, 56, 64, 72,
+  ];
+
+  /** Drives the font-family <select>'s own preview face. */
+  readonly fontFamily = signal(this.fontFamilies[0].value);
+
   readonly overflowOpen = signal(false);
   readonly alignOpen = signal(false);
   readonly menuOpen = signal(false);
@@ -236,6 +264,11 @@ export class EditorToolbarComponent {
 
   toggleMergeMenu(): void {
     const opening = !this.menuOpen();
+    if (opening) {
+      // Remember the caret (body OR subject) before the search input autofocus
+      // moves focus away, so the chip inserts at the right place.
+      this.canvas?.captureMergeSelection();
+    }
     this.menuOpen.set(opening);
     if (opening) {
       this.mergeQuery.set('');
@@ -274,12 +307,13 @@ export class EditorToolbarComponent {
 
   onFontName(event: Event): void {
     const value = (event.target as HTMLSelectElement).value;
+    this.fontFamily.set(value);
     this.canvas?.execCommandWithValue('fontName', value);
   }
 
   onFontSize(event: Event): void {
     const value = (event.target as HTMLSelectElement).value;
-    this.canvas?.applyLegacyFontSize(value);
+    this.canvas?.applyFontSize(value);
   }
 
   async onImageFile(event: Event): Promise<void> {

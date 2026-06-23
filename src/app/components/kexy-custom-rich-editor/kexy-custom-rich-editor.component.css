@@ -60,26 +60,79 @@ kexy-custom-rich-editor textarea { font: inherit; }
   display: flex;
   flex-direction: column;
   min-height: 0;
-  background: var(--card);
+  /* Scroll the whole column when the "Selected media" panel appears, instead of
+     shrinking the editor to make room (see .editor-modal > section min-height). */
+  overflow-y: auto;
+  /* Just a layout column — the bordered "card" is the inner <section> so the
+     subject line above it reads as a separate field, not part of the editor. */
+}
+
+/* Subject line — standalone field ABOVE the bordered editor card. Its own
+   input box + a gap below visually separate it (no shared border). */
+.email-meta {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 0;
+  margin-bottom: 12px;
+}
+.email-meta .subject-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.email-meta .subject-input {
+  min-height: 40px;
+  max-height: 96px;
+  overflow-y: auto;
+  padding: 9px 11px;
   border: 1px solid var(--border);
-  /*border-radius: 5px;*/
-  /*box-shadow: var(--shadow);*/
-  overflow: hidden;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  border-radius: 5px;
+  background: #fff;
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.5;
+  outline: none;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
-
-/* Highlight the editor border while the editing area (or its toolbar) is focused */
-.editor-modal:focus-within {
+.email-meta .subject-input:focus {
   border-color: var(--primary);
-  /*box-shadow: 0 0 0 3px rgba(46, 163, 242, 0.15);*/
+  box-shadow: 0 0 0 3px rgba(46, 163, 242, 0.15);
+}
+/* Placeholder for the empty subject contenteditable */
+.email-meta .subject-input:empty::before {
+  content: attr(data-placeholder);
+  color: var(--muted);
+  pointer-events: none;
 }
 
-/* Section (toolbar + tabs + canvas) and the canvas grow to fill the modal */
+/* The bordered editor card: section (toolbar + tabs + canvas) holds the border,
+   background and box, and grows to fill the modal. The subject above is OUTSIDE
+   this box, so the border wraps only the editor. */
 .editor-modal > section {
   display: flex;
   flex-direction: column;
   flex: 1 1 auto;
-  min-height: 0;
+  /* Keep the editor at (near) full height even when the media inspector is
+     shown — flex can't shrink it below this, so the inspector pushes the column
+     past the viewport and .editor-modal scrolls instead of the editor shrinking.
+     ~90px ≈ the subject field block above it. The canvas still scrolls inside. */
+  min-height: calc(100% - 90px);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  overflow: hidden;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* Highlight only the editor card while its toolbar/canvas is focused
+   (focusing the subject does NOT highlight the editor — they're separate) */
+.editor-modal > section:focus-within {
+  border-color: var(--primary);
 }
 
 app-editor-canvas {
@@ -570,6 +623,11 @@ button.tool-btn .hash { font-weight: 700; font-size: 15px; color: #0b72b7; }
 }
 
 .media-inspector {
+  /* Always sit BELOW the editor and keep its full height — never let flex
+     shrink it (its grid/actions/note have intrinsic height and would spill
+     over the editor on short/small screens). The editor section shrinks and
+     scrolls internally instead. */
+  flex: 0 0 auto;
   margin: 0 20px 20px;
   border: 1px solid var(--border);
   border-radius: 5px;
@@ -632,6 +690,9 @@ button.tool-btn .hash { font-weight: 700; font-size: 15px; color: #0b72b7; }
   .modal-header { flex-direction: column; }
   .header-actions { justify-content: flex-start; }
   .inspector-grid { grid-template-columns: 1fr 1fr; }
+  /* The whole .editor-modal scrolls now, so the inspector shows in full below
+     the (un-shrunk) editor — no nested scroll needed, just tighter margins. */
+  .media-inspector { margin: 0 12px 12px; }
 }
 
 /* ── Merge tag chips (design canvas only) ── */

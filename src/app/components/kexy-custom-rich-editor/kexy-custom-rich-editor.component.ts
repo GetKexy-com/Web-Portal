@@ -1,5 +1,6 @@
 import {
-  Component, ViewChild, AfterViewInit, Input, ViewEncapsulation, inject
+  Component, ViewChild, AfterViewInit, Input, ViewEncapsulation, inject,
+  ElementRef, output
 } from '@angular/core';
 import { EditorStateService } from './services/editor-state.service';
 import { EditorUtilsService } from './services/editor-utils.service';
@@ -36,7 +37,27 @@ import { environment } from '../../../environments/environment';
     <div class="page-shell">
       <div class="editor-modal">
 
-        <!-- Editor card -->
+        <!-- Subject line — sits ABOVE and visually separate from the bordered
+             editor card (it has its own field box). Still shares the toolbar's
+             merge-tag picker; chips render here too. -->
+        <div class="email-meta">
+          <label class="subject-label">Subject line</label>
+          <div
+            #subjectField
+            class="subject-input"
+            contenteditable="true"
+            spellcheck="true"
+            data-placeholder="Enter subject line…"
+            (focus)="editorCanvas.handleSubjectSelect()"
+            (keyup)="editorCanvas.handleSubjectSelect()"
+            (mouseup)="editorCanvas.handleSubjectSelect()"
+            (click)="editorCanvas.onSubjectClick($event)"
+            (input)="onSubjectInput()"
+            (blur)="onSubjectBlur()"
+          ></div>
+        </div>
+
+        <!-- Editor card (the bordered box) -->
         <section>
           <!-- Toolbar -->
           <app-editor-toolbar #toolbar></app-editor-toolbar>
@@ -78,9 +99,16 @@ export class KexyCustomRichEditorComponent implements AfterViewInit {
   @ViewChild('toolbar') toolbarRef!: EditorToolbarComponent;
   @ViewChild('editorCanvas') editorCanvasRef!: EditorCanvasComponent;
   @ViewChild('inspector') inspectorRef!: MediaInspectorComponent;
+  @ViewChild('subjectField') subjectFieldRef!: ElementRef<HTMLDivElement>;
 
   /** Initial email HTML fed in by a host component. Falls back to the sample. */
   @Input() content?: string;
+
+  /** Initial subject line (plain text with optional [tokens]). */
+  @Input() subject?: string;
+
+  /** Emits the serialized subject (raw [tokens]) whenever it changes. */
+  readonly subjectChanged = output<string>();
 
   readonly state = inject(EditorStateService);
   private readonly utils = inject(EditorUtilsService);
@@ -90,6 +118,10 @@ export class KexyCustomRichEditorComponent implements AfterViewInit {
     // Wire canvas reference to toolbar and inspector
     this.toolbarRef.canvas = this.editorCanvasRef;
     this.inspectorRef.canvas = this.editorCanvasRef;
+
+    // Register the subject field so the toolbar's merge-tag picker can target it
+    this.editorCanvasRef.registerSubject(this.subjectFieldRef.nativeElement);
+    if (this.subject != null) this.editorCanvasRef.setSubjectContent(this.subject);
 
     // Wire image uploads: the toolbar hands us the already-encoded base64 image,
     // we upload it and return the hosted URL to use as the image src.
@@ -116,6 +148,28 @@ export class KexyCustomRichEditorComponent implements AfterViewInit {
   getHtml(): string {
     this.editorCanvasRef.refreshOutputs();
     return this.state.htmlOutput();
+  }
+
+  /** Public API: read the subject as plain text with raw [tokens] (for save/send). */
+  getSubject(): string {
+    return this.editorCanvasRef.serializeSubjectRaw();
+  }
+
+  /** Public API: replace the subject content (tokens become chips). */
+  setSubject(raw: string): void {
+    this.editorCanvasRef.setSubjectContent(raw);
+  }
+
+  /** Subject typed into: keep the host's value in sync. Chips hydrate on blur
+   *  (live hydration would disrupt the caret, same rule as the body canvas). */
+  onSubjectInput(): void {
+    this.editorCanvasRef.handleSubjectSelect();
+    this.subjectChanged.emit(this.getSubject());
+  }
+
+  onSubjectBlur(): void {
+    this.editorCanvasRef.hydrateSubjectChips();
+    this.subjectChanged.emit(this.getSubject());
   }
 
   /** Public API: read the raw, re-editable HTML (merge tags as [tags], media

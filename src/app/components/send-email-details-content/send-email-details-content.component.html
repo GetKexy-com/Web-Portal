@@ -61,22 +61,18 @@
           ></app-kexy-button>
         </div>
 
-        <!--Subject line-->
+        <!--Subject line + body: both live inside the editor (subject supports merge-tag chips)-->
         <div class="label-and-input">
-          <p>Subject line <i class="fa fa-asterisk" aria-hidden="true"></i></p>
-          <input type="text" placeholder="Enter text" class="form-control" name="emailSubject"
-                 [(ngModel)]="emailSubject" />
-          <div *ngIf="!emailSubject">
-            <error-message-card message="Field is required!"></error-message-card>
-          </div>
-        </div>
-
-        <!--Tweak the dripEmail to your liking-->
-        <div class="label-and-input">
-          <p>Tweak the Email to your liking! <span style="text-transform: none; font-size: 14px">(learn more about
-            <a (click)="showPersonalizationTagsInfoPopup($event)" href="#">personalization tags</a>)</span></p>
+          <p>Tweak the Email to your liking!</p>
           <div class="ckeditor-wrap">
-            <kexy-custom-rich-editor [content]="emailContent"></kexy-custom-rich-editor>
+            <kexy-custom-rich-editor
+              [content]="emailContent"
+              [subject]="emailSubject"
+              (subjectChanged)="emailSubject = $event"
+            ></kexy-custom-rich-editor>
+          </div>
+          <div *ngIf="!emailSubject">
+            <error-message-card message="Subject line is required!"></error-message-card>
           </div>
         </div>
 
@@ -118,17 +114,3 @@
     </form>
   </div>
 </div>
-
-<ng-template #personalizationTagsModal let-d="dismiss" let-c="close">
-  <modal [modalClose]="c" title="Personalization Tags">
-    <div class="modal-body">
-      <div class="personalized-tags">
-        <p class="m-0 pb-1"><strong>Personalization tags</strong></p>
-        <p class="pb-1">The following tags can be used on both Plain text or HTML version</p>
-        <p><strong>Prospect's First Name:</strong> [receiver_first_name]</p>
-        <p><strong>Prospect's Company Name:</strong> [receiver_company_name]</p>
-        <p><strong>Link to Your Promotion:</strong> [promotion_info]</p>
-      </div>
-    </div>
-  </modal>
-</ng-template>

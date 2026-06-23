@@ -59,6 +59,15 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
   readonly mergeTags = inject(MergeTagService);
 
   private savedRange: Range | null = null;
+
+  // ── Subject line (chips share this canvas's merge-tag + fallback infra) ──
+  // The subject contenteditable lives in the host editor component (above the
+  // toolbar) and is registered here so the SAME toolbar merge-tag picker can
+  // target it. `mergeTagTarget` decides where the picker inserts.
+  subjectEl: HTMLElement | null = null;
+  private mergeTagTarget: 'subject' | 'editor' = 'editor';
+  private subjectSavedRange: Range | null = null;
+
   private dragState: {
     block: HTMLElement;
     startX: number; startY: number;
@@ -283,7 +292,9 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
   }
 
   private onSelectionChange = (): void => {
-    if (!this.state.sourceMode()) this.saveSelection();
+    if (this.state.sourceMode()) return;
+    this.saveSelection();
+    this.saveSubjectSelection();
   };
 
   private onPointerMove = (event: PointerEvent): void => {
@@ -324,6 +335,8 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
 
   onCanvasClick(event: MouseEvent): void {
     const target = event.target as HTMLElement;
+    // Clicking in the body makes the body the merge-tag insertion target
+    this.mergeTagTarget = 'editor';
 
     // A merge-tag chip opens the fallback popover anchored beneath it
     const chip = target.closest('.merge-tag-chip') as HTMLElement | null;
@@ -343,8 +356,12 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
 
   /** Re-sync every chip's "fallback set" marker after a fallback changes. */
   refreshChipIndicators(): void {
-    this.canvas.querySelectorAll('.merge-tag-chip').forEach(chip =>
-      this.mergeTags.decorateChip(chip as HTMLElement),
+    const roots: HTMLElement[] = [this.canvas];
+    if (this.subjectEl) roots.push(this.subjectEl);
+    roots.forEach(root =>
+      root.querySelectorAll('.merge-tag-chip').forEach(chip =>
+        this.mergeTags.decorateChip(chip as HTMLElement),
+      ),
     );
     this.refreshOutputs();
   }
@@ -363,6 +380,8 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
     const range = selection.getRangeAt(0);
     if (this.canvas.contains(range.commonAncestorContainer)) {
       this.savedRange = range.cloneRange();
+      // Caret is in the body → body is the merge-tag target
+      this.mergeTagTarget = 'editor';
     }
   }
 
@@ -394,15 +413,57 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
     this.refreshOutputs();
   }
 
-  applyLegacyFontSize(px: string): void {
-    const map: Record<string, string> = {
-      '12px': '2', '14px': '3', '16px': '4',
-      '18px': '5', '20px': '5', '24px': '6',
-    };
+  /**
+   * Apply a font size in real px. execCommand('fontSize') only accepts the
+   * legacy 1–7 scale, which can't represent arbitrary px (8, 9, 32, 48, 72…),
+   * so we wrap the selection in an inline-styled <span> like the approved build.
+   */
+  applyFontSize(px: string): void {
+    this.applyInlineTextStyle({ fontSize: px });
+  }
+
+  /**
+   * Wrap the current (non-collapsed) selection in a <span> carrying the given
+   * inline styles. Supports any px value; collapses redundant nested spans.
+   * Mirrors the approved standalone's applyInlineTextStyle.
+   */
+  applyInlineTextStyle(styleMap: Record<string, string>): void {
+    if (this.state.sourceMode()) return;
     this.focusEditor();
-    document.execCommand('fontSize', false, map[px] || '3');
-    this.utils.normalizeFontTags(this.canvas);
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return;
+    const range = selection.getRangeAt(0);
+    if (range.collapsed || !this.canvas.contains(range.commonAncestorContainer)) return;
+
+    const span = document.createElement('span');
+    Object.entries(styleMap).forEach(([key, value]) => {
+      (span.style as unknown as Record<string, string>)[key] = value;
+    });
+    const fragment = range.extractContents();
+    span.appendChild(fragment);
+    range.insertNode(span);
+    this.normalizeStyledSpans();
+
+    const nextRange = document.createRange();
+    nextRange.selectNodeContents(span);
+    selection.removeAllRanges();
+    selection.addRange(nextRange);
+    this.savedRange = nextRange.cloneRange();
     this.refreshOutputs();
+  }
+
+  /** Collapse a span that wraps exactly one child span, merging their styles. */
+  private normalizeStyledSpans(): void {
+    this.canvas.querySelectorAll('span').forEach((span) => {
+      if (!span.parentElement || span.classList.contains('merge-tag-chip')) return;
+      const only = span.childNodes.length === 1 ? span.firstChild : null;
+      if (only && only.nodeType === Node.ELEMENT_NODE && (only as HTMLElement).tagName === 'SPAN') {
+        const child = only as HTMLElement;
+        const merged = `${child.getAttribute('style') || ''};${span.getAttribute('style') || ''}`;
+        child.setAttribute('style', merged.replace(/^;+|;+$/g, ''));
+        span.replaceWith(child);
+      }
+    });
   }
 
   insertLink(): void {
@@ -424,6 +485,11 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
   /** Insert a merge-tag chip at the current caret position in the canvas. */
   insertMergeTag(key: string): void {
     if (this.state.sourceMode()) return;
+    // Route to whichever field the user last interacted with
+    if (this.mergeTagTarget === 'subject' && this.subjectEl) {
+      this.insertMergeTagIntoSubject(key);
+      return;
+    }
     this.focusEditor();
     const chip = this.mergeTags.createChip(key);
     // Insert via execCommand so it joins the native undo stack; the trailing
@@ -431,6 +497,88 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
     document.execCommand('insertHTML', false, chip.outerHTML + '&nbsp;');
     this.saveSelection();
     this.refreshOutputs();
+  }
+
+  // ── Subject-line API (used by the host editor component + toolbar) ──
+
+  /** Register the subject contenteditable so merge tags can target it. */
+  registerSubject(el: HTMLElement): void {
+    this.subjectEl = el;
+  }
+
+  /** Mark the subject as the active merge-tag target and remember its caret. */
+  handleSubjectSelect(): void {
+    this.mergeTagTarget = 'subject';
+    this.saveSubjectSelection();
+  }
+
+  /** Subject click: set target, and open the fallback popover if a chip was hit. */
+  onSubjectClick(event: MouseEvent): void {
+    this.handleSubjectSelect();
+    const chip = (event.target as HTMLElement).closest('.merge-tag-chip') as HTMLElement | null;
+    if (chip) {
+      const tagKey = chip.dataset['mergeKey'] || '';
+      this.fallbackPopoverRef.show(chip, tagKey, chip.getBoundingClientRect());
+    }
+  }
+
+  private saveSubjectSelection(): void {
+    if (!this.subjectEl) return;
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return;
+    const range = selection.getRangeAt(0);
+    if (this.subjectEl.contains(range.commonAncestorContainer)) {
+      this.subjectSavedRange = range.cloneRange();
+      // Caret is in the subject → subject is the merge-tag target
+      this.mergeTagTarget = 'subject';
+    }
+  }
+
+  private restoreSubjectSelection(): void {
+    const selection = window.getSelection();
+    if (!selection) return;
+    if (this.subjectSavedRange) {
+      selection.removeAllRanges();
+      selection.addRange(this.subjectSavedRange);
+    }
+  }
+
+  /** Called by the toolbar right before the merge picker steals focus, so the
+   *  subject's caret survives the picker's search-input autofocus. */
+  captureMergeSelection(): void {
+    if (this.mergeTagTarget === 'subject') this.saveSubjectSelection();
+    else this.saveSelection();
+  }
+
+  private insertMergeTagIntoSubject(key: string): void {
+    if (!this.subjectEl) return;
+    this.subjectEl.focus();
+    this.restoreSubjectSelection();
+    const chip = this.mergeTags.createChip(key);
+    // execCommand keeps the insert on the subject's native undo stack
+    document.execCommand('insertHTML', false, chip.outerHTML + '&nbsp;');
+    this.saveSubjectSelection();
+    this.refreshOutputs();
+  }
+
+  /** Render typed [tags] in the subject into chips (on load / blur). */
+  hydrateSubjectChips(): void {
+    if (this.subjectEl) this.mergeTags.renderChipsInElement(this.subjectEl);
+  }
+
+  /** Replace the subject content from raw text (tokens become chips). */
+  setSubjectContent(raw: string): void {
+    if (!this.subjectEl) return;
+    this.subjectEl.textContent = raw ?? '';
+    this.mergeTags.renderChipsInElement(this.subjectEl);
+  }
+
+  /** Serialize the subject to a plain string with raw [tokens] (for save/export). */
+  serializeSubjectRaw(): string {
+    if (!this.subjectEl) return '';
+    const clone = this.subjectEl.cloneNode(true) as HTMLElement;
+    this.mergeTags.stripChipsToRaw(clone);
+    return (clone.textContent || '').replace(/\u00a0/g, ' ').trim();
   }
 
   /** Toggle a checklist (an unordered list rendered with checkbox markers). */

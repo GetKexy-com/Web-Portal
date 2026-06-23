@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { NgbActiveOffcanvas, NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { NgbActiveOffcanvas } from '@ng-bootstrap/ng-bootstrap';
 import { AuthService } from 'src/app/services/auth.service';
 import { constants } from '../../helpers/constants';
 import { DripCampaignService } from '../../services/drip-campaign.service';
@@ -8,7 +8,6 @@ import Swal from 'sweetalert2';
 import { Subscription } from 'rxjs';
 import { SseService } from '../../services/sse.service';
 import { PageUiService } from '../../services/page-ui.service';
-import { ModalComponent } from '../modal/modal.component';
 import { KexyButtonComponent } from '../kexy-button/kexy-button.component';
 import { ErrorMessageCardComponent } from '../error-message-card/error-message-card.component';
 import { KexySelectDropdownComponent } from '../kexy-select-dropdown/kexy-select-dropdown.component';
@@ -20,7 +19,6 @@ import { KexyCustomRichEditorComponent } from '../kexy-custom-rich-editor/kexy-c
 @Component({
   selector: 'send-email-details-content',
   imports: [
-    ModalComponent,
     KexyButtonComponent,
     ErrorMessageCardComponent,
     KexySelectDropdownComponent,
@@ -62,7 +60,6 @@ export class SendEmailDetailsContentComponent implements OnInit, OnDestroy {
 
   constructor(
     public activeCanvas: NgbActiveOffcanvas,
-    private modal: NgbModal,
     private _authService: AuthService,
     private dripCampaignService: DripCampaignService,
     private sseService: SseService,
@@ -104,6 +101,8 @@ export class SendEmailDetailsContentComponent implements OnInit, OnDestroy {
       (content) => {
         if (content) {
           this.emailSubject = content;
+          // Push into the editor's subject field (renders any [tokens] as chips)
+          this.editor?.setSubject(content);
         }
       },
     );
@@ -175,6 +174,8 @@ export class SendEmailDetailsContentComponent implements OnInit, OnDestroy {
     // / previewed, never loaded back into the editor.
     const rawEditorContent = this.editor?.getRawHtml() || this.emailContent;
     const emailContent = this.editor?.getHtml() || this.emailContent;
+    // Subject now lives in the editor; serialize it back to raw [tokens].
+    this.emailSubject = this.editor?.getSubject() ?? this.emailSubject;
     this.dripEmail['emailSubject'] = this.emailSubject;
     this.dripEmail['emailContent'] = emailContent;
     this.dripEmail['rawEditorContent'] = rawEditorContent;
@@ -222,7 +223,8 @@ export class SendEmailDetailsContentComponent implements OnInit, OnDestroy {
     const websiteData: any = await this.dripCampaignService.getWebsiteData({ contactId: contact.id });
     const locationData: any = await this.dripCampaignService.getLocationData({ contactId: contact.id });
 
-    const content = this.emailSubject + (this.editor?.getRawHtml() || this.emailContent);
+    const subject = this.editor?.getSubject() ?? this.emailSubject ?? '';
+    const content = subject + (this.editor?.getRawHtml() || this.emailContent);
     const data = {
       email_tone: this.selectedEmailToneKey,
       email_number: this.dripEmail.emailSequence,
@@ -245,13 +247,6 @@ export class SendEmailDetailsContentComponent implements OnInit, OnDestroy {
       }
     };
     await this.sseService.getDripFollowUpEmailContentStream(data);
-  };
-
-  @ViewChild('personalizationTagsModal') private personalizationTagsModal;
-
-  showPersonalizationTagsInfoPopup = (ev) => {
-    ev.preventDefault();
-    this.modal.open(this.personalizationTagsModal);
   };
 
   handleCheckboxClick = () => {

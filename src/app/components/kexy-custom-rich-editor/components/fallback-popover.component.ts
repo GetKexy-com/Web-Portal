@@ -198,19 +198,18 @@ export class FallbackPopoverComponent implements OnDestroy {
   /** Show the undo icon once the user has changed the fallback */
   readonly canUndo = computed(() => this.fallbackValue() !== this.originalFallback());
 
-  private currentKey = '';
   private currentChip: HTMLElement | null = null;
   private hideTimer: ReturnType<typeof setTimeout> | null = null;
 
   show(chip: HTMLElement, key: string, anchorRect: DOMRect): void {
     if (this.hideTimer) { clearTimeout(this.hideTimer); this.hideTimer = null; }
 
-    this.currentKey = key;
     this.currentChip = chip;
-    const tag = this.mergeTagService.getTag(key);
-    this.label.set(tag?.label ?? key);
-    this.fallbackValue.set(tag?.fallback ?? '');
-    this.originalFallback.set(tag?.fallback ?? '');
+    this.label.set(this.mergeTagService.labelFor(key));
+    // Fallback is stored per-chip, not per-key
+    const current = chip.dataset['mergeFallback'] ?? '';
+    this.fallbackValue.set(current);
+    this.originalFallback.set(current);
 
     // Position below the chip, left-aligned, clamped to viewport
     const top = anchorRect.bottom + 8;
@@ -240,14 +239,14 @@ export class FallbackPopoverComponent implements OnDestroy {
   }
 
   save(): void {
-    this.mergeTagService.setFallback(this.currentKey, this.fallbackValue());
+    this.writeFallback(this.fallbackValue());
     this.fallbackChanged.emit();
     this.hide();
   }
 
   clear(): void {
     this.fallbackValue.set('');
-    this.mergeTagService.setFallback(this.currentKey, '');
+    this.writeFallback('');
     this.fallbackChanged.emit();
     this.inputRef?.nativeElement.focus();
   }
@@ -256,9 +255,14 @@ export class FallbackPopoverComponent implements OnDestroy {
   undo(): void {
     const original = this.originalFallback();
     this.fallbackValue.set(original);
-    this.mergeTagService.setFallback(this.currentKey, original);
+    this.writeFallback(original);
     this.fallbackChanged.emit();
     this.inputRef?.nativeElement.focus();
+  }
+
+  /** Persist the fallback onto the chip this popover is editing. */
+  private writeFallback(value: string): void {
+    if (this.currentChip) this.currentChip.dataset['mergeFallback'] = value;
   }
 
   ngOnDestroy(): void {
