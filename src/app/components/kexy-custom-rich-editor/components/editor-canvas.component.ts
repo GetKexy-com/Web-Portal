@@ -619,8 +619,16 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
 
   private insertMergeTagIntoSubject(key: string): void {
     if (!this.subjectEl) return;
+    // Snapshot the caret BEFORE focusing: subjectEl.focus() fires the subject's
+    // (focus) handler synchronously, which calls saveSubjectSelection() and
+    // would overwrite subjectSavedRange with the browser's default caret (start
+    // of the field). Restoring from this local clone keeps the real position.
+    const saved = this.subjectSavedRange ? this.subjectSavedRange.cloneRange() : null;
     this.subjectEl.focus();
-    this.restoreSubjectSelection();
+    if (saved) {
+      const sel = window.getSelection();
+      if (sel) { sel.removeAllRanges(); sel.addRange(saved); }
+    }
     // Same inline + undoable insert as the body (acts on the focused subject)
     this.insertChipUndoable(this.mergeTags.createChip(key));
     this.saveSubjectSelection();
