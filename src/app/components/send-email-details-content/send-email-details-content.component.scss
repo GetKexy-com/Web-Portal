@@ -57,15 +57,11 @@
         select.form-control {
           padding: 12px;
         }
-        // Bound the rich editor's height so its canvas scrolls internally
-        // instead of growing the offcanvas and hiding the buttons below it.
-        // The subject line now lives INSIDE the editor, so the standalone subject
-        // form-row is gone — the editor gets that height back. Remaining chrome:
-        //   head-area ~50 + tone/length row ~96 + this label/paddings ~40
-        //   + unsubscribe row ~60 + bottom buttons ~98 ≈ 300px.
+        // Let the editor size to its CONTENT (no fixed height) — a long email
+        // grows the editor and the whole offcanvas (.canvas-content-wrap, which
+        // is overflow:auto) scrolls. The editor does NOT scroll internally.
         .ckeditor-wrap kexy-custom-rich-editor {
           display: block;
-          height: calc(100vh - 300px);
           min-height: 360px;
         }
       }

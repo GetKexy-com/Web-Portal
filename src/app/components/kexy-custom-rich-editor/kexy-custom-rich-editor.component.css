@@ -24,10 +24,10 @@ kexy-custom-rich-editor {
 
   display: flex;
   flex-direction: column;
-  /* Fill whatever height the host/parent provides; fall back to a modest
-     height (NOT 100vh) so the editor doesn't blow out auto-height containers
-     like a form/offcanvas. The internal canvas scrolls when content overflows. */
-  height: 100%;
+  /* Size to CONTENT: the editor grows with the email it holds and the outer
+     container (the offcanvas) scrolls when content is long — the editor itself
+     does NOT scroll internally. min-height keeps an empty editor usable. */
+  height: auto;
   min-height: 360px;
   font-family: Arial, Helvetica, sans-serif;
   color: var(--text);
@@ -45,25 +45,17 @@ kexy-custom-rich-editor select,
 kexy-custom-rich-editor textarea { font: inherit; }
 
 .page-shell {
-  flex: 1 1 auto;
-  min-height: 0;
   display: flex;
-  align-items: stretch;
-  justify-content: center;
-  height: 100%;
-  height: stretch; /* Future standard */
-  height: -webkit-fill-available; /* Chrome, Safari, Edge */
+  flex-direction: column;
+  /* Content height — do NOT force fill; the outer container scrolls. */
 }
 
 .editor-modal {
-  width: min(760px, calc(100vw - 28px));
+  /*width: min(760px, calc(100vw - 28px));*/
   display: flex;
   flex-direction: column;
-  min-height: 0;
-  /* Scroll the whole column when the "Selected media" panel appears, instead of
-     shrinking the editor to make room (see .editor-modal > section min-height). */
-  overflow-y: auto;
-  /* Just a layout column — the bordered "card" is the inner <section> so the
+  /* Content height — grows with the editor + media inspector; the outer
+     container scrolls. The bordered "card" is the inner <section> so the
      subject line above it reads as a separate field, not part of the editor. */
 }
 
@@ -116,12 +108,8 @@ kexy-custom-rich-editor textarea { font: inherit; }
 .editor-modal > section {
   display: flex;
   flex-direction: column;
-  flex: 1 1 auto;
-  /* Keep the editor at (near) full height even when the media inspector is
-     shown — flex can't shrink it below this, so the inspector pushes the column
-     past the viewport and .editor-modal scrolls instead of the editor shrinking.
-     ~90px ≈ the subject field block above it. The canvas still scrolls inside. */
-  min-height: calc(100% - 90px);
+  /* Content height — the card grows with the canvas content (no internal
+     scroll); the outer container scrolls when the email is long. */
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: 5px;
@@ -138,8 +126,7 @@ kexy-custom-rich-editor textarea { font: inherit; }
 app-editor-canvas {
   display: flex;
   flex-direction: column;
-  flex: 1 1 auto;
-  min-height: 0;
+  /* Content height (grows with canvas content) */
 }
 
 .modal-header {
@@ -245,7 +232,8 @@ button.tool-btn .hash { font-weight: 700; font-size: 15px; color: #0b72b7; }
 }
 
 .email-meta {
-  padding: 14px 20px 10px;
+  padding-top: 14px;
+  padding-bottom: 10px;
 }
 
 .email-meta label,
@@ -461,25 +449,24 @@ button.tool-btn .hash { font-weight: 700; font-size: 15px; color: #0b72b7; }
 .mode-panel.active {
   display: flex;
   flex-direction: column;
-  flex: 1 1 auto;
-  min-height: 0;
 }
 
 .editor-canvas,
 .source-editor,
 .html-output {
   width: 100%;
-  flex: 1 1 auto;
-  min-height: 0;
   padding: 14px;
   line-height: 1.6;
   font-size: 14px;
-  overflow-y: auto;
 }
 
 .editor-canvas {
   outline: none;
   background: #fff;
+  /* Grow with content (NO internal scroll) — the outer container scrolls.
+     min-height keeps an empty/short email comfortable to edit. */
+  min-height: 320px;
+  overflow: visible;
 }
 
 .editor-canvas p,
@@ -526,13 +513,17 @@ button.tool-btn .hash { font-weight: 700; font-size: 15px; color: #0b72b7; }
 
 .source-editor,
 .html-output {
-  resize: none;
+  resize: vertical;
   border: 0;
   border-top: 0;
+  /* Textareas/iframe can't be content-height; give the Source/HTML/Preview
+     views a comfortable fixed height (they scroll internally). The Design
+     canvas is the one that grows with content. */
+  min-height: 420px;
+  overflow-y: auto;
 }
 
 .html-output {
-  min-height: 0;
   background: #0f172a;
   color: #e2e8f0;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -540,8 +531,8 @@ button.tool-btn .hash { font-weight: 700; font-size: 15px; color: #0b72b7; }
 
 .preview-stage iframe {
   width: 100%;
-  flex: 1 1 auto;
-  min-height: 0;
+  min-height: 420px;
+  height: 60vh;
   border: 0;
   background: #fff;
 }
@@ -628,7 +619,6 @@ button.tool-btn .hash { font-weight: 700; font-size: 15px; color: #0b72b7; }
      over the editor on short/small screens). The editor section shrinks and
      scrolls internally instead. */
   flex: 0 0 auto;
-  margin: 0 20px 20px;
   border: 1px solid var(--border);
   border-radius: 5px;
   padding: 14px;
