@@ -528,32 +528,38 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
       return;
     }
     this.focusEditor();
-    const chip = this.mergeTags.createChip(key);
-    // Insert at the caret with the Range API (NOT execCommand('insertHTML') —
-    // that promotes the chip to a new line when the caret is at the END of a
-    // paragraph). The trailing space lets the caret continue after the chip.
-    this.insertInlineNodeAtCaret(chip, this.canvas);
-    this.insertInlineNodeAtCaret(document.createTextNode(' '), this.canvas);
+    this.insertChipUndoable(this.mergeTags.createChip(key));
     this.saveSelection();
     this.refreshOutputs();
   }
 
   /**
-   * Insert a node at the current caret inside `container`, keeping it INLINE
-   * (so a chip at the end of a paragraph stays in that paragraph). Falls back to
-   * appending when there's no usable selection. Mirrors the approved build.
+   * Insert a merge-tag chip at the caret — INLINE and UNDOABLE.
+   *
+   * execCommand('insertHTML', chip) is undoable but promotes the chip to a NEW
+   * LINE when the caret is at the END of a paragraph (a contenteditable=false
+   * element inserted at a block boundary). The fix: first insertText a space —
+   * plain text never promotes, so it lands inline and guarantees the caret is now
+   * INSIDE a text node — then step the caret back before that space and
+   * insertHTML the chip there. Both steps go through execCommand, so Undo/Redo
+   * still work. Acts on whatever contenteditable currently holds the caret.
    */
-  private insertInlineNodeAtCaret(node: Node, container: HTMLElement): void {
-    const selection = window.getSelection();
-    if (!selection || selection.rangeCount === 0) { container.appendChild(node); return; }
-    const range = selection.getRangeAt(0);
-    if (!container.contains(range.commonAncestorContainer)) { container.appendChild(node); return; }
-    range.deleteContents();
-    range.insertNode(node);
-    range.setStartAfter(node);
-    range.collapse(true);
-    selection.removeAllRanges();
-    selection.addRange(range);
+  private insertChipUndoable(chip: HTMLElement): void {
+    // 1) trailing-space anchor (inline, undoable, never promotes to a new block)
+    document.execCommand('insertText', false, ' ');
+    // 2) caret is now AFTER that space — step back so the chip lands before it
+    const sel = window.getSelection();
+    if (sel && sel.rangeCount) {
+      const r = sel.getRangeAt(0);
+      if (r.startOffset > 0) {
+        r.setStart(r.startContainer, r.startOffset - 1);
+        r.collapse(true);
+        sel.removeAllRanges();
+        sel.addRange(r);
+      }
+    }
+    // 3) insert the chip inline (caret is inside a text node now → no promotion)
+    document.execCommand('insertHTML', false, chip.outerHTML);
   }
 
   // ── Subject-line API (used by the host editor component + toolbar) ──
@@ -611,10 +617,8 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
     if (!this.subjectEl) return;
     this.subjectEl.focus();
     this.restoreSubjectSelection();
-    const chip = this.mergeTags.createChip(key);
-    // Caret-based insert (see insertMergeTag) keeps the chip inline at the caret
-    this.insertInlineNodeAtCaret(chip, this.subjectEl);
-    this.insertInlineNodeAtCaret(document.createTextNode(' '), this.subjectEl);
+    // Same inline + undoable insert as the body (acts on the focused subject)
+    this.insertChipUndoable(this.mergeTags.createChip(key));
     this.saveSubjectSelection();
     this.refreshOutputs();
   }
