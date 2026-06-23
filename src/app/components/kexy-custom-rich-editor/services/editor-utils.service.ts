@@ -21,7 +21,7 @@ export class EditorUtilsService {
       `<defs><linearGradient id="g" x1="0" x2="1"><stop offset="0%" stop-color="#0f172a"/><stop offset="100%" stop-color="#334155"/></linearGradient></defs>` +
       `<rect width="100%" height="100%" fill="url(#g)"/>` +
       `<circle cx="${cx}" cy="${cy}" r="${r}" fill="#ffffff" opacity="0.92"/>` +
-      `<polygon points="${cx - 18},${cy - 28} ${cx - 18},${cy + 28} ${cx + 36},${cy}" fill="#0f172a"/>` +
+      `<polygon points="${cx - 9},${cy - 14} ${cx - 9},${cy + 14} ${cx + 18},${cy}" fill="#0f172a"/>` +
       `<text x="50%" y="82%" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-size="${fontSize}" fill="#ffffff">${label}</text>` +
       `</svg>`;
     return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
@@ -85,6 +85,10 @@ export class EditorUtilsService {
           const ctx = canvas.getContext('2d');
           if (!ctx) { fail(new Error('no 2d context')); return; }
           ctx.drawImage(video, 0, 0, width, height);
+          // Bake the play-button circle straight into the captured frame so it
+          // travels through export → preview → the recipient's inbox (email
+          // clients can't reliably composite a CSS/HTML overlay).
+          this.drawPlayBadge(ctx, width, height);
           done({ poster: canvas.toDataURL('image/jpeg', 0.82), width, height, ratio: width / height || 16 / 9 });
         } catch (e) { fail(e); }
       };
@@ -93,8 +97,108 @@ export class EditorUtilsService {
     });
   }
 
+  /**
+   * Draw a centered play-button badge (semi-transparent dark disc + white ring +
+   * white right-pointing triangle + soft shadow) onto a 2D canvas context. Sized
+   * as a proportion of the image so it looks consistent at any resolution and
+   * matches the design-view CSS overlay. The triangle's CENTROID is placed at the
+   * disc center (tip extends twice as far right as the base sits left) so the
+   * icon reads as optically centered, not shoved to one side.
+   */
+  drawPlayBadge(ctx: CanvasRenderingContext2D, w: number, h: number): void {
+    const cx = w / 2;
+    const cy = h / 2;
+    // Disc diameter ≈ 20% of width, never taller than the frame allows.
+    const r = Math.max(16, Math.min(w * 0.1, h * 0.3));
+
+    ctx.save();
+
+    // Soft drop shadow under the disc.
+    ctx.shadowColor = 'rgba(0,0,0,0.45)';
+    ctx.shadowBlur = r * 0.4;
+    ctx.shadowOffsetY = r * 0.08;
+
+    // Semi-transparent dark disc (contrast on light frames).
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(17,24,39,0.55)';
+    ctx.fill();
+
+    // White ring (contrast on dark frames). Drawn without the shadow.
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetY = 0;
+    ctx.lineWidth = Math.max(2, r * 0.08);
+    ctx.strokeStyle = 'rgba(255,255,255,0.95)';
+    ctx.stroke();
+
+    // White right-pointing triangle, centroid at (cx, cy): base at cx - a, tip
+    // at cx + 2a → centroid x = (-a - a + 2a)/3 + cx = cx. Sized at half the
+    // previous footprint so the triangle sits comfortably inside the disc.
+    const a = r * 0.21;
+    const hh = r * 0.26;
+    ctx.beginPath();
+    ctx.moveTo(cx - a, cy - hh);
+    ctx.lineTo(cx - a, cy + hh);
+    ctx.lineTo(cx + 2 * a, cy);
+    ctx.closePath();
+    ctx.fillStyle = '#ffffff';
+    ctx.fill();
+
+    ctx.restore();
+  }
+
+  /**
+   * Return a copy of `src` (any image URL/data URL) with the play-button badge
+   * baked into it. Used for custom video thumbnails so the play icon persists in
+   * the exported email. Loads with crossOrigin so same-origin/CORS images stay
+   * untainted; on any load/taint failure resolves to the original `src`
+   * unchanged (so insertion still succeeds, just without a baked overlay).
+   */
+  compositePlayButton(src: string): Promise<string> {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => {
+        try {
+          const w = img.naturalWidth || 1280;
+          const h = img.naturalHeight || 720;
+          const canvas = document.createElement('canvas');
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) { resolve(src); return; }
+          ctx.drawImage(img, 0, 0, w, h);
+          this.drawPlayBadge(ctx, w, h);
+          resolve(canvas.toDataURL('image/png'));
+        } catch {
+          resolve(src); // tainted canvas (cross-origin without CORS) — keep original
+        }
+      };
+      img.onerror = () => resolve(src);
+      img.src = src;
+    });
+  }
+
   clamp(value: number, min: number, max: number): number {
     return Math.min(max, Math.max(min, value));
+  }
+
+  /**
+   * Make a user-entered link absolute. Without a scheme, a value like
+   * `www.example.com` or `example.com/watch` is treated by the browser/email
+   * client as a path RELATIVE to the current page (e.g. the portal domain), so
+   * the link points at the wrong URL. Prepend `https://` when no scheme is
+   * present. Left untouched: empty, anchors (`#…`), root/protocol-relative
+   * (`/…`, `//…`), merge tags (`[…]`), and anything that already has a scheme
+   * (`https:`, `mailto:`, `tel:`, …).
+   */
+  normalizeUrl(url: string): string {
+    const u = (url || '').trim();
+    if (!u) return u;
+    if (/^(#|\/|\[)/.test(u)) return u;        // anchor, root/protocol-relative, merge tag
+    if (/^[a-z][a-z0-9+.-]*:/i.test(u)) return u; // already has a scheme (http, mailto, tel, …)
+    return `https://${u}`;
   }
 
   escapeAttribute(value: string): string {
@@ -167,7 +271,12 @@ export class EditorUtilsService {
     root.querySelectorAll('.media-block').forEach((block) => {
       const el = block as HTMLElement;
       const align = el.dataset['align'] || 'center';
-      const alignAttr = align === 'left' ? 'left' : align === 'right' ? 'right' : 'center';
+      // Emit the legacy `align` attribute ONLY for centered blocks. `align="left"`
+      // / `align="right"` FLOAT the table, so following paragraphs wrap up its side
+      // instead of sitting below it (the reported "broken text"). Horizontal
+      // positioning for left/right is done purely with the auto-margins below,
+      // which keep the table in normal flow (block) so text goes underneath.
+      const tableAlignAttr = align === 'center' ? ' align="center"' : '';
       // Full margin per alignment. Centering needs BOTH side margins auto; right
       // needs left auto; left needs right auto. (margin: top right bottom left)
       const blockMargin =
@@ -189,29 +298,37 @@ export class EditorUtilsService {
         const imageTableStyle = `margin:${blockMargin}; border-collapse:collapse;`;
         const img = `<img src="${escAttr(el.dataset['src'] || '')}" alt="${escAttr(alt)}" width="${width}" height="${height}" style="${imgStyle}" />`;
         const content = link
-          ? `<a href="${escAttr(link)}" target="_blank" rel="noopener" style="text-decoration:none;">${img}</a>`
+          ? `<a href="${escAttr(this.normalizeUrl(link))}" target="_blank" rel="noopener" style="text-decoration:none;">${img}</a>`
           : img;
         this.replaceNodeWithHtml(el, `
-          <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="${alignAttr}" style="${imageTableStyle}">
-            <tr><td align="${alignAttr}" style="padding:0; border:0;">${content}</td></tr>
+          <table role="presentation" cellspacing="0" cellpadding="0" border="0"${tableAlignAttr} style="${imageTableStyle}">
+            <tr><td style="padding:0; border:0;">${content}</td></tr>
           </table>
         `);
       } else {
-        const href = link || '#';
+        const href = this.normalizeUrl(link) || '#';
         const poster = el.dataset['poster'] || '';
         const fileName = el.dataset['fileName'] || 'Video';
-        const videoTableStyle = `margin:${blockMargin}; border-collapse:collapse; width:${width}px;`;
+        // Reproduce the design-view card: light background, rounded corners, the
+        // poster rounded at the top and a padded, left-aligned caption below.
+        // The poster carries its own play-button badge (baked in at capture /
+        // custom-thumbnail / placeholder time), so no overlay markup is needed.
+        const videoTableStyle = `margin:${blockMargin}; border-collapse:separate; width:${width}px; background:#f8fbff; border-radius:5px; overflow:hidden;`;
+        // line-height:0 on the poster cell removes the inline-image whitespace
+        // gap that otherwise leaves a thin sliver under the thumbnail.
+        const posterImgStyle = `display:block; width:${width}px; height:${height}px; border:0; outline:none; text-decoration:none; border-radius:5px 5px 0 0;`;
+        const captionStyle = `padding:10px 12px 12px; border:0; font-size:13px; line-height:1.4; font-family:Arial, Helvetica, sans-serif; font-weight:700; color:#1f2937; text-align:left; word-break:break-word;`;
         this.replaceNodeWithHtml(el, `
-          <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="${alignAttr}" style="${videoTableStyle}">
+          <table role="presentation" cellspacing="0" cellpadding="0" border="0"${tableAlignAttr} style="${videoTableStyle}">
             <tr>
-              <td align="${alignAttr}" style="padding:0; border:0;">
+              <td style="padding:0; border:0; line-height:0;">
                 <a href="${escAttr(href)}" target="_blank" rel="noopener" style="text-decoration:none; display:block;">
-                  <img src="${escAttr(poster)}" alt="${escAttr(alt)}" width="${width}" height="${height}" style="${imgStyle}" />
+                  <img src="${escAttr(poster)}" alt="${escAttr(alt)}" width="${width}" height="${height}" style="${posterImgStyle}" />
                 </a>
               </td>
             </tr>
             <tr>
-              <td align="${alignAttr}" style="padding:10px 0 0; border:0; font-size:13px; font-family:Arial, Helvetica, sans-serif; font-weight:700; color:#1f2937;">${escHtml(alt || fileName)}</td>
+              <td style="${captionStyle}">${escHtml(alt || fileName)}</td>
             </tr>
           </table>
         `);

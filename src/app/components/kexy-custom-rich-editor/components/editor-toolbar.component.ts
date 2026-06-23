@@ -462,7 +462,9 @@ export class EditorToolbarComponent {
     const width = 420;
     const height = Math.round(width / ratio);
     this.canvas.insertVideoBlock({
-      poster, fileName: file.name, alt: file.name, width, height, ratio,
+      // Both poster sources carry the play button: captured frames have it baked
+      // in by captureVideoPoster, the fallback placeholder SVG draws its own.
+      poster, fileName: file.name, alt: file.name, width, height, ratio, overlayBaked: true,
     }, true);
     input.value = '';
   }

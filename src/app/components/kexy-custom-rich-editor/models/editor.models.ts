@@ -39,4 +39,11 @@ export interface InsertVideoOptions {
   height: number;
   ratio: number;
   skipSpacer?: boolean;
+  /**
+   * True when the play-button circle is already drawn INTO the poster image
+   * (captured frames, custom thumbnails, placeholder SVG). Baked posters carry
+   * the overlay through export/preview/email; the design-only CSS `::after`
+   * overlay is then suppressed so it isn't drawn twice.
+   */
+  overlayBaked?: boolean;
 }

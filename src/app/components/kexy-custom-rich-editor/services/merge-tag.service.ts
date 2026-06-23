@@ -13,11 +13,12 @@ export class MergeTagService {
    * different fallbacks (matches the approved standalone build).
    */
   private readonly tags = signal<MergeTag[]>([
-    { key: 'receiver_first_name',    label: 'First Name' },
-    { key: 'receiver_last_name',     label: 'Last Name' },
-    { key: 'receiver_phone_number',  label: 'Phone Number' },
+    { key: 'receiver_first_name', label: 'First Name' },
+    { key: 'receiver_last_name', label: 'Last Name' },
+    { key: 'receiver_company_name', label: 'Company Name' },
+    { key: 'receiver_phone_number', label: 'Phone Number' },
     { key: 'receiver_email_address', label: 'E-Mail Address' },
-    { key: 'receiver_website',       label: 'Website' },
+    { key: 'receiver_website', label: 'Website' },
   ]);
 
   getAll(): MergeTag[] {
@@ -154,8 +155,8 @@ export class MergeTagService {
           if (parent.closest('.media-block')) return NodeFilter.FILTER_REJECT;
           if (parent.closest('.resize-handle')) return NodeFilter.FILTER_REJECT;
           return NodeFilter.FILTER_ACCEPT;
-        }
-      }
+        },
+      },
     );
     let node: Text | null;
     while ((node = walker.nextNode() as Text | null)) {

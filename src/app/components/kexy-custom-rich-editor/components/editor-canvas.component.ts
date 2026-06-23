@@ -738,6 +738,13 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
     block.dataset['ratio'] = String(opts.ratio || 16 / 9);
     block.dataset['lockAspect'] = 'true';
     block.dataset['align'] = 'center';
+    // Poster already carries the play-button (captured frame / custom thumb /
+    // placeholder SVG). Flag it so export keeps the baked overlay and the
+    // design-only CSS `::after` overlay is suppressed (no double play button).
+    if (opts.overlayBaked) {
+      block.dataset['overlayBaked'] = '1';
+      block.classList.add('has-baked-overlay');
+    }
     block.style.width = `${opts.width}px`;
     block.style.height = `${opts.height + 44}px`;
 
@@ -768,18 +775,23 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
     if (!block || !file || this.state.isImageBlock(block)) return;
 
     const dataUrl = await this.utils.readFileAsDataUrl(file);
-    let src = dataUrl;
+    // Bake the play-button into the chosen thumbnail (local file → untainted
+    // canvas) so the play icon survives export → preview → the inbox.
+    const baked = await this.utils.compositePlayButton(dataUrl);
+    let src = baked;
     if (this.uploadImage) {
       try {
         this.state.setStatus('Uploading thumbnail…');
-        src = await this.uploadImage(dataUrl);
+        src = await this.uploadImage(baked);
         this.state.setStatus('Thumbnail updated');
       } catch {
         this.state.setStatus('Thumbnail upload failed — using inline image');
-        src = dataUrl;
+        src = baked;
       }
     }
     block.dataset['poster'] = src;
+    block.dataset['overlayBaked'] = '1';
+    block.classList.add('has-baked-overlay');
     const img = block.querySelector('.video-thumb img') as HTMLImageElement | null;
     if (img) img.src = src;
     this.refreshOutputs();
@@ -910,6 +922,42 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
       this.sourceEditorRef.nativeElement.value = this.canvas.innerHTML;
     }
     this.refreshOutputs();
+    // Loaded content can contain videos saved BEFORE the play-button was baked
+    // into posters — their thumbnails have no play icon in preview/email. Bake
+    // it in now (best-effort) so existing campaigns get the icon too.
+    void this.bakeOverlayOnLoadedVideos();
+  }
+
+  /**
+   * Best-effort upgrade for videos loaded from saved content whose poster has no
+   * baked-in play button (`data-overlay-baked` missing). Composites the badge
+   * onto the existing poster and, when an uploader is wired, re-hosts it so the
+   * play icon also survives in the sent email (data: URIs are blocked by some
+   * clients). Cross-origin posters without CORS taint the canvas — those are
+   * left unchanged (compositePlayButton returns the original). SVG posters are
+   * skipped (placeholders already draw their own play button).
+   */
+  private async bakeOverlayOnLoadedVideos(): Promise<void> {
+    const blocks = Array.from(this.canvas.querySelectorAll('.video-block')) as HTMLElement[];
+    for (const el of blocks) {
+      if (el.dataset['overlayBaked'] === '1') continue;
+      const img = el.querySelector('.video-thumb img') as HTMLImageElement | null;
+      const poster = el.dataset['poster'] || img?.src || '';
+      if (!poster || /^data:image\/svg/i.test(poster)) continue;
+
+      const baked = await this.utils.compositePlayButton(poster);
+      if (baked === poster) continue; // taint/load failure — leave as-is
+
+      let src = baked;
+      if (this.uploadImage) {
+        try { src = await this.uploadImage(baked); } catch { src = baked; }
+      }
+      el.dataset['poster'] = src;
+      el.dataset['overlayBaked'] = '1';
+      el.classList.add('has-baked-overlay');
+      if (img) img.src = src;
+      this.refreshOutputs();
+    }
   }
 
   loadSample(imageSvg: string, videoSvg: string): void {
@@ -935,6 +983,7 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
       height: 203,
       ratio: 16 / 9,
       skipSpacer: true,
+      overlayBaked: true, // placeholder SVG already contains the play button
     });
     this.canvas.insertAdjacentHTML('beforeend', '<p>Best regards,<br />Karen Mening</p>');
     this.mergeTags.renderChipsInElement(this.canvas);
@@ -1090,6 +1139,10 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
       if (!el.querySelector('.resize-handle')) el.appendChild(this.createResizeHandle());
       if (!el.dataset['align']) el.dataset['align'] = 'center';
       el.classList.add(`align-${el.dataset['align']}`);
+      // Restore the baked-overlay state persisted in the saved HTML so the
+      // design-only CSS overlay stays suppressed for posters that already carry
+      // the play button.
+      if (el.dataset['overlayBaked'] === '1') el.classList.add('has-baked-overlay');
       el.contentEditable = 'false';
       el.setAttribute('draggable', 'true'); // allow drag-to-reposition in the canvas
     });
