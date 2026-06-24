@@ -162,7 +162,7 @@ export class ContactListCardComponent implements OnInit, OnDestroy, AfterViewIni
       this.listInfo.validationStatus = 'pending';
       await this.pageUiService.showSweetAlert(
         'Verification started',
-        'An email notification will be sent to you upon completion of the varification process.',
+        'We\'ll notify you by email when the verification process is complete.',
         'info',
       );
     } catch (e) {
