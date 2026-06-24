@@ -215,7 +215,7 @@ export class SseService {
     let emailContent = '';
     let aiEmailData = '';
 
-    let delayBetweenPreviousEmail: EmailDelay = { days: 3, hours: 0, minutes: 0 };
+    let delayBetweenPreviousEmail: EmailDelay = EmailDelay.default();
 
     let buffer = '';
 
@@ -318,7 +318,7 @@ export class SseService {
               // First email starts almost immediately; the rest keep the default delay.
               const emailDelay: EmailDelay =
                 emailSequence === 1
-                  ? { days: 0, hours: 0, minutes: 1 }
+                  ? EmailDelay.firstEmail()
                   : delayBetweenPreviousEmail;
 
               const email: DripEmail = {
@@ -357,7 +357,7 @@ export class SseService {
             // First email starts almost immediately; the rest keep the default delay.
             const emailDelay: EmailDelay =
               emailSequence === 1
-                ? { days: 0, hours: 0, minutes: 1 }
+                ? EmailDelay.firstEmail()
                 : delayBetweenPreviousEmail;
 
             const email: DripEmail = {
@@ -389,7 +389,7 @@ export class SseService {
     let emailSubject = '';
     let emailContent = '';
     let aiEmailData = '';
-    let delayBetweenPreviousEmail: EmailDelay = { days: 3, hours: 0, minutes: 0 };
+    let delayBetweenPreviousEmail: EmailDelay = EmailDelay.default();
     this._dripBulkEmailLoading.next(true);
     let subjectReady = false;
     const url = userPromptPriority ? this.dripBulkEmailApiUrlUserPrompt : this.dripBulkEmailApiUrl;
@@ -451,8 +451,13 @@ export class SseService {
 
               if (current_content) {
                 current_content = this.__formatEmailContent(current_content);
+                // First email starts almost immediately; the rest keep the default delay.
+                const emailDelay: EmailDelay =
+                  emailSequence === 1
+                    ? EmailDelay.firstEmail()
+                    : delayBetweenPreviousEmail;
                 const email: DripEmail = {
-                  delayBetweenPreviousEmail,
+                  delayBetweenPreviousEmail: emailDelay,
                   emailSequence,
                   emailSubject: current_subject,
                   emailContent: current_content,
@@ -502,8 +507,13 @@ export class SseService {
           if (done) {
             if (emailSubject && emailContent) {
               emailContent = this.__formatEmailContent(emailContent);
+              // First email starts almost immediately; the rest keep the default delay.
+              const emailDelay: EmailDelay =
+                emailSequence === 1
+                  ? EmailDelay.firstEmail()
+                  : delayBetweenPreviousEmail;
               const email: DripEmail = {
-                delayBetweenPreviousEmail,
+                delayBetweenPreviousEmail: emailDelay,
                 emailSequence,
                 emailSubject,
                 emailContent,
@@ -525,15 +535,18 @@ export class SseService {
 
   setupEmptyDripEmailTemplate = ({ count }) => {
     let emails: DripEmail[] = [];
-    let delayBetweenPreviousEmail: EmailDelay = { days: 3, hours: 0, minutes: 0 };
+    let delayBetweenPreviousEmail: EmailDelay = EmailDelay.default();
     this._dripBulkEmailLoading.next(true);
     if (count < 1) {
       return;
     }
 
     for (let i = 0; i < count; i++) {
+      // First email starts almost immediately; the rest keep the default delay.
+      const emailDelay: EmailDelay =
+        i === 0 ? EmailDelay.firstEmail() : delayBetweenPreviousEmail;
       const email: DripEmail = {
-        delayBetweenPreviousEmail,
+        delayBetweenPreviousEmail: emailDelay,
         emailSequence: i + 1,
         emailSubject: `Subject ${i + 1}`,
         emailContent: `Content ${i + 1}`,
