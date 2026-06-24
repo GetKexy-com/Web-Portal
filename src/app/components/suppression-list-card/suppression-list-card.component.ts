@@ -1,4 +1,4 @@
-import { AfterViewChecked, Component, EventEmitter, Input, OnDestroy, OnInit, Output } from "@angular/core";
+import { AfterViewChecked, Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output } from "@angular/core";
 import { Router } from "@angular/router";
 import { constants } from "../../helpers/constants";
 import { Subscription } from "rxjs";
@@ -37,7 +37,7 @@ export class SuppressionListCardComponent implements OnInit, OnDestroy {
   public list;
   public contactLabelsSubscription: Subscription;
 
-  constructor(private router: Router, private modal: NgbModal, private prospectingService: ProspectingService) {
+  constructor(private router: Router, private modal: NgbModal, private prospectingService: ProspectingService, private host: ElementRef) {
   }
 
   ngOnInit(): void {
@@ -71,7 +71,7 @@ export class SuppressionListCardComponent implements OnInit, OnDestroy {
 
   browserWidthForTable;
   calcWidth = () => {
-    const sidebarWidth = document.getElementById("main-sidebar")?.clientWidth;
+    const sidebarWidth = document.getElementById("main-sidebar")?.clientWidth || 0;
     const pageMargin = 48;
     let sum = 300;
     let map = {};
@@ -79,7 +79,11 @@ export class SuppressionListCardComponent implements OnInit, OnDestroy {
       sum += column.width;
       map[column.key] = column.width;
     });
-    this.browserWidthForTable = window.innerWidth - sidebarWidth - pageMargin;
+    // Prefer the table wrapper's own width so the table fills the available space
+    // on first render, instead of depending on #main-sidebar (not measurable for
+    // ~1-2s after load → table snapped from the narrow column-sum to full width).
+    const wrapper = this.host?.nativeElement?.querySelector(".new-table-wrapper") as HTMLElement | null;
+    this.browserWidthForTable = wrapper?.clientWidth || (window.innerWidth - sidebarWidth - pageMargin);
     this.tableWidth = this.browserWidthForTable > sum ? this.browserWidthForTable : sum;
   };
 

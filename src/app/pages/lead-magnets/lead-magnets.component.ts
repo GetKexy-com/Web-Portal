@@ -1,4 +1,4 @@
-import { AfterViewChecked, Component, OnDestroy, OnInit } from '@angular/core';
+import { AfterViewChecked, Component, ElementRef, OnDestroy, OnInit } from '@angular/core';
 import { BrandLayoutComponent } from '../../layouts/brand-layout/brand-layout.component';
 import { KexyButtonComponent } from '../../components/kexy-button/kexy-button.component';
 import { DatePipe, DecimalPipe, NgForOf, NgIf } from '@angular/common';
@@ -57,6 +57,7 @@ export class LeadMagnetsComponent implements OnInit, OnDestroy, AfterViewChecked
     private ngbOffcanvas: NgbOffcanvas,
     private leadMagnetService: LeadMagnetService,
     private router: Router,
+    private host: ElementRef,
   ) {
     // override the route reuse strategy
     this.router.routeReuseStrategy.shouldReuseRoute = function() {
@@ -328,8 +329,14 @@ export class LeadMagnetsComponent implements OnInit, OnDestroy, AfterViewChecked
       map[column.key] = column.width;
     });
 
-    // In smaller devices there is no fixed sidebar
-    if (sidebarWidth) {
+    // Prefer the table wrapper's own width so the table fills the available space
+    // on first render, instead of depending on #main-sidebar (not measurable for
+    // ~1-2s after load → table snapped from the narrow column-sum to full width).
+    const wrapper = this.host?.nativeElement?.querySelector('.new-table-wrapper') as HTMLElement | null;
+    if (wrapper?.clientWidth) {
+      this.browserWidthForTable = wrapper.clientWidth;
+    } else if (sidebarWidth) {
+      // In smaller devices there is no fixed sidebar
       this.browserWidthForTable = window.innerWidth - sidebarWidth - pageMargin;
     } else {
       this.browserWidthForTable = window.innerWidth - pageMargin;

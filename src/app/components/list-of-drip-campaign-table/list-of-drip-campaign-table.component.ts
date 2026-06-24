@@ -1,4 +1,4 @@
-import { AfterViewChecked, Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import { AfterViewChecked, Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { constants } from '../../helpers/constants';
 import { routeConstants } from '../../helpers/routeConstants';
 import { Router } from '@angular/router';
@@ -54,7 +54,7 @@ export class ListOfDripCampaignTableComponent implements OnInit, AfterViewChecke
   dripCampaignStatuses = constants.DRIP_CAMPAIGN_STATUS;
   selectedStatusKey = constants.DRIP_CAMPAIGN_STATUS[0];
 
-  constructor(private router: Router, private modal: NgbModal, private prospectingService: ProspectingService) {
+  constructor(private router: Router, private modal: NgbModal, private prospectingService: ProspectingService, private host: ElementRef) {
   }
 
   ngOnInit(): void {
@@ -100,7 +100,7 @@ export class ListOfDripCampaignTableComponent implements OnInit, AfterViewChecke
 
   browserWidthForTable;
   calcWidth = () => {
-    const sidebarWidth = document.getElementById('main-sidebar')?.clientWidth;
+    const sidebarWidth = document.getElementById('main-sidebar')?.clientWidth || 0;
     const pageMargin = 48;
     let sum = 300;
     let map = {};
@@ -108,7 +108,11 @@ export class ListOfDripCampaignTableComponent implements OnInit, AfterViewChecke
       sum += column.width;
       map[column.key] = column.width;
     });
-    this.browserWidthForTable = window.innerWidth - sidebarWidth - pageMargin;
+    // Prefer the table wrapper's own width so the table fills the available space
+    // on first render, instead of depending on #main-sidebar (not measurable for
+    // ~1-2s after load → table snapped from the narrow column-sum to full width).
+    const wrapper = this.host?.nativeElement?.querySelector('.new-table-wrapper') as HTMLElement | null;
+    this.browserWidthForTable = wrapper?.clientWidth || (window.innerWidth - sidebarWidth - pageMargin);
     this.tableWidth = this.browserWidthForTable > sum ? this.browserWidthForTable : sum;
   };
 

@@ -136,7 +136,7 @@
 //   };
 // }
 
-import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, AfterViewChecked, inject, signal, effect } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, AfterViewChecked, ElementRef, inject, signal, effect } from '@angular/core';
 import { AuthService } from "../../services/auth.service";
 import { Subscription } from "rxjs";
 import { constants } from "../../helpers/constants";
@@ -157,6 +157,7 @@ import {DatePipe, NgClass, NgFor, NgIf} from '@angular/common';
 })
 export class DripCampaignPromotionsTableComponent implements OnInit, OnDestroy, AfterViewChecked {
   private _authService = inject(AuthService);
+  private host = inject(ElementRef);
 
   // Inputs
   @Input() tableHeaderBg!: string;
@@ -239,7 +240,11 @@ export class DripCampaignPromotionsTableComponent implements OnInit, OnDestroy, 
       sum += column.width;
     });
 
-    const browserWidthForTable = window.innerWidth - sidebarWidth - pageMargin;
+    // Prefer the table wrapper's own width so the table fills the available space
+    // on first render, instead of depending on #main-sidebar (not measurable for
+    // ~1-2s after load → table snapped from the narrow column-sum to full width).
+    const wrapper = this.host?.nativeElement?.querySelector(".new-table-wrapper") as HTMLElement | null;
+    const browserWidthForTable = wrapper?.clientWidth || (window.innerWidth - sidebarWidth - pageMargin);
     this.tableWidth.set(browserWidthForTable > sum ? browserWidthForTable : sum);
   }
 

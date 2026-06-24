@@ -2,6 +2,7 @@ import {
   AfterViewChecked,
   AfterViewInit,
   Component,
+  ElementRef,
   EventEmitter,
   Input,
   OnDestroy,
@@ -60,7 +61,7 @@ export class LabelListCardComponent implements OnInit, OnDestroy, AfterViewInit 
   public userData;
   public loadingSubscription: Subscription;
 
-  constructor(private _authService: AuthService, private modal: NgbModal, private router: Router, private prospectingService: ProspectingService, private pageUiService: PageUiService) {
+  constructor(private _authService: AuthService, private modal: NgbModal, private router: Router, private prospectingService: ProspectingService, private pageUiService: PageUiService, private host: ElementRef) {
   }
 
   ngOnInit(): void {
@@ -99,16 +100,24 @@ export class LabelListCardComponent implements OnInit, OnDestroy, AfterViewInit 
 
   browserWidthForTable;
   calcWidth = () => {
-    const sidebarWidth = document.getElementById('main-sidebar')?.clientWidth;
-    const pageMargin = 48;
     let sum = 300;
-    let map = {};
     this.columnList.forEach((column) => {
       sum += column.width;
-      map[column.key] = column.width;
     });
-    this.browserWidthForTable = window.innerWidth - sidebarWidth - pageMargin;
-    this.tableWidth = this.browserWidthForTable > sum ? this.browserWidthForTable : sum;
+
+    // Prefer the table wrapper's OWN width — it's already laid out in the space
+    // beside the sidebar, so the table fills the available width on the first
+    // render. The previous `window.innerWidth - sidebarWidth` math depended on
+    // #main-sidebar, which isn't measurable for the first 1-2s (it renders after
+    // this card) → clientWidth was undefined → NaN → tableWidth fell back to the
+    // narrow column sum, then snapped to full width once the sidebar appeared.
+    const wrapper = this.host?.nativeElement?.querySelector('.new-table-wrapper') as HTMLElement | null;
+    const sidebarWidth = document.getElementById('main-sidebar')?.clientWidth || 0;
+    const pageMargin = 48;
+    const available = wrapper?.clientWidth || (window.innerWidth - sidebarWidth - pageMargin);
+
+    this.browserWidthForTable = available;
+    this.tableWidth = available > sum ? available : sum;
   };
 
   getCellClasses = (column) => {

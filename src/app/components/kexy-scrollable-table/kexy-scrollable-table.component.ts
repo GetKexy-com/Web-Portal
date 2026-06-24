@@ -1,4 +1,4 @@
-import { Component, Input, OnDestroy, OnInit } from "@angular/core";
+import { Component, ElementRef, Input, OnDestroy, OnInit } from "@angular/core";
 import { Subscription } from "rxjs";
 import { AuthService } from "../../services/auth.service";
 import { NgbModal } from "@ng-bootstrap/ng-bootstrap";
@@ -50,6 +50,7 @@ export class KexyScrollableTableComponent {
     private _authService: AuthService,
     private modal: NgbModal,
     private prospectingService: ProspectingService,
+    private host: ElementRef,
   ) {
   }
 
@@ -83,7 +84,7 @@ export class KexyScrollableTableComponent {
 
   browserWidthForTable;
   calcWidth = () => {
-    const sidebarWidth = document.getElementById("main-sidebar")?.clientWidth;
+    const sidebarWidth = document.getElementById("main-sidebar")?.clientWidth || 0;
     const pageMargin = 48;
     let sum = 300;
     let map = {};
@@ -91,7 +92,11 @@ export class KexyScrollableTableComponent {
       sum += column.width;
       map[column.key] = column.width;
     });
-    this.browserWidthForTable = window.innerWidth - sidebarWidth - pageMargin;
+    // Prefer the table wrapper's own width so the table fills the available space
+    // on first render, instead of depending on #main-sidebar (not measurable for
+    // ~1-2s after load → table snapped from the narrow column-sum to full width).
+    const wrapper = this.host?.nativeElement?.querySelector(".new-table-wrapper") as HTMLElement | null;
+    this.browserWidthForTable = wrapper?.clientWidth || (window.innerWidth - sidebarWidth - pageMargin);
     this.tableWidth = this.browserWidthForTable > sum ? this.browserWidthForTable : sum;
   };
 
