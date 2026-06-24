@@ -254,13 +254,19 @@ export class EditorUtilsService {
       root.querySelectorAll(selector).forEach((el) => this.appendStyle(el as HTMLElement, styles));
     });
 
-    // Anchors are handled separately: only supply the default link color when the
-    // anchor has NO color of its own, so a user-applied text color on a link is
-    // preserved instead of being clobbered by the default. Underline always added.
+    // Anchors are handled separately:
+    // - Color: only supply the default link color when the anchor has NO color of
+    //   its own, so a user-applied text color on a link is preserved.
+    // - Underline: do NOT force it. Links are underlined ONLY when the user applied
+    //   underline (which lives on a <u>/text-decoration child). Email clients
+    //   underline <a> by default, so neutralize that with `text-decoration:none`,
+    //   UNLESS the anchor itself already carries a decoration (don't clobber it).
     root.querySelectorAll('a').forEach((aEl) => {
       const a = aEl as HTMLElement;
       if (!a.style.color) this.appendStyle(a, 'color:#2ea3f2;');
-      this.appendStyle(a, 'text-decoration:underline;');
+      if (!a.style.textDecoration && !a.style.textDecorationLine) {
+        this.appendStyle(a, 'text-decoration:none;');
+      }
     });
   }
 
