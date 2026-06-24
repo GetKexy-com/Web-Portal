@@ -4,6 +4,13 @@
     [dripCampaignId]="dripCampaignId">
   </app-scrape-progress-card>
 
+  <div class="campaign-paused-warning ms-4 me-4" *ngIf="dripCampaign?.status === constants.PAUSE">
+    <i class="fa fa-exclamation-triangle" aria-hidden="true"></i>
+    <div class="text">
+      <p class="title">This drip campaign is paused</p>
+      <p class="desc">Scheduled emails won’t be sent until the campaign is resumed.</p>
+    </div>
+  </div>
   <div class="drip-campaign-fields mt-3">
     <div class="title-and-shortener-wrap">
       <p class="title">Drip Campaign Emails</p>
