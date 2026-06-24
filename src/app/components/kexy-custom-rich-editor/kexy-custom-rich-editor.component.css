@@ -557,6 +557,15 @@ kexy-custom-rich-editor .email-meta .subject-input * {
   background: #fff;
 }
 
+/* While a color picker is open the native picker holds focus, so the real text
+   selection isn't painted. This class (added to the wrapped span during a live
+   color preview, removed when the picker closes) mimics the selection highlight
+   so the user can still see which text is being recolored. For the HIGHLIGHT
+   picker, the live inline `background-color !important` overrides this. */
+.color-preview {
+  background-color: rgba(46, 163, 242, 0.25);
+}
+
 /* Media blocks rendered inside contenteditable */
 .media-block {
   display: block;

@@ -95,11 +95,20 @@ import { EditorCanvasComponent } from './editor-canvas.component';
 
         <span class="tool-divider"></span>
 
-        <!-- Text / highlight color -->
+        <!-- Text / highlight color. The native picker steals focus, so we wrap the
+             selection on mousedown (while it's still alive), restyle it live on
+             input (real-time preview as the picker is dragged), and finalize on
+             change/blur. See beginColorPreview/updateColorPreview/endColorPreview. -->
         <input #textColor class="color-input" type="color" value="#1f2937" title="Text color"
-          (input)="canvas?.execCommandWithValue('foreColor', textColor.value)" />
+          (mousedown)="canvas?.beginColorPreview('foreColor')"
+          (input)="canvas?.updateColorPreview(textColor.value)"
+          (change)="canvas?.endColorPreview()"
+          (blur)="canvas?.endColorPreview()" />
         <input #highlightColor class="color-input" type="color" value="#fff2b2" title="Highlight color"
-          (input)="canvas?.execCommandWithValue('hiliteColor', highlightColor.value)" />
+          (mousedown)="canvas?.beginColorPreview('hiliteColor')"
+          (input)="canvas?.updateColorPreview(highlightColor.value)"
+          (change)="canvas?.endColorPreview()"
+          (blur)="canvas?.endColorPreview()" />
 
         <span class="tool-divider"></span>
 

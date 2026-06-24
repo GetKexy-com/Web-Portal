@@ -441,6 +441,81 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
     this.refreshOutputs();
   }
 
+  // ----- Live color preview (text & highlight color pickers) -----
+  // The native <input type="color"> steals focus the moment it opens, which
+  // collapses the contenteditable selection — so execCommand can't apply the
+  // color live and the highlight is lost. Instead we wrap the selection in a span
+  // we own (on the input's mousedown, while the selection is still alive) and then
+  // restyle THAT span directly on every `input` tick. Direct DOM styling needs no
+  // focus, so the selected text recolors in real time as the picker is dragged.
+  private colorPreviewSpan: HTMLElement | null = null;
+  private colorPreviewProp: 'color' | 'background-color' = 'color';
+
+  /** mousedown on a color input: wrap the live selection so we can restyle it. */
+  beginColorPreview(cmd: 'foreColor' | 'hiliteColor'): void {
+    this.colorPreviewSpan = null;
+    if (this.state.sourceMode()) return;
+    this.colorPreviewProp = cmd === 'hiliteColor' ? 'background-color' : 'color';
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return;
+    const range = selection.getRangeAt(0);
+    if (range.collapsed || !this.canvas.contains(range.commonAncestorContainer)) return;
+
+    const span = document.createElement('span');
+    span.className = 'color-preview';
+    const fragment = range.extractContents();
+    span.appendChild(fragment);
+    range.insertNode(span);
+    this.colorPreviewSpan = span;
+
+    // Keep the editor selection over the new span (its `.color-preview` class
+    // shows a selection-like highlight while the native picker hides the real one).
+    const r = document.createRange();
+    r.selectNodeContents(span);
+    selection.removeAllRanges();
+    selection.addRange(r);
+    this.savedRange = r.cloneRange();
+  }
+
+  /** input on a color input: restyle the wrapped span live (no focus needed). */
+  updateColorPreview(value: string): void {
+    const span = this.colorPreviewSpan;
+    if (!span) return;
+    span.style.setProperty(this.colorPreviewProp, value, 'important');
+    // Text color must also hit any link in/around the selection, else the anchor's
+    // own color overrides the span (see inlineEmailStyles' matching export rule).
+    if (this.colorPreviewProp === 'color') {
+      span.querySelectorAll('a').forEach((a) => (a as HTMLElement).style.setProperty('color', value, 'important'));
+      const anchor = span.closest('a') as HTMLElement | null;
+      if (anchor) anchor.style.setProperty('color', value, 'important');
+    }
+  }
+
+  /** change/blur on a color input: finalize (commit color, or unwrap if none). */
+  endColorPreview(): void {
+    const span = this.colorPreviewSpan;
+    this.colorPreviewSpan = null;
+    if (!span || !span.isConnected) { this.refreshOutputs(); return; }
+    span.classList.remove('color-preview');
+    // No color was ever applied (picker opened then dismissed) → unwrap so we don't
+    // leave an empty span behind.
+    if (!span.style.color && !span.style.backgroundColor) {
+      const parent = span.parentNode;
+      while (span.firstChild) parent?.insertBefore(span.firstChild, span);
+      parent?.removeChild(span);
+      this.refreshOutputs();
+      return;
+    }
+    // Keep the word visually selected after the picker closes.
+    const selection = window.getSelection();
+    const r = document.createRange();
+    r.selectNodeContents(span);
+    selection?.removeAllRanges();
+    selection?.addRange(r);
+    this.savedRange = r.cloneRange();
+    this.refreshOutputs();
+  }
+
   /**
    * Apply a font size in real px. execCommand('fontSize') only accepts the
    * legacy 1–7 scale, which can't represent arbitrary px (8, 9, 32, 48, 72…),

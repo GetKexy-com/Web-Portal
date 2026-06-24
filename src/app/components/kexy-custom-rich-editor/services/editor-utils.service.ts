@@ -249,10 +249,18 @@ export class EditorUtilsService {
       ['table', 'width:100%; border-collapse:collapse; margin:0 0 16px;'],
       ['td', 'border:1px solid #d7deea; padding:8px;'],
       ['th', 'border:1px solid #d7deea; padding:8px; text-align:left; background:#f8fbff;'],
-      ['a', 'color:#2ea3f2; text-decoration:underline;'],
     ];
     map.forEach(([selector, styles]) => {
       root.querySelectorAll(selector).forEach((el) => this.appendStyle(el as HTMLElement, styles));
+    });
+
+    // Anchors are handled separately: only supply the default link color when the
+    // anchor has NO color of its own, so a user-applied text color on a link is
+    // preserved instead of being clobbered by the default. Underline always added.
+    root.querySelectorAll('a').forEach((aEl) => {
+      const a = aEl as HTMLElement;
+      if (!a.style.color) this.appendStyle(a, 'color:#2ea3f2;');
+      this.appendStyle(a, 'text-decoration:underline;');
     });
   }
 
