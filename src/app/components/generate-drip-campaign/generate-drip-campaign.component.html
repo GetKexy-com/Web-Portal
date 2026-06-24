@@ -260,7 +260,7 @@
   [rightSecondBtnClick]="handleClickNextButton"
   [rightFirstBtnClick]="handleClickBackButton"
   [handleClickSaveDraft]="handleClickSaveDraft"
-  [showSaveDraftBtn]="dripCampaign.status !== constants.ACTIVE"
+  [showSaveDraftBtn]="dripCampaign.status === constants.INACTIVE"
   [showNextButton]="dripCampaign.status === constants.INACTIVE || dripCampaign.status === constants.PUBLISHED"
   rightSecondBtnLabel="Activate"
 ></campaign-layout-bottm-btns>
