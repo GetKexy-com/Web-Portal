@@ -59,7 +59,40 @@ if all three are `0`. On submit it updates local state and, when the email has a
 `id`, calls `dripCampaignService.updateDripCampaignEmail(...)`, then
 `sseService.updateDripBulkEmail(...)` to sync the in-memory list.
 
+### Paused campaign warning
+
+`generate-drip-campaign` shows an amber `.campaign-paused-warning` banner at the
+top of the view when `dripCampaign?.status === constants.PAUSE` (`'pause'`),
+noting that scheduled emails won't send until the campaign is resumed.
+
 ---
+
+## Table cards
+
+The list/table cards — `label-list-card`, `contact-list-card`,
+`list-of-drip-campaign-table`, `list-of-landing-page-table`,
+`suppression-list-card`, `kexy-scrollable-table`,
+`drip-campaign-promotions-table`, and the `lead-magnets` page — share a markup
+shape: `.new-table-wrapper` › `.list-wrapper` (gets `[style.width]="tableWidth"`)
+› `table.n-table` with a `tr.n-header` row of `td.n-header-name` cells, then
+`tr.n-product` body rows. Columns carry an explicit `width` so header and body
+cells stay aligned.
+
+- **Width (avoid the first-render flash).** `calcWidth()` sets `tableWidth` from
+  the component's OWN `.new-table-wrapper` `clientWidth` (already laid out beside
+  the sidebar), falling back to `window.innerWidth − #main-sidebar width − 48`
+  (guarded with `|| 0`) only before the view exists. The old viewport-minus-
+  sidebar math depended on `#main-sidebar`, which isn't measurable for ~1-2s after
+  load → `tableWidth` fell back to the narrow column-sum, then snapped to full
+  width once the sidebar appeared. Reading the wrapper needs an injected
+  `ElementRef` (named `host`). `active-contacts-table` is intentionally exempt (it
+  uses a fixed `tableWidth`, no sidebar math).
+- **Sticky header + vertical scroll** (currently only on
+  `list-of-drip-campaign-table`): `.new-table-wrapper` gets a `max-height` +
+  `overflow: auto`; the header CELLS (`tr.n-header td`, NOT the `<tr>` — sticky
+  doesn't work on table rows) get `position: sticky; top: 0` + an opaque
+  background so body rows don't show through. To roll this out to the other cards,
+  apply the same two rules.
 
 ## Conventions
 
