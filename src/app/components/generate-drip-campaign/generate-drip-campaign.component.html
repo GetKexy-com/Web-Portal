@@ -13,11 +13,11 @@
     <app-kexy-button
       class="resume-btn"
       [label]="isResuming ? 'Resuming...' : 'Resume'"
-      [iconLeft]="isResuming ? 'fa-spinner fa-spin' : 'fa-play'"
+      [iconLeft]="isResuming ? 'fa-spinner fa-spin' : 'fa-play-circle-o'"
       [disabled]="isResuming"
       bgColor="#f0a500"
       textColor="#ffffff"
-      radius="6px"
+      radius="8px"
       (click)="resumeDripCampaign()"
     ></app-kexy-button>
   </div>
