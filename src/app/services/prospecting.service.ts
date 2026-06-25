@@ -769,6 +769,17 @@ export class ProspectingService {
     });
   };
 
+  // GET lists/:id/validation-status — current email-verification status/progress
+  // for a list. Resolves the response body.
+  getValidationStatus = async (listId) => {
+    return new Promise((resolve, reject) => {
+      this.httpService.get(`lists/${listId}/validation-status`).subscribe({
+        next: (res: any) => resolve(res),
+        error: (err) => reject(err.error || err),
+      });
+    });
+  };
+
   getLists = async (postData, overwrite = true) => {
     const { page, limit } = postData;
     if (page) this.manageListCurrentPage = page;

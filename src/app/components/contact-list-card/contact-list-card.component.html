@@ -4,7 +4,10 @@
 >
   <i class="fa fa-refresh fa-spin" aria-hidden="true"></i>
   <div class="text">
-    <p class="title">Email verification in progress</p>
+    <p class="title">Email verification in progress — {{ validationProgress }}%</p>
+    <div class="progress-bar-track">
+      <div class="progress-bar-fill" [style.width.%]="validationProgress"></div>
+    </div>
     <p class="desc">You'll receive an email notification once email verification is complete.</p>
   </div>
 </section>

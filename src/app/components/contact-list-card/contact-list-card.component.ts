@@ -5,9 +5,11 @@ import {
   ElementRef,
   EventEmitter,
   Input,
+  OnChanges,
   OnDestroy,
   OnInit,
   Output,
+  SimpleChanges,
 } from '@angular/core';
 import { AuthService } from '../../services/auth.service';
 import { constants } from '../../helpers/constants';
@@ -36,7 +38,7 @@ import Swal from 'sweetalert2';
   templateUrl: './contact-list-card.component.html',
   styleUrl: './contact-list-card.component.scss',
 })
-export class ContactListCardComponent implements OnInit, OnDestroy, AfterViewInit {
+export class ContactListCardComponent implements OnInit, OnChanges, OnDestroy, AfterViewInit {
   @Input() tableHeaderBg;
   @Input() tableHeaderColor;
   @Input() contacts: Contact[] = [];
@@ -94,8 +96,18 @@ export class ContactListCardComponent implements OnInit, OnDestroy, AfterViewIni
     console.log(this.contacts);
   }
 
+  // Start/stop polling whenever the bound list changes (e.g. a list that's
+  // already mid-verification when the card loads).
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['listInfo']) {
+      if (this.isValidationProgress()) this.startValidationPolling();
+      else this.stopValidationPolling();
+    }
+  }
+
   ngOnDestroy(): void {
     if (this.loadingSubscription) this.loadingSubscription.unsubscribe();
+    this.stopValidationPolling();
   }
 
   ngAfterViewChecked() {
@@ -150,6 +162,11 @@ export class ContactListCardComponent implements OnInit, OnDestroy, AfterViewIni
   };
 
   public validationLoading: boolean = false;
+  // Live verification progress 0–100 from the backend (climbs to 99 while running,
+  // hits 100 only when status flips to complete). Drives the banner % + bar.
+  public validationProgress: number = 0;
+  private validationPoll: any = null;
+  private readonly VALIDATION_POLL_MS = 5000;
 
   isValidationProgress = () => {
     return this.listInfo && (
@@ -167,6 +184,7 @@ export class ContactListCardComponent implements OnInit, OnDestroy, AfterViewIni
       this.validationLoading = true;
       await this.prospectingService.validateList(postData);
       this.listInfo.validationStatus = 'pending';
+      this.startValidationPolling();
       await this.pageUiService.showSweetAlert(
         'Verification started',
         'We\'ll notify you by email when the verification process is complete.',
@@ -177,6 +195,68 @@ export class ContactListCardComponent implements OnInit, OnDestroy, AfterViewIni
     } finally {
       this.validationLoading = false;
     }
+  };
+
+  // Poll GET lists/:id/validation-status while verification is running so the
+  // banner shows a LIVE progress % (data.progress, real-time 0–100). Progress
+  // climbs to 99 max during the run, then hits 100 only when validationStatus
+  // becomes "complete" (that's when the breakdown is populated). On complete we
+  // show the verified breakdown; on "not_validated" the job failed (progress
+  // frozen) — the user can retry via the Verify button. Stops polling either way.
+  private startValidationPolling = () => {
+    if (this.validationPoll || !this.listInfo?.id || !this.isValidationProgress()) return;
+
+    const poll = async () => {
+      try {
+        const res: any = await this.prospectingService.getValidationStatus(this.listInfo.id);
+        const data = res?.data ?? res; // tolerate wrapped { success, data } or bare body
+        if (data) {
+          const wasInProgress = this.isValidationProgress();
+          if (data.validationStatus != null) this.listInfo.validationStatus = data.validationStatus;
+          if (typeof data.progress === 'number') this.validationProgress = data.progress;
+
+          if (wasInProgress && !this.isValidationProgress()) {
+            if (this.listInfo.validationStatus === 'complete') this.onValidationComplete(data);
+            else this.onValidationFailed(); // 'not_validated' — job failed
+          }
+        }
+      } catch {
+        // Ignore transient errors and keep polling.
+      }
+      if (!this.isValidationProgress()) this.stopValidationPolling();
+    };
+
+    poll();
+    this.validationPoll = setInterval(poll, this.VALIDATION_POLL_MS);
+  };
+
+  private stopValidationPolling = () => {
+    if (this.validationPoll) {
+      clearInterval(this.validationPoll);
+      this.validationPoll = null;
+    }
+  };
+
+  // Verification finished — surface the verified count from the (now-populated)
+  // breakdown of the total.
+  private onValidationComplete = (data: any) => {
+    this.validationProgress = 100;
+    const verified = data?.breakdown?.verified;
+    const total = data?.total;
+    const message = (verified != null && total != null)
+      ? `${verified} of ${total} email(s) verified.`
+      : 'Email verification has finished.';
+    this.pageUiService.showSweetAlert('Verification complete', message, 'success');
+  };
+
+  // Verification failed (status "not_validated", progress frozen). Prompt a retry
+  // — the existing "Verify Email(s)" button re-runs the job.
+  private onValidationFailed = () => {
+    this.pageUiService.showSweetAlert(
+      'Verification failed',
+      'Something went wrong while verifying emails. Please try again.',
+      'error',
+    );
   };
 
 

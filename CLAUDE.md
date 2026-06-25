@@ -63,7 +63,37 @@ if all three are `0`. On submit it updates local state and, when the email has a
 
 `generate-drip-campaign` shows an amber `.campaign-paused-warning` banner at the
 top of the view when `dripCampaign?.status === constants.PAUSE` (`'pause'`),
-noting that scheduled emails won't send until the campaign is resumed.
+noting that scheduled emails won't send until the campaign is resumed. The banner
+has a yellow **Resume** `<app-kexy-button>` (`fa-play-circle-o`) →
+`resumeDripCampaign()`, which mirrors the pause/resume flow in
+`brand-list-of-drip-campaigns`: confirm, then re-save the campaign via
+`dripCampaignService.createOrUpdateDripCampaign(...)` with `status: ACTIVE` and
+set the local status so the banner hides.
+
+---
+
+## Email-verification progress (contact lists)
+
+A list's contacts can be email-verified. `contact-list-card` shows a blue
+`.list-verification-progress` banner (spinner + live %) while a list's
+`validationStatus` is `pending`/`inprogress`/`in_queue` (`isValidationProgress()`).
+
+- **Live progress** comes from the backend `GET lists/:id/validation-status`
+  (`prospectingService.getValidationStatus(listId)`). Response body (under the
+  standard `{ success, data }` wrapper): `data.validationStatus`, `data.progress`
+  (0–100, real-time), `data.total`, `data.breakdown { verified, invalid,
+  catch-all, unverified }`. The card reads `res.data ?? res` to tolerate either.
+- The card **polls every 5s** (`startValidationPolling`) and drives the banner
+  `%` + bar from `data.progress`. Polling starts in `ngOnChanges` (list already
+  mid-run on load) and after `validateList()`; cleared in `ngOnDestroy`.
+- **Backend quirk:** `progress` climbs to 99 max while running and only hits 100
+  when `validationStatus === 'complete'` — that's also when `breakdown` becomes
+  populated (the job writes all contacts in one bulk update at the end). So show
+  the live `%` during the run, and the `breakdown.verified of total` summary only
+  on completion. Don't try to show a per-contact count mid-run; it stays ~0.
+- **Terminal states stop polling:** `complete` → success alert with the verified
+  breakdown + banner auto-hides; `not_validated` → failed (progress frozen),
+  error alert; the existing "Verify Email(s)" button is the retry.
 
 ---
 
