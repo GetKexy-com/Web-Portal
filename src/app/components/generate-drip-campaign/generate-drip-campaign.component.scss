@@ -505,13 +505,16 @@
   padding: 14px 16px;
   margin-bottom: 16px;
 
-  i {
+  // Only the leading warning icon (direct child) is amber — not the button's icon.
+  > i {
     color: #f0a500;
     font-size: 18px;
     line-height: 1.4;
   }
 
   .text {
+    flex: 1;
+
     .title {
       margin: 0;
       font-weight: 700;
@@ -524,5 +527,11 @@
       font-size: 13px;
       color: #a37a1f;
     }
+  }
+
+  // Layout only — the visual styling comes from <app-kexy-button>'s own inputs.
+  .resume-btn {
+    align-self: center;
+    flex-shrink: 0;
   }
 }

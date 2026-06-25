@@ -10,6 +10,16 @@
       <p class="title">This drip campaign is paused</p>
       <p class="desc">Scheduled emails won’t be sent until the campaign is resumed.</p>
     </div>
+    <app-kexy-button
+      class="resume-btn"
+      [label]="isResuming ? 'Resuming...' : 'Resume'"
+      [iconLeft]="isResuming ? 'fa-spinner fa-spin' : 'fa-play'"
+      [disabled]="isResuming"
+      bgColor="#f0a500"
+      textColor="#ffffff"
+      radius="6px"
+      (click)="resumeDripCampaign()"
+    ></app-kexy-button>
   </div>
   <div class="drip-campaign-fields mt-3">
     <div class="title-and-shortener-wrap">

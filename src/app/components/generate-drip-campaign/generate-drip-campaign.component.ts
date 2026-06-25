@@ -639,6 +639,56 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
 
   protected readonly constants = constants;
 
+  // Resume a paused drip campaign — mirrors the pause/resume flow in
+  // brand-list-of-drip-campaigns: confirm, then re-save the campaign with an
+  // ACTIVE status. Updates the local status so the paused warning hides.
+  isResuming = false;
+  resumeDripCampaign = async () => {
+    if (this.isResuming) return;
+    if (!this.dripCampaign || this.dripCampaign.status !== constants.PAUSE) return;
+
+    const isConfirm = await Swal.fire({
+      title: 'Are you sure?',
+      text: 'This will resume the drip campaign and its scheduled emails.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, Resume!',
+    });
+    if (isConfirm.dismiss) return;
+
+    const payload = {
+      dripCampaignId: this.dripCampaign.id,
+      companyId: this.userData.supplier_id,
+      dripCampaignTitleId: this.dripCampaign.details.title?.id,
+      numberOfEmails: this.dripCampaign.details.numberOfEmails,
+      emailTone: this.dripCampaign.details.emailTone,
+      emailLength: this.dripCampaign.details.emailLength || '',
+      websiteUrl: this.dripCampaign.details.websiteUrl,
+      calendlyLink: this.dripCampaign.details.calendlyLink,
+      campaignId: this.dripCampaign.details.campaignId,
+      status: constants.ACTIVE,
+      targetAudience: this.dripCampaign.targetAudience,
+      emailAbout: this.dripCampaign.emailAbout,
+      audienceType: this.dripCampaign.audienceType,
+    };
+
+    this.isResuming = true;
+    const swal = this.pageUiService.showSweetAlertLoading();
+    try {
+      swal.showLoading();
+      await this.dripCampaignService.createOrUpdateDripCampaign(payload);
+      this.dripCampaign.status = constants.ACTIVE;
+    } catch (e) {
+      Swal.fire('Error', e.message);
+      console.error(e);
+    } finally {
+      this.isResuming = false;
+      swal.close();
+    }
+  };
+
 
   numberOfEmailsInputShow = false;
   handleShowHideNumberOfEmailsInput = () => {
