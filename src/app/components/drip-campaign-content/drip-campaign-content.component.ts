@@ -76,6 +76,7 @@ export class DripCampaignContentComponent implements OnInit, OnDestroy {
   public emailLengthKeys = constants.EMAIL_LENGTH_KEYS;
   public selectedEmailLength;
   public userPromptPriority = false;
+  companyLoading = false;
 
   public dripCampaignTitlesSubscription: Subscription;
   public calendlyLinkSubscription: Subscription;
@@ -111,6 +112,7 @@ export class DripCampaignContentComponent implements OnInit, OnDestroy {
     await this.getAndSetDripCampaignTitleSubscription();
     this.prospectingService.getCalendlyLinks();
     this.prospectingService.getWebsites();
+    this.companyLoading = true;
     await this.prospectingService.getDescriptions({
       companyId: this.userData.supplier_id,
     });
@@ -227,6 +229,7 @@ export class DripCampaignContentComponent implements OnInit, OnDestroy {
       });
       console.log(this.companyOptions);
     });
+    this.companyLoading = false;
   };
 
   setWebsiteOptions = async () => {
