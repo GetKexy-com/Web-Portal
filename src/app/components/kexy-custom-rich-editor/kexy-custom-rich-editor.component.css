@@ -629,10 +629,10 @@ kexy-custom-rich-editor .email-meta .subject-input * {
   aspect-ratio: 1 / 1;
   border-radius: 50%;
   background-color: rgba(255, 255, 255, 0.5);
-  /* Triangle drawn to fill the disc (background-size:100%); points chosen so the
-     polygon's CENTROID is at (50,50) of the viewBox — centroid x = (37+37+76)/3 =
-     50, y = (31+69+50)/3 = 50 — so the icon is optically centered. */
-  background-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Cpolygon%20points='37,31%2037,69%2076,50'%20fill='white'/%3E%3C/svg%3E");
+  /* Equilateral play triangle (taller than wide), drawn to fill the disc
+     (background-size:100%); points chosen so the polygon's CENTROID is at (50,50)
+     of the viewBox — centroid x = (39+39+72)/3 = 50, y = (31+69+50)/3 = 50. */
+  background-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Cpolygon%20points='39,31%2039,69%2072,50'%20fill='white'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: center;
   background-size: 100%;

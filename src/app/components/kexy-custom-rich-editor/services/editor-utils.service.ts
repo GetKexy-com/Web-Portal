@@ -17,15 +17,16 @@ export class EditorUtilsService {
     const cx = width / 2;
     const cy = height / 2;
     const fontSize = Math.max(22, Math.round(width / 34));
-    // Match drawPlayBadge: translucent white disc + solid white triangle whose
-    // centroid sits at the disc center (base at cx-a, tip at cx+2a).
-    const a = r * 0.26;
+    // Match drawPlayBadge: translucent white disc + solid white EQUILATERAL
+    // triangle (taller than wide) whose centroid sits at the disc center.
     const hh = r * 0.38;
+    const baseX = cx - hh * 0.577;
+    const tipX = cx + hh * 1.155;
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">` +
       `<defs><linearGradient id="g" x1="0" x2="1"><stop offset="0%" stop-color="#0f172a"/><stop offset="100%" stop-color="#334155"/></linearGradient></defs>` +
       `<rect width="100%" height="100%" fill="url(#g)"/>` +
       `<circle cx="${cx}" cy="${cy}" r="${r}" fill="#ffffff" opacity="0.5"/>` +
-      `<polygon points="${cx - a},${cy - hh} ${cx - a},${cy + hh} ${cx + 2 * a},${cy}" fill="#ffffff"/>` +
+      `<polygon points="${baseX},${cy - hh} ${baseX},${cy + hh} ${tipX},${cy}" fill="#ffffff"/>` +
       `<text x="50%" y="82%" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-size="${fontSize}" fill="#ffffff">${label}</text>` +
       `</svg>`;
     return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
@@ -128,17 +129,20 @@ export class EditorUtilsService {
     ctx.fillStyle = 'rgba(255,255,255,0.5)';
     ctx.fill();
 
-    // Solid white triangle, centroid at (cx, cy): base at cx - a, tip at cx + 2a
-    // → centroid x = (-a - a + 2a)/3 + cx = cx. Drawn without the shadow.
+    // Solid white EQUILATERAL play triangle pointing right (natural play-icon
+    // shape — slightly taller than wide). Vertical base on the left, apex
+    // 1.155·hh to the right; the base sits 0.577·hh left of center so the
+    // centroid lands exactly at (cx, cy). Drawn without the shadow.
     ctx.shadowColor = 'transparent';
     ctx.shadowBlur = 0;
     ctx.shadowOffsetY = 0;
-    const a = r * 0.26;
     const hh = r * 0.38;
+    const baseX = cx - hh * 0.577;
+    const tipX = cx + hh * 1.155;
     ctx.beginPath();
-    ctx.moveTo(cx - a, cy - hh);
-    ctx.lineTo(cx - a, cy + hh);
-    ctx.lineTo(cx + 2 * a, cy);
+    ctx.moveTo(baseX, cy - hh);
+    ctx.lineTo(baseX, cy + hh);
+    ctx.lineTo(tipX, cy);
     ctx.closePath();
     ctx.fillStyle = '#ffffff';
     ctx.fill();
