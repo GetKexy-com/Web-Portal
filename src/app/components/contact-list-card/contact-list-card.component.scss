@@ -415,3 +415,41 @@
     gap: 15px;
   }
 }
+
+// Email-verification progress banner. Same shape as the drip-campaign paused
+// warning (accent box + icon + title/desc), but in a blue "in progress" palette
+// with a spinning icon.
+.list-verification-progress {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: #e7f6fe;
+  border: 1px solid #b8dff8;
+  border-left: 4px solid #2847cc;
+  border-radius: 8px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+
+  > i {
+    color: #2847cc;
+    font-size: 18px;
+    line-height: 1.4;
+  }
+
+  .text {
+    flex: 1;
+
+    .title {
+      margin: 0;
+      font-weight: 700;
+      font-size: 14px;
+      color: #1b3aa0;
+    }
+
+    .desc {
+      margin: 2px 0 0;
+      font-size: 13px;
+      color: #3a57b5;
+    }
+  }
+}
