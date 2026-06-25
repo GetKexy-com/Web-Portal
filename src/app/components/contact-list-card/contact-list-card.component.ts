@@ -76,6 +76,9 @@ export class ContactListCardComponent implements OnInit, OnChanges, OnDestroy, A
   @Input() selectAllContacts;
   @Input() toggleSelectAllContactSelection;
   @Output() selectedLimit: EventEmitter<any> = new EventEmitter();
+  // Emitted when email verification finishes so the parent page can reload the
+  // contacts and show the updated email statuses.
+  @Output() refreshContacts: EventEmitter<void> = new EventEmitter();
 
   public tableWidth = 500;
   public columnList: any[];
@@ -241,6 +244,8 @@ export class ContactListCardComponent implements OnInit, OnChanges, OnDestroy, A
   // breakdown of the total.
   private onValidationComplete = (data: any) => {
     this.validationProgress = 100;
+    // Reload the contacts so the new email statuses show without a manual refresh.
+    this.refreshContacts.emit();
     const verified = data?.breakdown?.verified;
     const total = data?.total;
     const message = (verified != null && total != null)

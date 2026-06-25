@@ -30,6 +30,14 @@
   <div class="list-info" *ngIf="listInfo">
     <p class="details-text">Creator: <span>{{ listInfo.user.firstName }} {{ listInfo.user.lastName }}</span></p>
     <p class="ms-3 details-text">Total Contact(s): <span>{{ listInfo.contactListCount }}</span></p>
+    <p
+      *ngIf="listInfo.validationStatus === 'complete' && listInfo.contactListCount"
+      class="ms-3 details-text validated"
+      [title]="listInfo.validationTime ? ('Verified on ' + (listInfo.validationTime | date: 'medium')) : 'Verified'"
+    >
+      <i class="fa fa-check-circle" aria-hidden="true"></i>
+      Verified<span *ngIf="listInfo.validationTime"> on {{ listInfo.validationTime | date: 'medium' }}</span>
+    </p>
   </div>
 
   <div class="bottom-btn-wrap" *ngIf="bottomBtnLabel">

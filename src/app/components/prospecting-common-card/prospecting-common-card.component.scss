@@ -53,10 +53,24 @@
   }
   .list-info {
     display: flex;
+    align-items: center;
+    flex-wrap: wrap;
     p {
       margin-bottom: 0;
       span {
         font-weight: 600;
+      }
+    }
+    .validated {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      color: #1b7f47;
+      font-weight: 600;
+
+      i {
+        color: #1db954;
+        font-size: 15px;
       }
     }
   }

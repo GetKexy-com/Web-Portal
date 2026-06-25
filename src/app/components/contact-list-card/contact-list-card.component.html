@@ -52,6 +52,7 @@
             radius="8px"
           ></app-kexy-button>
           <app-kexy-button
+            *ngIf="contacts.length"
             (click)="validateList()"
             [disabled]="validationLoading || isValidationProgress()"
             [label]="validationLoading ? 'Please wait...' : 'Verify Email(s)' "

@@ -94,6 +94,15 @@ A list's contacts can be email-verified. `contact-list-card` shows a blue
 - **Terminal states stop polling:** `complete` → success alert with the verified
   breakdown + banner auto-hides; `not_validated` → failed (progress frozen),
   error alert; the existing "Verify Email(s)" button is the retry.
+- **Auto-refresh on completion:** on `complete` the card emits `@Output()
+  refreshContacts`; both `brand-list-contacts` and `brand-contacts` bind it to
+  `getContacts(true)` so the updated email statuses load without a manual refresh.
+- **Verified badge:** `prospecting-common-card` shows a green ✓ "Verified on
+  {validationTime | date}" in the Creator / Total Contact(s) row when
+  `listInfo.validationStatus === 'complete'` (the validated state; `not_validated`
+  = never/failed) AND `listInfo.contactListCount` is truthy.
+- **Empty list:** the "Verify Email(s)" button (`*ngIf="contacts.length"`) and the
+  verified badge are both hidden when the list has no contacts.
 
 ---
 

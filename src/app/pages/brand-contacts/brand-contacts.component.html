@@ -196,6 +196,7 @@
         [currentPage]="page"
         [limit]="limit"
         (selectedLimit)="receivedLimitNumber($event)"
+        (refreshContacts)="getContacts(true)"
         [paginationLeftArrowClick]="paginationLeftArrowClick"
         [paginationRightArrowClick]="paginationRightArrowClick"
         [navigateSpecificPage]="navigateSpecificPage"
