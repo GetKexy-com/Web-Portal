@@ -426,23 +426,28 @@ export class BrandListContactsComponent implements OnInit, OnDestroy {
 
     const skipped = skippedRaw.map((s: any) => {
       const byIndex = contacts[s.contact];
-      const matched = (byIndex && byIndex.email === s.email)
+      // `contacts` items are flat contactPostDto objects (firstName, lastName,
+      // title, email, city/state/country, organization.name) — NOT nested .details.
+      const m = ((byIndex && byIndex.email === s.email)
         ? byIndex
-        : (contacts.find((c: any) => c.email === s.email) || byIndex || null);
-      const d = matched?.details || {};
+        : (contacts.find((c: any) => c.email === s.email) || byIndex)) || {};
       return {
-        firstName: d.firstName || '',
-        lastName: d.lastName || '',
-        email: s.email || d.email || matched?.email || '',
-        company: d.organization?.name || matched?.companyName || '',
-        jobTitle: d.title || '',
-        location: [matched?.city || d.city, matched?.state || d.state, matched?.country || d.country]
-          .filter(Boolean).join(', '),
+        firstName: m.firstName || '',
+        lastName: m.lastName || '',
+        email: s.email || m.email || '',
+        company: m.organization?.name || '',
+        jobTitle: m.title || m.headline || '',
+        location: [m.city, m.state, m.country].filter(Boolean).join(', '),
         errors: s.errors || [],
       };
     });
 
-    const modalRef = this.modal.open(ImportResultsModalContentComponent, { size: 'lg', scrollable: true });
+    const modalRef = this.modal.open(ImportResultsModalContentComponent, {
+      size: 'xl',
+      scrollable: true,
+      backdrop: 'static', // don't close on outside click
+      keyboard: false,     // don't close on Esc — only Done / X
+    });
     modalRef.componentInstance.importedCount = res.importedCount ?? 0;
     modalRef.componentInstance.skippedCount = res.skippedCount ?? skipped.length;
     modalRef.componentInstance.skipped = skipped;

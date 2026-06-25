@@ -97,6 +97,30 @@ A list's contacts can be email-verified. `contact-list-card` shows a blue
 
 ---
 
+## CSV contact import results
+
+After a CSV import, the contact pages show which rows were skipped. The
+`POST contacts` response (`prospectingService.addContacts`, which resolves the
+`data` object) is `{ importedCount, imported[], skippedCount, skipped[] }`, where
+each `skipped` item is `{ contact, email, errors[] }` and `contact` is the INDEX
+into the submitted `contacts` array.
+
+- `ImportResultsModalContentComponent` (`components/import-results-modal-content`)
+  is a reusable standalone modal: a summary (imported / skipped pills) + a table
+  of skipped rows (Name, Email, Company, Job Title, Location, Errors).
+- Both `brand-list-contacts` and `brand-contacts` capture the response in
+  `getImportedFileData` and call `showImportResults(res, contacts)`, which maps
+  each skipped item back to its full row and opens the modal (only when
+  `skipped.length > 0`). Opened with `size: 'xl'`, `backdrop: 'static'`,
+  `keyboard: false` — closes ONLY via Done / X.
+- **Mapping gotcha:** the submitted `contacts` are flat `Contact.contactPostDto`
+  objects (top-level `firstName`/`lastName`/`title`/`email`/`city`/`state`/
+  `country`, company under `organization.name`) — NOT nested under `.details`.
+  Map `skipped[i].contact` by index, falling back to an email match, then read
+  those flat fields. `email`/`errors` come from the skipped entry (authoritative).
+
+---
+
 ## Table cards
 
 The list/table cards — `label-list-card`, `contact-list-card`,
