@@ -100,8 +100,8 @@ export class ContactListCardComponent implements OnInit, OnChanges, OnDestroy, A
   // already mid-verification when the card loads).
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['listInfo']) {
-      if (this.isValidationProgress()) this.startValidationPolling();
-      else this.stopValidationPolling();
+      // if (this.isValidationProgress()) this.startValidationPolling();
+      // else this.stopValidationPolling();
     }
   }
 
