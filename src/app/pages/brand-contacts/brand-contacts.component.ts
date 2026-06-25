@@ -17,6 +17,9 @@ import {
   UploadFileModalContentComponent,
 } from '../../components/upload-file-modal-content/upload-file-modal-content.component';
 import {
+  ImportResultsModalContentComponent,
+} from '../../components/import-results-modal-content/import-results-modal-content.component';
+import {
   SearchContactModalContentComponent,
 } from '../../components/search-contact-modal-content/search-contact-modal-content.component';
 import {
@@ -508,10 +511,11 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
     }
 
     try {
-      await this.prospectingService.addContacts(payload);
+      const res: any = await this.prospectingService.addContacts(payload);
       await this.getContacts(true);
       this.isLoading = false;
       this.closeModal();
+      this.showImportResults(res, contacts);
     } catch (e) {
       this.isLoading = false;
       console.log(e);
@@ -523,6 +527,39 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
       }
       await Swal.fire('Error', message);
     }
+  };
+
+  // After a CSV import, open a modal listing every SKIPPED contact (full details
+  // + the validation errors). `skipped[i].contact` is the index into the submitted
+  // `contacts` array; we map it back (falling back to an email match) so the modal
+  // can show the full row, not just the email.
+  private showImportResults = (res: any, contacts: any[]) => {
+    const skippedRaw = res?.skipped || [];
+    if (!skippedRaw.length) return;
+
+    const skipped = skippedRaw.map((s: any) => {
+      const byIndex = contacts[s.contact];
+      const matched = (byIndex && byIndex.email === s.email)
+        ? byIndex
+        : (contacts.find((c: any) => c.email === s.email) || byIndex || null);
+      const d = matched?.details || {};
+      return {
+        firstName: d.firstName || '',
+        lastName: d.lastName || '',
+        email: s.email || d.email || matched?.email || '',
+        company: d.organization?.name || matched?.companyName || '',
+        jobTitle: d.title || '',
+        location: [matched?.city || d.city, matched?.state || d.state, matched?.country || d.country]
+          .filter(Boolean).join(', '),
+        errors: s.errors || [],
+      };
+    });
+
+    const modalRef = this.modal.open(ImportResultsModalContentComponent, { size: 'lg', scrollable: true });
+    modalRef.componentInstance.importedCount = res.importedCount ?? 0;
+    modalRef.componentInstance.skippedCount = res.skippedCount ?? skipped.length;
+    modalRef.componentInstance.skipped = skipped;
+    modalRef.componentInstance.closeModal = () => modalRef.close();
   };
 
   exportCSV = async () => {

@@ -1,0 +1,54 @@
+<div class="import-results">
+  <div class="head-area">
+    <p>Import results</p>
+    <img src="/assets/images/close-icon.png" alt="Close" (click)="close()" />
+  </div>
+
+  <div class="summary">
+    <span class="pill imported">
+      <i class="fa fa-check-circle" aria-hidden="true"></i> {{ importedCount }} imported
+    </span>
+    <span class="pill skipped" *ngIf="skippedCount">
+      <i class="fa fa-exclamation-triangle" aria-hidden="true"></i> {{ skippedCount }} skipped
+    </span>
+  </div>
+
+  <p *ngIf="skippedCount" class="skipped-note">
+    The contacts below were not imported because of the errors shown. Fix them in your file and re-upload.
+  </p>
+
+  <div class="skipped-table-wrap" *ngIf="skipped.length">
+    <table class="skipped-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Company</th>
+          <th>Job Title</th>
+          <th>Location</th>
+          <th>Errors</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let c of skipped; let i = index">
+          <td>{{ i + 1 }}</td>
+          <td>{{ (c.firstName || '') + ' ' + (c.lastName || '') | titlecase }}<span *ngIf="!c.firstName && !c.lastName" class="muted">—</span></td>
+          <td>{{ c.email || '—' }}</td>
+          <td>{{ c.company || '—' }}</td>
+          <td>{{ c.jobTitle || '—' }}</td>
+          <td>{{ c.location || '—' }}</td>
+          <td>
+            <ul class="error-list">
+              <li *ngFor="let err of c.errors">{{ err }}</li>
+            </ul>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="buttons">
+    <button class="blue-button" type="button" (click)="close()">Done</button>
+  </div>
+</div>
