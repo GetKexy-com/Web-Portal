@@ -13,15 +13,19 @@ export class EditorUtilsService {
   }
 
   buildVideoPlaceholderSvg(label: string, width: number, height: number): string {
-    const r = Math.round(width / 12);
+    const r = Math.round(width / 24);
     const cx = width / 2;
     const cy = height / 2;
     const fontSize = Math.max(22, Math.round(width / 34));
+    // Match drawPlayBadge: translucent white disc + solid white triangle whose
+    // centroid sits at the disc center (base at cx-a, tip at cx+2a).
+    const a = r * 0.26;
+    const hh = r * 0.38;
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">` +
       `<defs><linearGradient id="g" x1="0" x2="1"><stop offset="0%" stop-color="#0f172a"/><stop offset="100%" stop-color="#334155"/></linearGradient></defs>` +
       `<rect width="100%" height="100%" fill="url(#g)"/>` +
-      `<circle cx="${cx}" cy="${cy}" r="${r}" fill="#ffffff" opacity="0.92"/>` +
-      `<polygon points="${cx - 9},${cy - 14} ${cx - 9},${cy + 14} ${cx + 18},${cy}" fill="#0f172a"/>` +
+      `<circle cx="${cx}" cy="${cy}" r="${r}" fill="#ffffff" opacity="0.5"/>` +
+      `<polygon points="${cx - a},${cy - hh} ${cx - a},${cy + hh} ${cx + 2 * a},${cy}" fill="#ffffff"/>` +
       `<text x="50%" y="82%" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-size="${fontSize}" fill="#ffffff">${label}</text>` +
       `</svg>`;
     return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
@@ -98,45 +102,39 @@ export class EditorUtilsService {
   }
 
   /**
-   * Draw a centered play-button badge (semi-transparent dark disc + white ring +
-   * white right-pointing triangle + soft shadow) onto a 2D canvas context. Sized
-   * as a proportion of the image so it looks consistent at any resolution and
-   * matches the design-view CSS overlay. The triangle's CENTROID is placed at the
-   * disc center (tip extends twice as far right as the base sits left) so the
-   * icon reads as optically centered, not shoved to one side.
+   * Draw a centered play-button badge onto a 2D canvas context: a translucent
+   * white disc + a solid white right-pointing triangle + a soft drop shadow (for
+   * definition on light thumbnails). Matches the reference design. Sized as a
+   * proportion of the image so it looks consistent at any resolution. The
+   * triangle's CENTROID is placed at the disc center (tip extends twice as far
+   * right as the base sits left) so the icon reads as optically centered.
    */
   drawPlayBadge(ctx: CanvasRenderingContext2D, w: number, h: number): void {
     const cx = w / 2;
     const cy = h / 2;
-    // Disc diameter ≈ 20% of width, never taller than the frame allows.
-    const r = Math.max(16, Math.min(w * 0.1, h * 0.3));
+    // Disc diameter ≈ 10% of width, never taller than the frame allows.
+    const r = Math.max(8, Math.min(w * 0.05, h * 0.15));
 
     ctx.save();
 
-    // Soft drop shadow under the disc.
-    ctx.shadowColor = 'rgba(0,0,0,0.45)';
-    ctx.shadowBlur = r * 0.4;
-    ctx.shadowOffsetY = r * 0.08;
+    // Soft drop shadow so the disc still reads on light/busy thumbnails.
+    ctx.shadowColor = 'rgba(0,0,0,0.25)';
+    ctx.shadowBlur = r * 0.3;
+    ctx.shadowOffsetY = r * 0.04;
 
-    // Semi-transparent dark disc (contrast on light frames).
+    // Translucent white disc.
     ctx.beginPath();
     ctx.arc(cx, cy, r, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(17,24,39,0.55)';
+    ctx.fillStyle = 'rgba(255,255,255,0.5)';
     ctx.fill();
 
-    // White ring (contrast on dark frames). Drawn without the shadow.
+    // Solid white triangle, centroid at (cx, cy): base at cx - a, tip at cx + 2a
+    // → centroid x = (-a - a + 2a)/3 + cx = cx. Drawn without the shadow.
     ctx.shadowColor = 'transparent';
     ctx.shadowBlur = 0;
     ctx.shadowOffsetY = 0;
-    ctx.lineWidth = Math.max(2, r * 0.08);
-    ctx.strokeStyle = 'rgba(255,255,255,0.95)';
-    ctx.stroke();
-
-    // White right-pointing triangle, centroid at (cx, cy): base at cx - a, tip
-    // at cx + 2a → centroid x = (-a - a + 2a)/3 + cx = cx. Sized at half the
-    // previous footprint so the triangle sits comfortably inside the disc.
-    const a = r * 0.21;
-    const hh = r * 0.26;
+    const a = r * 0.26;
+    const hh = r * 0.38;
     ctx.beginPath();
     ctx.moveTo(cx - a, cy - hh);
     ctx.lineTo(cx - a, cy + hh);

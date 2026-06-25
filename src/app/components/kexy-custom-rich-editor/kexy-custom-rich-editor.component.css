@@ -617,29 +617,26 @@ kexy-custom-rich-editor .email-meta .subject-input * {
    placeholder SVG) so it isn't drawn twice; those carry the overlay through
    export/preview/email via the image itself. It still renders for legacy
    already-saved videos whose posters predate baking, so they keep a play button
-   in design view. Built to stay visible on ANY thumbnail color: a semi-
-   transparent dark disc (light frames) + a white ring and white triangle (dark
-   frames) + a drop shadow. Size scales with the thumbnail and stays circular. */
+   in design view. Matches drawPlayBadge: a translucent white disc + a solid white
+   triangle + a soft shadow. Size scales with the thumbnail and stays circular. */
 .video-block:not(.has-baked-overlay) .video-thumb::after {
   content: "";
   position: absolute;
   /* inset:0 + margin:auto centers a fixed-size box in BOTH axes, reliably. */
   inset: 0;
   margin: auto;
-  width: clamp(40px, 22%, 84px);
+  width: clamp(20px, 11%, 42px);
   aspect-ratio: 1 / 1;
   border-radius: 50%;
-  background-color: rgba(17, 24, 39, 0.5);
-  /* Triangle points chosen so the polygon's CENTROID is at (50,50) of the
-     viewBox — centroid x = (39+39+73)/3 = 50.3, y = (30+70+50)/3 = 50 — so the
-     play icon's optical center sits dead-center in the disc with plain
-     `background-position: center` (no horizontal nudge needed). */
-  background-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Cpolygon%20points='39,30%2039,70%2073,50'%20fill='white'/%3E%3C/svg%3E");
+  background-color: rgba(255, 255, 255, 0.5);
+  /* Triangle drawn to fill the disc (background-size:100%); points chosen so the
+     polygon's CENTROID is at (50,50) of the viewBox — centroid x = (37+37+76)/3 =
+     50, y = (31+69+50)/3 = 50 — so the icon is optically centered. */
+  background-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Cpolygon%20points='37,31%2037,69%2076,50'%20fill='white'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: center;
-  background-size: 21%;
-  border: 2px solid rgba(255, 255, 255, 0.92);
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.45);
+  background-size: 100%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
   pointer-events: none;
 }
 
