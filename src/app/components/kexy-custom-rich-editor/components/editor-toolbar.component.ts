@@ -47,7 +47,7 @@ import { EditorCanvasComponent } from './editor-canvas.component';
         <button type="button" class="tool-btn" title="Insert image" (click)="imageFileInput.click()">
           <svg class="tool-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-4.5-4.5L6 21"/></svg>
         </button>
-        <button type="button" class="tool-btn" title="Insert link" (click)="canvas?.insertLink()">
+        <button type="button" class="tool-btn link-tool-btn" title="Insert link" [class.active]="linkActive()" (click)="canvas?.openLinkPopover($event)">
           <svg class="tool-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
         </button>
         <button type="button" class="tool-btn" title="Remove link" (click)="canvas?.unlink()">
@@ -262,6 +262,7 @@ export class EditorToolbarComponent {
   readonly strikeActive = signal(false);
   readonly ulActive = signal(false);
   readonly olActive = signal(false);
+  readonly linkActive = signal(false);
 
   readonly overflowOpen = signal(false);
   readonly alignOpen = signal(false);
@@ -373,6 +374,11 @@ export class EditorToolbarComponent {
       this.ulActive.set(document.queryCommandState('insertUnorderedList'));
       this.olActive.set(document.queryCommandState('insertOrderedList'));
     } catch { /* queryCommandState can throw if focus isn't in an editable */ }
+    // No queryCommandState for links — detect by walking up to an <a> from the
+    // selection (already confirmed to be inside the body canvas above).
+    const node = sel.getRangeAt(0).commonAncestorContainer;
+    const anchorEl = node.nodeType === Node.TEXT_NODE ? node.parentElement : (node as HTMLElement);
+    this.linkActive.set(!!anchorEl?.closest('a'));
     // Font family/size selects now live in the main strip, so reflect the
     // current selection's font in them live (they used to sync on overflow-open).
     this.syncFontControls();

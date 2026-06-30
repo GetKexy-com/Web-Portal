@@ -566,6 +566,11 @@ kexy-custom-rich-editor .email-meta .subject-input * {
   background-color: rgba(46, 163, 242, 0.25);
 }
 
+/* Keeps the selected text looking selected while the link popover holds focus. */
+.link-target-highlight {
+  background-color: rgba(46, 163, 242, 0.25);
+}
+
 /* Media blocks rendered inside contenteditable */
 .media-block {
   display: block;

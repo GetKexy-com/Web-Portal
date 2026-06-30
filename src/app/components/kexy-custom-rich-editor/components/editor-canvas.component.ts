@@ -6,12 +6,13 @@ import { EditorStateService } from '../services/editor-state.service';
 import { EditorUtilsService } from '../services/editor-utils.service';
 import { MergeTagService } from '../services/merge-tag.service';
 import { FallbackPopoverComponent } from './fallback-popover.component';
+import { LinkPopoverComponent } from './link-popover.component';
 import { InsertImageOptions, InsertVideoOptions } from '../models/editor.models';
 
 @Component({
   selector: 'app-editor-canvas',
   standalone: true,
-  imports: [FallbackPopoverComponent],
+  imports: [FallbackPopoverComponent, LinkPopoverComponent],
   template: `
     <div class="editor-stage mode-panel" [class.active]="state.mode() === 'design'">
       <div
@@ -44,6 +45,7 @@ import { InsertImageOptions, InsertVideoOptions } from '../models/editor.models'
     </div>
 
     <app-fallback-popover #fallbackPopover (fallbackChanged)="refreshChipIndicators()"></app-fallback-popover>
+    <app-link-popover #linkPopover (urlSubmitted)="applyLink($event)" (closed)="onLinkPopoverClosed()"></app-link-popover>
   `,
 })
 export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
@@ -51,6 +53,7 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
   @ViewChild('sourceEditor') sourceEditorRef!: ElementRef<HTMLTextAreaElement>;
   @ViewChild('previewFrame') previewFrameRef!: ElementRef<HTMLIFrameElement>;
   @ViewChild('fallbackPopover') fallbackPopoverRef!: FallbackPopoverComponent;
+  @ViewChild('linkPopover') linkPopoverRef!: LinkPopoverComponent;
 
   readonly contentChanged = output<void>();
 
@@ -59,6 +62,12 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
   readonly mergeTags = inject(MergeTagService);
 
   private savedRange: Range | null = null;
+
+  /** The last URL inserted via the link popover — used to pre-fill it next time. */
+  private lastLinkUrl = '';
+
+  /** Temp span keeping the selected text visually highlighted while the link popover is open. */
+  private linkHighlightSpan: HTMLElement | null = null;
 
   // ── Subject line (chips share this canvas's merge-tag + fallback infra) ──
   // The subject contenteditable lives in the host editor component (above the
@@ -331,6 +340,14 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
     ) {
       this.fallbackPopoverRef.hide();
     }
+    // Dismiss the link popover when clicking outside it (and not on its toolbar button)
+    if (
+      this.linkPopoverRef?.visible() &&
+      !target.closest('.link-popover') &&
+      !target.closest('.link-tool-btn')
+    ) {
+      this.linkPopoverRef.hide();
+    }
   };
 
   onInput(): void {
@@ -582,12 +599,105 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
     });
   }
 
-  insertLink(): void {
+  /**
+   * Open the link popover anchored beneath the toolbar button. Replaces the old
+   * `window.prompt`. Pre-fills the URL of the link under the caret (when editing
+   * an existing link) or the last URL the user entered, so it's remembered.
+   */
+  openLinkPopover(event: MouseEvent): void {
     if (this.state.sourceMode()) return;
-    const url = window.prompt('Link URL', 'https://');
-    if (!url) return;
+    // Capture the current body selection so applyLink can restore it later.
+    this.saveSelection();
+    const existing = this.anchorFromSavedRange();
+    // Focus leaves for the popover input, which hides the native selection — wrap
+    // the selected text in a highlight span so it stays visible (like color preview).
+    this.highlightLinkTarget();
+    const currentUrl = existing?.getAttribute('href') || this.lastLinkUrl || '';
+    const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+    this.linkPopoverRef.show(rect, currentUrl, !!existing);
+  }
+
+  /** Apply the URL from the link popover to the saved selection. */
+  applyLink(url: string): void {
+    if (this.state.sourceMode()) return;
+    // Normalize the same way media-block links are: a value without a scheme
+    // (e.g. `example.com`) gets `https://` so it isn't treated as a relative path.
+    const trimmed = this.utils.normalizeUrl(url);
+    // Drop the temp highlight span first; this also restores savedRange over the text.
+    this.clearLinkHighlight();
+    if (!trimmed) return;
+    this.lastLinkUrl = trimmed;
     this.focusEditor();
-    document.execCommand('createLink', false, url);
+    // Editing an existing link with a collapsed caret: select the whole anchor
+    // so createLink rewrites its href instead of doing nothing.
+    const selection = window.getSelection();
+    if (selection?.rangeCount && selection.getRangeAt(0).collapsed) {
+      const anchor = this.anchorFromSavedRange();
+      if (anchor) {
+        const range = document.createRange();
+        range.selectNodeContents(anchor);
+        selection.removeAllRanges();
+        selection.addRange(range);
+      }
+    }
+    document.execCommand('createLink', false, trimmed);
+    this.saveSelection();
+    this.refreshOutputs();
+  }
+
+  /** The anchor (<a>) the saved body selection sits inside, or null. */
+  private anchorFromSavedRange(): HTMLAnchorElement | null {
+    const range = this.savedRange;
+    if (!range || !this.canvas.contains(range.commonAncestorContainer)) return null;
+    const node = range.commonAncestorContainer;
+    const el = node.nodeType === Node.TEXT_NODE ? node.parentElement : (node as HTMLElement);
+    return (el?.closest('a') as HTMLAnchorElement | null) ?? null;
+  }
+
+  /** Wrap the saved selection in a `.link-target-highlight` span so it stays
+   *  visible while the link popover steals focus. No-op for a collapsed caret. */
+  private highlightLinkTarget(): void {
+    this.clearLinkHighlight();
+    const range = this.savedRange;
+    if (!range || range.collapsed || !this.canvas.contains(range.commonAncestorContainer)) return;
+    const span = document.createElement('span');
+    span.className = 'link-target-highlight';
+    try {
+      const fragment = range.extractContents();
+      span.appendChild(fragment);
+      range.insertNode(span);
+    } catch {
+      return; // selection crossed a boundary we can't cleanly wrap — skip the highlight
+    }
+    this.linkHighlightSpan = span;
+    const r = document.createRange();
+    r.selectNodeContents(span);
+    this.savedRange = r.cloneRange();
+  }
+
+  /** Unwrap the highlight span, rebuilding savedRange over the (now bare) text. */
+  private clearLinkHighlight(): void {
+    const span = this.linkHighlightSpan;
+    this.linkHighlightSpan = null;
+    if (!span || !span.isConnected) return;
+    const parent = span.parentNode;
+    if (!parent) return;
+    const first = span.firstChild;
+    const last = span.lastChild;
+    while (span.firstChild) parent.insertBefore(span.firstChild, span);
+    parent.removeChild(span);
+    if (first && last) {
+      const r = document.createRange();
+      r.setStartBefore(first);
+      r.setEndAfter(last);
+      this.savedRange = r.cloneRange();
+    }
+  }
+
+  /** Popover closed without applying (Cancel / Esc / outside-click): drop the highlight. */
+  onLinkPopoverClosed(): void {
+    if (!this.linkHighlightSpan) return;
+    this.clearLinkHighlight();
     this.refreshOutputs();
   }
 
