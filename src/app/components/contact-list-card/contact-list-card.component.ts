@@ -50,6 +50,7 @@ export class ContactListCardComponent implements OnInit, OnChanges, OnDestroy, A
   @Input() createContactClick;
   @Input() importBtnClick;
   @Input() deleteContacts;
+  @Input() deleteContactsFromList;
   @Input() editContact;
   @Input() paginationLeftArrowClick;
   @Input() paginationRightArrowClick;

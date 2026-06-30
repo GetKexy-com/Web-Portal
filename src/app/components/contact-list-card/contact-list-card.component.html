@@ -35,14 +35,25 @@
           <app-kexy-button
             *ngIf="selectedContacts.length"
             (click)="deleteContacts()"
-            label=""
-            tooltip="Delete Selected Contact(s)"
+            label="Delete"
+            tooltip="This action permanently deletes your account and all associated data. This cannot be undone."
             iconLeft="fa-trash"
             bgColor="#e7f6fe"
             textColor="#2847cc"
             radius="8px"
           ></app-kexy-button>
           <app-kexy-button
+            *ngIf="selectedContacts.length"
+            (click)="deleteContactsFromList()"
+            label="Remove From List"
+            tooltip="Remove From List"
+            iconLeft="fa-minus-circle"
+            bgColor="#e7f6fe"
+            textColor="#2847cc"
+            radius="8px"
+          ></app-kexy-button>
+          <app-kexy-button
+            *ngIf="!selectedContacts.length"
             (click)="createContactClick()"
             label="Add Contact"
             tooltip="Add New Contact"
@@ -62,6 +73,7 @@
             radius="8px"
           ></app-kexy-button>
           <app-kexy-button
+            *ngIf="!selectedContacts.length"
             label="Import"
             iconLeft="fa-cloud-upload"
             (click)="importBtnClick()"

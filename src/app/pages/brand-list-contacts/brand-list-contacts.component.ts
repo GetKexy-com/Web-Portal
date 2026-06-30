@@ -333,9 +333,63 @@ export class BrandListContactsComponent implements OnInit, OnDestroy {
     return !isConfirm.dismiss;
   };
 
+  deleteContacts = async () => {
+    let isConfirm = await Swal.fire({
+      title: 'Are you sure?',
+      text: 'You won\'t be able to revert this!',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      confirmButtonText: 'Yes, delete it!',
+      showLoaderOnConfirm: true,
+    });
+
+    if (isConfirm.dismiss) {
+      return;
+    }
+
+    Swal.fire({
+      title: '',
+      text: 'Please wait...',
+      showConfirmButton: false,
+      showCancelButton: false,
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+    });
+    Swal.showLoading();
+
+    const contactIds = [];
+    this.selectedContacts.map((contact: Contact) =>
+      contactIds.push({
+        id: contact.id,
+        // email: contact.email,
+        // firstName: contact.details.firstName,
+        // lastName: contact.details.lastName,
+        // name: contact.contactName,
+        // title: contact.jobTitle,
+      }),
+    );
+    const postData = {
+      companyId: this.userData.supplier_id,
+      contacts: contactIds,
+    };
+    try {
+      await this.prospectingService.deleteContacts(postData);
+      await this.getContacts(true);
+      this.prospectingService.selectedContacts = [];
+      Swal.close();
+    } catch (e) {
+      Swal.close();
+      await Swal.fire('Error', e.message);
+    }
+  };
+
 
   deleteContactsFromList = async () => {
-    const confirmed = await this.__isConfirmed();
+    const confirmed = await this.__isConfirmed("");
     if (!confirmed) return;
     console.log(this.selectedContacts);
     const contactIds = [];
