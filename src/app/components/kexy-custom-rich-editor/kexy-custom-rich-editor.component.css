@@ -571,6 +571,21 @@ kexy-custom-rich-editor .email-meta .subject-input * {
   background-color: rgba(46, 163, 242, 0.25);
 }
 
+/* The host global `a { text-decoration: none !important }` (src/styles.scss)
+   strips an underline from links even when the user explicitly applies one via
+   the toolbar (the browser may put `text-decoration: underline` on the <a>
+   itself or a <u>/span child). Re-assert it with higher specificity + !important
+   so the user-applied underline shows in the design canvas. Default links carry
+   no such markup, so they stay un-underlined as intended. (Preview/export are
+   unaffected — the iframe srcdoc/email HTML don't inherit the host reset, and
+   inlineEmailStyles already preserves a user-applied underline.) */
+kexy-custom-rich-editor .editor-canvas a[style*="underline"],
+kexy-custom-rich-editor .editor-canvas a u,
+kexy-custom-rich-editor .editor-canvas a ins,
+kexy-custom-rich-editor .editor-canvas a [style*="underline"] {
+  text-decoration: underline !important;
+}
+
 /* Media blocks rendered inside contenteditable */
 .media-block {
   display: block;
