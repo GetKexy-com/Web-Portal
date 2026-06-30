@@ -1130,8 +1130,23 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
     const html = this.generateEmailHtml(this.state.subject());
     this.state.setHtmlOutput(html);
     const iframe = this.previewFrameRef?.nativeElement;
-    if (iframe) iframe.srcdoc = html;
+    if (iframe) iframe.srcdoc = this.withPreviewLinkTarget(html);
     this.contentChanged.emit();
+  }
+
+  /**
+   * Preview-only: force links to open in the user's browser (a new tab) rather
+   * than navigating the preview <iframe> itself. Loading a link in-frame fails
+   * for most sites ("refused to connect") because they send X-Frame-Options /
+   * frame-ancestors CSP that block being framed. Injecting `<base target="_blank">`
+   * makes every anchor open externally. This is applied ONLY to the iframe srcdoc
+   * — the exported / HTML-source output (generateEmailHtml) is left untouched.
+   */
+  private withPreviewLinkTarget(html: string): string {
+    const base = '<base target="_blank" rel="noopener noreferrer" />';
+    return html.includes('<head>')
+      ? html.replace('<head>', `<head>\n  ${base}`)
+      : `${base}${html}`;
   }
 
   private createResizeHandle(): HTMLDivElement {
