@@ -78,11 +78,26 @@ A list's contacts can be email-verified. `contact-list-card` shows a blue
 `.list-verification-progress` banner (spinner + live %) while a list's
 `validationStatus` is `pending`/`inprogress`/`in_queue` (`isValidationProgress()`).
 
+- **Verify all vs. selected:** `validateList()` POSTs `lists/validate` with
+  **exactly one** of `{ listId }` or `{ contactIds: number[] }` (the API rejects
+  sending both — `400 "Provide exactly one of listId or contactIds"`). If the
+  user has **checked** any contacts (`contact.isSelected`), it sends only their
+  `Contact.id`s as `contactIds` so ONLY those are verified; with none checked it
+  sends only `listId` to verify the whole list. The button label reflects this —
+  `Verify Selected (N)` when N contacts are checked, else `Verify Email(s)`
+  (`getSelectedItemCount()` drives both).
 - **Live progress** comes from the backend `GET lists/:id/validation-status`
   (`prospectingService.getValidationStatus(listId)`). Response body (under the
   standard `{ success, data }` wrapper): `data.validationStatus`, `data.progress`
   (0–100, real-time), `data.total`, `data.breakdown { verified, invalid,
   catch-all, unverified }`. The card reads `res.data ?? res` to tolerate either.
+  When a **subset** was verified (checked contacts), polling instead reads
+  `GET lists/contacts/validation-status?contactIds=1,2,3`
+  (`getContactsValidationStatus(ids)`, **same response shape** —
+  `validationStatus`/`progress`/`total`/`breakdown`, plus `contactIds`) — the
+  card remembers the submitted ids in `validatingContactIds` (set in
+  `validateList`, cleared in `stopValidationPolling`) and just picks the endpoint;
+  the poll logic (status/progress/completion) is identical for both.
 - The card **polls every 5s** (`startValidationPolling`) and drives the banner
   `%` + bar from `data.progress`. Polling starts in `ngOnChanges` (list already
   mid-run on load) and after `validateList()`; cleared in `ngOnDestroy`.

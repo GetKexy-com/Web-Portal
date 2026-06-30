@@ -780,6 +780,20 @@ export class ProspectingService {
     });
   };
 
+  // GET lists/contacts/validation-status?contactIds=1,2,3 — verification
+  // status/progress for a specific subset of contacts (used when the user
+  // verified only the checked contacts). Same response shape as getValidationStatus.
+  getContactsValidationStatus = async (contactIds: number[]) => {
+    return new Promise((resolve, reject) => {
+      this.httpService
+        .get(`lists/contacts/validation-status?contactIds=${contactIds.join(',')}`)
+        .subscribe({
+          next: (res: any) => resolve(res),
+          error: (err) => reject(err.error || err),
+        });
+    });
+  };
+
   getLists = async (postData, overwrite = true) => {
     const { page, limit } = postData;
     if (page) this.manageListCurrentPage = page;

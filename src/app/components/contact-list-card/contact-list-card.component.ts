@@ -170,6 +170,10 @@ export class ContactListCardComponent implements OnInit, OnChanges, OnDestroy, A
   public validationProgress: number = 0;
   private validationPoll: any = null;
   private readonly VALIDATION_POLL_MS = 5000;
+  // Contacts being verified when only a checked subset was submitted — polling
+  // then reads status from lists/contacts/validation-status?contactIds=… instead
+  // of the whole-list endpoint. null means a full-list run.
+  private validatingContactIds: number[] | null = null;
 
   isValidationProgress = () => {
     return this.listInfo && (
@@ -180,9 +184,14 @@ export class ContactListCardComponent implements OnInit, OnChanges, OnDestroy, A
   };
 
   validateList = async () => {
-    const postData = {
-      listId: this.listInfo.id,
-    };
+    // If the user has checked specific contacts, verify ONLY those; otherwise
+    // verify the whole list. The API wants EXACTLY ONE of listId / contactIds.
+    const selectedIds = this.contacts.filter((c) => c.isSelected).map((c) => c.id);
+    const postData: { listId?: number; contactIds?: number[] } = selectedIds.length
+      ? { contactIds: selectedIds }
+      : { listId: this.listInfo.id };
+    // Remember the subset so polling reads its status from the contactIds endpoint.
+    this.validatingContactIds = selectedIds.length ? selectedIds : null;
     try {
       this.validationLoading = true;
       await this.prospectingService.validateList(postData);
@@ -211,7 +220,9 @@ export class ContactListCardComponent implements OnInit, OnChanges, OnDestroy, A
 
     const poll = async () => {
       try {
-        const res: any = await this.prospectingService.getValidationStatus(this.listInfo.id);
+        const res: any = this.validatingContactIds?.length
+          ? await this.prospectingService.getContactsValidationStatus(this.validatingContactIds)
+          : await this.prospectingService.getValidationStatus(this.listInfo.id);
         const data = res?.data ?? res; // tolerate wrapped { success, data } or bare body
         if (data) {
           const wasInProgress = this.isValidationProgress();
@@ -238,6 +249,7 @@ export class ContactListCardComponent implements OnInit, OnChanges, OnDestroy, A
       clearInterval(this.validationPoll);
       this.validationPoll = null;
     }
+    this.validatingContactIds = null;
   };
 
   // Verification finished — surface the verified count from the (now-populated)

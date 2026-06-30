@@ -55,7 +55,7 @@
             *ngIf="contacts.length"
             (click)="validateList()"
             [disabled]="validationLoading || isValidationProgress()"
-            [label]="validationLoading ? 'Please wait...' : 'Verify Email(s)' "
+            [label]="validationLoading ? 'Please wait...' : (getSelectedItemCount() ? 'Verify Selected (' + getSelectedItemCount() + ')' : 'Verify List') "
             [iconLeft]="validationLoading ? 'fa-refresh fa-spin' : 'fa-check-circle-o'"
             bgColor="#e7f6fe"
             textColor="#2847cc"
