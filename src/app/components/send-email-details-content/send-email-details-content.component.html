@@ -76,21 +76,24 @@
             <error-message-card message="Subject line is required!"></error-message-card>
           </div>
         </div>
+      </div>
 
-        <div class="label-and-input">
-          <div class="form-check checkbox-and-label">
-            <input
-              class="form-check-input"
-              type="checkbox"
-              value=""
-              [checked]="isCheckedAddUnsubscribeLink"
-              (change)="handleCheckboxClick()"
-              id="purchase"
-            />
-            <label class="form-check-label purchase-info-label" for="purchase">
-              Add unsubscribe link
-            </label>
-          </div>
+      <!-- Pinned just above Save/Cancel so it stays visible regardless of the
+           editor mode/height (the Design canvas is content-height and would
+           otherwise push this option far down the scroll region). -->
+      <div class="pinned-options">
+        <div class="form-check checkbox-and-label">
+          <input
+            class="form-check-input"
+            type="checkbox"
+            value=""
+            [checked]="isCheckedAddUnsubscribeLink"
+            (change)="handleCheckboxClick()"
+            id="purchase"
+          />
+          <label class="form-check-label purchase-info-label" for="purchase">
+            Add unsubscribe link
+          </label>
         </div>
       </div>
 

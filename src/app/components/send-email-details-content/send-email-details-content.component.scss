@@ -89,12 +89,20 @@
         }
       }
     }
+    // Pinned option row — sits between the scrolling content and the footer, so
+    // it stays visible in every editor mode (Design canvas is content-height).
+    .pinned-options {
+      flex: 0 0 auto;
+      padding: 12px 25px;
+      border-top: 1px solid #e8e8e8;
+      background: #fff;
+    }
+
     .bottom-buttons {
       // Pinned footer — always visible regardless of email length.
       flex: 0 0 auto;
       display: flex;
-      padding: 16px 25px;
-      border-top: 1px solid #e8e8e8;
+      padding: 16px 25px 24px;
       background: #fff;
       button {
         border-radius: 15px;
