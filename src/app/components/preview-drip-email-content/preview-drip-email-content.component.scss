@@ -3,6 +3,7 @@
   flex-direction: column;
   overflow: hidden;
   height: 100vh;
+  background: #fff;
 
   .head-area {
     flex: 0 0 auto;
@@ -27,35 +28,124 @@
     }
   }
 
-  .canvas-body {
+  // ---- Gmail-style reading pane ------------------------------------------
+  .reading-pane {
     flex: 1 1 auto;
     display: flex;
     flex-direction: column;
     min-height: 0;
 
-    .subject {
+    .mail-subject-row {
       flex: 0 0 auto;
-      border-bottom: 1px solid #e8e8e8;
-      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 20px 28px 4px;
 
-      .subject-label {
-        display: block;
-        font-size: 12px;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
-        color: #8a8a8a;
-        margin-bottom: 2px;
+      .mail-subject {
+        margin: 0;
+        padding: 0;
+        font-size: 22px;
+        font-weight: 400;
+        line-height: 1.3;
+        color: #202124;
+        word-break: break-word;
       }
 
-      p {
-        font-size: 20px;
-        margin: 0;
+      .mail-label {
+        flex: 0 0 auto;
+        font-size: 11px;
+        font-weight: 500;
+        line-height: 1;
+        color: #5f6368;
+        background: #f1f3f4;
+        border-radius: 4px;
+        padding: 5px 8px;
       }
     }
 
+    .mail-meta-row {
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 28px 16px;
+      border-bottom: 1px solid #f1f3f4;
+
+      .avatar {
+        flex: 0 0 auto;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: 16px;
+        font-weight: 500;
+        text-transform: uppercase;
+        user-select: none;
+      }
+
+      .sender-meta {
+        flex: 1 1 auto;
+        min-width: 0;
+
+        .sender-line {
+          display: flex;
+          align-items: baseline;
+          gap: 6px;
+          flex-wrap: wrap;
+
+          .sender-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: #202124;
+          }
+
+          .sender-email {
+            font-size: 12px;
+            color: #5f6368;
+          }
+        }
+
+        .to-line {
+          font-size: 12px;
+          color: #5f6368;
+
+          .fa {
+            font-size: 10px;
+          }
+        }
+      }
+
+      .mail-actions {
+        flex: 0 0 auto;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        color: #5f6368;
+
+        .mail-date {
+          font-size: 12px;
+          white-space: nowrap;
+        }
+
+        .fa {
+          font-size: 15px;
+          cursor: pointer;
+
+          &:hover {
+            color: #202124;
+          }
+        }
+      }
+    }
+
+    // The email body itself (the iframe already renders its own grey canvas +
+    // white card, matching how a real client frames message content).
     .preview-stage {
-      // Fill the remaining panel height. The iframe is positioned absolutely so
+      // Fill the remaining pane height. The iframe is positioned absolutely so
       // it fills a flex-item parent WITHOUT relying on a percentage-height chain
       // (iframes can't be content-height — an unresolved `height: 100%` collapses
       // to 0 and shows blank white).
@@ -74,5 +164,4 @@
       }
     }
   }
-
 }

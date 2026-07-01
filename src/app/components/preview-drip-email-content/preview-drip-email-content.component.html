@@ -22,11 +22,35 @@
     </div>
   </div>
 
-  <div class="canvas-body">
-    <div class="subject">
-      <span class="subject-label">Subject</span>
-      <p>{{ emailSubject }}</p>
+  <!-- Gmail-style "open email" reading pane — header chrome only, then the
+       rendered email body in the iframe below. -->
+  <div class="reading-pane">
+    <div class="mail-subject-row">
+      <h1 class="mail-subject">{{ emailSubject || '(no subject)' }}</h1>
+      <span class="mail-label">Inbox</span>
     </div>
+
+    <div class="mail-meta-row">
+      <div class="avatar" [style.background]="avatarColor">{{ senderInitials }}</div>
+
+      <div class="sender-meta">
+        <div class="sender-line">
+          <span class="sender-name">{{ senderName }}</span>
+          <span class="sender-email">&lt;{{ senderEmail }}&gt;</span>
+        </div>
+        <div class="to-line">
+          to me <i class="fa fa-caret-down"></i>
+        </div>
+      </div>
+
+      <div class="mail-actions">
+        <span class="mail-date">{{ sentDate | date: 'MMM d, y, h:mm a' }}</span>
+        <i class="fa fa-star-o" title="Star"></i>
+        <i class="fa fa-reply" title="Reply"></i>
+        <i class="fa fa-ellipsis-v" title="More"></i>
+      </div>
+    </div>
+
     <div class="preview-stage">
       <iframe #previewFrame title="Email preview"></iframe>
     </div>

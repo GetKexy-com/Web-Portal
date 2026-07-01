@@ -1,16 +1,19 @@
 import { AfterViewInit, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { NgbActiveOffcanvas, NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { NgbActiveOffcanvas } from '@ng-bootstrap/ng-bootstrap';
 import { DripCampaignService } from '../../services/drip-campaign.service';
 import { DripEmail } from '../../models/DripEmail';
 import { KexyButtonComponent } from '../kexy-button/kexy-button.component';
 import { PageUiService } from '../../services/page-ui.service';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-preview-drip-email-content',
   imports: [
     FormsModule,
     KexyButtonComponent,
+    DatePipe,
   ],
   templateUrl: './preview-drip-email-content.component.html',
   styleUrl: './preview-drip-email-content.component.scss',
@@ -22,6 +25,13 @@ export class PreviewDripEmailContentComponent implements OnInit, AfterViewInit {
   public emailContent: string;
   public emailSubject: string;
 
+  // Inbox-style header (sender = the logged-in brand/user; recipient = "me").
+  public senderName: string;
+  public senderEmail: string;
+  public senderInitials: string;
+  public avatarColor: string;
+  public sentDate: Date = new Date();
+
   private viewReady = false;
   // True when emailContent is already a full <html> document (the editor's
   // getHtml() export) — such content must NOT be re-wrapped in the shell.
@@ -31,12 +41,41 @@ export class PreviewDripEmailContentComponent implements OnInit, AfterViewInit {
     public activeCanvas: NgbActiveOffcanvas,
     private pageUiService: PageUiService,
     private dripCampaignService: DripCampaignService,
+    private authService: AuthService,
   ) {
   }
 
   ngOnInit(): void {
     this.dripEmail = this.dripCampaignService.getEditEmail();
+    this.__initSenderInfo();
     this.spinEmail();
+  }
+
+  /** Build the "From" identity shown in the inbox header from the logged-in user. */
+  private __initSenderInfo(): void {
+    const user: any = this.authService.userTokenValue || {};
+    const fullName = [user.first_name, user.last_name].filter(Boolean).join(' ').trim();
+    this.senderName = (user.supplier_name || fullName || 'Your Brand').trim();
+    this.senderEmail = user.email || 'no-reply@getkexy.com';
+    this.senderInitials = this.__initialsFrom(this.senderName);
+    this.avatarColor = this.__colorFor(this.senderName);
+  }
+
+  private __initialsFrom(name: string): string {
+    const parts = (name || '').trim().split(/\s+/).filter(Boolean);
+    if (!parts.length) return '?';
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  }
+
+  /** Deterministic avatar color from the name (Gmail-like tinted circle). */
+  private __colorFor(seed: string): string {
+    const palette = ['#0047cc', '#d93025', '#2847cc', '#e37400', '#9334e6', '#0047cc', '#a142f4'];
+    let hash = 0;
+    for (let i = 0; i < (seed || '').length; i++) {
+      hash = (hash * 31 + seed.charCodeAt(i)) >>> 0;
+    }
+    return palette[hash % palette.length];
   }
 
   ngAfterViewInit(): void {
