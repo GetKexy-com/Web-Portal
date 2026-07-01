@@ -538,8 +538,11 @@ kexy-custom-rich-editor .email-meta .subject-input * {
   border-top: 0;
   /* Textareas/iframe can't be content-height; give the Source/HTML/Preview
      views a comfortable fixed height (they scroll internally). The Design
-     canvas is the one that grows with content. */
+     canvas is the one that grows with content. Match the preview iframe's
+     `height: 60vh` so Source/HTML fill the same space instead of collapsing to
+     the ~420px min (which looked "way small" next to Preview on tall screens). */
   min-height: 420px;
+  height: 60vh;
   overflow-y: auto;
 }
 
