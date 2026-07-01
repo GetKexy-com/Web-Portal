@@ -40,6 +40,7 @@ export class ActiveContactsInCampaignComponent implements OnInit {
     });
 
     this.contacts = this.dripCampaignService.emailProspects;
+    console.log(this.contacts);
     this.setContactsWithPagination();
   }
 

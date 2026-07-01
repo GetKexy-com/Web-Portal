@@ -30,6 +30,31 @@ import { EditorCanvasComponent } from './editor-canvas.component';
         <button type="button" class="tool-btn" title="Checklist" (click)="canvas?.insertChecklist()">
           <svg class="tool-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 7 2 2 4-4"/><path d="m3 17 2 2 4-4"/><line x1="13" y1="6" x2="21" y2="6"/><line x1="13" y1="18" x2="21" y2="18"/></svg>
         </button>
+        <span class="tool-divider"></span>
+
+        <!-- Alignment dropdown -->
+        <div class="align-tool">
+          <button type="button" class="tool-btn with-caret" title="Text alignment" [class.active]="alignOpen()" (click)="toggleAlign()">
+            <svg class="tool-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="15" y2="12"/><line x1="3" y1="18" x2="18" y2="18"/></svg>
+            <svg class="tool-ic caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          @if (alignOpen()) {
+            <div class="align-menu" role="menu">
+              <button type="button" class="tool-btn" title="Align left" (click)="applyAlign('justifyLeft')">
+                <svg class="tool-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="15" y2="12"/><line x1="3" y1="18" x2="18" y2="18"/></svg>
+              </button>
+              <button type="button" class="tool-btn" title="Align center" (click)="applyAlign('justifyCenter')">
+                <svg class="tool-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="5" y1="18" x2="19" y2="18"/></svg>
+              </button>
+              <button type="button" class="tool-btn" title="Align right" (click)="applyAlign('justifyRight')">
+                <svg class="tool-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="9" y1="12" x2="21" y2="12"/><line x1="6" y1="18" x2="21" y2="18"/></svg>
+              </button>
+              <button type="button" class="tool-btn" title="Justify" (click)="applyAlign('justifyFull')">
+                <svg class="tool-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+              </button>
+            </div>
+          }
+        </div>
 
         <span class="tool-divider"></span>
 
@@ -93,48 +118,6 @@ import { EditorCanvasComponent } from './editor-canvas.component';
         <button type="button" class="tool-btn fmt" title="Underline" [class.active]="underlineActive()" (click)="format('underline')"><span class="u">U</span></button>
         <button type="button" class="tool-btn fmt" title="Strikethrough" [class.active]="strikeActive()" (click)="format('strikeThrough')"><s>S</s></button>
 
-        <span class="tool-divider"></span>
-
-        <!-- Text / highlight color. The native picker steals focus, so we wrap the
-             selection on mousedown (while it's still alive), restyle it live on
-             input (real-time preview as the picker is dragged), and finalize on
-             change/blur. See beginColorPreview/updateColorPreview/endColorPreview. -->
-        <input #textColor class="color-input" type="color" value="#1f2937" title="Text color"
-          (mousedown)="canvas?.beginColorPreview('foreColor')"
-          (input)="canvas?.updateColorPreview(textColor.value)"
-          (change)="canvas?.endColorPreview()"
-          (blur)="canvas?.endColorPreview()" />
-        <input #highlightColor class="color-input" type="color" value="#fff2b2" title="Highlight color"
-          (mousedown)="canvas?.beginColorPreview('hiliteColor')"
-          (input)="canvas?.updateColorPreview(highlightColor.value)"
-          (change)="canvas?.endColorPreview()"
-          (blur)="canvas?.endColorPreview()" />
-
-        <span class="tool-divider"></span>
-
-        <!-- Alignment dropdown -->
-        <div class="align-tool">
-          <button type="button" class="tool-btn with-caret" title="Text alignment" [class.active]="alignOpen()" (click)="toggleAlign()">
-            <svg class="tool-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="15" y2="12"/><line x1="3" y1="18" x2="18" y2="18"/></svg>
-            <svg class="tool-ic caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-          </button>
-          @if (alignOpen()) {
-            <div class="align-menu" role="menu">
-              <button type="button" class="tool-btn" title="Align left" (click)="applyAlign('justifyLeft')">
-                <svg class="tool-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="15" y2="12"/><line x1="3" y1="18" x2="18" y2="18"/></svg>
-              </button>
-              <button type="button" class="tool-btn" title="Align center" (click)="applyAlign('justifyCenter')">
-                <svg class="tool-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="5" y1="18" x2="19" y2="18"/></svg>
-              </button>
-              <button type="button" class="tool-btn" title="Align right" (click)="applyAlign('justifyRight')">
-                <svg class="tool-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="9" y1="12" x2="21" y2="12"/><line x1="6" y1="18" x2="21" y2="18"/></svg>
-              </button>
-              <button type="button" class="tool-btn" title="Justify" (click)="applyAlign('justifyFull')">
-                <svg class="tool-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-              </button>
-            </div>
-          }
-        </div>
 
         <span class="tool-divider spacer"></span>
 
@@ -151,6 +134,23 @@ import { EditorCanvasComponent } from './editor-canvas.component';
           </button>
           @if (overflowOpen()) {
             <div class="overflow-menu" role="menu">
+              <!-- Text / highlight color. The native picker steals focus, so we wrap the
+                   selection on mousedown (while it's still alive), restyle it live on
+                   input (real-time preview as the picker is dragged), and finalize on
+                   change/blur. See beginColorPreview/updateColorPreview/endColorPreview. -->
+              <input #textColor class="color-input" type="color" value="#1f2937" title="Text color"
+                     (mousedown)="canvas?.beginColorPreview('foreColor')"
+                     (input)="canvas?.updateColorPreview(textColor.value)"
+                     (change)="canvas?.endColorPreview()"
+                     (blur)="canvas?.endColorPreview()" />
+              <input #highlightColor class="color-input" type="color" value="#fff2b2" title="Highlight color"
+                     (mousedown)="canvas?.beginColorPreview('hiliteColor')"
+                     (input)="canvas?.updateColorPreview(highlightColor.value)"
+                     (change)="canvas?.endColorPreview()"
+                     (blur)="canvas?.endColorPreview()" />
+
+              <span class="tool-divider"></span>
+
               <button type="button" class="tool-btn with-label" title="Insert video" (click)="videoFileInput.click()">
                 <svg class="tool-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 8-6 4 6 4V8Z"/><rect x="2" y="6" width="14" height="12" rx="2"/></svg>
                 <span>Video</span>
