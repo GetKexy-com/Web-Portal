@@ -24,10 +24,11 @@
 
   <div class="canvas-body">
     <div class="subject">
+      <span class="subject-label">Subject</span>
       <p>{{ emailSubject }}</p>
     </div>
-    <div class="email-content">
-      <div [innerHTML]="emailContent"></div>
+    <div class="preview-stage">
+      <iframe #previewFrame title="Email preview"></iframe>
     </div>
   </div>
 </div>
