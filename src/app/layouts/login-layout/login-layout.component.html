@@ -1,25 +1,35 @@
-<div id="page-container">
-  <!-- Sidebar -->
+<div id="page-container" class="auth-shell">
+  <!-- Brand panel (desktop / tablet) -->
+  <aside class="brand-panel desktop-view">
+    <span class="brand-grid" aria-hidden="true"></span>
+    <span class="brand-blob brand-blob--1" aria-hidden="true"></span>
+    <span class="brand-blob brand-blob--2" aria-hidden="true"></span>
+    <span class="brand-blob brand-blob--3" aria-hidden="true"></span>
 
-  <div class="desktop-view">
-    <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
-      <div class="client-logo">
-        <img style="width: 150px;" src="/assets/images/kexy-white-logo.png" alt="" />
+    <div class="brand-content">
+      <div class="brand-logo-glow">
+        <img class="brand-logo" src="/assets/images/kexy-white-logo.png" alt="KEXY" />
       </div>
-    </ul>
+    </div>
+  </aside>
+
+  <!-- Brand header (mobile) -->
+  <div class="brand-panel-mobile mobile-tablet-view">
+    <span class="brand-blob brand-blob--1" aria-hidden="true"></span>
+    <span class="brand-blob brand-blob--2" aria-hidden="true"></span>
+    <img class="brand-logo" src="/assets/images/kexy-white-logo.png" alt="KEXY" />
   </div>
 
-  <div class="mobile-tablet-view">
-    <ul class="navbar-nav-mobile bg-gradient-primary sidebar-dark accordion" id="accordionSidebar">
-      <div class="client-logo">
-        <img style="width: 125px;" src="/assets/images/kexy-white-logo.png" alt="" />
-      </div>
-    </ul>
-  </div>
-
-  <div id="content-wrapper" class="flex-column d-flex" [style.justify-content]="isContentCentered ? 'center' : 'start'" [style.background-color]="bgColor">
-    <!-- header ends -->
-    <div id="main-content" [class]="layoutPaddingNone ? 'scrollable-full-page' : 'main-warp kx-custom-box-login-signup'">
+  <div
+    id="content-wrapper"
+    class="flex-column d-flex"
+    [style.justify-content]="isContentCentered ? 'center' : 'start'"
+    [style.background-color]="bgColor"
+  >
+    <div
+      id="main-content"
+      [class]="layoutPaddingNone ? 'scrollable-full-page' : 'main-warp kx-custom-box-login-signup'"
+    >
       <ng-content></ng-content>
     </div>
   </div>

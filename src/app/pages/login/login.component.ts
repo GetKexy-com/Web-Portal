@@ -136,6 +136,7 @@ export class LoginComponent implements OnInit {
   isLoading = signal(false);
   error = signal<string | null>(null);
   returnUrl = signal<string>('');
+  showPassword = signal(false);
 
   private authService = inject(AuthService);
   private router = inject(Router);

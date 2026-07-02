@@ -4,64 +4,218 @@
 
 .login-left {
   float: left;
-  padding: 48px 65px 65px 63px;
+  padding: 48px 48px 40px;
+  width: 100%;
   h4 {
-    font-weight: 900;
-    font-size: 24px;
-    line-height: 29px;
-    color: #0047cc;
-    letter-spacing: 0.5px;
-    margin-bottom: 30px;
+    font-weight: 800;
+    font-size: 27px;
+    line-height: 1.2;
+    color: #0f172a;
+    letter-spacing: 0.2px;
+    margin-bottom: 8px;
     padding: 0;
+  }
+  .login-subtitle {
+    margin: 0 0 32px;
+    color: #6b7280;
+    font-size: 15px;
+    line-height: 1.5;
   }
   input[type="radio"],
   input[type="checkbox"] {
     outline: none;
     border: 0;
   }
+
+  /* Buttons share a clean flex row with an even gap */
+  .button-row {
+    display: flex;
+    align-items: stretch;
+    gap: 14px;
+    margin-top: 4px;
+  }
+
   button {
-    background: #007bff;
     border: 0;
-    border-radius: 7px;
+    border-radius: 12px;
     color: #fff;
     text-transform: capitalize;
-    font-size: 20px;
-    // padding: 10px 64px;
-    padding: 10px 0px;
-    width: 48%;
-    float: right;
+    font-size: 17px;
+    font-weight: 600;
+    padding: 14px 0;
     cursor: pointer;
     outline: none;
+    background: linear-gradient(135deg, #2f6bff 0%, #0e40b8 100%);
+    box-shadow: 0 8px 20px rgba(20, 70, 197, 0.28);
+    transition: transform 0.12s ease, box-shadow 0.18s ease, filter 0.18s ease;
+
+    &:hover {
+      filter: brightness(1.05);
+      box-shadow: 0 10px 26px rgba(20, 70, 197, 0.34);
+    }
+    &:active {
+      transform: translateY(1px);
+    }
   }
-  .kx-go-back {
-    float: left;
+
+  /* Primary (Login) dominates; secondary (Go Back) is compact */
+  #submit {
+    flex: 1.6;
   }
   .kx-go-back,
   .kx-go-back:hover,
   .kx-go-back:focus {
-    //padding: 10px 64px;
-    background: #f46112;
-    //border: none;
-    //text-decoration: none;
-    //outline: none;
+    flex: 1;
+    background: #eef1f6;
+    color: #334155;
+    box-shadow: none;
+    filter: none;
   }
+  .kx-go-back:hover {
+    background: #e4e8f0;
+  }
+
   .kx-create-btn {
-    background: #007bff;
-    color: #fff;
-    padding: 13px;
-    width: 100%;
-    margin-top: 8px;
+    background: transparent;
+    color: #2f6bff;
+    padding: 0;
+    width: auto;
+    margin-top: 0;
     cursor: pointer;
-    font-size: 18px;
+    font-size: 15px;
+    font-weight: 600;
     text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+  .do-you-have-an-account-text {
+    text-align: center;
+    color: #6b7280;
+    font-size: 15px;
+    margin: 22px 0 0;
+    padding-top: 22px;
+    border-top: 1px solid #eef1f6;
   }
 }
-.remember-me-checkbox {
-  zoom: 1.5;
+
+/* Neutralize the form-group bottom margin on the button row so the divider
+   above the CTA sits at an even distance (avoids two stacked margins). */
+.login-container .login-wrapper .login-left .form-group.button-row {
+  margin-bottom: 0;
 }
+
+/* Modern inputs — chain replicated so the encapsulated (higher-specificity)
+   rules override the global styles in styles.scss without affecting other
+   auth pages (register / forgot-password). */
+.login-container .login-wrapper .login-left .form-group input.login-control,
+.login-container .login-wrapper .login-left .form-group input[type="text"],
+.login-container .login-wrapper .login-left .form-group input[type="password"] {
+  min-width: 0;
+  width: 100%;
+  padding: 13px 16px 13px 46px;
+  border-radius: 12px;
+  border: 1.5px solid #e3e8f0;
+  background: #f8fafc;
+  font-size: 16px;
+  color: #1f2937;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+
+  &.has-trail {
+    padding-right: 46px;
+  }
+  &::placeholder {
+    color: #9aa4b2;
+  }
+  &:focus {
+    border-color: #2f6bff;
+    background: #fff;
+    box-shadow: 0 0 0 4px rgba(47, 107, 255, 0.15);
+    outline: none;
+  }
+}
+
+/* Icon-prefixed input variation */
+.input-icon-wrap {
+  position: relative;
+
+  .input-lead-icon {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 16px;
+    color: #9aa4b2;
+    pointer-events: none;
+    transition: color 0.18s ease;
+  }
+
+  &:focus-within .input-lead-icon {
+    color: #2f6bff;
+  }
+
+  .pw-toggle {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: #9aa4b2;
+    cursor: pointer;
+    transition: color 0.18s ease, background 0.18s ease;
+
+    &:hover {
+      color: #2f6bff;
+      background: rgba(47, 107, 255, 0.08);
+    }
+  }
+}
+
+/* Card polish */
+.login-container {
+  width: 460px !important;
+  border-radius: 18px;
+  box-shadow: 0 18px 50px rgba(16, 24, 40, 0.14);
+}
+/* Let .login-left own all the padding (no double-nesting) */
+.login-container .login-wrapper {
+  padding: 0;
+}
+
+/* Consistent vertical rhythm between fields */
+.login-container .login-wrapper .login-left .form-group {
+  margin-bottom: 22px;
+}
+
+/* Remember-me / forgot-password row — aligned and evenly spaced */
 .remember-me-and-forget-password-wrap {
   display: flex;
+  align-items: center;
   justify-content: space-between;
+  margin-bottom: 24px !important;
+}
+.remember-me-text {
+  font-size: 14px;
+  color: #475569;
+}
+.forgot-password-link-text {
+  font-size: 14px;
+  color: #2f6bff;
+  font-weight: 500;
+}
+.remember-me-checkbox {
+  zoom: 1.35;
+  margin-right: 4px;
+  accent-color: #2f6bff;
 }
 
 @media (min-width: 1200px) and (max-width: 1599px) {

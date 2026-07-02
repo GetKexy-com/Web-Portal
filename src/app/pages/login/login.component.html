@@ -75,7 +75,8 @@
     <div class="login-container">
       <div class="login-wrapper">
         <div class="login-left">
-          <h4>Login</h4>
+          <h4>Welcome back</h4>
+          <p class="login-subtitle">Sign in to your KEXY brand portal to continue.</p>
 
           <div class="login-form">
             @if (error()) {
@@ -85,13 +86,16 @@
             <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
               <!-- Email -->
               <div class="form-group">
-                <input
-                  [class.error]="submitted() && email?.invalid"
-                  type="email"
-                  formControlName="email"
-                  class="login-control"
-                  placeholder="Email Address"
-                />
+                <div class="input-icon-wrap">
+                  <i class="fa fa-envelope-o input-lead-icon" aria-hidden="true"></i>
+                  <input
+                    [class.error]="submitted() && email?.invalid"
+                    type="email"
+                    formControlName="email"
+                    class="login-control"
+                    placeholder="Email Address"
+                  />
+                </div>
 
                 @if (submitted() && email?.invalid) {
                   @if (email?.errors?.['required']) {
@@ -105,13 +109,24 @@
 
               <!-- Password -->
               <div class="form-group">
-                <input
-                  [class.error]="submitted() && password?.invalid"
-                  type="password"
-                  formControlName="password"
-                  class="login-control"
-                  placeholder="Password"
-                />
+                <div class="input-icon-wrap">
+                  <i class="fa fa-lock input-lead-icon" aria-hidden="true"></i>
+                  <input
+                    [class.error]="submitted() && password?.invalid"
+                    [type]="showPassword() ? 'text' : 'password'"
+                    formControlName="password"
+                    class="login-control has-trail"
+                    placeholder="Password"
+                  />
+                  <button
+                    type="button"
+                    class="pw-toggle"
+                    (click)="showPassword.set(!showPassword())"
+                    [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
+                  >
+                    <i class="fa" [class.fa-eye]="!showPassword()" [class.fa-eye-slash]="showPassword()" aria-hidden="true"></i>
+                  </button>
+                </div>
 
                 @if (submitted() && password?.invalid) {
                   @if (password?.errors?.['required']) {
@@ -145,14 +160,14 @@
               </div>
 
               <!-- Buttons -->
-              <div class="form-group overflow-hidden">
+              <div class="form-group button-row">
+                <button class="btn kx-go-back" type="button" (click)="goBackTapped()">Go Back</button>
                 <button type="submit" name="submit" id="submit">
                   Login
                   @if (isLoading()) {
                     <span><i class="fa fa-spinner fa-spin" aria-hidden="true"></i></span>
                   }
                 </button>
-                <button class="btn btn-primary kx-go-back" type="button" (click)="goBackTapped()">Go Back</button>
               </div>
 
               <!-- CTA -->

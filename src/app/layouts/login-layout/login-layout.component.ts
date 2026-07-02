@@ -17,7 +17,7 @@ import { BehaviorSubject, Observable } from 'rxjs';
 })
 export class LoginLayoutComponent implements OnInit {
   @Input() isContentCentered = true;
-  @Input() bgColor = 'white';
+  @Input() bgColor = '#eef2f9';
   @Input() layoutPaddingNone: any;
 
   userData!: User;
