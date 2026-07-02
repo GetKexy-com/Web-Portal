@@ -8,7 +8,7 @@ export class EditorStateService {
   readonly selectedBlock = signal<HTMLElement | null>(null);
   readonly status = signal('Ready');
   readonly htmlOutput = signal('');
-  readonly subject = signal('[receiver_first_name], You recently requested information about life insurance');
+  readonly subject = signal('');
   // Incremented to force inspector to re-read block dataset after drag-resize
   readonly inspectorTick = signal(0);
 
