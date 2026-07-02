@@ -15,11 +15,30 @@
     border-radius: 12px 12px 0 12px;
     overflow: hidden; // clip the iframe to the rounded corners
 
+    // Loader shown while the iframe loads + sizes, so the message doesn't flash at
+    // the default frame height and then jump to its content height on switch.
+    .conv-loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 44px;
+      color: #9aa4b2;
+      font-size: 15px;
+    }
+
+    // Hidden (height 0, faded) until onFrameLoad sizes it and adds .loaded; the JS
+    // sets the exact pixel height inline, then this fades the content in.
     .conv-frame {
       display: block;
       width: 100%;
-      min-height: 36px;
+      height: 0;
       border: 0;
+      opacity: 0;
+      transition: opacity 0.15s ease;
+
+      &.loaded {
+        opacity: 1;
+      }
     }
   }
 
@@ -38,6 +57,10 @@
     .conv-message {
       background: #0d50cd;
       border-radius: 12px 12px 12px 0;
+
+      .conv-loading {
+        color: rgba(255, 255, 255, 0.85); // spinner readable on the blue bubble
+      }
     }
   }
 }

@@ -316,6 +316,32 @@ export class BrandConversationsComponent implements OnInit, OnDestroy {
   }
 
 
+  // ── Thread reveal coordination ──────────────────────────────────────────────
+  // Each message renders in an iframe that sizes itself on load; revealing them
+  // as they settle makes the thread jump. So hide the thread behind one loader
+  // and reveal only once every frame has reported ready (with a safety timeout).
+  messagesLoading = false;
+  private pendingFrames = 0;
+  private frameLoadTimer: any;
+
+  private beginMessagesLoad(): void {
+    clearTimeout(this.frameLoadTimer);
+    const count = this.selectedConversation?.['messages']?.length || 0;
+    if (!count) { this.messagesLoading = false; return; }
+    this.pendingFrames = count;
+    this.messagesLoading = true;
+    // Reveal anyway if a frame never fires load (e.g. blocked resource).
+    this.frameLoadTimer = setTimeout(() => (this.messagesLoading = false), 2000);
+  }
+
+  onFrameReady = (): void => {
+    if (this.pendingFrames > 0) this.pendingFrames--;
+    if (this.pendingFrames <= 0) {
+      clearTimeout(this.frameLoadTimer);
+      this.messagesLoading = false;
+    }
+  };
+
   conversationTapped = async (conv) => {
     // Set unsubscribed value to false
     this.unsubscribed = false;
@@ -346,6 +372,9 @@ export class BrandConversationsComponent implements OnInit, OnDestroy {
       };
     }
     console.log(this.selectedConversation);
+
+    // Hide the thread behind a loader until all message frames are sized.
+    this.beginMessagesLoad();
 
     // Reversing conversations
     // this.selectedConversation["prospecting_conversations_messages"] =

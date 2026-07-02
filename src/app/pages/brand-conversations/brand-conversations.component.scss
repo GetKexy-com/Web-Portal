@@ -137,6 +137,30 @@ $left-side-width: 365px;
   .conv-view {
     overflow-x: scroll;
     height: calc(100vh - 120px);
+    position: relative;
+
+    // One loader for the whole thread; shown while message iframes load + size.
+    .conv-loading-overlay {
+      position: sticky;
+      top: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 140px;
+      font-size: 24px;
+      color: #0d50cd;
+    }
+
+    // Messages stay laid out (so their iframes load + size) but invisible until
+    // every frame is ready, then fade in together — no per-message reflow jump.
+    .conv-messages {
+      transition: opacity 0.2s ease;
+
+      &.hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
+    }
   }
 
   .conv-list {

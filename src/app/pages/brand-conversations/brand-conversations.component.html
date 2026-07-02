@@ -185,13 +185,19 @@
         <!--        #conversationView-->
         <!--        (scroll)="onScroll()"-->
         <div class="conv-view" *ngIf="selectedConversation">
-          <ng-container *ngFor="let email of selectedConversation['messages']">
-            <brand-convo-email
-              [email]="email"
-              [forwardToCampaignUser]="forwardToCampaignUser"
-              [isLoading]="forwardToCampaignUserApiLoadig"
-            ></brand-convo-email>
-          </ng-container>
+          <div class="conv-loading-overlay" *ngIf="messagesLoading">
+            <i class="fa fa-spinner fa-spin" aria-hidden="true"></i>
+          </div>
+          <div class="conv-messages" [class.hidden]="messagesLoading">
+            <ng-container *ngFor="let email of selectedConversation['messages']">
+              <brand-convo-email
+                [email]="email"
+                [forwardToCampaignUser]="forwardToCampaignUser"
+                [isLoading]="forwardToCampaignUserApiLoadig"
+                (frameReady)="onFrameReady()"
+              ></brand-convo-email>
+            </ng-container>
+          </div>
         </div>
       </div>
 

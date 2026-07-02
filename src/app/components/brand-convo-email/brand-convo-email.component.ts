@@ -1,4 +1,4 @@
-import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { AuthService } from '../../services/auth.service';
 import { CommonModule, DatePipe } from '@angular/common';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
@@ -25,10 +25,17 @@ export class BrandConvoEmailComponent implements OnInit {
   @Input() email: any;
   @Input() forwardToCampaignUser;
   @Input() isLoading;
+  /** Fires once the message iframe has loaded + been sized, so a parent can hold
+   *  the whole thread hidden until every message is ready (avoids reflow jumps). */
+  @Output() frameReady = new EventEmitter<void>();
+  private reported = false;
   userData;
   ignoreNextLoop = false;
   /** Email HTML for the iframe srcdoc (bypassed — rendered in a sandboxed frame). */
   message: SafeHtml;
+  /** False until the iframe has loaded AND been sized — a loader shows meanwhile,
+   *  so the content doesn't flash at the wrong height then jump when switching. */
+  frameLoaded = false;
   emailAddress;
   submitted = false;
   isValidEmail = false;
@@ -94,10 +101,20 @@ export class BrandConvoEmailComponent implements OnInit {
         if (h) iframe.style.height = `${h}px`;
       };
       resize();
+      // Reveal only once sized so the content doesn't flash tall then shrink.
+      this.frameLoaded = true;
       // Images/fonts can change the height after the initial paint — re-measure.
       requestAnimationFrame(resize);
     } catch {
       /* cross-origin (shouldn't happen with srcdoc + allow-same-origin) */
+      this.frameLoaded = true;
+    } finally {
+      // Tell the parent this message is ready (once), so it can reveal the thread
+      // only after all frames are sized.
+      if (!this.reported) {
+        this.reported = true;
+        this.frameReady.emit();
+      }
     }
   }
 
