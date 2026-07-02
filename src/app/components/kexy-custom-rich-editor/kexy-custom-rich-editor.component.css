@@ -294,9 +294,11 @@ button.tool-btn .hash { font-weight: 700; font-size: 15px; color: #0b72b7; }
   flex: 0 0 auto;
   white-space: nowrap;
 }
-/* Hide the trailing divider on the last visible cluster (the one right before
-   the ⋮ button) so it doesn't dangle in the right-aligned gap. `visibility`
-   (not `display`) keeps its box, so the measured width matches what renders. */
+/* Hide the trailing divider on the last visible cluster — whether it's the very
+   last child (⋮ hidden) or the one right before the ⋮ button — so it doesn't
+   dangle at the strip's end. `visibility` (not `display`) keeps its box, so the
+   measured width still matches what renders. */
+.toolbar-scroll .tb-group:last-child .tool-divider,
 .toolbar-scroll .tb-group:has(+ .overflow-tool) .tool-divider { visibility: hidden; }
 
 /* ── Overflow (⋮) menu holding the secondary tools ── */

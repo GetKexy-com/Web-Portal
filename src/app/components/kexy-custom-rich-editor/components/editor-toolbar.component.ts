@@ -30,92 +30,31 @@ interface ToolbarGroup {
           </div>
         }
 
-        <!-- Overflow (⋮): always present. Holds the collapsed clusters PLUS the
-             secondary tools (color / video / merge tag) that always live here. -->
-        <div class="overflow-tool" #overflowTool>
-          <button type="button"
-            class="tool-btn"
-            title="More tools"
-            aria-label="More tools"
-            [class.active]="overflowOpen()"
-            (click)="toggleOverflow()"
-          >
-            <svg class="tool-ic" viewBox="0 0 24 24" fill="currentColor" stroke="none"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg>
-          </button>
-          @if (overflowOpen()) {
-            <div class="overflow-menu" role="menu">
-              @for (g of overflowGroups(); track g.id) {
-                <div class="tb-group overflow-group" [attr.data-group]="g.id">
-                  <ng-container [ngTemplateOutlet]="templates[g.id]"></ng-container>
-                </div>
-              }
-              @if (overflowGroups().length) {
-                <span class="tool-divider"></span>
-              }
-
-              <!-- Text / highlight color. The native picker steals focus, so we wrap the
-                   selection on mousedown (while it's still alive), restyle it live on
-                   input (real-time preview as the picker is dragged), and finalize on
-                   change/blur. See beginColorPreview/updateColorPreview/endColorPreview. -->
-              <input #textColor class="color-input" type="color" value="#1f2937" title="Text color"
-                     (mousedown)="canvas?.beginColorPreview('foreColor')"
-                     (input)="canvas?.updateColorPreview(textColor.value)"
-                     (change)="canvas?.endColorPreview()"
-                     (blur)="canvas?.endColorPreview()" />
-              <input #highlightColor class="color-input" type="color" value="#fff2b2" title="Highlight color"
-                     (mousedown)="canvas?.beginColorPreview('hiliteColor')"
-                     (input)="canvas?.updateColorPreview(highlightColor.value)"
-                     (change)="canvas?.endColorPreview()"
-                     (blur)="canvas?.endColorPreview()" />
-
-              <span class="tool-divider"></span>
-
-              <button type="button" class="tool-btn with-label" title="Insert video" (click)="videoFileInput.click()">
-                <svg class="tool-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 8-6 4 6 4V8Z"/><rect x="2" y="6" width="14" height="12" rx="2"/></svg>
-                <span>Video</span>
-              </button>
-
-              <div class="merge-tag-tool">
-                <button type="button"
-                  class="tool-btn with-label"
-                  title="Insert merge tag"
-                  aria-label="Insert merge tag"
-                  [class.active]="menuOpen()"
-                  (click)="toggleMergeMenu()"
-                >
-                  <span class="hash">#</span><span>Merge tag</span>
-                </button>
-                @if (menuOpen()) {
-                  <div class="merge-tag-menu" role="menu">
-                    <input
-                      #mergeSearch
-                      class="merge-tag-search"
-                      type="text"
-                      placeholder="Search merge tags"
-                      [value]="mergeQuery()"
-                      (input)="onMergeSearch($event)"
-                    />
-                    <div class="merge-tag-list">
-                      @for (tag of filteredTags(); track tag.key) {
-                        <button
-                          type="button"
-                          class="merge-tag-option"
-                          role="menuitem"
-                          (click)="pickMergeTag(tag.key)"
-                        >
-                          <span class="merge-tag-badge">#</span>
-                          <span class="merge-tag-option-label">{{ tag.label }}</span>
-                        </button>
-                      } @empty {
-                        <p class="merge-tag-empty">No matching tags</p>
-                      }
-                    </div>
+        <!-- Overflow (⋮): shown ONLY when at least one cluster is collapsed. It
+             holds those collapsed clusters (every cluster — including color /
+             video / merge tag — otherwise lives in the strip when it fits). -->
+        @if (overflowGroups().length) {
+          <div class="overflow-tool" #overflowTool>
+            <button type="button"
+              class="tool-btn"
+              title="More tools"
+              aria-label="More tools"
+              [class.active]="overflowOpen()"
+              (click)="toggleOverflow()"
+            >
+              <svg class="tool-ic" viewBox="0 0 24 24" fill="currentColor" stroke="none"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg>
+            </button>
+            @if (overflowOpen()) {
+              <div class="overflow-menu" role="menu">
+                @for (g of overflowGroups(); track g.id) {
+                  <div class="tb-group overflow-group" [attr.data-group]="g.id">
+                    <ng-container [ngTemplateOutlet]="templates[g.id]"></ng-container>
                   </div>
                 }
               </div>
-            </div>
-          }
-        </div>
+            }
+          </div>
+        }
       </div>
     </div>
 
@@ -225,6 +164,71 @@ interface ToolbarGroup {
       <button type="button" class="tool-btn fmt" title="Strikethrough" [class.active]="strikeActive()" (click)="format('strikeThrough')"><s>S</s></button>
     </ng-template>
 
+    <ng-template #tplColor>
+      <!-- Text / highlight color. The native picker steals focus, so we wrap the
+           selection on mousedown (while it's still alive), restyle it live on
+           input (real-time preview as the picker is dragged), and finalize on
+           change/blur. See beginColorPreview/updateColorPreview/endColorPreview. -->
+      <input #textColor class="color-input" type="color" value="#1f2937" title="Text color"
+             (mousedown)="canvas?.beginColorPreview('foreColor')"
+             (input)="canvas?.updateColorPreview(textColor.value)"
+             (change)="canvas?.endColorPreview()"
+             (blur)="canvas?.endColorPreview()" />
+      <input #highlightColor class="color-input" type="color" value="#fff2b2" title="Highlight color"
+             (mousedown)="canvas?.beginColorPreview('hiliteColor')"
+             (input)="canvas?.updateColorPreview(highlightColor.value)"
+             (change)="canvas?.endColorPreview()"
+             (blur)="canvas?.endColorPreview()" />
+    </ng-template>
+
+    <ng-template #tplVideo>
+      <button type="button" class="tool-btn with-label" title="Insert video" (click)="videoFileInput.click()">
+        <svg class="tool-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 8-6 4 6 4V8Z"/><rect x="2" y="6" width="14" height="12" rx="2"/></svg>
+        <span>Video</span>
+      </button>
+    </ng-template>
+
+    <ng-template #tplMerge>
+      <div class="merge-tag-tool">
+        <button type="button"
+          class="tool-btn with-label"
+          title="Insert merge tag"
+          aria-label="Insert merge tag"
+          [class.active]="menuOpen()"
+          (click)="toggleMergeMenu()"
+        >
+          <span class="hash">#</span><span>Merge tag</span>
+        </button>
+        @if (menuOpen()) {
+          <div class="merge-tag-menu" role="menu">
+            <input
+              #mergeSearch
+              class="merge-tag-search"
+              type="text"
+              placeholder="Search merge tags"
+              [value]="mergeQuery()"
+              (input)="onMergeSearch($event)"
+            />
+            <div class="merge-tag-list">
+              @for (tag of filteredTags(); track tag.key) {
+                <button
+                  type="button"
+                  class="merge-tag-option"
+                  role="menuitem"
+                  (click)="pickMergeTag(tag.key)"
+                >
+                  <span class="merge-tag-badge">#</span>
+                  <span class="merge-tag-option-label">{{ tag.label }}</span>
+                </button>
+              } @empty {
+                <p class="merge-tag-empty">No matching tags</p>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    </ng-template>
+
     <input #imageFileInput type="file" accept="image/*" hidden (change)="onImageFile($event)" />
     <input #videoFileInput type="file" accept="video/*" hidden (change)="onVideoFile($event)" />
   `
@@ -260,6 +264,9 @@ export class EditorToolbarComponent implements AfterViewInit, OnDestroy {
   @ViewChild('tplFontFamily') tplFontFamily!: TemplateRef<unknown>;
   @ViewChild('tplFontSize') tplFontSize!: TemplateRef<unknown>;
   @ViewChild('tplTextFormat') tplTextFormat!: TemplateRef<unknown>;
+  @ViewChild('tplColor') tplColor!: TemplateRef<unknown>;
+  @ViewChild('tplVideo') tplVideo!: TemplateRef<unknown>;
+  @ViewChild('tplMerge') tplMerge!: TemplateRef<unknown>;
 
   /** id → TemplateRef, assembled in ngAfterViewInit (used by both render slots). */
   templates: Record<string, TemplateRef<unknown>> = {};
@@ -277,8 +284,12 @@ export class EditorToolbarComponent implements AfterViewInit, OnDestroy {
     { id: 'insert',     priority: 60 },
     { id: 'paragraph',  priority: 40 },
     { id: 'fontFamily', priority: 30 },
-    { id: 'fontSize',   priority: 20 },
+    { id: 'fontSize',   priority: 25 },
     { id: 'textFormat', priority: 85 },
+    // Secondary tools: shown in the strip when there's room, first to collapse.
+    { id: 'color',      priority: 20 },
+    { id: 'video',      priority: 15 },
+    { id: 'mergeTag',   priority: 10 },
   ];
 
   /** ids currently collapsed into the ⋮ menu. */
@@ -288,6 +299,8 @@ export class EditorToolbarComponent implements AfterViewInit, OnDestroy {
 
   /** Cached natural width per cluster (stable — measured while in the strip). */
   private readonly widthCache = new Map<string, number>();
+  /** Cached ⋮ button width (it's only in the DOM while something is collapsed). */
+  private overflowBtnWidth = 40;
   private resizeObserver?: ResizeObserver;
   private recomputeFrame = 0;
 
@@ -360,6 +373,9 @@ export class EditorToolbarComponent implements AfterViewInit, OnDestroy {
       fontFamily: this.tplFontFamily,
       fontSize: this.tplFontSize,
       textFormat: this.tplTextFormat,
+      color: this.tplColor,
+      video: this.tplVideo,
+      mergeTag: this.tplMerge,
     };
     // `templates` is a plain prop, so force ONE render (fresh Set reference
     // notifies even though the overflow set is unchanged) — that makes the
@@ -402,41 +418,58 @@ export class EditorToolbarComponent implements AfterViewInit, OnDestroy {
   /**
    * Measure the clusters currently in the strip (cache their widths), then decide
    * which fit on one line — highest priority first — and push the rest into ⋮.
+   * The ⋮ button is only rendered when something overflows, so its width is
+   * reserved ONLY in that case (otherwise everything gets the full strip width).
    */
   private recomputeOverflow(): void {
     const scroll = this.toolbarScrollRef?.nativeElement;
-    const overflowBtn = this.overflowToolRef?.nativeElement;
-    if (!scroll || !overflowBtn) return;
+    if (!scroll) return;
 
-    // Cache natural widths of whatever is currently rendered in the strip.
+    // Cache natural widths of whatever is currently rendered in the strip, plus
+    // the ⋮ button's width whenever it's present (it comes and goes).
     scroll.querySelectorAll<HTMLElement>(':scope > .tb-group[data-group]').forEach(el => {
       const id = el.getAttribute('data-group');
       if (id) this.widthCache.set(id, el.getBoundingClientRect().width);
     });
+    const overflowBtn = this.overflowToolRef?.nativeElement;
+    if (overflowBtn) this.overflowBtnWidth = overflowBtn.getBoundingClientRect().width;
 
     const style = getComputedStyle(scroll);
     const gap = parseFloat(style.columnGap || style.gap || '0') || 0;
     const padding = parseFloat(style.paddingLeft) + parseFloat(style.paddingRight);
-    // Reserve room for the ⋮ button (always present) + a small safety buffer.
-    const available = scroll.clientWidth - padding - overflowBtn.getBoundingClientRect().width - gap - 4;
+    const inner = scroll.clientWidth - padding - 4; // small safety buffer
 
-    // Greedily keep clusters by priority (desc); once one doesn't fit, everything
-    // below its priority goes to overflow too (predictable, contiguous collapse).
-    const byPriority = [...this.GROUPS].sort((a, b) => b.priority - a.priority);
-    const keep = new Set<string>();
-    let used = 0;
-    for (const g of byPriority) {
-      const width = this.widthCache.get(g.id);
-      if (width == null) { keep.add(g.id); continue; } // not yet measured — keep so it can be
-      if (used + width + gap <= available) {
-        used += width + gap;
-        keep.add(g.id);
-      } else {
-        break;
+    // Total width if EVERY cluster stayed in the strip (widths are all cached
+    // after the first all-visible pass). If it fits, show all and hide ⋮.
+    const totalWidth = this.GROUPS.reduce((sum, g) => sum + (this.widthCache.get(g.id) ?? 0) + gap, 0);
+
+    let next: Set<string>;
+    if (totalWidth <= inner) {
+      next = new Set();
+    } else {
+      // Overflowing → the ⋮ button will show, so reserve its width. Greedily keep
+      // clusters by priority (desc); once one doesn't fit, everything below its
+      // priority overflows too (predictable, contiguous collapse).
+      const available = inner - this.overflowBtnWidth - gap;
+      const byPriority = [...this.GROUPS].sort((a, b) => b.priority - a.priority);
+      const keep = new Set<string>();
+      let used = 0;
+      for (const g of byPriority) {
+        const width = this.widthCache.get(g.id);
+        if (width == null) { keep.add(g.id); continue; } // not yet measured — keep so it can be
+        if (used + width + gap <= available) {
+          used += width + gap;
+          keep.add(g.id);
+        } else {
+          break;
+        }
       }
+      next = new Set(this.GROUPS.filter(g => !keep.has(g.id)).map(g => g.id));
     }
 
-    const next = new Set(this.GROUPS.filter(g => !keep.has(g.id)).map(g => g.id));
+    // Nothing collapsed → the ⋮ disappears; make sure its menu isn't left "open"
+    // so it doesn't auto-pop the next time a cluster collapses.
+    if (next.size === 0 && this.overflowOpen()) this.overflowOpen.set(false);
     if (!this.setsEqual(next, this.overflowIds())) this.overflowIds.set(next);
   }
 
