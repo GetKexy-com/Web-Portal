@@ -270,19 +270,52 @@ button.tool-btn .hash { font-weight: 700; font-size: 15px; color: #0b72b7; }
 
 .toolbar-scroll {
   display: flex;
-  flex-wrap: wrap;
-  row-gap: 4px;
+  /* NEVER wrap: the toolbar stays a single row at every width. Clusters that
+     don't fit are moved into the ⋮ menu by the ResizeObserver in
+     editor-toolbar.component.ts (priority-plus overflow), so nothing squishes
+     and nothing spills onto a second line. */
+  flex-wrap: nowrap;
   gap: 2px;
   align-items: center;
   padding: 6px 8px;
+  /* MUST stay `visible` — the ⋮ overflow menu is absolutely positioned inside
+     this strip and drops downward; `overflow:hidden` here would clip it. In the
+     settled state recompute keeps clusters fitting (no spill), and the ancestor
+     `.editor-modal > section` (overflow:hidden) clips any transient overflow. */
   overflow: visible;
 }
+
+/* A collapsible cluster — its natural width is measured for the overflow calc,
+   so it must never shrink or wrap internally. */
+.toolbar-scroll .tb-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+/* Hide the trailing divider on the last visible cluster (the one right before
+   the ⋮ button) so it doesn't dangle in the right-aligned gap. `visibility`
+   (not `display`) keeps its box, so the measured width matches what renders. */
+.toolbar-scroll .tb-group:has(+ .overflow-tool) .tool-divider { visibility: hidden; }
 
 /* ── Overflow (⋮) menu holding the secondary tools ── */
 .overflow-tool {
   position: relative;
   display: inline-flex;
+  flex: 0 0 auto;
+  /* Pin the ⋮ trigger to the right edge of the strip. */
+  margin-left: auto;
 }
+
+/* Clusters collapsed INTO the menu lay out as menu rows; drop their in-strip
+   vertical dividers there. */
+.overflow-menu .tb-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+.overflow-menu .tb-group .tool-divider { display: none; }
 
 .overflow-menu {
   position: absolute;

@@ -1,128 +1,38 @@
 import {
-  Component, inject, signal, computed, HostListener, ViewChild, ElementRef
+  Component, inject, signal, computed, HostListener, ViewChild,
+  ElementRef, TemplateRef, AfterViewInit, OnDestroy, NgZone,
 } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
 import { EditorStateService } from '../services/editor-state.service';
 import { MergeTagService } from '../services/merge-tag.service';
 import { EditorCanvasComponent } from './editor-canvas.component';
 
+/** A collapsible toolbar cluster. Lower `priority` collapses into the ⋮ menu first. */
+interface ToolbarGroup {
+  id: string;
+  priority: number;
+}
+
 @Component({
   selector: 'app-editor-toolbar',
   standalone: true,
+  imports: [NgTemplateOutlet],
   template: `
     <div class="toolbar-strip">
-      <div class="toolbar-scroll">
+      <div class="toolbar-scroll" #toolbarScroll>
 
-        <!-- Source -->
-        <button type="button" class="tool-btn" [class.active]="state.sourceMode()" title="Source code" (click)="canvas?.toggleSourceMode()">
-          <svg class="tool-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 16 4-4-4-4"/><path d="m6 8-4 4 4 4"/><path d="m14.5 4-5 16"/></svg>
-          <span>Source</span>
-        </button>
+        <!-- Visible clusters (in display order). Each collapses into the ⋮ menu,
+             lowest-priority first, when the strip runs out of width. -->
+        @for (g of visibleGroups(); track g.id) {
+          <div class="tb-group" [attr.data-group]="g.id">
+            <ng-container [ngTemplateOutlet]="templates[g.id]"></ng-container>
+            <span class="tool-divider"></span>
+          </div>
+        }
 
-        <span class="tool-divider"></span>
-
-        <!-- Lists -->
-        <button type="button" class="tool-btn" title="Bullet list" [class.active]="ulActive()" (click)="format('insertUnorderedList')">
-          <svg class="tool-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><circle cx="3.5" cy="6" r="1.1" fill="currentColor" stroke="none"/><circle cx="3.5" cy="12" r="1.1" fill="currentColor" stroke="none"/><circle cx="3.5" cy="18" r="1.1" fill="currentColor" stroke="none"/></svg>
-        </button>
-        <button type="button" class="tool-btn" title="Numbered list" [class.active]="olActive()" (click)="format('insertOrderedList')">
-          <svg class="tool-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="10" y1="6" x2="21" y2="6"/><line x1="10" y1="12" x2="21" y2="12"/><line x1="10" y1="18" x2="21" y2="18"/><path d="M4 6h1v4"/><path d="M4 10h2"/><path d="M6 18H4c0-1 2-1.3 2-2.3S5 14 4 14.4"/></svg>
-        </button>
-        <button type="button" class="tool-btn" title="Checklist" (click)="canvas?.insertChecklist()">
-          <svg class="tool-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 7 2 2 4-4"/><path d="m3 17 2 2 4-4"/><line x1="13" y1="6" x2="21" y2="6"/><line x1="13" y1="18" x2="21" y2="18"/></svg>
-        </button>
-        <span class="tool-divider"></span>
-
-        <!-- Alignment dropdown -->
-        <div class="align-tool">
-          <button type="button" class="tool-btn with-caret" title="Text alignment" [class.active]="alignOpen()" (click)="toggleAlign()">
-            <svg class="tool-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="15" y2="12"/><line x1="3" y1="18" x2="18" y2="18"/></svg>
-            <svg class="tool-ic caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-          </button>
-          @if (alignOpen()) {
-            <div class="align-menu" role="menu">
-              <button type="button" class="tool-btn" title="Align left" (click)="applyAlign('justifyLeft')">
-                <svg class="tool-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="15" y2="12"/><line x1="3" y1="18" x2="18" y2="18"/></svg>
-              </button>
-              <button type="button" class="tool-btn" title="Align center" (click)="applyAlign('justifyCenter')">
-                <svg class="tool-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="5" y1="18" x2="19" y2="18"/></svg>
-              </button>
-              <button type="button" class="tool-btn" title="Align right" (click)="applyAlign('justifyRight')">
-                <svg class="tool-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="9" y1="12" x2="21" y2="12"/><line x1="6" y1="18" x2="21" y2="18"/></svg>
-              </button>
-              <button type="button" class="tool-btn" title="Justify" (click)="applyAlign('justifyFull')">
-                <svg class="tool-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-              </button>
-            </div>
-          }
-        </div>
-
-        <span class="tool-divider"></span>
-
-        <!-- Undo / Redo -->
-        <button type="button" class="tool-btn" title="Undo" (click)="canvas?.execCommand('undo')">
-          <svg class="tool-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H10"/></svg>
-        </button>
-        <button type="button" class="tool-btn" title="Redo" (click)="canvas?.execCommand('redo')">
-          <svg class="tool-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H14"/></svg>
-        </button>
-
-        <span class="tool-divider"></span>
-
-        <!-- Insert -->
-        <button type="button" class="tool-btn" title="Insert image" (click)="imageFileInput.click()">
-          <svg class="tool-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-4.5-4.5L6 21"/></svg>
-        </button>
-        <button type="button" class="tool-btn link-tool-btn" title="Insert link" [class.active]="linkActive()" (click)="canvas?.openLinkPopover($event)">
-          <svg class="tool-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-        </button>
-        <button type="button" class="tool-btn" title="Remove link" (click)="canvas?.unlink()">
-          <svg class="tool-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 17H7A5 5 0 0 1 7 7h2"/><path d="M15 7h2a5 5 0 0 1 3.5 8.5"/><line x1="8" y1="12" x2="12" y2="12"/><line x1="2" y1="2" x2="22" y2="22"/></svg>
-        </button>
-        <button type="button" class="tool-btn" title="Insert table" (click)="canvas?.insertTable(2, 2)">
-          <svg class="tool-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
-        </button>
-
-        <span class="tool-divider"></span>
-
-        <!-- Paragraph format -->
-        <select class="tool-select format-select" (change)="onBlockFormat($event)">
-          <option value="P">Paragraph</option>
-          <option value="H1">Heading 1</option>
-          <option value="H2">Heading 2</option>
-          <option value="H3">Heading 3</option>
-          <option value="BLOCKQUOTE">Quote</option>
-        </select>
-
-        <!-- Font family -->
-        <select class="tool-select font-select" [style.font-family]="fontFamily()"
-          (mousedown)="canvas?.captureMergeSelection()" (change)="onFontName($event)">
-          @for (font of fontFamilies; track font.value) {
-            <option [value]="font.value" [style.font-family]="font.value"
-              [selected]="font.value === fontFamily()">{{ font.label }}</option>
-          }
-        </select>
-
-        <!-- Font size -->
-        <select class="tool-select mini-select"
-          (mousedown)="canvas?.captureMergeSelection()" (change)="onFontSize($event)">
-          @for (size of fontSizes; track size) {
-            <option [value]="size + 'px'" [selected]="(size + 'px') === fontSize()">{{ size }}</option>
-          }
-        </select>
-
-        <span class="tool-divider"></span>
-
-        <!-- Text format -->
-        <button type="button" class="tool-btn fmt" title="Bold" [class.active]="boldActive()" (click)="format('bold')"><strong>B</strong></button>
-        <button type="button" class="tool-btn fmt" title="Italic" [class.active]="italicActive()" (click)="format('italic')"><em>I</em></button>
-        <button type="button" class="tool-btn fmt" title="Underline" [class.active]="underlineActive()" (click)="format('underline')"><span class="u">U</span></button>
-        <button type="button" class="tool-btn fmt" title="Strikethrough" [class.active]="strikeActive()" (click)="format('strikeThrough')"><s>S</s></button>
-
-
-        <span class="tool-divider spacer"></span>
-
-        <!-- Overflow: secondary tools collapse under the ⋮ menu -->
-        <div class="overflow-tool">
+        <!-- Overflow (⋮): always present. Holds the collapsed clusters PLUS the
+             secondary tools (color / video / merge tag) that always live here. -->
+        <div class="overflow-tool" #overflowTool>
           <button type="button"
             class="tool-btn"
             title="More tools"
@@ -134,6 +44,15 @@ import { EditorCanvasComponent } from './editor-canvas.component';
           </button>
           @if (overflowOpen()) {
             <div class="overflow-menu" role="menu">
+              @for (g of overflowGroups(); track g.id) {
+                <div class="tb-group overflow-group" [attr.data-group]="g.id">
+                  <ng-container [ngTemplateOutlet]="templates[g.id]"></ng-container>
+                </div>
+              }
+              @if (overflowGroups().length) {
+                <span class="tool-divider"></span>
+              }
+
               <!-- Text / highlight color. The native picker steals focus, so we wrap the
                    selection on mousedown (while it's still alive), restyle it live on
                    input (real-time preview as the picker is dragged), and finalize on
@@ -200,13 +119,120 @@ import { EditorCanvasComponent } from './editor-canvas.component';
       </div>
     </div>
 
+    <!-- ── Collapsible cluster definitions (rendered into the strip OR the ⋮ menu) ── -->
+
+    <ng-template #tplSource>
+      <button type="button" class="tool-btn" [class.active]="state.sourceMode()" title="Source code" (click)="canvas?.toggleSourceMode()">
+        <svg class="tool-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 16 4-4-4-4"/><path d="m6 8-4 4 4 4"/><path d="m14.5 4-5 16"/></svg>
+        <span>Source</span>
+      </button>
+    </ng-template>
+
+    <ng-template #tplLists>
+      <button type="button" class="tool-btn" title="Bullet list" [class.active]="ulActive()" (click)="format('insertUnorderedList')">
+        <svg class="tool-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><circle cx="3.5" cy="6" r="1.1" fill="currentColor" stroke="none"/><circle cx="3.5" cy="12" r="1.1" fill="currentColor" stroke="none"/><circle cx="3.5" cy="18" r="1.1" fill="currentColor" stroke="none"/></svg>
+      </button>
+      <button type="button" class="tool-btn" title="Numbered list" [class.active]="olActive()" (click)="format('insertOrderedList')">
+        <svg class="tool-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="10" y1="6" x2="21" y2="6"/><line x1="10" y1="12" x2="21" y2="12"/><line x1="10" y1="18" x2="21" y2="18"/><path d="M4 6h1v4"/><path d="M4 10h2"/><path d="M6 18H4c0-1 2-1.3 2-2.3S5 14 4 14.4"/></svg>
+      </button>
+      <button type="button" class="tool-btn" title="Checklist" (click)="canvas?.insertChecklist()">
+        <svg class="tool-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 7 2 2 4-4"/><path d="m3 17 2 2 4-4"/><line x1="13" y1="6" x2="21" y2="6"/><line x1="13" y1="18" x2="21" y2="18"/></svg>
+      </button>
+    </ng-template>
+
+    <ng-template #tplAlign>
+      <div class="align-tool">
+        <button type="button" class="tool-btn with-caret" title="Text alignment" [class.active]="alignOpen()" (click)="toggleAlign()">
+          <svg class="tool-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="15" y2="12"/><line x1="3" y1="18" x2="18" y2="18"/></svg>
+          <svg class="tool-ic caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+        @if (alignOpen()) {
+          <div class="align-menu" role="menu">
+            <button type="button" class="tool-btn" title="Align left" (click)="applyAlign('justifyLeft')">
+              <svg class="tool-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="15" y2="12"/><line x1="3" y1="18" x2="18" y2="18"/></svg>
+            </button>
+            <button type="button" class="tool-btn" title="Align center" (click)="applyAlign('justifyCenter')">
+              <svg class="tool-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="5" y1="18" x2="19" y2="18"/></svg>
+            </button>
+            <button type="button" class="tool-btn" title="Align right" (click)="applyAlign('justifyRight')">
+              <svg class="tool-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="9" y1="12" x2="21" y2="12"/><line x1="6" y1="18" x2="21" y2="18"/></svg>
+            </button>
+            <button type="button" class="tool-btn" title="Justify" (click)="applyAlign('justifyFull')">
+              <svg class="tool-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+            </button>
+          </div>
+        }
+      </div>
+    </ng-template>
+
+    <ng-template #tplHistory>
+      <button type="button" class="tool-btn" title="Undo" (click)="canvas?.execCommand('undo')">
+        <svg class="tool-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H10"/></svg>
+      </button>
+      <button type="button" class="tool-btn" title="Redo" (click)="canvas?.execCommand('redo')">
+        <svg class="tool-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H14"/></svg>
+      </button>
+    </ng-template>
+
+    <ng-template #tplInsert>
+      <button type="button" class="tool-btn" title="Insert image" (click)="imageFileInput.click()">
+        <svg class="tool-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-4.5-4.5L6 21"/></svg>
+      </button>
+      <button type="button" class="tool-btn link-tool-btn" title="Insert link" [class.active]="linkActive()" (click)="canvas?.openLinkPopover($event)">
+        <svg class="tool-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+      </button>
+      <button type="button" class="tool-btn" title="Remove link" (click)="canvas?.unlink()">
+        <svg class="tool-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 17H7A5 5 0 0 1 7 7h2"/><path d="M15 7h2a5 5 0 0 1 3.5 8.5"/><line x1="8" y1="12" x2="12" y2="12"/><line x1="2" y1="2" x2="22" y2="22"/></svg>
+      </button>
+      <button type="button" class="tool-btn" title="Insert table" (click)="canvas?.insertTable(2, 2)">
+        <svg class="tool-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
+      </button>
+    </ng-template>
+
+    <ng-template #tplParagraph>
+      <select class="tool-select format-select" (change)="onBlockFormat($event)">
+        <option value="P">Paragraph</option>
+        <option value="H1">Heading 1</option>
+        <option value="H2">Heading 2</option>
+        <option value="H3">Heading 3</option>
+        <option value="BLOCKQUOTE">Quote</option>
+      </select>
+    </ng-template>
+
+    <ng-template #tplFontFamily>
+      <select class="tool-select font-select" [style.font-family]="fontFamily()"
+        (mousedown)="canvas?.captureMergeSelection()" (change)="onFontName($event)">
+        @for (font of fontFamilies; track font.value) {
+          <option [value]="font.value" [style.font-family]="font.value"
+            [selected]="font.value === fontFamily()">{{ font.label }}</option>
+        }
+      </select>
+    </ng-template>
+
+    <ng-template #tplFontSize>
+      <select class="tool-select mini-select"
+        (mousedown)="canvas?.captureMergeSelection()" (change)="onFontSize($event)">
+        @for (size of fontSizes; track size) {
+          <option [value]="size + 'px'" [selected]="(size + 'px') === fontSize()">{{ size }}</option>
+        }
+      </select>
+    </ng-template>
+
+    <ng-template #tplTextFormat>
+      <button type="button" class="tool-btn fmt" title="Bold" [class.active]="boldActive()" (click)="format('bold')"><strong>B</strong></button>
+      <button type="button" class="tool-btn fmt" title="Italic" [class.active]="italicActive()" (click)="format('italic')"><em>I</em></button>
+      <button type="button" class="tool-btn fmt" title="Underline" [class.active]="underlineActive()" (click)="format('underline')"><span class="u">U</span></button>
+      <button type="button" class="tool-btn fmt" title="Strikethrough" [class.active]="strikeActive()" (click)="format('strikeThrough')"><s>S</s></button>
+    </ng-template>
+
     <input #imageFileInput type="file" accept="image/*" hidden (change)="onImageFile($event)" />
     <input #videoFileInput type="file" accept="video/*" hidden (change)="onVideoFile($event)" />
   `
 })
-export class EditorToolbarComponent {
+export class EditorToolbarComponent implements AfterViewInit, OnDestroy {
   readonly state = inject(EditorStateService);
   readonly mergeTags = inject(MergeTagService);
+  private readonly zone = inject(NgZone);
   canvas: EditorCanvasComponent | null = null;
 
   /**
@@ -218,6 +244,52 @@ export class EditorToolbarComponent {
   uploadImage: ((imageData: string) => Promise<string>) | null = null;
 
   @ViewChild('mergeSearch') mergeSearchRef?: ElementRef<HTMLInputElement>;
+
+  // ── Responsive overflow: clusters flow into the ⋮ menu instead of wrapping ──
+  // The toolbar NEVER wraps to a second row (`.toolbar-scroll` is flex-nowrap).
+  // A ResizeObserver measures the available width and pushes the lowest-priority
+  // clusters into the overflow menu until the rest fit on one line.
+  @ViewChild('toolbarScroll') toolbarScrollRef!: ElementRef<HTMLElement>;
+  @ViewChild('overflowTool') overflowToolRef!: ElementRef<HTMLElement>;
+  @ViewChild('tplSource') tplSource!: TemplateRef<unknown>;
+  @ViewChild('tplLists') tplLists!: TemplateRef<unknown>;
+  @ViewChild('tplAlign') tplAlign!: TemplateRef<unknown>;
+  @ViewChild('tplHistory') tplHistory!: TemplateRef<unknown>;
+  @ViewChild('tplInsert') tplInsert!: TemplateRef<unknown>;
+  @ViewChild('tplParagraph') tplParagraph!: TemplateRef<unknown>;
+  @ViewChild('tplFontFamily') tplFontFamily!: TemplateRef<unknown>;
+  @ViewChild('tplFontSize') tplFontSize!: TemplateRef<unknown>;
+  @ViewChild('tplTextFormat') tplTextFormat!: TemplateRef<unknown>;
+
+  /** id → TemplateRef, assembled in ngAfterViewInit (used by both render slots). */
+  templates: Record<string, TemplateRef<unknown>> = {};
+
+  /**
+   * Clusters in DISPLAY order. `priority` controls collapse order — the LOWEST
+   * priority is the first to move into the ⋮ menu when the strip is too narrow
+   * (so Bold/Italic/… and Source survive the longest).
+   */
+  private readonly GROUPS: ReadonlyArray<ToolbarGroup> = [
+    { id: 'source',     priority: 90 },
+    { id: 'lists',      priority: 70 },
+    { id: 'align',      priority: 50 },
+    { id: 'history',    priority: 75 },
+    { id: 'insert',     priority: 60 },
+    { id: 'paragraph',  priority: 40 },
+    { id: 'fontFamily', priority: 30 },
+    { id: 'fontSize',   priority: 20 },
+    { id: 'textFormat', priority: 85 },
+  ];
+
+  /** ids currently collapsed into the ⋮ menu. */
+  private readonly overflowIds = signal<ReadonlySet<string>>(new Set());
+  readonly visibleGroups = computed(() => this.GROUPS.filter(g => !this.overflowIds().has(g.id)));
+  readonly overflowGroups = computed(() => this.GROUPS.filter(g => this.overflowIds().has(g.id)));
+
+  /** Cached natural width per cluster (stable — measured while in the strip). */
+  private readonly widthCache = new Map<string, number>();
+  private resizeObserver?: ResizeObserver;
+  private recomputeFrame = 0;
 
   /** Approved font-family list (each option previews in its own face). */
   readonly fontFamilies: ReadonlyArray<{ value: string; label: string }> = [
@@ -276,6 +348,103 @@ export class EditorToolbarComponent {
       t.label.toLowerCase().includes(query) || t.key.toLowerCase().includes(query)
     );
   });
+
+  ngAfterViewInit(): void {
+    this.templates = {
+      source: this.tplSource,
+      lists: this.tplLists,
+      align: this.tplAlign,
+      history: this.tplHistory,
+      insert: this.tplInsert,
+      paragraph: this.tplParagraph,
+      fontFamily: this.tplFontFamily,
+      fontSize: this.tplFontSize,
+      textFormat: this.tplTextFormat,
+    };
+    // `templates` is a plain prop, so force ONE render (fresh Set reference
+    // notifies even though the overflow set is unchanged) — that makes the
+    // ngTemplateOutlets pick up the just-assigned TemplateRefs and lay the
+    // clusters out at full width. THEN measure on the next frame, once that
+    // layout has painted, and collapse whatever doesn't fit.
+    //
+    // We can't rely on the ResizeObserver alone for this first pass: it watches
+    // `.toolbar-scroll`, whose box is parent-sized and `overflow:hidden`, so the
+    // clusters rendering into it does NOT change its size → no RO callback. RO
+    // still handles genuine width changes (offcanvas/window resize) after that.
+    queueMicrotask(() => {
+      this.overflowIds.set(new Set(this.overflowIds()));
+      this.scheduleRecompute();
+    });
+    if (typeof ResizeObserver !== 'undefined') {
+      this.resizeObserver = new ResizeObserver(() => this.scheduleRecompute());
+      this.resizeObserver.observe(this.toolbarScrollRef.nativeElement);
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.resizeObserver?.disconnect();
+    if (this.recomputeFrame) cancelAnimationFrame(this.recomputeFrame);
+  }
+
+  /**
+   * Measure + collapse on the next frame (so we read a settled, painted layout),
+   * coalescing bursts of RO callbacks into a single pass. Runs inside the Angular
+   * zone so the resulting `overflowIds` change drives change detection.
+   */
+  private scheduleRecompute(): void {
+    if (this.recomputeFrame) cancelAnimationFrame(this.recomputeFrame);
+    this.recomputeFrame = requestAnimationFrame(() => {
+      this.recomputeFrame = 0;
+      this.zone.run(() => this.recomputeOverflow());
+    });
+  }
+
+  /**
+   * Measure the clusters currently in the strip (cache their widths), then decide
+   * which fit on one line — highest priority first — and push the rest into ⋮.
+   */
+  private recomputeOverflow(): void {
+    const scroll = this.toolbarScrollRef?.nativeElement;
+    const overflowBtn = this.overflowToolRef?.nativeElement;
+    if (!scroll || !overflowBtn) return;
+
+    // Cache natural widths of whatever is currently rendered in the strip.
+    scroll.querySelectorAll<HTMLElement>(':scope > .tb-group[data-group]').forEach(el => {
+      const id = el.getAttribute('data-group');
+      if (id) this.widthCache.set(id, el.getBoundingClientRect().width);
+    });
+
+    const style = getComputedStyle(scroll);
+    const gap = parseFloat(style.columnGap || style.gap || '0') || 0;
+    const padding = parseFloat(style.paddingLeft) + parseFloat(style.paddingRight);
+    // Reserve room for the ⋮ button (always present) + a small safety buffer.
+    const available = scroll.clientWidth - padding - overflowBtn.getBoundingClientRect().width - gap - 4;
+
+    // Greedily keep clusters by priority (desc); once one doesn't fit, everything
+    // below its priority goes to overflow too (predictable, contiguous collapse).
+    const byPriority = [...this.GROUPS].sort((a, b) => b.priority - a.priority);
+    const keep = new Set<string>();
+    let used = 0;
+    for (const g of byPriority) {
+      const width = this.widthCache.get(g.id);
+      if (width == null) { keep.add(g.id); continue; } // not yet measured — keep so it can be
+      if (used + width + gap <= available) {
+        used += width + gap;
+        keep.add(g.id);
+      } else {
+        break;
+      }
+    }
+
+    const next = new Set(this.GROUPS.filter(g => !keep.has(g.id)).map(g => g.id));
+    if (!this.setsEqual(next, this.overflowIds())) this.overflowIds.set(next);
+  }
+
+  private setsEqual(a: ReadonlySet<string>, b: ReadonlySet<string>): boolean {
+    if (a.size !== b.size) return false;
+    for (const v of a) if (!b.has(v)) return false;
+    return true;
+  }
 
   toggleOverflow(): void {
     const opening = !this.overflowOpen();
