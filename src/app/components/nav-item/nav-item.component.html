@@ -6,8 +6,8 @@
 <!--</li>-->
 
 @if (navigateTo) {
-  <li class="nav-item" [routerLink]="resolvedNavigateTo">
-    <a [class]="cssClass">
+  <li class="nav-item">
+    <a [class]="cssClass" [routerLink]="resolvedNavigateTo">
       <i class="fa {{ icon }}" aria-hidden="true"></i> {{ label }}
     </a>
   </li>
