@@ -125,6 +125,13 @@
     ></nav-item>
   </ul>
 
+  <!-- Backdrop to dismiss the mobile drawer by tapping outside -->
+  <div
+    *ngIf="showSidebar && isMobileScreen"
+    class="sidebar-backdrop"
+    (click)="showSidebar = false"
+  ></div>
+
   <!--For desktop screen-->
   <ul
     *ngIf="showSidebar && !isMobileScreen"

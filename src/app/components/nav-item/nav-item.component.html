@@ -7,7 +7,11 @@
 
 @if (navigateTo) {
   <li class="nav-item">
-    <a [class]="cssClass" [routerLink]="resolvedNavigateTo">
+    <a
+      [class.nav-dropdown]="isDropDown"
+      [routerLink]="resolvedNavigateTo"
+      routerLinkActive="active"
+    >
       <i class="fa {{ icon }}" aria-hidden="true"></i> {{ label }}
     </a>
   </li>
@@ -15,7 +19,7 @@
 
 @if (onClick) {
   <li class="nav-item" (click)="onNavItemClick()">
-    <a [class]="cssClass">
+    <a [class.nav-dropdown]="isDropDown">
       <i class="fa {{ icon }}" aria-hidden="true"></i> {{ label }}
     </a>
   </li>

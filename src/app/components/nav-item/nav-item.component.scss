@@ -1,39 +1,52 @@
 li.nav-item {
-  line-height: 36px;
+  list-style: none;
 }
 
 li.nav-item a {
-  padding: 8px 0 8px 40px;
-  width: calc(100% + 10px);
-  font-size: 14px;
-  text-decoration: none;
-  color: rgba(255, 255, 255, 0.6);
-  cursor: pointer;
-  font-weight: bold;
-  letter-spacing: 0.5px;
   display: flex;
   align-items: center;
+  gap: 8px;
+  margin: 2px 12px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  color: var(--kx-nav-fg, rgba(255, 255, 255, 0.75));
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
 
   i {
-    font-size: 18px;
-    font-weight: bold;
-    width: 30px;
-    text-align: left;
+    font-size: 17px;
+    width: 20px;
+    text-align: center;
+    flex-shrink: 0;
   }
 }
 
-li.nav-item:hover a,
-li.nav-item a.active {
+li.nav-item a:hover {
   color: #ffffff;
+  background: var(--kx-nav-hover-bg, rgba(255, 255, 255, 0.09));
 }
 
+/* Sub-items inside a dropdown: indented + lighter to show hierarchy */
 li.nav-item a.nav-dropdown {
-  padding-left: 70px;
+  margin-left: 28px;
+  font-weight: 500;
+  color: var(--kx-nav-sub-fg, rgba(255, 255, 255, 0.62));
+
+  i {
+    font-size: 15px;
+  }
 }
 
+/* Active state: soft pill + left accent bar (replaces the old circle.png bullet) */
 li.nav-item a.active {
   color: #ffffff;
-  background: url("/assets/images/circle.png") no-repeat 0 14px;
+  background: var(--kx-nav-active-bg, rgba(255, 255, 255, 0.16));
+  box-shadow: inset 3px 0 0 #ffffff;
 }
 
 /*
@@ -42,50 +55,18 @@ M E D I A  Q U E R I E S
 ####################################################
 */
 
-/* Large devices (desktops, 992px and up) */
+/* Compact spacing on shorter / mid-size screens */
 @media (min-width: 992px) {
-  li.nav-item {
-    line-height: 25px;
-
-    a {
-      font-size: 14px;
-      padding: 4px 0 4px 24px;
-
-      &.nav-dropdown {
-        padding-left: 50px;
-      }
-    }
+  li.nav-item a {
+    padding: 9px 14px;
+    font-size: 13.5px;
   }
 }
 
-/* Extra large devices (large desktops, 1200px and up) */
-@media (min-width: 1200px) {
-  li.nav-item {
-
-
-    a {
-      font-size: 14px;
-      padding: 6px 0 6px 30px;
-
-      &.nav-dropdown {
-        padding-left: 60px;
-      }
-    }
-  }
-}
-
-/* Extra extra large devices (extra large desktops, 1400px and up) */
+/* Extra extra large devices — a touch more breathing room */
 @media (min-width: 1400px) {
-  li.nav-item {
-    line-height: 36px;
-
-    a {
-      font-size: 14px;
-      padding: 5px 0 5px 40px;
-
-      &.nav-dropdown {
-        padding-left: 65px;
-      }
-    }
+  li.nav-item a {
+    padding: 11px 14px;
+    font-size: 14px;
   }
 }

@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, Input, ElementRef } from "@angular/core";
+import { Component, OnInit, ViewChild, Input, ElementRef, HostListener } from "@angular/core";
 import { Router } from "@angular/router";
 import {NgbDropdown, NgbDropdownItem, NgbDropdownMenu, NgbDropdownToggle, NgbModal} from "@ng-bootstrap/ng-bootstrap";
 import { AuthService } from "src/app/services/auth.service";
@@ -54,7 +54,7 @@ export class BrandLayoutComponent implements OnInit {
   @Input() layoutPaddingNone;
   @Input() fullPageScroll = true;
   @Input() headerBgWhite;
-  @Input() mainBgColor = "white";
+  @Input() mainBgColor = "#f6f8fb";
   @Input() showBackButton = false;
   @Input() headline = "";
   brand = routeConstants.BRAND;
@@ -139,6 +139,20 @@ export class BrandLayoutComponent implements OnInit {
     }
     this.externalAssets = environment.externalAssetUrl + constants.SAMPLE_INVENTORY_SHEET;
     this.pageUiService.updateGleapIcon(false);
+  }
+
+  @HostListener("window:resize")
+  onWindowResize() {
+    this.screenWidth = window.innerWidth;
+    this.screenHeight = window.innerHeight;
+
+    const nowMobile = this.screenWidth < this.mobileScreenSize;
+    // Only react when we cross the breakpoint so a manual toggle within the
+    // same mode isn't clobbered on every resize tick.
+    if (nowMobile !== this.isMobileScreen) {
+      this.isMobileScreen = nowMobile;
+      this.showSidebar = !nowMobile;
+    }
   }
 
   expandProspectingDropdown = false;

@@ -46,7 +46,7 @@
 
 import { Component, Input, inject, signal } from '@angular/core';
 import { routeConstants } from '../../helpers/routeConstants';
-import { Router, RouterLink } from '@angular/router';
+import { RouterLink, RouterLinkActive } from '@angular/router';
 import { PreviewService } from '../../services/preview.service';
 import { CommonModule } from '@angular/common';
 
@@ -55,7 +55,8 @@ import { CommonModule } from '@angular/common';
   standalone: true,
   imports: [
     CommonModule,
-    RouterLink
+    RouterLink,
+    RouterLinkActive
   ],
   templateUrl: './nav-item.component.html',
   styleUrl: './nav-item.component.scss'
@@ -68,26 +69,14 @@ export class NavItemComponent {
   @Input() icon: string = '';
   @Input() isDropDown: boolean = false;
 
-  // Internal signals for reactive properties
+  // Internal signal for the resolved routerLink target
   private _navigateTo = signal<string | null>(null);
-  private _cssClass = signal('');
 
   // Services
-  private router = inject(Router);
   private previewService = inject(PreviewService);
 
   ngOnInit() {
     this._navigateTo.set(this.navigateTo ? routeConstants.BASE_URL + this.navigateTo : null);
-
-    let classNames = '';
-    if (this.isDropDown) {
-      classNames = 'nav-dropdown';
-    }
-    if (this.router.url === this._navigateTo()) {
-      classNames += ' active';
-    }
-    this._cssClass.set(classNames);
-
     this.previewService.changePreviewShowStatus(false);
   }
 
@@ -95,11 +84,6 @@ export class NavItemComponent {
     if (this.onClick) {
       this.onClick();
     }
-  }
-
-  // Expose signals as read-only properties
-  get cssClass() {
-    return this._cssClass();
   }
 
   get resolvedNavigateTo() {

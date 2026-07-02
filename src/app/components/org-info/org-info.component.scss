@@ -1,23 +1,30 @@
 .sidebar-top {
-  padding: 10px 0 0;
+  padding: 24px 18px 18px;
+  margin-bottom: 12px;
   text-align: center;
-  margin-bottom: 40px;
-  .username {
-    font-size: 16px;
-    margin-top: 30px;
-    color: white;
-    font-weight: bold;
-    letter-spacing: 1px;
-  }
-  .c-name {
-    font-size: 14px;
-    color: white;
-    margin-top: 5px;
-    letter-spacing: 0.5px;
-  }
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+
   img {
-    width: 140px;
-    margin-top: 25px;
+    max-width: 150px;
+    max-height: 58px;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+  }
+
+  .username {
+    margin-top: 16px;
+    font-size: 15px;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: 0.3px;
+  }
+
+  .c-name {
+    margin-top: 4px;
+    font-size: 12.5px;
+    color: rgba(255, 255, 255, 0.62);
+    letter-spacing: 0.2px;
   }
 }
 
@@ -27,45 +34,29 @@ M E D I A  Q U E R I E S
 ####################################################
 */
 
-/* Large devices (desktops, 992px and up) */
 @media (min-width: 992px) {
   .sidebar-top {
-    margin-bottom: 15px;
+    padding: 20px 16px 16px;
+    margin-bottom: 10px;
+
     img {
-      margin-top: 20px;
-      width: 100px;
+      max-height: 52px;
     }
+
     .username {
-      margin-top: 20px;
-      font-size: 15px;
-    }
-    .c-name {
-      font-size: 13px;
+      margin-top: 14px;
+      font-size: 14.5px;
     }
   }
 }
 
-/* Extra large devices (large desktops, 1200px and up) */
-@media (min-width: 1200px) {
-  .sidebar-top {
-    margin-bottom: 15px;
-    img {
-      margin-top: 20px;
-      width: 120px;
-    }
-    .username {
-      margin-top: 20px;
-    }
-  }
-}
-
-/* Extra extra large devices (extra large desktops, 1400px and up) */
 @media (min-width: 1400px) {
   .sidebar-top {
-    margin-bottom: 40px;
+    padding: 26px 18px 20px;
+
     img {
-      width: 140px;
-      margin-top: 25px;
+      max-width: 160px;
+      max-height: 60px;
     }
   }
 }
