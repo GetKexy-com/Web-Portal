@@ -1,148 +1,89 @@
-.login-form .form-error {
-  margin-top: 25px !important;
+/* =============================================================
+   Login form — minimal underline redesign
+   (scoped to the login page; overrides the global .login-* rules
+   via the replicated, higher-specificity selector chains)
+   ============================================================= */
+
+/* ---- Card ---- */
+.login-container {
+  width: 100% !important;
+  max-width: 440px !important;
+  margin: 0 auto;
+  position: relative;
+  overflow: hidden;
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 24px 60px rgba(16, 24, 40, 0.16);
+
+  /* Thin gradient accent along the top edge */
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 5px;
+    background: linear-gradient(90deg, #2f6bff 0%, #0e40b8 100%);
+  }
 }
 
+.login-container .login-wrapper {
+  padding: 0;
+}
+
+/* ---- Body ---- */
 .login-left {
-  float: left;
-  padding: 48px 48px 40px;
+  float: none;
   width: 100%;
+  padding: 46px 44px 40px;
+
   h4 {
+    margin: 0 0 8px;
+    padding: 0;
+    text-align: center;
     font-weight: 800;
     font-size: 27px;
     line-height: 1.2;
-    color: #0f172a;
     letter-spacing: 0.2px;
-    margin-bottom: 8px;
-    padding: 0;
+    color: #0f172a;
   }
+
   .login-subtitle {
-    margin: 0 0 32px;
+    margin: 0 auto 34px;
+    max-width: 300px;
+    text-align: center;
     color: #6b7280;
     font-size: 15px;
     line-height: 1.5;
   }
+
   input[type="radio"],
   input[type="checkbox"] {
     outline: none;
     border: 0;
   }
-
-  /* Buttons share a clean flex row with an even gap */
-  .button-row {
-    display: flex;
-    align-items: stretch;
-    gap: 14px;
-    margin-top: 4px;
-  }
-
-  button {
-    border: 0;
-    border-radius: 12px;
-    color: #fff;
-    text-transform: capitalize;
-    font-size: 17px;
-    font-weight: 600;
-    padding: 14px 0;
-    cursor: pointer;
-    outline: none;
-    background: linear-gradient(135deg, #2f6bff 0%, #0e40b8 100%);
-    box-shadow: 0 8px 20px rgba(20, 70, 197, 0.28);
-    transition: transform 0.12s ease, box-shadow 0.18s ease, filter 0.18s ease;
-
-    &:hover {
-      filter: brightness(1.05);
-      box-shadow: 0 10px 26px rgba(20, 70, 197, 0.34);
-    }
-    &:active {
-      transform: translateY(1px);
-    }
-  }
-
-  /* Primary (Login) dominates; secondary (Go Back) is compact */
-  #submit {
-    flex: 1.6;
-  }
-  .kx-go-back,
-  .kx-go-back:hover,
-  .kx-go-back:focus {
-    flex: 1;
-    background: #eef1f6;
-    color: #334155;
-    box-shadow: none;
-    filter: none;
-  }
-  .kx-go-back:hover {
-    background: #e4e8f0;
-  }
-
-  .kx-create-btn {
-    background: transparent;
-    color: #2f6bff;
-    padding: 0;
-    width: auto;
-    margin-top: 0;
-    cursor: pointer;
-    font-size: 15px;
-    font-weight: 600;
-    text-decoration: none;
-
-    &:hover {
-      text-decoration: underline;
-    }
-  }
-  .do-you-have-an-account-text {
-    text-align: center;
-    color: #6b7280;
-    font-size: 15px;
-    margin: 22px 0 0;
-    padding-top: 22px;
-    border-top: 1px solid #eef1f6;
-  }
 }
 
-/* Neutralize the form-group bottom margin on the button row so the divider
-   above the CTA sits at an even distance (avoids two stacked margins). */
-.login-container .login-wrapper .login-left .form-group.button-row {
-  margin-bottom: 0;
+.login-form .form-error {
+  margin: 0 0 20px !important;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: #fef2f2;
+  color: #dc2626;
+  font-size: 14px;
 }
 
-/* Modern inputs — chain replicated so the encapsulated (higher-specificity)
-   rules override the global styles in styles.scss without affecting other
-   auth pages (register / forgot-password). */
-.login-container .login-wrapper .login-left .form-group input.login-control,
-.login-container .login-wrapper .login-left .form-group input[type="text"],
-.login-container .login-wrapper .login-left .form-group input[type="password"] {
-  min-width: 0;
-  width: 100%;
-  padding: 13px 16px 13px 46px;
-  border-radius: 12px;
-  border: 1.5px solid #e3e8f0;
-  background: #f8fafc;
-  font-size: 16px;
-  color: #1f2937;
-  transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
-
-  &.has-trail {
-    padding-right: 46px;
-  }
-  &::placeholder {
-    color: #9aa4b2;
-  }
-  &:focus {
-    border-color: #2f6bff;
-    background: #fff;
-    box-shadow: 0 0 0 4px rgba(47, 107, 255, 0.15);
-    outline: none;
-  }
+/* ---- Fields: borderless with an animated underline ---- */
+.login-container .login-wrapper .login-left .form-group {
+  margin-bottom: 26px;
 }
 
-/* Icon-prefixed input variation */
 .input-icon-wrap {
   position: relative;
 
   .input-lead-icon {
     position: absolute;
-    left: 16px;
+    left: 2px;
     top: 50%;
     transform: translateY(-50%);
     font-size: 16px;
@@ -151,13 +92,29 @@
     transition: color 0.18s ease;
   }
 
+  /* Growing accent underline on focus */
+  &::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #2f6bff 0%, #0e40b8 100%);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.24s ease;
+  }
+  &:focus-within::after {
+    transform: scaleX(1);
+  }
   &:focus-within .input-lead-icon {
     color: #2f6bff;
   }
 
   .pw-toggle {
     position: absolute;
-    right: 8px;
+    right: 0;
     top: 50%;
     transform: translateY(-50%);
     display: flex;
@@ -180,28 +137,41 @@
   }
 }
 
-/* Card polish */
-.login-container {
-  width: 460px !important;
-  border-radius: 18px;
-  box-shadow: 0 18px 50px rgba(16, 24, 40, 0.14);
-}
-/* Let .login-left own all the padding (no double-nesting) */
-.login-container .login-wrapper {
-  padding: 0;
+.login-container .login-wrapper .login-left .form-group input.login-control,
+.login-container .login-wrapper .login-left .form-group input[type="text"],
+.login-container .login-wrapper .login-left .form-group input[type="password"] {
+  min-width: 0;
+  width: 100%;
+  padding: 12px 8px 12px 32px;
+  border: 0;
+  border-bottom: 2px solid #e5e9f0;
+  border-radius: 0;
+  background: transparent;
+  font-size: 16px;
+  color: #1f2937;
+  transition: border-color 0.18s ease;
+
+  &.has-trail {
+    padding-right: 40px;
+  }
+  &::placeholder {
+    color: #9aa4b2;
+  }
+  &:focus {
+    outline: none;
+    box-shadow: none;
+  }
+  &.error {
+    border-bottom-color: #ef4444;
+  }
 }
 
-/* Consistent vertical rhythm between fields */
-.login-container .login-wrapper .login-left .form-group {
-  margin-bottom: 22px;
-}
-
-/* Remember-me / forgot-password row — aligned and evenly spaced */
+/* ---- Remember / forgot row ---- */
 .remember-me-and-forget-password-wrap {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 24px !important;
+  margin-bottom: 30px !important;
 }
 .remember-me-text {
   font-size: 14px;
@@ -209,165 +179,111 @@
 }
 .forgot-password-link-text {
   font-size: 14px;
-  color: #2f6bff;
   font-weight: 500;
+  color: #2f6bff;
 }
 .remember-me-checkbox {
-  zoom: 1.35;
-  margin-right: 4px;
+  zoom: 1.3;
+  margin-right: 5px;
   accent-color: #2f6bff;
 }
 
-@media (min-width: 1200px) and (max-width: 1599px) {
-  .login-container {
-    width: 100% !important;
-    height: auto;
-  }
-  .login-left {
-    padding: 10px 10px 20px 10px !important;
-    h4 {
-      font-size: 23px !important;
-      line-height: 27px !important;
-    }
-    button {
-      width: 48%;
-      padding: 10px;
-      font-size: 15px !important;
-    }
-    .kx-create-btn {
-      padding: 10px;
-      font-size: 16px !important;
-      width: 100%;
-    }
-  }
-  input {
-    font-size: 14px !important;
-  }
-  .remember-me-checkbox {
-    zoom: 1.4 !important;
-  }
-  .remember-me-text {
-    font-size: 15px !important;
-  }
-  .forgot-password-link-text {
-    font-size: 15px !important;
-  }
-  .do-you-have-an-account-text {
-    font-size: 15px !important;
-  }
+/* ---- Buttons: stacked, prominent primary + ghost secondary ---- */
+.login-left .button-row {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 4px;
 }
-@media (min-width: 980px) and (max-width: 1199px) {
-  .login-container {
-    width: 97% !important;
-    height: auto;
-  }
-  .login-left {
-    padding: 10px 10px 17px 10px !important;
-    h4 {
-      font-size: 20px !important;
-      line-height: 24px !important;
-    }
-    button {
-      width: 48%;
-      padding: 10px;
-      font-size: 14px !important;
-    }
-    .kx-create-btn {
-      padding: 10px;
-      font-size: 13px !important;
-      width: 100%;
-    }
-  }
-  input {
-    font-size: 12px !important;
-  }
-  .remember-me-checkbox {
-    zoom: 1.2 !important;
-  }
-  .remember-me-text {
-    font-size: 13px !important;
-  }
-  .forgot-password-link-text {
-    font-size: 13px !important;
-  }
-  .do-you-have-an-account-text {
-    font-size: 13px !important;
-  }
+.login-container .login-wrapper .login-left .form-group.button-row {
+  margin-bottom: 0;
 }
-@media (min-width: 560px) and (max-width: 979px) {
-  .login-container {
-    // width: 100%;
-    width: 90%;
-    height: auto;
-  }
-  .login-left {
-    width: 100%;
-    padding: 20px;
-    padding: 8px 15px 8px 15px;
-    h4 {
-      font-size: 22px;
-      line-height: 27px;
-    }
-    button {
-      width: 48%;
-      padding: 10px;
-    }
-    .kx-create-btn {
-      padding: 14px;
-      font-size: 16px;
-      width: 100%;
-    }
-  }
-}
-@media (min-width: 320px) and (max-width: 560px) {
-  .login-container .login-wrapper {
-    padding: 20px 10px;
-  }
-  .login-left {
-    button {
-      width: 45%;
-      padding: 8px 0px;
-      font-size: 12px;
-    }
-    h4 {
-      font-size: 22px;
-      line-height: 27px;
-    }
-    .form-group {
-      .l-form {
-        float: none;
-        margin-bottom: 15px;
-      }
-      .r-form {
-        float: none;
-      }
-    }
-  }
-  .padding-left-mobile {
-    padding-left: 3px !important;
-  }
 
-  input,
-  select {
-    font-size: 12px !important;
+.login-left button {
+  width: 100%;
+  border: 0;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  text-transform: capitalize;
+  cursor: pointer;
+  outline: none;
+  transition: transform 0.12s ease, box-shadow 0.18s ease, filter 0.18s ease, background 0.18s ease;
+}
+
+.login-left #submit {
+  padding: 15px 0;
+  color: #fff;
+  background: linear-gradient(135deg, #2f6bff 0%, #0e40b8 100%);
+  box-shadow: 0 10px 24px rgba(20, 70, 197, 0.3);
+
+  &:hover {
+    filter: brightness(1.05);
+    box-shadow: 0 12px 28px rgba(20, 70, 197, 0.38);
   }
-  label,
-  p,
-  a {
-    font-size: 14px !important;
+  &:active {
+    transform: translateY(1px);
   }
-  .kx-create-btn {
-    padding: 8px 0 !important;
-    font-size: 12px !important;
-    width: 100% !important;
+}
+
+.login-left .kx-go-back,
+.login-left .kx-go-back:hover,
+.login-left .kx-go-back:focus {
+  padding: 12px 0;
+  color: #475569;
+  background: #fff;
+  border: 1.5px solid #e5e9f0;
+  box-shadow: none;
+  filter: none;
+}
+.login-left .kx-go-back:hover {
+  background: #f5f7fb;
+  border-color: #d7dde8;
+}
+
+/* ---- Sign-up CTA ---- */
+.login-left .kx-create-btn {
+  padding: 0;
+  width: auto;
+  margin: 0;
+  background: transparent;
+  color: #2f6bff;
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
   }
-  .padding-left-mobile {
-    padding-left: 10px !important;
+}
+.login-left .do-you-have-an-account-text {
+  margin: 24px 0 0;
+  padding-top: 22px;
+  text-align: center;
+  color: #6b7280;
+  font-size: 15px;
+  border-top: 1px solid #eef1f6;
+}
+
+/* =============================================================
+   Responsive
+   ============================================================= */
+@media (max-width: 768px) {
+  .login-container {
+    width: 92% !important;
+    max-width: 440px !important;
   }
-  .remember-me-checkbox {
-    zoom: 1.2;
+  .login-container .login-wrapper .login-left {
+    padding: 34px 26px 30px !important;
   }
-  .remember-me-and-forget-password-wrap {
-    display: block;
+  .login-left h4 {
+    font-size: 24px;
+  }
+}
+
+@media (max-width: 400px) {
+  .login-container .login-wrapper .login-left {
+    padding: 28px 20px 26px !important;
   }
 }
