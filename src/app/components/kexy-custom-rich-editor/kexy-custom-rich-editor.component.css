@@ -294,20 +294,23 @@ button.tool-btn .hash { font-weight: 700; font-size: 15px; color: #0b72b7; }
   flex: 0 0 auto;
   white-space: nowrap;
 }
-/* Hide the trailing divider on the last visible cluster — whether it's the very
-   last child (⋮ hidden) or the one right before the ⋮ button — so it doesn't
-   dangle at the strip's end. `visibility` (not `display`) keeps its box, so the
-   measured width still matches what renders. */
+/* Hide the trailing divider baked into a cluster when that cluster is the last
+   thing in the strip — whether it's the very last child (⋮ hidden) or the last
+   cluster before the `.before-overflow` divider (⋮ shown). The visible divider
+   before the ⋮ is the dedicated `.before-overflow` one. `visibility` (not
+   `display`) keeps the box so the measured width still matches what renders. */
 .toolbar-scroll .tb-group:last-child .tool-divider,
-.toolbar-scroll .tb-group:has(+ .overflow-tool) .tool-divider { visibility: hidden; }
+.toolbar-scroll .tb-group:has(+ :not(.tb-group)) .tool-divider { visibility: hidden; }
+
+/* Dedicated divider shown ONLY when the ⋮ button is present; it (and the ⋮ after
+   it) are pushed to the right edge together via `margin-left:auto`. */
+.toolbar-scroll .tool-divider.before-overflow { margin-left: auto; }
 
 /* ── Overflow (⋮) menu holding the secondary tools ── */
 .overflow-tool {
   position: relative;
   display: inline-flex;
   flex: 0 0 auto;
-  /* Pin the ⋮ trigger to the right edge of the strip. */
-  margin-left: auto;
 }
 
 /* Clusters collapsed INTO the menu lay out as menu rows; drop their in-strip
