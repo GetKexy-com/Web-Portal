@@ -8,37 +8,21 @@
     // Sent (right): white bubble. The message renders in a sandboxed iframe (see
     // component) so full-HTML emails display faithfully, like the editor Preview.
     // The iframe body carries the actual bubble color/text (per side) + padding;
-    // this background is just a pre-load fallback to avoid a flash. Auto-sized to
-    // content via onFrameLoad().
+    // this background shows through the transparent frame so there's no white flash
+    // before the content paints. Auto-sized to content via onFrameLoad().
     background-color: white;
     width: 85%;
     border-radius: 12px 12px 0 12px;
     overflow: hidden; // clip the iframe to the rounded corners
 
-    // Loader shown while the iframe loads + sizes, so the message doesn't flash at
-    // the default frame height and then jump to its content height on switch.
-    .conv-loading {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 44px;
-      color: #9aa4b2;
-      font-size: 15px;
-    }
-
-    // Hidden (height 0, faded) until onFrameLoad sizes it and adds .loaded; the JS
-    // sets the exact pixel height inline, then this fades the content in.
+    // The whole thread is held hidden by the parent until every frame is sized
+    // (see conv-messages coordination), so the frame just renders + sizes here.
+    // Transparent background = the bubble color shows through until content paints.
     .conv-frame {
       display: block;
       width: 100%;
-      height: 0;
       border: 0;
-      opacity: 0;
-      transition: opacity 0.15s ease;
-
-      &.loaded {
-        opacity: 1;
-      }
+      background: transparent;
     }
   }
 
@@ -53,14 +37,11 @@
     align-items: flex-start;
 
     // Received: blue bubble. The iframe body paints the real blue + white text
-    // (see prepareFrameHtml); this is the pre-load fallback + corner shape.
+    // (see prepareFrameHtml); this bubble color also shows through the transparent
+    // frame until the content paints, so no white flash on the blue side.
     .conv-message {
       background: #0d50cd;
       border-radius: 12px 12px 12px 0;
-
-      .conv-loading {
-        color: rgba(255, 255, 255, 0.85); // spinner readable on the blue bubble
-      }
     }
   }
 }

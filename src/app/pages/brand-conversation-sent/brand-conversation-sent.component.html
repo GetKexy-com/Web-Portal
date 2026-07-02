@@ -185,7 +185,7 @@
         <!--        #conversationView-->
         <!--        (scroll)="onScroll()"-->
         <div class="conv-view" *ngIf="selectedConversation">
-          <div class="conv-loading-overlay" *ngIf="messagesLoading">
+          <div class="conv-loading-overlay" *ngIf="showSpinner">
             <i class="fa fa-spinner fa-spin" aria-hidden="true"></i>
           </div>
           <div class="conv-messages" [class.hidden]="messagesLoading">

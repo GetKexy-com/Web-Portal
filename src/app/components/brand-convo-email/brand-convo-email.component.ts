@@ -21,7 +21,7 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
   templateUrl: './brand-convo-email.component.html',
   styleUrl: './brand-convo-email.component.scss',
 })
-export class BrandConvoEmailComponent implements OnInit {
+export class BrandConvoEmailComponent implements OnInit, OnDestroy {
   @Input() email: any;
   @Input() forwardToCampaignUser;
   @Input() isLoading;
@@ -33,9 +33,7 @@ export class BrandConvoEmailComponent implements OnInit {
   ignoreNextLoop = false;
   /** Email HTML for the iframe srcdoc (bypassed — rendered in a sandboxed frame). */
   message: SafeHtml;
-  /** False until the iframe has loaded AND been sized — a loader shows meanwhile,
-   *  so the content doesn't flash at the wrong height then jump when switching. */
-  frameLoaded = false;
+  private resizeObserver?: ResizeObserver;
   emailAddress;
   submitted = false;
   isValidEmail = false;
@@ -61,61 +59,100 @@ export class BrandConvoEmailComponent implements OnInit {
   }
 
   /**
-   * Prep message HTML for the iframe. Injects `<base target="_blank">` (links open
-   * externally — in-frame nav is blocked by most sites' X-Frame-Options) and the
-   * chat-bubble styling the app CSS can no longer reach inside the isolated frame:
-   * received (left) messages get a blue background + white text, sent (right) get
-   * white + black. Also keeps the `.gmail_quote` hide. Works for full documents and
-   * fragments alike (the browser wraps a fragment in html/body).
+   * Prep message HTML for the iframe. Strips every script vector so the sandbox
+   * (no allow-scripts) doesn't log "Blocked script execution in about:srcdoc" for
+   * each message: <script>/<noscript> elements, inline on* event handlers (email
+   * tracking pixels love onload/onerror), and javascript: URLs. Then injects
+   * `<base target="_blank">` (links open externally — in-frame nav is blocked by
+   * most sites' X-Frame-Options) and the chat-bubble styling the app CSS can no
+   * longer reach inside the isolated frame: received (left) = blue bg + white text,
+   * sent (right) = white + black. Works for full documents and fragments alike
+   * (DOMParser wraps a fragment in html/body).
    */
   private prepareFrameHtml(html: string, received: boolean): string {
     if (!html) return '';
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+
+    doc.querySelectorAll('script, noscript').forEach((n) => n.remove());
+    doc.querySelectorAll('*').forEach((el) => {
+      Array.from(el.attributes).forEach((attr) => {
+        const name = attr.name.toLowerCase();
+        if (name.startsWith('on')) {
+          el.removeAttribute(attr.name);
+        } else if (
+          (name === 'href' || name === 'src' || name === 'xlink:href') &&
+          /^\s*javascript:/i.test(attr.value)
+        ) {
+          el.removeAttribute(attr.name);
+        }
+      });
+    });
+
     const bubble = received ? 'background:#0d50cd;color:#fff;' : 'background:#fff;color:#000;';
     const linkColor = received ? '#ffffff' : '#0d50cd';
-    const head =
-      '<base target="_blank" rel="noopener noreferrer" />' +
-      '<style>' +
+
+    const base = doc.createElement('base');
+    base.setAttribute('target', '_blank');
+    base.setAttribute('rel', 'noopener noreferrer');
+
+    const style = doc.createElement('style');
+    style.textContent =
       `html,body{margin:0;padding:0;}` +
       `body{padding:10px 12px;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:1.5;${bubble}}` +
       `body a{color:${linkColor};}` +
       `p{margin:.4rem 0;}` +
       `img{max-width:100%;height:auto;}` +
-      `.gmail_quote{display:none !important;}` +
-      '</style>';
-    return /<head[\s>]/i.test(html)
-      ? html.replace(/<head([^>]*)>/i, `<head$1>${head}`)
-      : head + html;
+      `.gmail_quote{display:none !important;}`;
+
+    const head = doc.head || doc.documentElement;
+    head.insertBefore(style, head.firstChild);
+    head.insertBefore(base, head.firstChild);
+
+    return '<!DOCTYPE html>' + doc.documentElement.outerHTML;
   }
 
-  /** Auto-size the message iframe to exactly fit its content once loaded. */
+  /** Auto-size the message iframe to exactly fit its content once loaded, and only
+   *  report ready after the height has settled (so the parent holds the loader
+   *  until every message has taken its full height — no reveal-then-grow jump). */
   onFrameLoad(event: Event): void {
     const iframe = event.target as HTMLIFrameElement;
     try {
       const doc = iframe.contentDocument || iframe.contentWindow?.document;
-      if (!doc?.body) return;
-      const resize = () => {
+      if (!doc?.body) { this.markReady(); return; }
+      const apply = () => {
         // Use body.scrollHeight (the real content height). documentElement.scrollHeight
         // is clamped to the iframe's current rendered height (~150px default), so it
         // over-reports for short content and leaves empty space below.
         const h = doc.body.scrollHeight;
         if (h) iframe.style.height = `${h}px`;
       };
-      resize();
-      // Reveal only once sized so the content doesn't flash tall then shrink.
-      this.frameLoaded = true;
-      // Images/fonts can change the height after the initial paint — re-measure.
-      requestAnimationFrame(resize);
+      apply();
+      // Keep the height in sync as the content reflows (images/fonts finishing,
+      // late layout) — even after reveal, so a frame never ends up clipped/short.
+      if (typeof ResizeObserver !== 'undefined') {
+        this.resizeObserver = new ResizeObserver(() => apply());
+        this.resizeObserver.observe(doc.body);
+      }
+      // Report ready only after a frame has settled with its final height.
+      requestAnimationFrame(() => {
+        apply();
+        this.markReady();
+      });
     } catch {
       /* cross-origin (shouldn't happen with srcdoc + allow-same-origin) */
-      this.frameLoaded = true;
-    } finally {
-      // Tell the parent this message is ready (once), so it can reveal the thread
-      // only after all frames are sized.
-      if (!this.reported) {
-        this.reported = true;
-        this.frameReady.emit();
-      }
+      this.markReady();
     }
+  }
+
+  /** Tell the parent this message is fully sized (once). */
+  private markReady(): void {
+    if (this.reported) return;
+    this.reported = true;
+    this.frameReady.emit();
+  }
+
+  ngOnDestroy(): void {
+    this.resizeObserver?.disconnect();
   }
 
   conversationPosition = () => {

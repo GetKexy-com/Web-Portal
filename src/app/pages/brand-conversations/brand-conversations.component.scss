@@ -139,7 +139,8 @@ $left-side-width: 365px;
     height: calc(100vh - 120px);
     position: relative;
 
-    // One loader for the whole thread; shown while message iframes load + size.
+    // One loader for the whole thread; shown only if the load runs long (see
+    // showSpinner). Fades in so it doesn't pop.
     .conv-loading-overlay {
       position: sticky;
       top: 0;
@@ -149,16 +150,23 @@ $left-side-width: 365px;
       height: 140px;
       font-size: 24px;
       color: #0d50cd;
+      animation: convLoaderFade 0.2s ease both;
+    }
+
+    @keyframes convLoaderFade {
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
 
     // Messages stay laid out (so their iframes load + size) but invisible until
     // every frame is ready, then fade in together — no per-message reflow jump.
     .conv-messages {
-      transition: opacity 0.2s ease;
+      transition: opacity 0.2s ease; // fades IN on reveal
 
       &.hidden {
         opacity: 0;
         pointer-events: none;
+        transition: none; // hide INSTANTLY — no fade-out flash of the new messages
       }
     }
   }

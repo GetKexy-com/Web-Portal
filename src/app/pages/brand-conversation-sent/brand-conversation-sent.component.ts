@@ -313,26 +313,63 @@ export class BrandConversationSentComponent {
   // as they settle makes the thread jump. So hide the thread behind one loader
   // and reveal only once every frame has reported ready (with a safety timeout).
   messagesLoading = false;
+  showSpinner = false;
   private pendingFrames = 0;
-  private frameLoadTimer: any;
+  private capTimer: any;
+  private revealTimer: any;
+  private loadStartedAt = 0;
+  private lastMessagesRef: any = null;
+  /** Spinner shows for at least this long so it always paints (no flash on fast
+   *  switches) and looks consistent on every click. */
+  private static readonly MIN_SPINNER_MS = 450;
+  /** Reveal no later than this even if a frame never reports ready (reused
+   *  components / blocked resource) — so the thread never gets stuck hidden. */
+  private static readonly MAX_WAIT_MS = 1500;
 
   private beginMessagesLoad(): void {
-    clearTimeout(this.frameLoadTimer);
-    const count = this.selectedConversation?.['messages']?.length || 0;
-    if (!count) { this.messagesLoading = false; return; }
+    this.clearLoadTimers();
+    const msgs = this.selectedConversation?.['messages'];
+    const count = msgs?.length || 0;
+    // Re-clicking the already-open conversation reuses the same message frames,
+    // so nothing reloads and no frameReady fires. Detect it (same array ref) and
+    // leave the thread shown — no hide, no spinner.
+    if (!count || msgs === this.lastMessagesRef) {
+      this.lastMessagesRef = msgs ?? null;
+      this.messagesLoading = false;
+      this.showSpinner = false;
+      return;
+    }
+    this.lastMessagesRef = msgs;
     this.pendingFrames = count;
     this.messagesLoading = true;
-    // Reveal anyway if a frame never fires load (e.g. blocked resource).
-    this.frameLoadTimer = setTimeout(() => (this.messagesLoading = false), 2000);
+    this.showSpinner = true;
+    this.loadStartedAt = Date.now();
+    this.capTimer = setTimeout(() => this.reveal(), BrandConversationSentComponent.MAX_WAIT_MS);
   }
 
   onFrameReady = (): void => {
     if (this.pendingFrames > 0) this.pendingFrames--;
-    if (this.pendingFrames <= 0) {
-      clearTimeout(this.frameLoadTimer);
-      this.messagesLoading = false;
-    }
+    if (this.pendingFrames <= 0) this.reveal();
   };
+
+  /** Reveal the thread once frames are ready (or the cap fires), but keep the
+   *  spinner up for at least MIN_SPINNER_MS so it's always visible. */
+  private reveal(): void {
+    clearTimeout(this.capTimer);
+    if (this.revealTimer) return;
+    const wait = Math.max(0, BrandConversationSentComponent.MIN_SPINNER_MS - (Date.now() - this.loadStartedAt));
+    this.revealTimer = setTimeout(() => {
+      this.messagesLoading = false;
+      this.showSpinner = false;
+      this.revealTimer = null;
+    }, wait);
+  }
+
+  private clearLoadTimers(): void {
+    clearTimeout(this.capTimer);
+    clearTimeout(this.revealTimer);
+    this.revealTimer = null;
+  }
 
   conversationTapped = async (conv) => {
     // Set unsubscribed value to false
