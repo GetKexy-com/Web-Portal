@@ -124,9 +124,29 @@ interface ToolbarGroup {
       <button type="button" class="tool-btn" title="Remove link" (click)="canvas?.unlink()">
         <svg class="tool-ic" viewBox="0 0 20 20" fill="currentColor"><path d="m11.077 15 .991-1.416a.75.75 0 1 1 1.229.86l-1.148 1.64a.748.748 0 0 1-.217.206 5.251 5.251 0 0 1-8.503-5.955.741.741 0 0 1 .12-.274l1.147-1.639a.75.75 0 1 1 1.228.86L4.933 10.7l.006.003a3.75 3.75 0 0 0 6.132 4.294l.006.004zm5.494-5.335a.748.748 0 0 1-.12.274l-1.147 1.639a.75.75 0 1 1-1.228-.86l.86-1.23a3.75 3.75 0 0 0-6.144-4.301l-.86 1.229a.75.75 0 0 1-1.229-.86l1.148-1.64a.748.748 0 0 1 .217-.206 5.251 5.251 0 0 1 8.503 5.955zm-4.563-2.532a.75.75 0 0 1 .184 1.045l-3.155 4.505a.75.75 0 1 1-1.229-.86l3.155-4.506a.75.75 0 0 1 1.045-.184zm4.919 10.562-1.414 1.414a.75.75 0 1 1-1.06-1.06l1.414-1.415-1.415-1.414a.75.75 0 0 1 1.061-1.06l1.414 1.414 1.414-1.415a.75.75 0 0 1 1.061 1.061l-1.414 1.414 1.414 1.415a.75.75 0 0 1-1.06 1.06l-1.415-1.414z"/></svg>
       </button>
-      <button type="button" class="tool-btn" title="Insert table" (click)="canvas?.insertTable(2, 2)">
-        <svg class="tool-ic" viewBox="0 0 20 20" fill="currentColor"><path d="M3 5.5v3h4v-3H3Zm0 4v3h4v-3H3Zm0 4v3h4v-3H3Zm5 3h4v-3H8v3Zm5 0h4v-3h-4v3Zm4-4v-3h-4v3h4Zm0-4v-3h-4v3h4Zm1.5 8A1.5 1.5 0 0 1 17 18H3a1.5 1.5 0 0 1-1.5-1.5V3c.222-.863 1.068-1.5 2-1.5h13c.932 0 1.778.637 2 1.5v13.5Zm-6.5-4v-3H8v3h4Zm0-4v-3H8v3h4Z"/></svg>
-      </button>
+      <div class="table-tool">
+        <button type="button" class="tool-btn with-caret" title="Insert table" [class.active]="tableOpen()" (click)="toggleTable()">
+          <svg class="tool-ic" viewBox="0 0 20 20" fill="currentColor"><path d="M3 5.5v3h4v-3H3Zm0 4v3h4v-3H3Zm0 4v3h4v-3H3Zm5 3h4v-3H8v3Zm5 0h4v-3h-4v3Zm4-4v-3h-4v3h4Zm0-4v-3h-4v3h4Zm1.5 8A1.5 1.5 0 0 1 17 18H3a1.5 1.5 0 0 1-1.5-1.5V3c.222-.863 1.068-1.5 2-1.5h13c.932 0 1.778.637 2 1.5v13.5Zm-6.5-4v-3H8v3h4Zm0-4v-3H8v3h4Z"/></svg>
+          <svg class="tool-ic caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+        @if (tableOpen()) {
+          <div class="table-menu" role="menu">
+            <div class="table-grid"
+              [style.grid-template-columns]="'repeat(' + gridCols() + ', 1fr)'"
+              (mouseleave)="onTableHover(0, 0)">
+              @for (r of gridRowRange(); track r) {
+                @for (c of gridColRange(); track c) {
+                  <span class="table-cell"
+                    [class.on]="r <= tableRows() && c <= tableCols()"
+                    (mouseenter)="onTableHover(r, c)"
+                    (click)="pickTable(r, c)"></span>
+                }
+              }
+            </div>
+            <div class="table-grid-label">{{ tableCols() }} &times; {{ tableRows() }}</div>
+          </div>
+        }
+      </div>
     </ng-template>
 
     <ng-template #tplParagraph>
@@ -353,6 +373,21 @@ export class EditorToolbarComponent implements AfterViewInit, OnDestroy {
   readonly overflowOpen = signal(false);
   readonly alignOpen = signal(false);
   readonly menuOpen = signal(false);
+
+  // ── Table grid picker (CKEditor-style: hover a cell to size the table) ──
+  /** Base grid dimensions; grow by one when the pointer reaches the last row/col. */
+  private static readonly TABLE_GRID_BASE = 10;
+  private static readonly TABLE_GRID_MAX = 20;
+  readonly tableOpen = signal(false);
+  /** Rendered grid extent (grows as the pointer nears the edge, like CKEditor). */
+  readonly gridRows = signal(EditorToolbarComponent.TABLE_GRID_BASE);
+  readonly gridCols = signal(EditorToolbarComponent.TABLE_GRID_BASE);
+  /** Currently-hovered dimensions (0 = nothing highlighted). */
+  readonly tableRows = signal(0);
+  readonly tableCols = signal(0);
+  readonly gridRowRange = computed(() => Array.from({ length: this.gridRows() }, (_, i) => i + 1));
+  readonly gridColRange = computed(() => Array.from({ length: this.gridCols() }, (_, i) => i + 1));
+
   readonly mergeQuery = signal('');
   readonly filteredTags = computed(() => {
     const query = this.mergeQuery().trim().toLowerCase();
@@ -512,6 +547,40 @@ export class EditorToolbarComponent implements AfterViewInit, OnDestroy {
     this.alignOpen.update(v => !v);
   }
 
+  /** Open/close the table grid picker, resetting the grid to its base size. */
+  toggleTable(): void {
+    const opening = !this.tableOpen();
+    if (opening) {
+      this.gridRows.set(EditorToolbarComponent.TABLE_GRID_BASE);
+      this.gridCols.set(EditorToolbarComponent.TABLE_GRID_BASE);
+      this.tableRows.set(0);
+      this.tableCols.set(0);
+      // Save the caret before the picker steals focus, so the table lands there.
+      this.canvas?.captureMergeSelection();
+    }
+    this.tableOpen.set(opening);
+  }
+
+  /**
+   * Highlight rows 1..r / cols 1..c as the pointer moves over the grid. When the
+   * pointer reaches the last rendered row/column, grow the grid by one (capped)
+   * so larger tables can be picked without a separate dialog — as in CKEditor.
+   */
+  onTableHover(r: number, c: number): void {
+    this.tableRows.set(r);
+    this.tableCols.set(c);
+    const max = EditorToolbarComponent.TABLE_GRID_MAX;
+    if (r === this.gridRows() && r < max) this.gridRows.set(r + 1);
+    if (c === this.gridCols() && c < max) this.gridCols.set(c + 1);
+  }
+
+  /** Insert an r×c table at the saved caret and close the picker. */
+  pickTable(r: number, c: number): void {
+    this.canvas?.insertTable(r, c);
+    this.tableOpen.set(false);
+    this.overflowOpen.set(false);
+  }
+
   applyAlign(command: string): void {
     this.canvas?.execCommand(command);
     this.alignOpen.set(false);
@@ -552,6 +621,9 @@ export class EditorToolbarComponent implements AfterViewInit, OnDestroy {
     }
     if (this.alignOpen() && !target.closest('.align-tool')) {
       this.alignOpen.set(false);
+    }
+    if (this.tableOpen() && !target.closest('.table-tool')) {
+      this.tableOpen.set(false);
     }
   }
 
