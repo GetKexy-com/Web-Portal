@@ -1,5 +1,14 @@
 <div class="msg-box" [class.left]="conversationPosition()">
-  <div class="conv-message" [innerHTML]="message"></div>
+  <div class="conv-message">
+    <iframe
+      class="conv-frame"
+      [srcdoc]="message"
+      (load)="onFrameLoad($event)"
+      sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox"
+      referrerpolicy="no-referrer"
+      title="Message"
+    ></iframe>
+  </div>
   <div class="time">
     {{ email.messageSentAt | date }}
     <span class="ps-2">
