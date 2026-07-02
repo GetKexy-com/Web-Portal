@@ -153,6 +153,17 @@ export class KexyCustomRichEditorComponent implements AfterViewInit {
     return this.state.htmlOutput();
   }
 
+  /**
+   * Public API: the inlined, email-safe BODY HTML fragment — no document shell,
+   * no `<title>`. Use this when embedding the content into an existing page /
+   * message (e.g. rendered via `[innerHTML]`), where a full `<!DOCTYPE html>`
+   * document would inject stray head/title text. Use getHtml() for a standalone
+   * email document.
+   */
+  getBodyHtml(): string {
+    return this.editorCanvasRef.getInlinedBodyHtml();
+  }
+
   /** Public API: read the subject as plain text with raw [tokens] (for save/send). */
   getSubject(): string {
     return this.editorCanvasRef.serializeSubjectRaw();

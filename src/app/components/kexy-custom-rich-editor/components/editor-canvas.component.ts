@@ -1176,7 +1176,13 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
     this.refreshOutputs();
   }
 
-  generateEmailHtml(subject: string): string {
+  /**
+   * The email-safe BODY HTML (chips stripped to raw [tags], fonts normalized,
+   * styles inlined, media blocks transformed) — WITHOUT the surrounding document
+   * shell / `<title>`. This is the fragment a host should send/store as the
+   * message content; `generateEmailHtml` wraps it in a full standalone document.
+   */
+  getInlinedBodyHtml(): string {
     const clone = this.canvas.cloneNode(true) as HTMLElement;
     clone.querySelectorAll('.selected').forEach(n => n.classList.remove('selected'));
     clone.querySelectorAll('.resize-handle').forEach(n => n.remove());
@@ -1190,7 +1196,11 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
       (v) => this.utils.escapeHtml(v),
       (v) => this.utils.escapeAttribute(v),
     );
-    const body = clone.innerHTML.trim() || '<p>&nbsp;</p>';
+    return clone.innerHTML.trim() || '<p>&nbsp;</p>';
+  }
+
+  generateEmailHtml(subject: string): string {
+    const body = this.getInlinedBodyHtml();
 
     return `<!DOCTYPE html>
 <html lang="en">

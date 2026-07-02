@@ -256,10 +256,10 @@
         </div>
         <div class="text-area">
           <div class="textarea-wrap">
-            <kexy-rich-editor
-              [content]="emailContent"
-              [onContentUpdate]="onEmailContentChange">
-            </kexy-rich-editor>
+            <kexy-custom-rich-editor
+              #composeEditor
+              [content]="emailContent">
+            </kexy-custom-rich-editor>
           </div>
           <ng-container *ngIf="!(emailContent || updatedEmailContent) && sendBtnClicked">
             <span style="color: red; font-size: 12px">Email content is required.</span>
@@ -268,7 +268,7 @@
         <div class="bottom-btn-area float-end">
           <div class="btn-wrap">
             <app-kexy-button
-              (click)="addMessageToConversation()"
+              (click)="addMessageToConversation(composeEditor)"
               [disabled]="isLoading"
               [label]="isLoading ? 'Please wait...' : 'Send email' "
               [iconLeft]="isLoading ? 'fa-refresh fa-spin' : 'fa-paper-plane-o'"

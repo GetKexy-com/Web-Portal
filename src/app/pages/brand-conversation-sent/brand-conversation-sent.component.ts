@@ -16,7 +16,7 @@ import { KexyButtonComponent } from '../../components/kexy-button/kexy-button.co
 import { BrandConvoCardComponent } from '../../components/brand-convo-card/brand-convo-card.component';
 import { BrandConvoAvatarComponent } from '../../components/brand-convo-avatar/brand-convo-avatar.component';
 import { BrandConvoEmailComponent } from '../../components/brand-convo-email/brand-convo-email.component';
-import { KexyRichEditorComponent } from '../../components/kexy-rich-editor/kexy-rich-editor.component';
+import { KexyCustomRichEditorComponent } from '../../components/kexy-custom-rich-editor/kexy-custom-rich-editor.component';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -28,7 +28,7 @@ import { CommonModule } from '@angular/common';
     BrandConvoCardComponent,
     BrandConvoAvatarComponent,
     BrandConvoEmailComponent,
-    KexyRichEditorComponent,
+    KexyCustomRichEditorComponent,
     CommonModule,
     NgbDropdown,
     NgbDropdownToggle,
@@ -209,16 +209,27 @@ export class BrandConversationSentComponent {
   sendBtnClicked = false;
 
   updatedEmailContent = '';
-  onEmailContentChange = ({ rawHtml, emailHtml }: { rawHtml: string; emailHtml: string }) => {
-    setTimeout(() => {
-      this.updatedEmailContent = emailHtml;
-      // this.rawEditorContent = rawHtml;
-    }, 10);
-  };
+
+  /** True when the export HTML has no visible text and no media (empty compose). */
+  private isEmailHtmlEmpty(html: string): boolean {
+    if (!html) return true;
+    const tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    const hasMedia = !!tmp.querySelector('img, video');
+    // \s covers U+00A0 (&nbsp;) in JS, so the shell's non-breaking spaces strip out too.
+    const text = (tmp.textContent || '').replace(/\s+/g, '');
+    return text.length === 0 && !hasMedia;
+  }
 
 
-  addMessageToConversation = async () => {
+  addMessageToConversation = async (editor: KexyCustomRichEditorComponent) => {
     this.sendBtnClicked = true;
+    // Read the content the user typed straight from the editor. Use getBodyHtml()
+    // (the inlined body fragment) rather than getHtml() — the conversation renders
+    // messageContent via [innerHTML], and a full getHtml() document would leak its
+    // <title> (the editor's default subject) as stray text above the message.
+    const html = editor?.getBodyHtml() ?? '';
+    this.updatedEmailContent = this.isEmailHtmlEmpty(html) ? '' : html;
     if (!this.updatedEmailContent) return;
     const data = {
       prospectingConversationId: this.selectedConversation.id,

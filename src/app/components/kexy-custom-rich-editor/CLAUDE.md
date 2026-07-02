@@ -33,7 +33,8 @@ const html = this.editor.getHtml();                           // export-ready HT
 ### Public API (`KexyCustomRichEditorComponent`)
 - `@Input() content?: string` — initial email HTML. If omitted, a built-in sample loads.
 - `loadContent(html: string)` — replace the editor content (renders chips, hydrates media blocks).
-- `getHtml(): string` — current export-ready, inlined email HTML.
+- `getHtml(): string` — current export-ready, inlined email HTML: a **full standalone `<!DOCTYPE html>` document** whose `<title>` is the subject. Note this is never literally empty even when the editor is visually blank — a host that needs an emptiness check must strip tags/media itself (see `brand-conversation-sent`'s `isEmailHtmlEmpty`).
+- `getBodyHtml(): string` — the inlined, email-safe **body fragment only** (no document shell, no `<title>`). Use this when embedding the content into an existing page/message rendered via `[innerHTML]` (e.g. a conversation reply): a full getHtml() document would leak its `<title>`/head text as stray content. Backed by `EditorCanvasComponent.getInlinedBodyHtml()`, which `generateEmailHtml` also wraps for getHtml().
 - `loadSample()`, `copyHtml()`, `downloadHtml()`, `switchMode('design'|'preview'|'html')`.
 
 ---
