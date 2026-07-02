@@ -350,6 +350,16 @@ $left-side-width: 365px;
 
     .text-area {
       margin-top: 15px;
+
+      // The custom rich editor renders a "Subject line" field above its toolbar.
+      // This reply-in-thread compose keeps the conversation's existing subject
+      // (sent via selectedConversation.emailSubject), so hide the editor's own
+      // subject to match the previous body-only compose box. ::ng-deep pierces
+      // the editor's ViewEncapsulation.None DOM; scoped under .textarea-wrap so
+      // it only affects this modal's instance.
+      .textarea-wrap ::ng-deep .email-meta {
+        display: none;
+      }
     }
 
     .bottom-btn-area {
