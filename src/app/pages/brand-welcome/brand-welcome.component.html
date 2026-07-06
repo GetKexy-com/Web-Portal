@@ -1,19 +1,49 @@
 <login-layout>
-  <div class="tr-main-box">
-    <div class="kexy-logo">
-      <img src="/assets/images/client-logo.png" alt="" />
-    </div>
-    <div class="login-form">
-      <div class="tr-kexy-button">
-        <a (click)="openVideoDialog()" class="kexy-button">Play Video</a>
-      </div>
+  <div class="row">
+    <div class="login-container has-progress">
+      <div class="login-wrapper">
+        <div class="login-left welcome-left">
+          <div class="d-flex flex-column align-items-center">
+            <div class="progress custom-progress" style="width: 100%">
+              <div
+                class="progress-bar progress-bar-striped bg-success"
+                role="progressbar"
+                style="width: 100%"
+                aria-valuenow="100"
+                aria-valuemin="0"
+                aria-valuemax="100"
+              ></div>
+            </div>
+            <p class="progress-completed-text">Setup complete!</p>
+          </div>
 
-      <p class="text-center">
-        <a href="#" (click)="autoLogin($event)">Skip explainer video & login</a>
-      </p>
+          <img class="welcome-logo" src="/assets/images/client-logo.png" alt="KEXY" />
+
+          <h4>You're all set!</h4>
+          <p class="auth-subtitle">
+            Watch a quick explainer to get the most out of KEXY — or jump straight into your dashboard.
+          </p>
+
+          <div
+            class="video-poster"
+            role="button"
+            tabindex="0"
+            (click)="openVideoDialog()"
+            (keyup.enter)="openVideoDialog()"
+          >
+            <span class="play-badge"><i class="fa fa-play" aria-hidden="true"></i></span>
+            <span class="poster-label">Watch the explainer video</span>
+          </div>
+
+          <p class="skip-link">
+            <a (click)="autoLogin($event)">Skip explainer &amp; go to dashboard</a>
+          </p>
+        </div>
+      </div>
     </div>
-    <ng-template #kexyAppDownloadModal let-c="close" let-d="dismiss">
-      <app-download-modal-content [closeModal]="c"></app-download-modal-content>
-    </ng-template>
   </div>
+
+  <ng-template #kexyAppDownloadModal let-c="close" let-d="dismiss">
+    <app-download-modal-content [closeModal]="c"></app-download-modal-content>
+  </ng-template>
 </login-layout>

@@ -1,63 +1,97 @@
-.kexy-logo {
+/* Brand Welcome (final onboarding step) — consistent with the login redesign */
+@use "../auth-form";
+
+.login-container .login-wrapper .login-left.welcome-left {
   text-align: center;
-  margin-bottom: 20px;
-  //margin-top: 50px;
 }
 
-.tr-main-box {
-  overflow: hidden;
+.welcome-logo {
+  display: block;
+  width: 118px;
+  margin: 4px auto 22px;
+}
+
+/* Clickable video hero — fills the space a form would, brand-gradient poster */
+.video-poster {
   position: relative;
-  height: 553px;
-  width: 600px;
-  box-shadow: 0px 0px 10px 4px #d8d3d3;
-  padding: 22px;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-}
-
-.tr-kexy-button {
-  text-align: center;
-  margin-bottom: 20px;
-}
-
-.kexy-button {
-  background: #12a5f4;
-  border: 0;
-  border-radius: 7px;
-  color: #fff !important;
-  text-transform: capitalize;
-  font-size: 18px;
-  padding: 14px 63px;
+  aspect-ratio: 16 / 9;
+  margin: 6px 0 4px;
+  border-radius: 16px;
+  overflow: hidden;
   cursor: pointer;
-  margin-top: 6px;
-  display: inline-block;
-}
+  background: linear-gradient(135deg, #2f6bff 0%, #0e40b8 100%);
+  box-shadow: 0 16px 34px rgba(20, 70, 197, 0.28);
+  transition: transform 0.15s ease, box-shadow 0.2s ease;
 
-@media (min-width: 320px) and (max-width: 560px) {
-  .kexy-button {
-    padding: 10px 0;
-    width: 100%;
+  /* soft glow for depth */
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 30% 25%, rgba(255, 255, 255, 0.2), transparent 55%);
   }
-  .tr-main-box {
-    padding: 20px !important;
-  }
-}
 
-@media (min-width: 991px) and (max-width: 1199px) {
-  .kexy-button {
+  &:hover,
+  &:focus-visible {
+    transform: translateY(-2px);
+    box-shadow: 0 22px 42px rgba(20, 70, 197, 0.36);
+    outline: none;
+
+    .play-badge {
+      transform: scale(1.06);
+    }
+  }
+
+  .play-badge {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 74px;
+    height: 74px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    transition: transform 0.15s ease;
+
+    i {
+      color: #0e40b8;
+      font-size: 26px;
+      margin-left: 4px; /* optically centre the play triangle */
+    }
+  }
+
+  .poster-label {
+    position: absolute;
+    bottom: 14px;
+    left: 0;
+    right: 0;
+    z-index: 1;
+    color: #fff;
     font-size: 14px;
-    padding: 10px 63px;
+    font-weight: 600;
+    letter-spacing: 0.2px;
   }
-  .tr-main-box {
-    padding: 20px !important;
-    height: 450px;
-    width: 400px;
-  }
-  .kexy-logo {
-    img {
-      width: 100px;
+}
+
+.skip-link {
+  margin: 24px 0 0;
+  text-align: center;
+
+  a {
+    color: #6b7280;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
+
+    &:hover {
+      color: #2f6bff;
+      text-decoration: underline;
     }
   }
 }

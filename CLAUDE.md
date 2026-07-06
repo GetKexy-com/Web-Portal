@@ -213,6 +213,12 @@ so a visual change wanted everywhere must be made in BOTH the partial and
 - `register` and `brand-create` NO LONGER have the profile-photo / company-logo
   upload (removed from markup; the `openFileDialog`/`fileSelected`/`imageUrl`
   members remain unused in the TS).
+- **`brand-welcome`** is the final wizard step (100%). It has no form, so instead
+  of fields it shows a clickable **`.video-poster`** hero (brand-gradient 16:9 panel
+  with a white `.play-badge` play button + `.poster-label`, keyboard-accessible via
+  `role="button"`/`tabindex`/`keyup.enter`) wired to `openVideoDialog()`, plus a
+  muted `.skip-link` calling `autoLogin()`. Still uses the card + `has-progress` +
+  `@use "../auth-form"`.
 
 ### Layout scroll + centering (don't reintroduce the clip)
 
