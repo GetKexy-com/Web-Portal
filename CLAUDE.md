@@ -271,12 +271,16 @@ NOT full-hide. The desktop `<ul>` always renders (`*ngIf="!isMobileScreen"`) and
   a centred pill fill, NOT the expanded-mode `inset 3px 0 0` left accent bar).
 - `app-org-info` becomes a compact header: small logo + tiny truncated org name
   (person name hidden).
-- **Leaf items** show a CSS hover **tooltip** from `[attr.data-label]` (also `title`).
+- **Leaf items** show a CSS hover **tooltip** from `[attr.data-label]` (also `title`),
+  with a `::before` caret whose base is flush to the tooltip and tip points at the icon.
 - **Dropdown sections** open a **flyout submenu to the right** — on hover, or
   click-pinned via `flyoutOpen` (closed on outside `document:click`). The submenu
   (`.sub-nav-item-wrap.flyout`) has a `.flyout-title` header + full-label child rows,
-  a pointer arrow, and an invisible `::after` hover-bridge across the gap. The
-  section's own tooltip is suppressed (the flyout replaces it).
+  a `::before` caret protruding from the panel edge pointing at the icon (same idea as
+  the tooltip — keep the caret OUTSIDE the panel, not inset), and an invisible
+  `::after` hover-bridge across the gap. The section's own tooltip is suppressed.
+- Sub-item label text uses `--kx-nav-sub-fg` (near-white, `rgba(255,255,255,0.9)`) in
+  both the expanded accordion and the flyout (they share `nav-item` styling).
 - The rail sets `overflow: visible` + `z-index: 20` (and the arrow `z-index: 30`) so
   tooltips/flyouts paint above `#content-wrapper` (`z-index: 0`) and the arrow stays
   on top. Cross-component bits (org-info, nav items) are styled via `::ng-deep
