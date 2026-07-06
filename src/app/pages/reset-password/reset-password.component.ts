@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
 import { HttpService } from '../../services/http.service';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { routeConstants } from '../../helpers/routeConstants';
 import {LoginLayoutComponent} from '../../layouts/login-layout/login-layout.component';
 import {ReactiveFormsModule} from '@angular/forms';
@@ -15,6 +15,7 @@ import { ErrorMessageCardComponent } from '../../components/error-message-card/e
     LoginLayoutComponent,
     ReactiveFormsModule,
     CommonModule,
+    RouterLink,
   ],
   templateUrl: './reset-password.component.html',
   styleUrl: './reset-password.component.scss'
@@ -24,6 +25,7 @@ export class ResetPasswordComponent {
   email: string = '';
   error;
   isWaitingFlag: boolean = false;
+  showPassword: boolean = false;
 
   constructor(
     private _authService: AuthService,

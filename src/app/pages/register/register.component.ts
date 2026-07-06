@@ -215,7 +215,7 @@
 
 import { Component, OnInit, signal } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { HttpService } from '../../services/http.service';
 import { constants } from '../../helpers/constants';
@@ -229,7 +229,8 @@ import { PhoneNumberMaskDirective } from '../../directive/phone-number-mask.dire
   imports: [
     LoginLayoutComponent,
     ReactiveFormsModule,
-    PhoneNumberMaskDirective
+    PhoneNumberMaskDirective,
+    RouterLink
   ],
   templateUrl: './register.component.html',
   styleUrl: './register.component.scss'
@@ -250,6 +251,7 @@ export class RegisterComponent implements OnInit {
   accountType = signal<string>("");
   job_title = signal<string>("");
   submitted = signal<boolean>(false);
+  showPassword = signal<boolean>(false);
   constants = constants;
 
   constructor(

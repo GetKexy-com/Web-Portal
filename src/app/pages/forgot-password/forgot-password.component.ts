@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { HttpService } from '../../services/http.service';
 import { routeConstants } from '../../helpers/routeConstants';
 import {LoginLayoutComponent} from '../../layouts/login-layout/login-layout.component';
@@ -14,6 +14,7 @@ import {CommonModule} from '@angular/common';
     LoginLayoutComponent,
     ReactiveFormsModule,
     CommonModule,
+    RouterLink,
   ],
   templateUrl: './forgot-password.component.html',
   styleUrl: './forgot-password.component.scss'

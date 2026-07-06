@@ -1,5 +1,7 @@
 #page-container {
   display: flex;
+  height: 100vh;
+  overflow: hidden;
 }
 
 a {
@@ -38,8 +40,8 @@ a {
 .brand-panel {
   position: relative;
   overflow: hidden;
-  flex: 0 0 46%;
-  max-width: 540px;
+  flex: 0 0 38%;
+  max-width: 480px;
   min-height: 100vh;
   display: flex;
   align-items: center;
@@ -219,9 +221,13 @@ a {
 
 #content-wrapper {
   width: 100%;
-  overflow: auto;
+  overflow-y: auto;
   flex: 1;
-  justify-content: center;
+  min-height: 0; /* let this flex child shrink so it can scroll its overflow */
+  /* Centering is handled by #main-content's min-height + internal flex, NOT
+     by justify-content here — justify-content:center clips the top of tall
+     cards and blocks scrolling. Force start so overflow scrolls to the top. */
+  justify-content: flex-start !important;
   background: #eef2f9;
 }
 
@@ -251,8 +257,15 @@ a {
 }
 
 .main-warp {
-  padding: 15px 30px;
-  max-height: 100vh; //test
+  padding: 32px 30px;
+  box-sizing: border-box;
+  /* Fill the scroll area so a short card centers (via the flex rules on
+     .kx-custom-box-login-signup); a tall card grows past it and scrolls. */
+  min-height: 100%;
+  /* #content-wrapper is a flex column — without this, flex-shrink squeezes
+     this box back to 100vh and the tall card overflows (clips) inside it
+     instead of the wrapper scrolling. */
+  flex-shrink: 0;
 }
 .top-link {
   a {
@@ -380,11 +393,11 @@ button.close:focus {
   }
 
   .kx-custom-box-login-signup {
-    display: unset;
-    // height: auto;
-    // overflow: hidden;
-    height: 80vh;
-    overflow: scroll;
+    /* Let the card size to its content and scroll within #content-wrapper,
+       rather than being trapped in a fixed 80vh box that cut tall forms. */
+    display: flex;
+    height: auto;
+    padding: 18px 12px;
   }
   .login-container {
     width: 100%;
@@ -399,8 +412,8 @@ button.close:focus {
 
 @media (min-width: 769px) and (max-width: 1199px) {
   .brand-panel {
-    flex-basis: 40%;
-    padding: 40px 36px;
+    flex-basis: 32%;
+    padding: 40px 30px;
   }
   .brand-logo {
     width: 168px;

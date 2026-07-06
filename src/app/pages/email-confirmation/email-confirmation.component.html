@@ -1,6 +1,6 @@
 <login-layout>
   <div class="row">
-    <div class="login-container">
+    <div class="login-container has-progress">
       <div class="login-wrapper">
         <div class="login-left">
           <div class="d-flex flex-column align-items-center">
@@ -17,6 +17,8 @@
             <p class="progress-completed-text">0% Complete</p>
           </div>
           <h4>Create an Account</h4>
+          <p class="auth-subtitle">Join KEXY and start building smarter campaigns</p>
+
           <div class="login-form">
             @if (error()) {
               <p class="text-danger form-error">{{ error() }}</p>
@@ -28,13 +30,16 @@
             >
               <!-- First Name -->
               <div class="form-group">
-                <input
-                  [class.error]="(submitted() || first_name?.dirty) && first_name?.invalid"
-                  type="text"
-                  formControlName="first_name"
-                  class="login-control"
-                  placeholder="First name"
-                />
+                <div class="input-icon-wrap">
+                  <i class="fa fa-user-o input-lead-icon" aria-hidden="true"></i>
+                  <input
+                    [class.error]="(submitted() || first_name?.dirty) && first_name?.invalid"
+                    type="text"
+                    formControlName="first_name"
+                    class="login-control"
+                    placeholder="First name"
+                  />
+                </div>
                 @if ((submitted() || first_name?.dirty) && first_name?.invalid) {
                   @if (first_name?.errors?.['required']) {
                     <span class="text-danger">First name is required</span>
@@ -44,13 +49,16 @@
 
               <!-- Last Name -->
               <div class="form-group">
-                <input
-                  [class.error]="(submitted() || last_name?.dirty) && last_name?.invalid"
-                  type="text"
-                  formControlName="last_name"
-                  class="login-control"
-                  placeholder="Last name"
-                />
+                <div class="input-icon-wrap">
+                  <i class="fa fa-user-o input-lead-icon" aria-hidden="true"></i>
+                  <input
+                    [class.error]="(submitted() || last_name?.dirty) && last_name?.invalid"
+                    type="text"
+                    formControlName="last_name"
+                    class="login-control"
+                    placeholder="Last name"
+                  />
+                </div>
                 @if ((submitted() || last_name?.dirty) && last_name?.invalid) {
                   @if (last_name?.errors?.['required']) {
                     <span class="text-danger">Last name is required</span>
@@ -60,13 +68,16 @@
 
               <!-- Email -->
               <div class="form-group">
-                <input
-                  [class.error]="(submitted() || email?.dirty) && email?.invalid"
-                  type="email"
-                  formControlName="email"
-                  class="login-control"
-                  placeholder="Email address"
-                />
+                <div class="input-icon-wrap">
+                  <i class="fa fa-envelope-o input-lead-icon" aria-hidden="true"></i>
+                  <input
+                    [class.error]="(submitted() || email?.dirty) && email?.invalid"
+                    type="email"
+                    formControlName="email"
+                    class="login-control"
+                    placeholder="Email address"
+                  />
+                </div>
                 @if ((submitted() || email?.dirty) && email?.invalid) {
                   @if (email?.errors?.['required']) {
                     <span class="text-danger">Email is required</span>
@@ -79,16 +90,19 @@
 
               <!-- Industry Select -->
               <div class="form-group">
-                <select
-                  [class.error]="(submitted() || accountType?.dirty) && accountType?.invalid"
-                  (change)="handleSelectIndustry($event)"
-                  class="login-control"
-                >
-                  <option value="">Please select your industry</option>
-                  @for (industry of industries; track industry.key) {
-                    <option [value]="industry.key">{{ industry.value }}</option>
-                  }
-                </select>
+                <div class="input-icon-wrap">
+                  <i class="fa fa-briefcase input-lead-icon" aria-hidden="true"></i>
+                  <select
+                    [class.error]="(submitted() || accountType?.dirty) && accountType?.invalid"
+                    (change)="handleSelectIndustry($event)"
+                    class="login-control"
+                  >
+                    <option value="">Please select your industry</option>
+                    @for (industry of industries; track industry.key) {
+                      <option [value]="industry.key">{{ industry.value }}</option>
+                    }
+                  </select>
+                </div>
                 @if (accountType?.invalid && (submitted() || accountType?.dirty)) {
                   <span class="text-danger">Please select account type.</span>
                 }
@@ -144,12 +158,10 @@
               </div>
 
               <!-- Login Link -->
-              <div class="form-group text-center">
-                <p class="text-center d-inline-block already-have-an-account-text pt-3">
-                  Already have an account?
-                  <a style="color: #007bff" routerLink="/login">Login</a>
-                </p>
-              </div>
+              <p class="auth-footer-text">
+                Already have an account?
+                <a routerLink="/login">Login</a>
+              </p>
             </form>
           </div>
         </div>

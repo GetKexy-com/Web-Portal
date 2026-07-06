@@ -1,136 +1,174 @@
 <login-layout>
-  <div class="tr-main-box">
-    <div class="d-flex flex-column align-items-center">
-      <div class="progress custom-progress">
-        <div
-          class="progress-bar progress-bar-striped bg-success"
-          role="progressbar"
-          style="width: 50%"
-          aria-valuenow="25"
-          aria-valuemin="0"
-          aria-valuemax="100"
-        ></div>
-      </div>
-      <p class="progress-completed-text">50% Complete</p>
-    </div>
-    <div class="kexy-logo" [hidden]="imageUrl()">
-      <img class="profile-photo default-logo" src="/assets/images/no_profile_image.png" alt="" />
-    </div>
-    <div class="login-form">
-      @if (error()) {
-        <p class="text-danger form-error">{{ error() }}</p>
-      }
-      <div [class]="!imageUrl() ? 'display-none' : 'form-group text-center'">
-        <img [class]="!imageUrl() ? '' : 'profile-photo'" [src]="imageUrl()" />
-      </div>
-
-      <div class="form-group text-center">
-        <button class="kexy-button" type="button" (click)="openFileDialog()">Upload Profile Photo</button>
-        <input type="file" class="profile-photo-file-input tr-hidden" (change)="fileSelected($event)" />
-      </div>
-
-      <form class="tr-form Restaurant_Webportal_User_Register" [formGroup]="registerForm" (ngSubmit)="onSubmit()">
-        <div class="form-group">
-          <input
-            [class.error]="
-              (submitted() || registerForm.controls['firstName'].dirty) && registerForm.controls['firstName'].invalid
-            "
-            type="text"
-            formControlName="firstName"
-            class="form-control"
-            [value]="first_name()"
-            placeholder="First Name"
-          />
-          @if (registerForm.controls['firstName'].invalid && (submitted() || registerForm.controls['firstName'].dirty)) {
-            <span class="text-danger">Please enter a valid First Name.</span>
-          }
-        </div>
-        <div class="form-group">
-          <input
-            [class.error]="
-              (submitted() || registerForm.controls['lastName'].dirty) && registerForm.controls['lastName'].invalid
-            "
-            type="text"
-            formControlName="lastName"
-            class="form-control"
-            [value]="last_name()"
-            placeholder="Last Name"
-          />
-          @if (registerForm.controls['lastName'].invalid && (submitted() || registerForm.controls['lastName'].dirty)) {
-            <span class="text-danger">Please enter a valid Last Name.</span>
-          }
-        </div>
-        <div class="form-group">
-          <input
-            [class.error]="
-              (submitted() || registerForm.controls['jobTitle'].dirty) && registerForm.controls['jobTitle'].invalid
-            "
-            type="text"
-            formControlName="jobTitle"
-            class="form-control"
-            placeholder="Job Title"
-          />
-          @if (registerForm.controls['jobTitle'].invalid && (submitted() || registerForm.controls['jobTitle'].dirty)) {
-            <span class="text-danger">Please enter a valid Job Title.</span>
-          }
-        </div>
-        <div class="form-group">
-          <input
-            type="email"
-            [class.error]="
-                (submitted() || registerForm.controls['email'].dirty) && registerForm.controls['email'].invalid
-            "
-            formControlName="email"
-            class="form-control"
-            [value]="email()" />
-          @if (registerForm.controls['email'].invalid && (submitted() || registerForm.controls['email'].dirty)) {
-            <span class="text-danger">Please enter a valid email.</span>
-          }
-
-        </div>
-        <div class="form-group">
-          <div class="phonefields">
-            <div class="phonecode">{{ phoneCode() }}</div>
-            <input
-              [class.error]="
-                (submitted() || registerForm.controls['phone'].dirty) && registerForm.controls['phone'].invalid
-              "
-              type="tel"
-              formControlName="phone"
-              appPhoneNumberMask
-              class="form-control phoneNumber"
-              placeholder="Mobile Phone"
-              style="margin-bottom: 0"
-            />
+  <div class="row">
+    <div class="login-container has-progress">
+      <div class="login-wrapper">
+        <div class="login-left">
+          <div class="d-flex flex-column align-items-center">
+            <div class="progress custom-progress" style="width: 100%">
+              <div
+                class="progress-bar progress-bar-striped bg-success"
+                role="progressbar"
+                style="width: 50%"
+                aria-valuenow="25"
+                aria-valuemin="0"
+                aria-valuemax="100"
+              ></div>
+            </div>
+            <p class="progress-completed-text">50% Complete</p>
           </div>
-          @if (registerForm.controls['phone'].invalid && (submitted() || registerForm.controls['phone'].dirty)) {
-            <span class="text-danger">Please enter a valid mobile phone.</span>
-          }
-        </div>
-        <div class="form-group">
-          <input
-            [class.error]="
-              (submitted() || registerForm.controls['password'].dirty) && registerForm.controls['password'].invalid
-            "
-            type="password"
-            formControlName="password"
-            class="form-control"
-            placeholder="Password"
-          />
-          @if (registerForm.controls['password'].invalid && (submitted() || registerForm.controls['password'].dirty)) {
-            <span class="text-danger">Please pick a strong password with at least 8 characters.</span>
-          }
-        </div>
 
-        <div class="form-group text-center">
-          <button class="kexy-button" type="submit">
-            @if (isWaitingFlag()) {
-              <i class="fa fa-spinner fa-spin" aria-hidden="true"></i>
+          <h4>Create your profile</h4>
+          <p class="auth-subtitle">Tell us a little about yourself to finish setting up your account</p>
+
+          <div class="login-form">
+            @if (error()) {
+              <p class="text-danger form-error">{{ error() }}</p>
             }
-            Register
-          </button>
+
+            <form class="Restaurant_Webportal_User_Register" [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+              <!-- First Name -->
+              <div class="form-group">
+                <div class="input-icon-wrap">
+                  <i class="fa fa-user-o input-lead-icon" aria-hidden="true"></i>
+                  <input
+                    [class.error]="
+                      (submitted() || registerForm.controls['firstName'].dirty) && registerForm.controls['firstName'].invalid
+                    "
+                    type="text"
+                    formControlName="firstName"
+                    class="login-control"
+                    [value]="first_name()"
+                    placeholder="First Name"
+                  />
+                </div>
+                @if (registerForm.controls['firstName'].invalid && (submitted() || registerForm.controls['firstName'].dirty)) {
+                  <span class="text-danger">Please enter a valid First Name.</span>
+                }
+              </div>
+
+              <!-- Last Name -->
+              <div class="form-group">
+                <div class="input-icon-wrap">
+                  <i class="fa fa-user-o input-lead-icon" aria-hidden="true"></i>
+                  <input
+                    [class.error]="
+                      (submitted() || registerForm.controls['lastName'].dirty) && registerForm.controls['lastName'].invalid
+                    "
+                    type="text"
+                    formControlName="lastName"
+                    class="login-control"
+                    [value]="last_name()"
+                    placeholder="Last Name"
+                  />
+                </div>
+                @if (registerForm.controls['lastName'].invalid && (submitted() || registerForm.controls['lastName'].dirty)) {
+                  <span class="text-danger">Please enter a valid Last Name.</span>
+                }
+              </div>
+
+              <!-- Job Title -->
+              <div class="form-group">
+                <div class="input-icon-wrap">
+                  <i class="fa fa-briefcase input-lead-icon" aria-hidden="true"></i>
+                  <input
+                    [class.error]="
+                      (submitted() || registerForm.controls['jobTitle'].dirty) && registerForm.controls['jobTitle'].invalid
+                    "
+                    type="text"
+                    formControlName="jobTitle"
+                    class="login-control"
+                    placeholder="Job Title"
+                  />
+                </div>
+                @if (registerForm.controls['jobTitle'].invalid && (submitted() || registerForm.controls['jobTitle'].dirty)) {
+                  <span class="text-danger">Please enter a valid Job Title.</span>
+                }
+              </div>
+
+              <!-- Email -->
+              <div class="form-group">
+                <div class="input-icon-wrap">
+                  <i class="fa fa-envelope-o input-lead-icon" aria-hidden="true"></i>
+                  <input
+                    type="email"
+                    [class.error]="
+                      (submitted() || registerForm.controls['email'].dirty) && registerForm.controls['email'].invalid
+                    "
+                    formControlName="email"
+                    class="login-control"
+                    placeholder="Email address"
+                    [value]="email()"
+                  />
+                </div>
+                @if (registerForm.controls['email'].invalid && (submitted() || registerForm.controls['email'].dirty)) {
+                  <span class="text-danger">Please enter a valid email.</span>
+                }
+              </div>
+
+              <!-- Phone -->
+              <div class="form-group">
+                <div class="phonefields">
+                  <div class="phonecode">{{ phoneCode() }}</div>
+                  <input
+                    [class.error]="
+                      (submitted() || registerForm.controls['phone'].dirty) && registerForm.controls['phone'].invalid
+                    "
+                    type="tel"
+                    formControlName="phone"
+                    appPhoneNumberMask
+                    class="phoneNumber"
+                    placeholder="Mobile Phone"
+                  />
+                </div>
+                @if (registerForm.controls['phone'].invalid && (submitted() || registerForm.controls['phone'].dirty)) {
+                  <span class="text-danger">Please enter a valid mobile phone.</span>
+                }
+              </div>
+
+              <!-- Password -->
+              <div class="form-group">
+                <div class="input-icon-wrap">
+                  <i class="fa fa-lock input-lead-icon" aria-hidden="true"></i>
+                  <input
+                    [class.error]="
+                      (submitted() || registerForm.controls['password'].dirty) && registerForm.controls['password'].invalid
+                    "
+                    [type]="showPassword() ? 'text' : 'password'"
+                    formControlName="password"
+                    class="login-control has-trail"
+                    placeholder="Password"
+                  />
+                  <button
+                    type="button"
+                    class="pw-toggle"
+                    (click)="showPassword.set(!showPassword())"
+                    [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
+                  >
+                    <i class="fa" [class.fa-eye]="!showPassword()" [class.fa-eye-slash]="showPassword()" aria-hidden="true"></i>
+                  </button>
+                </div>
+                @if (registerForm.controls['password'].invalid && (submitted() || registerForm.controls['password'].dirty)) {
+                  <span class="text-danger">Please pick a strong password with at least 8 characters.</span>
+                }
+              </div>
+
+              <div class="form-group">
+                <button class="kx-create-btn" type="submit">
+                  @if (isWaitingFlag()) {
+                    <i class="fa fa-spinner fa-spin" aria-hidden="true"></i>
+                  }
+                  Register
+                </button>
+              </div>
+
+              <p class="auth-footer-text">
+                Already have an account?
+                <a routerLink="/login">Login</a>
+              </p>
+            </form>
+          </div>
         </div>
-      </form>
+      </div>
     </div>
   </div>
 </login-layout>
