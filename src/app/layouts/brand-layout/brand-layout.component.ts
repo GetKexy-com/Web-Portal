@@ -69,6 +69,8 @@ export class BrandLayoutComponent implements OnInit {
   isUploadingCsvFlag = false;
   todayDate: number = Date.now();
   showSidebar = true;
+  /** Desktop icon-rail state (persisted). Mobile uses showSidebar as a drawer. */
+  sidebarCollapsed = localStorage.getItem("kxSidebarCollapsed") === "true";
   externalAssets = "";
   showHeaderTabs = true;
   isAdmin: boolean = false;
@@ -101,6 +103,21 @@ export class BrandLayoutComponent implements OnInit {
   get username(): string {
     return this.userData ? this.userData.firstName + " " + this.userData.lastName : "";
   }
+
+  /** True only when the desktop sidebar is a collapsed icon rail. */
+  get railCollapsed(): boolean {
+    return this.sidebarCollapsed && !this.isMobileScreen;
+  }
+
+  /** Top arrow: collapse to an icon rail on desktop; open/close the drawer on mobile. */
+  toggleSidebar = () => {
+    if (this.isMobileScreen) {
+      this.showSidebar = !this.showSidebar;
+      return;
+    }
+    this.sidebarCollapsed = !this.sidebarCollapsed;
+    localStorage.setItem("kxSidebarCollapsed", String(this.sidebarCollapsed));
+  };
 
   async ngOnInit() {
     this.screenWidth = window.innerWidth;

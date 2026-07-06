@@ -1,7 +1,17 @@
 <div id="page-container">
   <!-- Sidebar -->
-  <a (click)="showSidebar = !showSidebar" class="hideSidebarArrow">
-    <i *ngIf="showSidebar" class="fa fa-arrow-left" aria-hidden="true"></i>
+  <a
+    *ngIf="!isMobileScreen || showSidebar"
+    (click)="toggleSidebar()"
+    class="hideSidebarArrow"
+    [class.rail]="!isMobileScreen && sidebarCollapsed"
+  >
+    <i
+      class="fa"
+      [class.fa-arrow-right]="!isMobileScreen && sidebarCollapsed"
+      [class.fa-arrow-left]="isMobileScreen || !sidebarCollapsed"
+      aria-hidden="true"
+    ></i>
   </a>
 
   <!--For mobile screen-->
@@ -12,7 +22,7 @@
   >
     <app-org-info></app-org-info>
 
-    <nav-item-dropdown icon="fa-building-o" [label]="constants.COMPANY_DETAILS" [expand]="expandCompanyDetailsDropdown">
+    <nav-item-dropdown icon="fa-building-o" [label]="constants.COMPANY_DETAILS" [expand]="expandCompanyDetailsDropdown" [collapsed]="railCollapsed">
       <nav-item
         icon="fa-building-o"
         [isDropDown]="true"
@@ -27,7 +37,7 @@
       ></nav-item>
     </nav-item-dropdown>
 
-    <nav-item-dropdown icon="fa-users" [label]="constants.CONTACTS" [expand]="expandContactsDropdown">
+    <nav-item-dropdown icon="fa-users" [label]="constants.CONTACTS" [expand]="expandContactsDropdown" [collapsed]="railCollapsed">
       <nav-item
         [isDropDown]="true"
         icon="fa-list"
@@ -49,7 +59,7 @@
     </nav-item-dropdown>
 
     <nav-item-dropdown icon="fa-envelope-open-o" [label]="constants.DRIP_CAMPAIGN"
-                       [expand]="expandDripCampaignDropdown">
+                       [expand]="expandDripCampaignDropdown" [collapsed]="railCollapsed">
       <nav-item
         [isDropDown]="true"
         icon="fa-plus"
@@ -70,7 +80,7 @@
       ></nav-item>
     </nav-item-dropdown>
 
-    <nav-item-dropdown icon="fa-clipboard" label="Messages" [expand]="expandProspectingDropdown">
+    <nav-item-dropdown icon="fa-clipboard" label="Messages" [expand]="expandProspectingDropdown" [collapsed]="railCollapsed">
       <nav-item
         [isDropDown]="true"
         icon="fa-inbox"
@@ -96,7 +106,7 @@
 <!--      ></nav-item>-->
 <!--    </nav-item-dropdown>-->
 
-    <nav-item-dropdown icon="fa-cog" label="Settings" [expand]="expandSettingsDropdown">
+    <nav-item-dropdown icon="fa-cog" label="Settings" [expand]="expandSettingsDropdown" [collapsed]="railCollapsed">
       <nav-item
         icon="fa-briefcase"
         [isDropDown]="true"
@@ -134,13 +144,14 @@
 
   <!--For desktop screen-->
   <ul
-    *ngIf="showSidebar && !isMobileScreen"
+    *ngIf="!isMobileScreen"
     class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion"
     id="main-sidebar"
+    [class.collapsed]="sidebarCollapsed"
   >
     <app-org-info></app-org-info>
 
-    <nav-item-dropdown icon="fa-building-o" [label]="constants.COMPANY_DETAILS" [expand]="expandCompanyDetailsDropdown">
+    <nav-item-dropdown icon="fa-building-o" [label]="constants.COMPANY_DETAILS" [expand]="expandCompanyDetailsDropdown" [collapsed]="railCollapsed">
       <nav-item
         icon="fa-building-o"
         [isDropDown]="true"
@@ -155,7 +166,7 @@
       ></nav-item>
     </nav-item-dropdown>
 
-    <nav-item-dropdown icon="fa-users" [label]="constants.CONTACTS" [expand]="expandContactsDropdown">
+    <nav-item-dropdown icon="fa-users" [label]="constants.CONTACTS" [expand]="expandContactsDropdown" [collapsed]="railCollapsed">
       <nav-item
         [isDropDown]="true"
         icon="fa-list"
@@ -184,7 +195,7 @@
     ></nav-item>
 
     <nav-item-dropdown icon="fa-envelope-open-o" [label]="constants.DRIP_CAMPAIGN"
-                       [expand]="expandDripCampaignDropdown">
+                       [expand]="expandDripCampaignDropdown" [collapsed]="railCollapsed">
       <nav-item
         [isDropDown]="true"
         icon="fa-plus"
@@ -205,7 +216,7 @@
       ></nav-item>
     </nav-item-dropdown>
 
-    <nav-item-dropdown icon="fa-clipboard" label="Messages" [expand]="expandProspectingDropdown">
+    <nav-item-dropdown icon="fa-clipboard" label="Messages" [expand]="expandProspectingDropdown" [collapsed]="railCollapsed">
       <nav-item
         [isDropDown]="true"
         icon="fa-inbox"
@@ -231,7 +242,7 @@
 <!--      ></nav-item>-->
 <!--    </nav-item-dropdown>-->
 
-    <nav-item-dropdown icon="fa-cog" label="Settings" [expand]="expandSettingsDropdown">
+    <nav-item-dropdown icon="fa-cog" label="Settings" [expand]="expandSettingsDropdown" [collapsed]="railCollapsed">
       <nav-item
         icon="fa-briefcase"
         [isDropDown]="true"
@@ -302,7 +313,7 @@
       <div class="row justify-content-between">
         <div class="col d-flex align-items-baseline">
           <a
-            *ngIf="!showSidebar"
+            *ngIf="isMobileScreen && !showSidebar"
             id="menu-toggle"
             (click)="showSidebar = !showSidebar"
             class="glyphicon glyphicon-align-justify"

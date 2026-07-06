@@ -251,6 +251,46 @@ so a visual change wanted everywhere must be made in BOTH the partial and
 Currently set only on `brand-subscription-selection` (`[compactBrandPanel]="true"`)
 for the pricing grid. The normal panel is `flex 0 0 38%` / `max-width: 480px`.
 
+---
+
+## Authenticated sidebar (`brand-layout`)
+
+`src/app/layouts/brand-layout` is the shell for logged-in brand pages: a gradient
+`#main-sidebar` (built from `nav-item` + `nav-item-dropdown` components, with
+`app-org-info` at the top) beside `#content-wrapper`. The top-left arrow
+(`.hideSidebarArrow`) toggles it.
+
+### Desktop = collapsible icon rail (not hide)
+
+The arrow toggles `sidebarCollapsed` (persisted in `localStorage['kxSidebarCollapsed']`),
+NOT full-hide. The desktop `<ul>` always renders (`*ngIf="!isMobileScreen"`) and gets
+`[class.collapsed]`. Collapsed = a **76px icon rail** (`--kx-sidebar-collapsed-w`):
+
+- Labels/chevrons hidden; each item is a fixed **48×48 square centred with
+  `margin: auto`** (so active/inactive icons sit identically dead-centre — active is
+  a centred pill fill, NOT the expanded-mode `inset 3px 0 0` left accent bar).
+- `app-org-info` becomes a compact header: small logo + tiny truncated org name
+  (person name hidden).
+- **Leaf items** show a CSS hover **tooltip** from `[attr.data-label]` (also `title`).
+- **Dropdown sections** open a **flyout submenu to the right** — on hover, or
+  click-pinned via `flyoutOpen` (closed on outside `document:click`). The submenu
+  (`.sub-nav-item-wrap.flyout`) has a `.flyout-title` header + full-label child rows,
+  a pointer arrow, and an invisible `::after` hover-bridge across the gap. The
+  section's own tooltip is suppressed (the flyout replaces it).
+- The rail sets `overflow: visible` + `z-index: 20` (and the arrow `z-index: 30`) so
+  tooltips/flyouts paint above `#content-wrapper` (`z-index: 0`) and the arrow stays
+  on top. Cross-component bits (org-info, nav items) are styled via `::ng-deep
+  #main-sidebar.collapsed …`.
+- `nav-item-dropdown` takes `[collapsed]="railCollapsed"` (a getter that's always
+  false on mobile); when collapsed its click toggles the flyout, and it always
+  renders the submenu (`@if(isOpen() || collapsed)`) so hover/click can reveal it.
+
+### Mobile (`< 992px`)
+
+Unchanged drawer: `showSidebar` opens an overlay `.navbar-nav-mobile-layout` +
+backdrop; the header `#menu-toggle` (now `*ngIf="isMobileScreen && !showSidebar"`)
+reopens it. `railCollapsed` is false on mobile, so dropdowns stay normal accordions.
+
 ## Conventions
 
 - **Standalone components** (no NgModules), Angular signals, `@if`/`@for` control

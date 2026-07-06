@@ -3,6 +3,7 @@
 
   /* Sidebar theme — tweak the whole nav palette from here */
   --kx-sidebar-w: 276px;
+  --kx-sidebar-collapsed-w: 76px;
   --kx-nav-fg: rgba(255, 255, 255, 0.78);
   --kx-nav-sub-fg: rgba(255, 255, 255, 0.62);
   --kx-nav-hover-bg: rgba(255, 255, 255, 0.09);
@@ -47,6 +48,7 @@ a {
     linear-gradient(180deg, #1a5be0 0%, #0e40b8 58%, #0b389f 100%);
   overflow-y: auto;
   overflow-x: hidden;
+  transition: width 0.2s ease;
 
   /* width */
   &::-webkit-scrollbar {
@@ -56,6 +58,208 @@ a {
   /* Handle */
   &::-webkit-scrollbar-thumb {
     background: transparent;
+  }
+}
+
+/* =============================================================
+   Collapsed icon rail (desktop). The top arrow toggles this;
+   labels/chevrons/org-info hide, icons centre, and each item
+   shows its label in a hover tooltip. Dropdowns still expand
+   inline (child icons + their own tooltips).
+   ::ng-deep is needed because the nav items are child components.
+   ============================================================= */
+#main-sidebar.collapsed {
+  width: var(--kx-sidebar-collapsed-w, 76px) !important;
+  overflow: visible !important; /* so hover tooltips aren't clipped */
+  padding-top: 52px; /* clear the toggle arrow */
+  /* Paint above #content-wrapper (z-index: 0) so tooltips aren't covered */
+  position: relative;
+  z-index: 20;
+}
+
+::ng-deep #main-sidebar.collapsed {
+  /* Only top-level icons show in the rail: hide labels + chevrons. Dropdown
+     sub-items live in a flyout submenu (see below), not inline. */
+  .nav-label,
+  .accordion-nav-item span,
+  .accordion-nav-item .fa-angle-down,
+  .accordion-nav-item .fa-angle-up {
+    display: none !important;
+  }
+
+  /* Compact brand header: small logo + truncated org name, no person name */
+  .sidebar-top {
+    padding: 6px 6px 12px !important;
+    margin-bottom: 8px;
+
+    img {
+      max-width: 42px !important;
+      max-height: 38px !important;
+    }
+    .username {
+      margin-top: 8px !important;
+      max-width: 64px;
+      margin-left: auto;
+      margin-right: auto;
+      font-size: 10.5px !important;
+      line-height: 1.25;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .c-name {
+      display: none !important;
+    }
+  }
+
+  /* A fixed square centred with auto margins — identical whether active or
+     not, so the icon always sits dead-centre in the rail. */
+  li.nav-item a,
+  .accordion-nav-item {
+    justify-content: center;
+    gap: 0;
+    width: 48px;
+    height: 48px;
+    margin: 4px auto;
+    padding: 0;
+    border-radius: 12px;
+  }
+  li.nav-item a i,
+  .accordion-nav-item i {
+    width: auto;
+  }
+
+  /* Active leaf: centred pill fill, no left accent bar */
+  li.nav-item a.active {
+    box-shadow: none !important;
+    background: var(--kx-nav-active-bg, rgba(255, 255, 255, 0.16));
+  }
+
+  /* Hover tooltip built from the item's data-label */
+  [data-label] {
+    position: relative;
+  }
+  [data-label]:hover::after {
+    content: attr(data-label);
+    position: absolute;
+    left: calc(100% + 14px);
+    top: 50%;
+    transform: translateY(-50%);
+    padding: 6px 10px;
+    border-radius: 8px;
+    background: #0f172a;
+    color: #fff;
+    font-size: 12.5px;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+    line-height: 1;
+    white-space: nowrap;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
+    z-index: 1200;
+    pointer-events: none;
+  }
+  [data-label]:hover::before {
+    content: "";
+    position: absolute;
+    left: calc(100% + 8px);
+    top: 50%;
+    transform: translateY(-50%);
+    border: 6px solid transparent;
+    border-right-color: #0f172a;
+    z-index: 1200;
+    pointer-events: none;
+  }
+
+  /* Section (dropdown) icons open a flyout submenu instead — suppress their
+     own tooltip, and any tooltip on the items inside the flyout. */
+  .accordion-nav-item[data-label]:hover::after,
+  .accordion-nav-item[data-label]:hover::before,
+  .sub-nav-item-wrap.flyout [data-label]:hover::after,
+  .sub-nav-item-wrap.flyout [data-label]:hover::before {
+    content: none !important;
+    display: none !important;
+  }
+
+  /* =========================================================
+     Flyout submenu (collapsed dropdowns) — shown on hover or
+     when click-pinned (.flyout-open)
+     ========================================================= */
+  .nav-dropdown.has-flyout {
+    position: relative;
+  }
+
+  .sub-nav-item-wrap.flyout {
+    position: absolute;
+    left: calc(100% + 14px);
+    top: -6px;
+    min-width: 214px;
+    margin: 0;
+    padding: 8px;
+    background: #0f3fb0;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 12px;
+    box-shadow: 0 18px 44px rgba(0, 0, 0, 0.35);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateX(-6px);
+    transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s;
+    z-index: 1300;
+
+    /* little arrow pointing back to the icon */
+    &::before {
+      content: "";
+      position: absolute;
+      left: -6px;
+      top: 20px;
+      border: 6px solid transparent;
+      border-right-color: #0f3fb0;
+    }
+    /* invisible bridge across the gap so hover doesn't drop en route */
+    &::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: -16px;
+      width: 16px;
+    }
+
+    .flyout-title {
+      padding: 4px 12px 8px;
+      margin-bottom: 6px;
+      font-size: 11.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      color: rgba(255, 255, 255, 0.55);
+      white-space: nowrap;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    /* Child links: real labels, left-aligned inside the panel */
+    li.nav-item a {
+      justify-content: flex-start !important;
+      gap: 10px !important;
+      width: auto !important;
+      margin: 2px 0 !important;
+      padding: 9px 12px !important;
+      border-radius: 8px;
+      white-space: nowrap;
+    }
+    .nav-label {
+      display: inline !important;
+    }
+    li.nav-item a i {
+      width: 18px;
+      text-align: center;
+    }
+  }
+
+  .nav-dropdown.has-flyout:hover .sub-nav-item-wrap.flyout,
+  .sub-nav-item-wrap.flyout.flyout-open {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(0);
   }
 }
 
@@ -137,7 +341,8 @@ a {
   position: absolute;
   top: 14px;
   left: 14px;
-  z-index: 10;
+  /* Above the collapsed rail (z-index: 20) so the toggle stays clickable/visible */
+  z-index: 30;
   width: 30px;
   height: 30px;
   display: flex;
@@ -153,6 +358,11 @@ a {
 
   &:hover {
     background: rgba(255, 255, 255, 0.24);
+  }
+
+  /* Centre the toggle over the narrow rail */
+  &.rail {
+    left: 23px;
   }
 }
 
