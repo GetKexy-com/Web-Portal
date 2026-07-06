@@ -82,8 +82,7 @@ a {
      sub-items live in a flyout submenu (see below), not inline. */
   .nav-label,
   .accordion-nav-item span,
-  .accordion-nav-item .fa-angle-down,
-  .accordion-nav-item .fa-angle-up {
+  .accordion-nav-item .chevron {
     display: none !important;
   }
 
@@ -129,9 +128,11 @@ a {
     width: auto;
   }
 
-  /* Active leaf: centred pill fill, no left accent bar */
-  li.nav-item a.active {
+  /* Active leaf / active section (parent): centred pill fill, no left accent */
+  li.nav-item a.active,
+  .accordion-nav-item.section-active {
     box-shadow: none !important;
+    color: #ffffff;
     background: var(--kx-nav-active-bg, rgba(255, 255, 255, 0.16));
   }
 
@@ -142,29 +143,29 @@ a {
   [data-label]:hover::after {
     content: attr(data-label);
     position: absolute;
-    left: calc(100% + 14px);
+    left: calc(100% + 16px);
     top: 50%;
     transform: translateY(-50%);
-    padding: 6px 10px;
-    border-radius: 8px;
+    padding: 9px 14px;
+    border-radius: 10px;
     background: #0f172a;
     color: #fff;
-    font-size: 12.5px;
+    font-size: 13px;
     font-weight: 600;
     letter-spacing: 0.2px;
-    line-height: 1;
+    line-height: 1.1;
     white-space: nowrap;
-    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.32);
     z-index: 1200;
     pointer-events: none;
   }
   [data-label]:hover::before {
     content: "";
     position: absolute;
-    left: calc(100% + 8px);
+    left: calc(100% + 7px);
     top: 50%;
     transform: translateY(-50%);
-    border: 6px solid transparent;
+    border: 8px solid transparent;
     border-right-color: #0f172a;
     z-index: 1200;
     pointer-events: none;
@@ -189,6 +190,9 @@ a {
   }
 
   .sub-nav-item-wrap.flyout {
+    /* Cancel the accordion grid animation — the flyout is a static panel */
+    display: block !important;
+    grid-template-rows: none !important;
     position: absolute;
     left: calc(100% + 14px);
     top: -6px;

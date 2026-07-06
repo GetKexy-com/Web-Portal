@@ -1,20 +1,26 @@
 <ul class="nav-dropdown" [class.has-flyout]="collapsed">
-  <button class="accordion-nav-item" (click)="toggleNavDropdown()" [attr.data-label]="label" [attr.title]="label">
+  <button
+    class="accordion-nav-item"
+    [class.section-active]="expand"
+    (click)="toggleNavDropdown()"
+    [attr.data-label]="label"
+    [attr.title]="label"
+  >
     <i class="fa {{ icon }}" aria-hidden="true"></i>
     <span class="me-3">{{ label }}</span>
-    @if(!isOpen()) {
-      <i class="fa fa-angle-down" aria-hidden="true"></i>
-    }
-    @if(isOpen()) {
-      <i class="fa fa-angle-up" aria-hidden="true"></i>
-    }
+    <i class="fa fa-angle-down chevron" [class.rotated]="isOpen()" aria-hidden="true"></i>
   </button>
-  @if(isOpen() || collapsed) {
-    <div class="sub-nav-item-wrap" [class.flyout]="collapsed" [class.flyout-open]="flyoutOpen()">
-      @if (collapsed) {
-        <div class="flyout-title">{{ label }}</div>
-      }
+  <div
+    class="sub-nav-item-wrap"
+    [class.flyout]="collapsed"
+    [class.flyout-open]="flyoutOpen()"
+    [class.open]="isOpen()"
+  >
+    @if (collapsed) {
+      <div class="flyout-title">{{ label }}</div>
+    }
+    <div class="sub-nav-inner">
       <ng-content></ng-content>
     </div>
-  }
+  </div>
 </ul>

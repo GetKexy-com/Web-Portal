@@ -282,8 +282,26 @@ NOT full-hide. The desktop `<ul>` always renders (`*ngIf="!isMobileScreen"`) and
   on top. Cross-component bits (org-info, nav items) are styled via `::ng-deep
   #main-sidebar.collapsed …`.
 - `nav-item-dropdown` takes `[collapsed]="railCollapsed"` (a getter that's always
-  false on mobile); when collapsed its click toggles the flyout, and it always
-  renders the submenu (`@if(isOpen() || collapsed)`) so hover/click can reveal it.
+  false on mobile); when collapsed its click toggles the flyout. The submenu is
+  ALWAYS in the DOM (no `@if`) so both the flyout and the expanded-mode animation
+  can run. In collapsed, the active section's parent icon gets the same pill via
+  `.section-active` (bound to the dropdown's `expand` flag, which the layout already
+  sets from the URL) so you can tell which section you're in.
+
+### Expanded accordion (both modes)
+
+The submenu (`.sub-nav-item-wrap`) animates open/closed with the CSS
+`grid-template-rows: 0fr → 1fr` trick + opacity fade (inner `.sub-nav-inner` has
+`overflow: hidden; min-height: 0`); the `.open` class (= `isOpen()`) toggles it. The
+chevron is a single `.chevron` icon that rotates 180° via `.rotated`. The collapsed
+flyout cancels this grid (`display: block; grid-template-rows: none`) since it's a
+static panel, and the animation is gated with `.open:not(.flyout)` so an active
+section's `isOpen` can't reveal the flyout without hover/click.
+
+### Icons
+
+Section icons: Messages = `fa-envelope-o`(open), Drip Campaign = `fa-bullhorn`
+(the paper-plane is reserved for the Messages → Sent sub-item).
 
 ### Mobile (`< 992px`)
 
