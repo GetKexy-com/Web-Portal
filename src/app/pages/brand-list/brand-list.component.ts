@@ -158,11 +158,12 @@ import { constants } from '../../helpers/constants';
 import { HttpService } from '../../services/http.service';
 import { routeConstants } from '../../helpers/routeConstants';
 import { CommonModule } from '@angular/common';
+import { LoginLayoutComponent } from '../../layouts/login-layout/login-layout.component';
 
 @Component({
   selector: 'app-brand-list',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, LoginLayoutComponent],
   templateUrl: './brand-list.component.html',
   styleUrl: './brand-list.component.scss'
 })

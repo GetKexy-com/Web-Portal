@@ -181,8 +181,8 @@ All unauthenticated pages render inside `<login-layout>`
 **brand panel** on the left (KEXY logo, aurora gradient, floating blobs) and the
 page content (`<ng-content>`) on the right. Pages using it: `login`,
 `forgot-password`, `reset-password`, `email-confirmation` (0% "Create an
-Account"), `register` (50%), `brand-create` (75%), `brand-welcome`, and
-`brand-subscription-selection`.
+Account"), `register` (50%), `brand-create` (75%), `brand-welcome`, `brand-subscription-selection`, and
+`brand-list` (post-login business selector).
 
 ### Shared form styling lives in ONE partial
 
@@ -219,6 +219,13 @@ so a visual change wanted everywhere must be made in BOTH the partial and
   `role="button"`/`tabindex`/`keyup.enter`) wired to `openVideoDialog()`, plus a
   muted `.skip-link` calling `autoLogin()`. Still uses the card + `has-progress` +
   `@use "../auth-form"`.
+- **`brand-list`** (post-login "Select a business") was moved OFF its old bespoke
+  `#page-container` + image-background sidebar ONTO `<login-layout>` for visual
+  consistency. It does NOT use `.login-container`/the partial — it has its own wider
+  `.business-card` (max 620px, same rounded/shadow/top-accent look) holding a
+  `.business-list` of selectable `.business-item` rows (logo/initial avatar, name,
+  job title, hover-sliding chevron; keyboard-accessible), plus a `.business-empty`
+  state. `selectCompany()` unchanged.
 
 ### Layout scroll + centering (don't reintroduce the clip)
 

@@ -1,106 +1,40 @@
-<!--<div id="page-container">-->
-
-<!--  <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">-->
-<!--    <div class="client-logo">-->
-<!--      <img style="width: 200px;" src="/assets/images/kexy-white-logo.png" alt="" />-->
-<!--    </div>-->
-<!--  </ul>-->
-
-<!--  <div id="content-wrapper" class="flex-column d-flex">-->
-<!--    <div id="main-content" class="main-warp kx-custom-box-login-signup">-->
-<!--      <div class="">-->
-<!--        <div class="login-form">-->
-<!--          <div class="row">-->
-<!--            <div class="col-12">-->
-<!--              <div class="login-form">-->
-<!--                <div class="kexy-logo">-->
-<!--                  <img src="/assets/images/client-logo.png" alt="" />-->
-<!--                </div>-->
-
-<!--                <h2>Business List</h2>-->
-<!--                <h5>Select the business you would like to use for your current session.</h5>-->
-<!--                <ul class="heroes" *ngIf="companyList && companyList.length > 0">-->
-<!--                  <li-->
-<!--                    class="single-organization-list"-->
-<!--                    *ngFor="let company of companyList"-->
-<!--                    (click)="selectCompany(company)"-->
-<!--                  >-->
-<!--                    <div class="row organization-row">-->
-<!--                      <div class="organization-logo">-->
-<!--                        <img-->
-<!--                          *ngIf="company.logo_image_url !== ''"-->
-<!--                          src="{{ baseImageUrl + '' + company.logo_image_url }}"-->
-<!--                          alt=""-->
-<!--                        />-->
-<!--                        <img *ngIf="company.logo_image_url === ''" src="/assets/images/no-image.jpg" alt="" />-->
-<!--                      </div>-->
-<!--                      <div class="organization-info col-8 col-lg-10">-->
-<!--                        <h4>{{ company.name }}</h4>-->
-<!--                        <p>{{ company.job_title }}</p>-->
-<!--                      </div>-->
-<!--                    </div>-->
-<!--                  </li>-->
-<!--                </ul>-->
-<!--              </div>-->
-<!--            </div>-->
-<!--          </div>-->
-<!--        </div>-->
-<!--      </div>-->
-<!--    </div>-->
-<!--  </div>-->
-<!--</div>-->
-
-
-<div id="page-container">
-  <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
-    <div class="client-logo">
-      <img style="width: 200px;" src="/assets/images/kexy-white-logo.png" alt="" />
+<login-layout>
+  <div class="business-card">
+    <div class="business-card-head">
+      <h4>Select a business</h4>
+      <p class="business-subtitle">Choose the business you'd like to use for this session.</p>
     </div>
-  </ul>
 
-  <div id="content-wrapper" class="flex-column d-flex">
-    <div id="main-content" class="main-warp kx-custom-box-login-signup">
-      <div class="">
-        <div class="login-form">
-          <div class="row">
-            <div class="col-12">
-              <div class="login-form">
-                <div class="kexy-logo">
-                  <img src="/assets/images/client-logo.png" alt="" />
-                </div>
-
-                <h2>Business List</h2>
-                <h5>Select the business you would like to use for your current session.</h5>
-
-                @if (companyList() && companyList().length > 0) {
-                  <ul class="heroes">
-                    @for (row of companyList(); track row) {
-                      <li
-                        class="single-organization-list"
-                        (click)="selectCompany(row)"
-                      >
-                        <div class="row organization-row">
-                          <div class="organization-logo">
-                            @if (row["company"]["logoImage"]) {
-                              <img [src]="baseImageUrl() + row['company']['logoImage']['name']" alt="" />
-                            } @else {
-                              <img src="/assets/images/no-image.jpg" alt="" />
-                            }
-                          </div>
-                          <div class="organization-info col-8 col-lg-10">
-                            <h4>{{ row["company"]["name"] }}</h4>
-                            <p>{{ row["jobTitle"] }}</p>
-                          </div>
-                        </div>
-                      </li>
-                    }
-                  </ul>
-                }
-              </div>
+    @if (companyList() && companyList().length > 0) {
+      <ul class="business-list">
+        @for (row of companyList(); track row) {
+          <li
+            class="business-item"
+            role="button"
+            tabindex="0"
+            (click)="selectCompany(row)"
+            (keyup.enter)="selectCompany(row)"
+          >
+            <div class="business-logo">
+              @if (row["company"]["logoImage"]) {
+                <img [src]="baseImageUrl() + row['company']['logoImage']['name']" alt="" />
+              } @else {
+                <span class="business-logo-fallback">{{ row["company"]["name"]?.charAt(0) }}</span>
+              }
             </div>
-          </div>
-        </div>
+            <div class="business-info">
+              <h5>{{ row["company"]["name"] }}</h5>
+              <p>{{ row["jobTitle"] }}</p>
+            </div>
+            <i class="fa fa-angle-right business-chevron" aria-hidden="true"></i>
+          </li>
+        }
+      </ul>
+    } @else {
+      <div class="business-empty">
+        <i class="fa fa-briefcase" aria-hidden="true"></i>
+        <p>No businesses found for your account.</p>
       </div>
-    </div>
+    }
   </div>
-</div>
+</login-layout>
