@@ -172,6 +172,72 @@ cells stay aligned.
   background so body rows don't show through. To roll this out to the other cards,
   apply the same two rules.
 
+---
+
+## Auth pages (login / onboarding wizard)
+
+All unauthenticated pages render inside `<login-layout>`
+(`src/app/layouts/login-layout`): a full-height split view with an animated blue
+**brand panel** on the left (KEXY logo, aurora gradient, floating blobs) and the
+page content (`<ng-content>`) on the right. Pages using it: `login`,
+`forgot-password`, `reset-password`, `email-confirmation` (0% "Create an
+Account"), `register` (50%), `brand-create` (75%), `brand-welcome`, and
+`brand-subscription-selection`.
+
+### Shared form styling lives in ONE partial
+
+`src/app/pages/_auth-form.scss` is the single source of truth for the modern auth
+form look — white **card** (`.login-container`, ~550px, rounded, soft shadow, a
+gradient top-accent via `::before`), centered `h4` + `.auth-subtitle`, **soft-
+filled rounded fields** (`#f7f9fc`, 1.5px border, 12px radius, 54px tall) with a
+leading icon (`.input-icon-wrap` › `.input-lead-icon`) and a blue focus ring,
+custom-caret `<select>`, a gradient **primary button** (`button.kx-create-btn` /
+`button#submit`), password reveal (`.pw-toggle`), checkboxes (`.checkbox-wrapper`),
+signup **progress bar**, phone field (`.phonefields` › `.phonecode` + `input.phoneNumber`),
+and `.auth-footer-text` link row. Each page's component SCSS is just
+`@use "../auth-form";` (+ tiny page-specific extras). **The `login` page keeps its
+OWN copy** of these styles in `login.component.scss` — it does NOT use the partial,
+so a visual change wanted everywhere must be made in BOTH the partial and
+`login.component.scss`.
+
+- Selectors replicate the full `.login-container .login-wrapper .login-left …`
+  chain on purpose, to out-specify the global `.login-*` rules in `styles.scss`
+  without `!important`.
+- **`has-progress` modifier:** wizard cards (`email-confirmation`, `register`,
+  `brand-create`) add `class="login-container has-progress"`, which hides the card's
+  gradient top-accent (`::before`) so it doesn't stack a second blue bar above the
+  blue progress bar.
+- **Checkbox gotcha:** Bootstrap's `.form-check-input` negative `margin-left` +
+  `.form-check`/`.ms-*` padding pull the box outside the card; `.checkbox-wrapper`
+  neutralises them (`float: none`, `margin: 1px 0 0 0 !important`, `gap: 10px`).
+- `register` and `brand-create` NO LONGER have the profile-photo / company-logo
+  upload (removed from markup; the `openFileDialog`/`fileSelected`/`imageUrl`
+  members remain unused in the TS).
+
+### Layout scroll + centering (don't reintroduce the clip)
+
+`login-layout.component.scss` centers short cards but must scroll tall ones
+(register/brand-create) with the top reachable. The working recipe:
+
+- `#page-container` → `height: 100vh; overflow: hidden` (fixed viewport; scrolling
+  happens inside).
+- `#content-wrapper` (a flex **column**) → `overflow-y: auto`, `min-height: 0`, and
+  `justify-content: flex-start !important` — this OVERRIDES the inline
+  `[style.justify-content]` binding; `justify-content: center` there clips the top
+  of tall cards and blocks scrolling to it.
+- `#main-content` (`.main-warp` + `.kx-custom-box-login-signup`) → `min-height: 100%`
+  (short card fills → centers via its own flex) **and** `flex-shrink: 0` (without it,
+  the column shrinks the box back to 100vh and the tall card overflows *inside* it,
+  clipped and unscrollable).
+
+### Compact brand panel (per-page)
+
+`@Input() compactBrandPanel` on `LoginLayoutComponent` toggles
+`.brand-panel--compact`, which ~halves the left panel (`flex 0 0 19%`,
+`max-width: 240px`, scaled-down logo/glow/blobs) so wide content gets more room.
+Currently set only on `brand-subscription-selection` (`[compactBrandPanel]="true"`)
+for the pricing grid. The normal panel is `flex 0 0 38%` / `max-width: 480px`.
+
 ## Conventions
 
 - **Standalone components** (no NgModules), Angular signals, `@if`/`@for` control

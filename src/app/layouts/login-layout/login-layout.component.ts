@@ -19,6 +19,8 @@ export class LoginLayoutComponent implements OnInit {
   @Input() isContentCentered = true;
   @Input() bgColor = '#eef2f9';
   @Input() layoutPaddingNone: any;
+  /** Halve the left brand panel so wide content (e.g. pricing) gets more room. */
+  @Input() compactBrandPanel = false;
 
   userData!: User;
   currentUrl = '';

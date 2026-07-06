@@ -55,6 +55,29 @@ a {
   animation: kx-aurora 20s ease infinite;
 }
 
+/* Compact variant — ~50% narrower, so wide content (pricing) gets more room */
+.brand-panel.brand-panel--compact {
+  flex: 0 0 19%;
+  max-width: 240px;
+  padding: 32px 24px;
+
+  .brand-logo {
+    width: 120px;
+  }
+  .brand-logo-glow::before {
+    width: 170px;
+    height: 170px;
+  }
+  .brand-blob--1 {
+    width: 240px;
+    height: 240px;
+  }
+  .brand-blob--2 {
+    width: 200px;
+    height: 200px;
+  }
+}
+
 .brand-content {
   position: relative;
   z-index: 2;
