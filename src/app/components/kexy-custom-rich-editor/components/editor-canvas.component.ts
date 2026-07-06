@@ -430,6 +430,50 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
     return `${Math.round(parseFloat(getComputedStyle(el).fontSize || '14'))}px`;
   }
 
+  /** Effective text color of the current selection as a #rrggbb hex (for the
+   *  toolbar's text-color bar), or null when the caret isn't in the body. */
+  getSelectionColor(): string | null {
+    const el = this.selectionAnchorEl();
+    if (!el) return null;
+    return this.rgbToHex(getComputedStyle(el).color);
+  }
+
+  /** Effective fill (background) color of the current selection as a #rrggbb hex.
+   *  Background is usually set on an ANCESTOR span (the highlight wrap), and the
+   *  caret's own element is transparent — so walk up to the nearest element in the
+   *  body that actually paints a background. Returns null when there's no explicit
+   *  fill (so the toolbar keeps showing the last-used fill color, like Google Docs). */
+  getSelectionBackgroundColor(): string | null {
+    let el: HTMLElement | null = this.selectionAnchorEl();
+    while (el && this.canvas.contains(el)) {
+      const bg = getComputedStyle(el).backgroundColor;
+      if (bg && !this.isTransparentColor(bg)) return this.rgbToHex(bg);
+      el = el.parentElement;
+    }
+    return null;
+  }
+
+  /** True for `transparent` or any fully-transparent rgba() (alpha 0). */
+  private isTransparentColor(value: string): boolean {
+    if (value === 'transparent') return true;
+    const m = value.match(/rgba?\(([^)]+)\)/i);
+    if (!m) return false;
+    const parts = m[1].split(',').map((p) => parseFloat(p));
+    return parts.length >= 4 && parts[3] === 0;
+  }
+
+  /** Convert a computed `rgb()/rgba()` color to `#rrggbb` (input[type=color] needs
+   *  hex). Passes through values already hex; returns `#000000` if unparseable. */
+  private rgbToHex(value: string): string {
+    if (!value) return '#000000';
+    if (value.startsWith('#')) return value;
+    const m = value.match(/rgba?\(([^)]+)\)/i);
+    if (!m) return '#000000';
+    const [r, g, b] = m[1].split(',').map((p) => parseInt(p.trim(), 10));
+    const hex = (n: number) => Math.max(0, Math.min(255, n || 0)).toString(16).padStart(2, '0');
+    return `#${hex(r)}${hex(g)}${hex(b)}`;
+  }
+
   focusEditor(): void {
     this.restoreSelection();
     this.canvas.focus();

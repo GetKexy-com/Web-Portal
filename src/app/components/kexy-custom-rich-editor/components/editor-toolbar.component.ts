@@ -186,20 +186,35 @@ interface ToolbarGroup {
     </ng-template>
 
     <ng-template #tplColor>
-      <!-- Text / highlight color. The native picker steals focus, so we wrap the
-           selection on mousedown (while it's still alive), restyle it live on
-           input (real-time preview as the picker is dragged), and finalize on
-           change/blur. See beginColorPreview/updateColorPreview/endColorPreview. -->
-      <input #textColor class="color-input" type="color" value="#1f2937" title="Text color"
-             (mousedown)="canvas?.beginColorPreview('foreColor')"
-             (input)="canvas?.updateColorPreview(textColor.value)"
-             (change)="canvas?.endColorPreview()"
-             (blur)="canvas?.endColorPreview()" />
-      <input #highlightColor class="color-input" type="color" value="#fff2b2" title="Highlight color"
-             (mousedown)="canvas?.beginColorPreview('hiliteColor')"
-             (input)="canvas?.updateColorPreview(highlightColor.value)"
-             (change)="canvas?.endColorPreview()"
-             (blur)="canvas?.endColorPreview()" />
+      <!-- Google-Docs-style color controls: an "A" glyph (text color) and a
+           highlighter marker (highlight color), each with a bar underneath that
+           reflects the currently-selected color. The native <input type="color">
+           is overlaid transparently so a click opens the OS picker; it still
+           drives the live-preview flow (the picker steals focus, so we wrap the
+           selection on mousedown while it's alive, restyle it live on input, and
+           finalize on change/blur — see begin/update/endColorPreview). -->
+      <div class="color-swatch" title="Text color">
+        <span class="color-face">
+          <svg class="tool-ic color-ic" viewBox="0 0 20 20" fill="currentColor"><path d="M10 3.4 4.9 16.6h1.98l1.2-3.2h3.84l1.2 3.2H15.1L10 3.4Zm-1.28 8.2L10 7.9l1.28 3.7H8.72Z"/></svg>
+          <span class="color-bar" [style.background]="textColorValue()"></span>
+        </span>
+        <input #textColor class="color-native" type="color" [value]="textColorValue()" aria-label="Text color"
+               (mousedown)="canvas?.beginColorPreview('foreColor')"
+               (input)="onTextColorInput(textColor.value)"
+               (change)="canvas?.endColorPreview()"
+               (blur)="canvas?.endColorPreview()" />
+      </div>
+      <div class="color-swatch" title="Fill color">
+        <span class="color-face">
+          <svg class="tool-ic color-ic" viewBox="0 0 24 24" fill="currentColor"><path d="M16.56 8.94 7.62 0 6.21 1.41l2.38 2.38-5.15 5.15c-.59.59-.59 1.54 0 2.12l5.5 5.5c.29.29.68.44 1.06.44s.77-.15 1.06-.44l5.5-5.5c.59-.58.59-1.53 0-2.12ZM5.21 10 10 5.21 14.79 10H5.21ZM19 11.5s-2 2.17-2 3.5a2 2 0 1 0 4 0c0-1.33-2-3.5-2-3.5Z"/></svg>
+          <span class="color-bar" [style.background]="highlightColorValue()"></span>
+        </span>
+        <input #highlightColor class="color-native" type="color" [value]="highlightColorValue()" aria-label="Fill color"
+               (mousedown)="canvas?.beginColorPreview('hiliteColor')"
+               (input)="onHighlightColorInput(highlightColor.value)"
+               (change)="canvas?.endColorPreview()"
+               (blur)="canvas?.endColorPreview()" />
+      </div>
     </ng-template>
 
     <ng-template #tplVideo>
@@ -359,6 +374,11 @@ export class EditorToolbarComponent implements AfterViewInit, OnDestroy {
   readonly fontFamily = signal(this.fontFamilies[0].value);
   /** Currently-selected font size, e.g. '14px' (drives the size <select>'s value). */
   readonly fontSize = signal('14px');
+
+  /** Last-used text / highlight color (drives the bar under each Google-Docs-style
+   *  color button). Defaults mirror the previous native-input defaults. */
+  readonly textColorValue = signal('#1f2937');
+  readonly highlightColorValue = signal('#fff2b2');
 
   // Active-state of the format buttons, synced to the current selection so the
   // toolbar reflects whether the highlighted text is bold/italic/etc.
@@ -658,6 +678,18 @@ export class EditorToolbarComponent implements AfterViewInit, OnDestroy {
     // Font family/size selects now live in the main strip, so reflect the
     // current selection's font in them live (they used to sync on overflow-open).
     this.syncFontControls();
+    // Reflect the color of the text under the caret in the text/fill color bars.
+    this.syncColorControls();
+  }
+
+  /** Point the text-color / fill-color bars at the current selection's colors. */
+  private syncColorControls(): void {
+    const color = this.canvas?.getSelectionColor();
+    if (color) this.textColorValue.set(color);
+    // Fill is null when the text has no explicit background — keep the last-used
+    // fill color in that case (matches Google Docs), only update when one exists.
+    const fill = this.canvas?.getSelectionBackgroundColor();
+    if (fill) this.highlightColorValue.set(fill);
   }
 
   onBlockFormat(event: Event): void {
@@ -675,6 +707,18 @@ export class EditorToolbarComponent implements AfterViewInit, OnDestroy {
     const value = (event.target as HTMLSelectElement).value;
     this.fontSize.set(value);
     this.canvas?.applyFontSize(value);
+  }
+
+  /** Live text-color drag: remember the color (updates the bar) + preview it. */
+  onTextColorInput(value: string): void {
+    this.textColorValue.set(value);
+    this.canvas?.updateColorPreview(value);
+  }
+
+  /** Live highlight-color drag: remember the color (updates the bar) + preview it. */
+  onHighlightColorInput(value: string): void {
+    this.highlightColorValue.set(value);
+    this.canvas?.updateColorPreview(value);
   }
 
   async onImageFile(event: Event): Promise<void> {
