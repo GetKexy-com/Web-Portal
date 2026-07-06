@@ -263,8 +263,8 @@ for the pricing grid. The normal panel is `flex 0 0 38%` / `max-width: 480px`.
 ### Desktop = collapsible icon rail (not hide)
 
 The arrow toggles `sidebarCollapsed` (persisted in `localStorage['kxSidebarCollapsed']`),
-NOT full-hide. The desktop `<ul>` always renders (`*ngIf="!isMobileScreen"`) and gets
-`[class.collapsed]`. Collapsed = a **76px icon rail** (`--kx-sidebar-collapsed-w`):
+NOT full-hide. A single `<ul id="main-sidebar">` always renders (all screen sizes) and
+gets `[class.collapsed]`. Collapsed = a **76px icon rail** (`--kx-sidebar-collapsed-w`):
 
 - Labels/chevrons hidden; each item is a fixed **48×48 square centred with
   `margin: auto`** (so active/inactive icons sit identically dead-centre — active is
@@ -285,8 +285,8 @@ NOT full-hide. The desktop `<ul>` always renders (`*ngIf="!isMobileScreen"`) and
   tooltips/flyouts paint above `#content-wrapper` (`z-index: 0`) and the arrow stays
   on top. Cross-component bits (org-info, nav items) are styled via `::ng-deep
   #main-sidebar.collapsed …`.
-- `nav-item-dropdown` takes `[collapsed]="railCollapsed"` (a getter that's always
-  false on mobile); when collapsed its click toggles the flyout. The submenu is
+- `nav-item-dropdown` takes `[collapsed]="railCollapsed"` (a getter returning
+  `sidebarCollapsed`); when collapsed its click toggles the flyout. The submenu is
   ALWAYS in the DOM (no `@if`) so both the flyout and the expanded-mode animation
   can run. In collapsed, the active section's parent icon gets the same pill via
   `.section-active` (bound to the dropdown's `expand` flag, which the layout already
@@ -307,11 +307,16 @@ section's `isOpen` can't reveal the flyout without hover/click.
 Section icons: Messages = `fa-envelope-o`(open), Drip Campaign = `fa-bullhorn`
 (the paper-plane is reserved for the Messages → Sent sub-item).
 
-### Mobile (`< 992px`)
+### Small screens (`< 992px`)
 
-Unchanged drawer: `showSidebar` opens an overlay `.navbar-nav-mobile-layout` +
-backdrop; the header `#menu-toggle` (now `*ngIf="isMobileScreen && !showSidebar"`)
-reopens it. `railCollapsed` is false on mobile, so dropdowns stay normal accordions.
+There is now ONE sidebar for all sizes (the old duplicate `.navbar-nav-mobile-layout`
+drawer + `#menu-toggle` hamburger were removed). Small screens **default to the
+collapsed icon rail** (`ngOnInit`/`onWindowResize` force `sidebarCollapsed = true`
+below `mobileScreenSize` = 992). The rail stays **in-flow** (beside the content);
+tapping the arrow **expands it as a fixed overlay** (`#main-sidebar:not(.collapsed)`)
+with a `.sidebar-backdrop` (shown via `*ngIf="isMobileScreen && !sidebarCollapsed"`,
+click closes). `railCollapsed` just returns `sidebarCollapsed` now, so flyouts work at
+every size. `showSidebar` was removed.
 
 ## Conventions
 

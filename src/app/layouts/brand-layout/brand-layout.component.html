@@ -1,150 +1,23 @@
 <div id="page-container">
-  <!-- Sidebar -->
-  <a
-    *ngIf="!isMobileScreen || showSidebar"
-    (click)="toggleSidebar()"
-    class="hideSidebarArrow"
-    [class.rail]="!isMobileScreen && sidebarCollapsed"
-  >
+  <!-- Sidebar toggle -->
+  <a (click)="toggleSidebar()" class="hideSidebarArrow" [class.rail]="sidebarCollapsed">
     <i
       class="fa"
-      [class.fa-arrow-right]="!isMobileScreen && sidebarCollapsed"
-      [class.fa-arrow-left]="isMobileScreen || !sidebarCollapsed"
+      [class.fa-arrow-right]="sidebarCollapsed"
+      [class.fa-arrow-left]="!sidebarCollapsed"
       aria-hidden="true"
     ></i>
   </a>
 
-  <!--For mobile screen-->
-  <ul
-    *ngIf="showSidebar && isMobileScreen"
-    id="main-sidebar"
-    class="navbar-nav-mobile-layout bg-gradient-primary sidebar sidebar-dark accordion"
-  >
-    <app-org-info></app-org-info>
-
-    <nav-item-dropdown icon="fa-building-o" [label]="constants.COMPANY_DETAILS" [expand]="expandCompanyDetailsDropdown" [collapsed]="railCollapsed">
-      <nav-item
-        icon="fa-building-o"
-        [isDropDown]="true"
-        [navigateTo]="brand.PROMOTION_COMPANY_DESC"
-        label="Company Desc."
-      ></nav-item>
-      <nav-item
-        [isDropDown]="true"
-        icon="fa-search"
-        [navigateTo]="brand.PROMOTION_PRODUCT_DESC"
-        label="Product/Service Desc."
-      ></nav-item>
-    </nav-item-dropdown>
-
-    <nav-item-dropdown icon="fa-users" [label]="constants.CONTACTS" [expand]="expandContactsDropdown" [collapsed]="railCollapsed">
-      <nav-item
-        [isDropDown]="true"
-        icon="fa-list"
-        [navigateTo]="brand.MANAGE_LIST"
-        label="Manage Lists"
-      ></nav-item>
-      <nav-item
-        [isDropDown]="true"
-        icon="fa-bars"
-        [navigateTo]="brand.MANAGE_CONTACTS"
-        label="Manage Contacts"
-      ></nav-item>
-      <nav-item
-        [isDropDown]="true"
-        icon="fa-search"
-        [navigateTo]="brand.FIND_LEADS"
-        label="Find Leads"
-      ></nav-item>
-    </nav-item-dropdown>
-
-    <nav-item-dropdown icon="fa-bullhorn" [label]="constants.DRIP_CAMPAIGN"
-                       [expand]="expandDripCampaignDropdown" [collapsed]="railCollapsed">
-      <nav-item
-        [isDropDown]="true"
-        icon="fa-plus"
-        [navigateTo]="brand.CREATE_DRIP_CAMPAIGN"
-        label="Create Campaign"
-      ></nav-item>
-<!--      <nav-item-->
-<!--        [isDropDown]="true"-->
-<!--        icon="fa-rocket"-->
-<!--        [navigateTo]="brand.LAUNCH_DRIP_CAMPAIGN"-->
-<!--        label="Launch Campaign"-->
-<!--      ></nav-item>-->
-      <nav-item
-        [isDropDown]="true"
-        icon="fa-bars"
-        [navigateTo]="brand.LIST_DRIP_CAMPAIGN"
-        label="Manage Campaigns"
-      ></nav-item>
-    </nav-item-dropdown>
-
-    <nav-item-dropdown icon="fa-envelope-open-o" label="Messages" [expand]="expandProspectingDropdown" [collapsed]="railCollapsed">
-      <nav-item
-        [isDropDown]="true"
-        icon="fa-inbox"
-        [navigateTo]="brand.PROSPECTING_CONV_ALL"
-        label="Inbox"
-      ></nav-item>
-      <nav-item
-        [isDropDown]="true"
-        icon="fa-paper-plane-o"
-        [navigateTo]="brand.PROSPECTING_SENT_CONV"
-        label="Sent"
-      ></nav-item>
-    </nav-item-dropdown>
-
-<!--    <nav-item-dropdown icon="fa-bullhorn" [label]="constants.LANDING_PAGE + 's'" [expand]="expandPromotionDropdown">-->
-<!--      <nav-item [isDropDown]="true" icon="fa-plus" [navigateTo]="brand.LANDING_PAGES"-->
-<!--                [label]="'Create ' + constants.LANDING_PAGE"></nav-item>-->
-<!--      <nav-item-->
-<!--        [isDropDown]="true"-->
-<!--        icon="fa-bars"-->
-<!--        [navigateTo]="brand.LIST_PROMOTION"-->
-<!--        [label]="'Manage ' + constants.LANDING_PAGE + 's'"-->
-<!--      ></nav-item>-->
-<!--    </nav-item-dropdown>-->
-
-    <nav-item-dropdown icon="fa-cog" label="Settings" [expand]="expandSettingsDropdown" [collapsed]="railCollapsed">
-      <nav-item
-        icon="fa-briefcase"
-        [isDropDown]="true"
-        [navigateTo]="brand.INVITE_PEOPLE"
-        label="Invite Users"
-      ></nav-item>
-      <nav-item
-        icon="fa-slack"
-        [isDropDown]="true"
-        [navigateTo]="brand.SLACK_INTEGRATION"
-        label="Slack Integration"
-      ></nav-item>
-      <nav-item
-        icon="fa-ban"
-        [isDropDown]="true"
-        [navigateTo]="brand.SUPPRESSION_LIST"
-        label="Suppression List"
-      ></nav-item>
-    </nav-item-dropdown>
-
-    <nav-item
-      [isDropDown]="false"
-      icon="fa-leanpub"
-      [onClick]="tutorialsNavItemClicked"
-      label="Tutorials"
-    ></nav-item>
-  </ul>
-
-  <!-- Backdrop to dismiss the mobile drawer by tapping outside -->
+  <!-- Backdrop: only when the rail is expanded as an overlay on small screens -->
   <div
-    *ngIf="showSidebar && isMobileScreen"
+    *ngIf="isMobileScreen && !sidebarCollapsed"
     class="sidebar-backdrop"
-    (click)="showSidebar = false"
+    (click)="toggleSidebar()"
   ></div>
 
-  <!--For desktop screen-->
+  <!-- Sidebar (collapses to an icon rail; default collapsed on small screens) -->
   <ul
-    *ngIf="!isMobileScreen"
     class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion"
     id="main-sidebar"
     [class.collapsed]="sidebarCollapsed"
@@ -312,14 +185,6 @@
     <header id="main-header" [class]="headerBgWhite ? 'main-warp white-bg' : 'main-warp'">
       <div class="row justify-content-between">
         <div class="col d-flex align-items-baseline">
-          <a
-            *ngIf="isMobileScreen && !showSidebar"
-            id="menu-toggle"
-            (click)="showSidebar = !showSidebar"
-            class="glyphicon glyphicon-align-justify"
-          >
-            <i class="fa fa-bars"></i>
-          </a>
           <app-back-button *ngIf="showBackButton"></app-back-button>
           <span style="font-size: 14px; font-weight: bold">{{ headline }}</span>
         </div>

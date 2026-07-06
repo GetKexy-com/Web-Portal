@@ -68,8 +68,7 @@ export class BrandLayoutComponent implements OnInit {
   uploadCsvSide = "FOH";
   isUploadingCsvFlag = false;
   todayDate: number = Date.now();
-  showSidebar = true;
-  /** Desktop icon-rail state (persisted). Mobile uses showSidebar as a drawer. */
+  /** Sidebar icon-rail state (persisted; forced on for small screens). */
   sidebarCollapsed = localStorage.getItem("kxSidebarCollapsed") === "true";
   externalAssets = "";
   showHeaderTabs = true;
@@ -104,17 +103,13 @@ export class BrandLayoutComponent implements OnInit {
     return this.userData ? this.userData.firstName + " " + this.userData.lastName : "";
   }
 
-  /** True only when the desktop sidebar is a collapsed icon rail. */
+  /** True whenever the sidebar is a collapsed icon rail (any screen size). */
   get railCollapsed(): boolean {
-    return this.sidebarCollapsed && !this.isMobileScreen;
+    return this.sidebarCollapsed;
   }
 
-  /** Top arrow: collapse to an icon rail on desktop; open/close the drawer on mobile. */
+  /** Top arrow: toggle between the icon rail and the full sidebar. */
   toggleSidebar = () => {
-    if (this.isMobileScreen) {
-      this.showSidebar = !this.showSidebar;
-      return;
-    }
     this.sidebarCollapsed = !this.sidebarCollapsed;
     localStorage.setItem("kxSidebarCollapsed", String(this.sidebarCollapsed));
   };
@@ -125,7 +120,8 @@ export class BrandLayoutComponent implements OnInit {
 
     if (this.screenWidth < this.mobileScreenSize) {
       this.isMobileScreen = true;
-      this.showSidebar = false;
+      // Small screens default to the collapsed icon rail.
+      this.sidebarCollapsed = true;
     }
 
     this.userData = this._authService.userTokenValue;
@@ -168,7 +164,11 @@ export class BrandLayoutComponent implements OnInit {
     // same mode isn't clobbered on every resize tick.
     if (nowMobile !== this.isMobileScreen) {
       this.isMobileScreen = nowMobile;
-      this.showSidebar = !nowMobile;
+      // Entering small screens collapses to the rail; leaving restores the
+      // saved desktop preference.
+      this.sidebarCollapsed = nowMobile
+        ? true
+        : localStorage.getItem("kxSidebarCollapsed") === "true";
     }
   }
 

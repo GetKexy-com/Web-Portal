@@ -486,77 +486,26 @@ a.hideSidebarArrow i {
     left: 10px;
     z-index: 400;
   }
-  .sidebar {
+
+  /* Collapsed = the default icon rail (stays in-flow beside the content). */
+
+  /* Expanded = overlay the content (with a backdrop) instead of squeezing it. */
+  #main-sidebar:not(.collapsed) {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
     width: 260px;
-    // min-height: 100%;
+    z-index: 300;
+    animation: kx-drawer-slide 0.22s ease;
   }
+
   .sidebar-backdrop {
     position: fixed;
     inset: 0;
     z-index: 299;
     background: rgba(16, 24, 40, 0.45);
     animation: kx-backdrop-fade 0.2s ease;
-  }
-
-  .navbar-nav-mobile-layout {
-    width: 260px;
-    position: fixed;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    z-index: 300;
-    animation: kx-drawer-slide 0.22s ease;
-
-    .sidebar-top {
-      padding: 10px 0 0;
-      text-align: center;
-      margin-bottom: 40px;
-    }
-
-    .sidebar-top .username {
-      font-size: 1.1em;
-      margin-top: 40px;
-      color: white;
-    }
-
-    .sidebar-top .c-name {
-      font-size: 12px;
-      color: white;
-    }
-
-    li.nav-item {
-      line-height: 36px;
-    }
-
-    li.nav-item a {
-      padding: 10px 0 10px 40px;
-      display: inline-block;
-      width: calc(100% + 10px);
-      font-size: 16px;
-      text-decoration: none;
-      color: rgba(255, 255, 255, 0.6);
-      cursor: pointer;
-
-      i {
-        padding-right: 10px;
-        font-size: 18px;
-      }
-    }
-
-    li.nav-item:hover a,
-    li.nav-item a.active {
-      color: #ffffff;
-    }
-
-    li.nav-item a.active {
-      color: #ffffff;
-      background: url("/assets/images/circle.png") no-repeat 0 14px;
-    }
-
-    .sidebar-top img {
-      width: 135px;
-      margin-top: 46px;
-    }
   }
 }
 
