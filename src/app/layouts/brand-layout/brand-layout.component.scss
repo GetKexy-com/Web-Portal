@@ -92,8 +92,10 @@ a {
     margin-bottom: 8px;
 
     img {
-      max-width: 42px !important;
-      max-height: 38px !important;
+      width: 48px !important;
+      height: 48px !important;
+      padding: 5px !important;
+      border-radius: 12px !important;
     }
     .username {
       margin-top: 8px !important;
