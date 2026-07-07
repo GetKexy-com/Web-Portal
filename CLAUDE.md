@@ -188,6 +188,7 @@ a spreadsheet-style review step shown BEFORE the import runs. Both pages route t
 upload modal's parsed data into it via `showImportPreview(data)` (opens `xl`,
 `backdrop: 'static'`, `keyboard: false`), whose `startImport` callback closes the
 preview and hands `{ ...parsedData, data: keptRows }` to `getImportedFileData`.
+It closes ONLY via the header X (no Cancel button; backdrop/Esc disabled).
 
 - **Input** is the raw Papa-parse result (`{ data, meta.fields, errors }`).
   Columns come from `meta.fields`, reordered to `First Name, Last Name, Email,
@@ -198,20 +199,30 @@ preview and hands `{ ...parsedData, data: keptRows }` to `getImportedFileData`.
   Kept lenient on purpose to mirror what `parseCsvDataToContact` tolerates. Each
   row is precomputed into a `PreviewItem { row, invalidCols[], invalid }`.
 - **UI:** a status banner (green "all good" / amber "N need attention") with count
-  chips + a valid/invalid health bar; sticky-header grid with per-column invalid
-  count badges, sticky `#`/remove columns, zebra rows, red-highlighted invalid
-  cells (⚠ + tooltip reason), and a row pulse.
+  chips + a valid/invalid health bar; **Google-Sheets-style grid** — gridlines on
+  every cell, gray sticky header + sticky `#` row-number gutter, sticky remove
+  column, per-column invalid count badges, red-highlighted invalid cells (⚠ +
+  tooltip reason), a row pulse, and a blue selection outline on the editing cell.
 - **Find/fix:** "Next issue" steps through invalid rows (scroll + pulse, cycles);
-  "Only invalid" filters the grid (`displayedItems`); per-row remove + "Remove N
-  invalid". **Inline edit:** click a cell → input (`[(ngModel)]="item.row[col]"`);
-  Enter/blur commits and re-validates that row (`revalidate`), Esc cancels. Edits
-  mutate the row objects in place, so they flow straight into the import.
-- **Loaders:** initial validation/first render is deferred behind a spinner
-  (`loading`); filter/remove re-renders (heavy on big files) run behind a
-  `.ip-table-busy` overlay via `runTableUpdate()` (flip `tableBusy`, defer the work
-  a tick so the spinner paints, hide after the re-render). `trackByItem` keeps the
-  `*ngFor` cheap. Action buttons (Only invalid / Remove / Cancel / Import) are
+  "Only invalid" filters the grid (`displayed`); per-row remove + "Remove N".
+  **Inline edit:** DOUBLE-click a cell → input (`[(ngModel)]="item.row[col]"`,
+  focus without select); Enter/blur commits and re-validates that row
+  (`revalidate` + `recompute`), Esc cancels. Edits mutate the row objects in place,
+  so they flow straight into the import. Banner action buttons + Import are
   `<app-kexy-button>`.
+- **Performance (important):** the component is `ChangeDetectionStrategy.OnPush`.
+  All summary values are **precomputed fields** (`validCount`, `invalidCount`,
+  `invalidEmailCount`, `invalidUrlCount`, `validPct`, `invalidPct`,
+  `colInvalidCount`, `displayed`) refreshed ONLY by `recompute()` on data/filter
+  change — do NOT reintroduce template getters that iterate `items` (they ran every
+  CD cycle and made editing laggy on large files). Each row carries an
+  `invalidSet: Set<string>` for O(1) per-cell checks in the template. Off-event
+  state changes call `cdr.markForCheck()`.
+- **Loaders:** initial validation/first render is deferred behind a spinner
+  (`loading`); filter/remove re-renders run behind a `.ip-table-busy` overlay via
+  `runTableUpdate()` (flip `tableBusy` + `markForCheck`, defer the work a tick so
+  the spinner paints, `recompute`, then hide). `trackByItem` keeps the `*ngFor`
+  cheap.
 
 ---
 

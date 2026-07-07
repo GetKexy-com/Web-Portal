@@ -37,11 +37,21 @@
         <p class="ip-banner-sub" *ngIf="!invalidCount">Everything is valid and ready to import.</p>
 
         <div class="ip-chips">
-          <span class="chip-count"><b>{{ items.length }}</b> total</span>
-          <span class="chip-count ok"><b>{{ validCount }}</b> valid</span>
-          <span class="chip-count bad" *ngIf="invalidCount"><b>{{ invalidCount }}</b> invalid</span>
-          <span class="chip-count warn" *ngIf="invalidEmailCount"><b>{{ invalidEmailCount }}</b> bad email</span>
-          <span class="chip-count warn" *ngIf="invalidUrlCount"><b>{{ invalidUrlCount }}</b> bad URL</span>
+          <span class="chip-count">
+            <i class="fa fa-list-ul" aria-hidden="true"></i><b>{{ items.length }}</b><span>total</span>
+          </span>
+          <span class="chip-count ok">
+            <i class="fa fa-check-circle" aria-hidden="true"></i><b>{{ validCount }}</b><span>valid</span>
+          </span>
+          <span class="chip-count bad" *ngIf="invalidCount">
+            <i class="fa fa-exclamation-circle" aria-hidden="true"></i><b>{{ invalidCount }}</b><span>invalid</span>
+          </span>
+          <span class="chip-count warn" *ngIf="invalidEmailCount">
+            <i class="fa fa-envelope-o" aria-hidden="true"></i><b>{{ invalidEmailCount }}</b><span>bad email</span>
+          </span>
+          <span class="chip-count warn" *ngIf="invalidUrlCount">
+            <i class="fa fa-link" aria-hidden="true"></i><b>{{ invalidUrlCount }}</b><span>bad URL</span>
+          </span>
         </div>
       </div>
 
@@ -59,8 +69,8 @@
             (click)="jumpToNextInvalid()"
             label="Next issue"
             iconLeft="fa-arrow-down"
-            bgColor="#ffffff"
-            textColor="#b45309"
+            bgColor="#fdecd6"
+            textColor="#92500a"
             radius="8px"
             fontSize="13px"
             padding="7px 12px"
@@ -69,7 +79,7 @@
             (click)="toggleShowOnlyInvalid()"
             [label]="showOnlyInvalid ? 'Show all' : 'Only invalid'"
             [iconLeft]="showOnlyInvalid ? 'fa-list-ul' : 'fa-filter'"
-            [bgColor]="showOnlyInvalid ? '#cfe8fb' : '#ffffff'"
+            [bgColor]="showOnlyInvalid ? '#cfe8fb' : '#e7f6fe'"
             textColor="#2847cc"
             radius="8px"
             fontSize="13px"
@@ -79,7 +89,7 @@
             (click)="removeInvalid()"
             [label]="'Remove ' + invalidCount"
             iconLeft="fa-trash"
-            bgColor="#ffffff"
+            bgColor="#fdeaea"
             textColor="#dc2626"
             radius="8px"
             fontSize="13px"
@@ -91,7 +101,7 @@
 
     <p class="ip-filter-note" *ngIf="showOnlyInvalid">
       <i class="fa fa-filter" aria-hidden="true"></i>
-      Showing {{ displayedItems.length }} invalid of {{ items.length }} row(s)
+      Showing {{ displayed.length }} invalid of {{ items.length }} row(s)
     </p>
 
     <!-- Spreadsheet -->
@@ -104,10 +114,10 @@
         <thead>
         <tr>
           <th class="col-idx">#</th>
-          <th *ngFor="let col of columns" [class.col-has-invalid]="columnInvalidCount(col)">
+          <th *ngFor="let col of columns" [class.col-has-invalid]="colInvalidCount[col]">
             {{ col }}
-            <span class="col-badge" *ngIf="columnInvalidCount(col)" [title]="columnInvalidCount(col) + ' invalid'">
-              {{ columnInvalidCount(col) }}
+            <span class="col-badge" *ngIf="colInvalidCount[col]" [title]="colInvalidCount[col] + ' invalid'">
+              {{ colInvalidCount[col] }}
             </span>
           </th>
           <th class="col-remove"></th>
@@ -115,7 +125,7 @@
         </thead>
         <tbody>
         <tr
-          *ngFor="let item of displayedItems; let i = index; trackBy: trackByItem"
+          *ngFor="let item of displayed; let i = index; trackBy: trackByItem"
           [id]="'ip-row-' + i"
           [class.row-invalid]="item.invalid"
           [class.row-pulse]="pulseKey === i"
@@ -124,10 +134,10 @@
           <td
             *ngFor="let col of columns"
             class="cell-editable"
-            [class.cell-invalid]="item.invalidCols.includes(col)"
+            [class.cell-invalid]="item.invalidSet.has(col)"
             [class.is-editing]="isEditing(item, col)"
-            [title]="isEditing(item, col) ? '' : (item.invalidCols.includes(col) ? invalidReason(col) + ' — click to edit' : 'Click to edit')"
-            (click)="startEdit(item, col)"
+            [title]="isEditing(item, col) ? '' : (item.invalidSet.has(col) ? invalidReason(col) + ' — double-click to edit' : 'Double-click to edit')"
+            (dblclick)="startEdit(item, col)"
           >
             <input
               *ngIf="isEditing(item, col)"
@@ -140,7 +150,7 @@
             />
             <ng-container *ngIf="!isEditing(item, col)">
               <span class="cell-text">{{ item.row[col] }}</span>
-              <i *ngIf="item.invalidCols.includes(col)" class="fa fa-exclamation-circle cell-flag" aria-hidden="true"></i>
+              <i *ngIf="item.invalidSet.has(col)" class="fa fa-exclamation-circle cell-flag" aria-hidden="true"></i>
               <i class="fa fa-pencil cell-edit-hint" aria-hidden="true"></i>
             </ng-container>
           </td>
@@ -150,9 +160,9 @@
             </button>
           </td>
         </tr>
-        <tr *ngIf="!displayedItems.length">
+        <tr *ngIf="!displayed.length">
           <td [attr.colspan]="columns.length + 2" class="ip-empty">
-            {{ items.length ? 'No invalid rows — everything looks good!' : 'No rows left to import. Cancel and upload a file with valid contacts.' }}
+            {{ items.length ? 'No invalid rows — everything looks good!' : 'No rows left to import. Upload a file with valid contacts.' }}
           </td>
         </tr>
         </tbody>

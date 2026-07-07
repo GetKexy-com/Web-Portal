@@ -1,15 +1,22 @@
-import { Component, Input, OnInit } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  Input,
+  OnInit,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { KexyButtonComponent } from '../kexy-button/kexy-button.component';
 
 // EXPERIMENTAL: spreadsheet-style preview shown BEFORE a CSV import starts.
 // Highlights rows whose email or URL columns are invalid, shows a summary, lets
-// the user drop bad rows, then hands the cleaned Papa-parse result back to the
-// page's import routine via startImport().
+// the user drop/fix bad rows, then hands the cleaned Papa-parse result back to
+// the page's import routine via startImport().
 interface PreviewItem {
   row: any;
   invalidCols: string[];
+  invalidSet: Set<string>; // O(1) per-cell lookup in the template (hot path)
   invalid: boolean;
 }
 
@@ -18,6 +25,9 @@ interface PreviewItem {
   imports: [CommonModule, FormsModule, KexyButtonComponent],
   templateUrl: './import-preview-modal-content.component.html',
   styleUrl: './import-preview-modal-content.component.scss',
+  // OnPush + precomputed summary fields keep editing/scrolling smooth on large
+  // files (no per-CD getters recomputing over every row).
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ImportPreviewModalContentComponent implements OnInit {
   // The raw Papa-parse result ({ data, meta: { fields }, errors }).
@@ -42,6 +52,17 @@ export class ImportPreviewModalContentComponent implements OnInit {
   // Inline cell editing (click a cell to fix a bad email/URL in place).
   editing: { item: PreviewItem; col: string } | null = null;
 
+  // Rows currently shown (respects the "show only invalid" filter).
+  displayed: PreviewItem[] = [];
+  // Precomputed summary (recomputed only when data/filter changes, never per-CD).
+  validCount = 0;
+  invalidCount = 0;
+  invalidEmailCount = 0;
+  invalidUrlCount = 0;
+  validPct = 0;
+  invalidPct = 0;
+  colInvalidCount: Record<string, number> = {};
+
   // Preferred left-to-right column order; the rest keep their original order.
   private readonly COLUMN_ORDER = ['First Name', 'Last Name', 'Email', 'Website', 'Linkedin'];
 
@@ -49,6 +70,8 @@ export class ImportPreviewModalContentComponent implements OnInit {
   // a present-yet-malformed one is flagged. Email is always required.
   private readonly EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   private readonly URL_RE = /^(https?:\/\/)?([\w-]+\.)+[\w-]{2,}(\/[^\s]*)?$/i;
+
+  constructor(private cdr: ChangeDetectorRef) {}
 
   ngOnInit(): void {
     // Defer the heavy validation + first table render one tick so the spinner
@@ -59,7 +82,9 @@ export class ImportPreviewModalContentComponent implements OnInit {
         : Object.keys(this.parsedData?.data?.[0] || {});
       this.columns = this.orderColumns(fields);
       this.buildItems(this.parsedData?.data || []);
+      this.recompute();
       this.loading = false;
+      this.cdr.markForCheck();
     });
   }
 
@@ -81,10 +106,12 @@ export class ImportPreviewModalContentComponent implements OnInit {
   };
 
   private buildItems = (rows: any[]) => {
-    this.items = rows.map((row) => {
-      const invalidCols = this.columns.filter((c) => this.isCellInvalid(c, row[c]));
-      return { row, invalidCols, invalid: invalidCols.length > 0 };
-    });
+    this.items = rows.map((row) => this.makeItem(row));
+  };
+
+  private makeItem = (row: any): PreviewItem => {
+    const invalidCols = this.columns.filter((c) => this.isCellInvalid(c, row[c]));
+    return { row, invalidCols, invalidSet: new Set(invalidCols), invalid: invalidCols.length > 0 };
   };
 
   isEmailColumn = (c: string) => (c || '').toLowerCase().trim() === 'email';
@@ -100,35 +127,38 @@ export class ImportPreviewModalContentComponent implements OnInit {
   invalidReason = (col: string) =>
     this.isEmailColumn(col) ? 'Invalid email address' : 'Invalid URL';
 
-  // ── Summary (derived from the precomputed items) ──────────────────────────
-  get validCount(): number {
-    return this.items.filter((i) => !i.invalid).length;
-  }
-  get invalidCount(): number {
-    return this.items.filter((i) => i.invalid).length;
-  }
-  get invalidEmailCount(): number {
-    return this.items.filter((i) => i.invalidCols.some((c) => this.isEmailColumn(c))).length;
-  }
-  get invalidUrlCount(): number {
-    return this.items.filter((i) => i.invalidCols.some((c) => this.isUrlColumn(c))).length;
-  }
-  get validPct(): number {
-    return this.items.length ? Math.round((this.validCount / this.items.length) * 100) : 0;
-  }
-  get invalidPct(): number {
-    return this.items.length ? 100 - this.validPct : 0;
-  }
-
-  // Rows currently shown (respects the "show only invalid" filter).
-  get displayedItems(): PreviewItem[] {
-    return this.showOnlyInvalid ? this.items.filter((i) => i.invalid) : this.items;
-  }
-
-  // How many rows have an invalid value in this specific column (drives the
-  // per-column header badge so dirty fields are easy to spot).
-  columnInvalidCount = (col: string): number =>
-    this.items.filter((i) => i.invalidCols.includes(col)).length;
+  // Recompute the summary counts, per-column badges and the visible list. Called
+  // only when data or the filter changes — NOT on every change-detection cycle.
+  private recompute = () => {
+    const colCounts: Record<string, number> = {};
+    let valid = 0;
+    let badEmail = 0;
+    let badUrl = 0;
+    for (const it of this.items) {
+      if (!it.invalid) {
+        valid++;
+        continue;
+      }
+      let hasEmail = false;
+      let hasUrl = false;
+      for (const c of it.invalidCols) {
+        colCounts[c] = (colCounts[c] || 0) + 1;
+        if (this.isEmailColumn(c)) hasEmail = true;
+        else if (this.isUrlColumn(c)) hasUrl = true;
+      }
+      if (hasEmail) badEmail++;
+      if (hasUrl) badUrl++;
+    }
+    const total = this.items.length;
+    this.validCount = valid;
+    this.invalidCount = total - valid;
+    this.invalidEmailCount = badEmail;
+    this.invalidUrlCount = badUrl;
+    this.validPct = total ? Math.round((valid / total) * 100) : 0;
+    this.invalidPct = total ? 100 - this.validPct : 0;
+    this.colInvalidCount = colCounts;
+    this.displayed = this.showOnlyInvalid ? this.items.filter((i) => i.invalid) : this.items;
+  };
 
   // Run a grid-changing update behind a loader: paint the overlay first, do the
   // work (which triggers the heavy re-render) on the next tick, then hide it.
@@ -136,9 +166,15 @@ export class ImportPreviewModalContentComponent implements OnInit {
     this.tableBusy = true;
     this.invalidCursor = -1;
     this.pulseKey = null;
+    this.cdr.markForCheck();
     setTimeout(() => {
       fn();
-      setTimeout(() => (this.tableBusy = false));
+      this.recompute();
+      this.cdr.markForCheck();
+      setTimeout(() => {
+        this.tableBusy = false;
+        this.cdr.markForCheck();
+      });
     });
   };
 
@@ -149,7 +185,7 @@ export class ImportPreviewModalContentComponent implements OnInit {
   // Step through invalid rows one at a time: scroll the next one into view and
   // pulse it. Cycles back to the first after the last.
   jumpToNextInvalid = () => {
-    const invalidIdx = this.displayedItems
+    const invalidIdx = this.displayed
       .map((it, idx) => (it.invalid ? idx : -1))
       .filter((idx) => idx >= 0);
     if (!invalidIdx.length) return;
@@ -165,34 +201,41 @@ export class ImportPreviewModalContentComponent implements OnInit {
     this.editing?.item === item && this.editing?.col === col;
 
   startEdit = (item: PreviewItem, col: string) => {
+    if (this.isEditing(item, col)) return;
     this.editing = { item, col };
-    // Focus the input once Angular has rendered it.
+    // Focus the input once Angular has rendered it (without selecting the text).
     setTimeout(() => {
       const el = document.querySelector('.ip-table .cell-input') as HTMLInputElement | null;
       el?.focus();
-      el?.select();
     });
   };
 
   stopEdit = () => {
-    if (this.editing) this.revalidate(this.editing.item);
-    this.editing = null;
+    if (this.editing) {
+      this.revalidate(this.editing.item);
+      this.editing = null;
+      this.recompute();
+      this.cdr.markForCheck();
+    }
   };
 
   // Recompute a single row's validity after an inline edit.
   private revalidate = (item: PreviewItem) => {
     item.invalidCols = this.columns.filter((c) => this.isCellInvalid(c, item.row[c]));
+    item.invalidSet = new Set(item.invalidCols);
     item.invalid = item.invalidCols.length > 0;
   };
 
   // ── Row actions ───────────────────────────────────────────────────────────
   removeRow = (index: number) => {
-    // index is into displayedItems; map back to the real items array.
-    const item = this.displayedItems[index];
+    // index is into the displayed list; map back to the real items array.
+    const item = this.displayed[index];
     const real = this.items.indexOf(item);
     if (real > -1) this.items.splice(real, 1);
     this.invalidCursor = -1;
     this.pulseKey = null;
+    this.recompute();
+    this.cdr.markForCheck();
   };
 
   removeInvalid = () => {
