@@ -139,6 +139,12 @@
             [title]="isEditing(item, col) ? '' : (item.invalidSet.has(col) ? invalidReason(col) + ' — double-click to edit' : 'Double-click to edit')"
             (dblclick)="startEdit(item, col)"
           >
+            <!-- The text stays in the DOM (hidden while editing) as a width sizer
+                 so the column doesn't jump when the input appears/disappears. -->
+            <span class="cell-text" [class.is-hidden]="isEditing(item, col)">{{ item.row[col] }}</span>
+            <i *ngIf="item.invalidSet.has(col)" class="fa fa-exclamation-circle cell-flag"
+               [class.is-hidden]="isEditing(item, col)" aria-hidden="true"></i>
+            <i class="fa fa-pencil cell-edit-hint" *ngIf="!isEditing(item, col)" aria-hidden="true"></i>
             <input
               *ngIf="isEditing(item, col)"
               class="cell-input"
@@ -146,13 +152,7 @@
               (blur)="stopEdit()"
               (keydown.enter)="stopEdit()"
               (keydown.escape)="stopEdit()"
-              (click)="$event.stopPropagation()"
             />
-            <ng-container *ngIf="!isEditing(item, col)">
-              <span class="cell-text">{{ item.row[col] }}</span>
-              <i *ngIf="item.invalidSet.has(col)" class="fa fa-exclamation-circle cell-flag" aria-hidden="true"></i>
-              <i class="fa fa-pencil cell-edit-hint" aria-hidden="true"></i>
-            </ng-container>
           </td>
           <td class="col-remove">
             <button type="button" class="ip-row-remove" (click)="removeRow(i)" title="Remove this row">
