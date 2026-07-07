@@ -466,7 +466,12 @@ a {
     opacity: 0;
     visibility: hidden;
     transform: translateX(-6px);
-    transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s;
+    /* Hide INSTANTLY (no transition on the resting/hidden state). Otherwise,
+       collapsing the sidebar while its active section's accordion is open
+       flips the sub-menu into an absolutely-positioned flyout that fades its
+       opacity 1 → 0 — the "shows then disappears" flash. The reveal transition
+       lives on the hover/pinned state below. */
+    transition: none;
     z-index: 1300;
 
     /* arrow: base flush to the panel's left edge, tip pointing at the icon */
@@ -524,6 +529,8 @@ a {
     opacity: 1;
     visibility: visible;
     transform: translateX(0);
+    /* Animate only the reveal, so hover/pin fades in smoothly. */
+    transition: opacity 0.15s ease, transform 0.15s ease;
   }
 }
 
