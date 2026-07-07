@@ -516,9 +516,11 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
     });
     ref.componentInstance.parsedData = data;
     ref.componentInstance.closeModal = () => ref.close();
-    ref.componentInstance.startImport = (cleaned) => {
+    // Keep the preview open (button shows "Importing…") until the API responds,
+    // then close it. Rethrow on error so the preview resets its button.
+    ref.componentInstance.startImport = async (cleaned) => {
+      await this.getImportedFileData(cleaned);
       ref.close();
-      this.getImportedFileData(cleaned);
     };
   };
 
@@ -554,6 +556,7 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
         message = e.message;
       }
       await Swal.fire('Error', message);
+      throw e; // let the preview keep the modal open + reset its button
     }
   };
 

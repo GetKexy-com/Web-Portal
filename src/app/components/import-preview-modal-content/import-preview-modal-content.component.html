@@ -199,7 +199,7 @@
         <app-kexy-button
           (click)="handleImport()"
           [disabled]="!items.length || importing"
-          [label]="'Import ' + items.length + ' contact' + (items.length === 1 ? '' : 's')"
+          [label]="importing ? 'Importing…' : ('Import ' + items.length + ' contact' + (items.length === 1 ? '' : 's'))"
           [iconLeft]="importing ? 'fa-refresh fa-spin' : 'fa-cloud-upload'"
           bgColor="#12a5f4"
           textColor="white"

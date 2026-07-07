@@ -455,18 +455,21 @@ $sheet-blue: #1a73e8;
       z-index: 1;
     }
 
+    // Kept inside the cell bounds — the cell has overflow: hidden, so an
+    // outside-the-box bubble would be clipped.
     .cell-copied {
       position: absolute;
-      top: -10px;
+      top: 50%;
       right: 4px;
+      transform: translateY(-50%);
       z-index: 4;
       background: #202124;
       color: #fff;
       font-size: 10px;
       font-weight: 700;
-      padding: 2px 7px;
+      line-height: 1;
+      padding: 3px 7px;
       border-radius: 5px;
-      box-shadow: 0 4px 10px -3px rgba(0, 0, 0, 0.4);
       pointer-events: none;
     }
 

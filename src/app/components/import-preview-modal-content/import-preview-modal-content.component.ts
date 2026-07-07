@@ -36,8 +36,9 @@ export class ImportPreviewModalContentComponent implements OnInit {
   @Input() parsedData: any;
   @Input() closeModal: () => void = () => {};
   // Called with a Papa-like result ({ ...parsedData, data: keptRows }) when the
-  // user confirms. The page runs the actual (async) import.
-  @Input() startImport: (data: any) => void = () => {};
+  // user confirms. The page runs the actual (async) import and closes this modal
+  // on success; it should reject/throw on failure so the button can reset.
+  @Input() startImport: (data: any) => any = () => {};
 
   columns: string[] = [];
   items: PreviewItem[] = [];
@@ -92,7 +93,9 @@ export class ImportPreviewModalContentComponent implements OnInit {
   // Loose validators — an empty URL is allowed (the importer fills defaults), but
   // a present-yet-malformed one is flagged. Email is always required.
   private readonly EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  private readonly URL_RE = /^(https?:\/\/)?([\w-]+\.)+[\w-]{2,}(\/[^\s]*)?$/i;
+  // Host (after stripping scheme + optional leading "www.") must still look like
+  // domain.tld — so "www.healthsourcechiro" is invalid, "www.healthsourcechiro.com" ok.
+  private readonly HOST_RE = /^([a-z0-9-]+\.)+[a-z]{2,24}$/i;
 
   constructor(private cdr: ChangeDetectorRef) {}
 
@@ -197,8 +200,15 @@ export class ImportPreviewModalContentComponent implements OnInit {
   private isCellInvalid = (col: string, value: any): boolean => {
     const v = (value ?? '').toString().trim();
     if (this.isEmailColumn(col)) return !this.EMAIL_RE.test(v);
-    if (this.isUrlColumn(col)) return !!v && !this.URL_RE.test(v);
+    if (this.isUrlColumn(col)) return !!v && !this.isValidUrl(v);
     return false;
+  };
+
+  private isValidUrl = (value: string): boolean => {
+    if (/\s/.test(value)) return false;
+    // Strip scheme, then path/query/hash, then a leading "www.".
+    let host = value.replace(/^https?:\/\//i, '').split(/[\/?#]/)[0].replace(/^www\./i, '');
+    return this.HOST_RE.test(host);
   };
 
   invalidReason = (col: string) =>
@@ -361,12 +371,20 @@ export class ImportPreviewModalContentComponent implements OnInit {
     });
   };
 
-  handleImport = () => {
+  handleImport = async () => {
     if (!this.items.length || this.importing) return;
     this.importing = true;
+    this.cdr.markForCheck();
     const keptRows = this.items.map((i) => i.row);
-    // Preserve the original Papa shape (meta/errors) so parseCsvDataToContact
-    // keeps working; only the rows change.
-    this.startImport({ ...this.parsedData, data: keptRows });
+    try {
+      // Preserve the original Papa shape (meta/errors) so parseCsvDataToContact
+      // keeps working; only the rows change. Stay open (button shows "Importing…")
+      // until the API responds; the page closes this modal on success.
+      await this.startImport({ ...this.parsedData, data: keptRows });
+    } catch {
+      // Import failed — keep the modal open so the user can retry.
+      this.importing = false;
+      this.cdr.markForCheck();
+    }
   };
 }
