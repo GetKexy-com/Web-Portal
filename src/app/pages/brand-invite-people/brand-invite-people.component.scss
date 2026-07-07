@@ -1,113 +1,598 @@
-.title-text {
-  font-size: 18px;
-  font-weight: bold;
-}
-.kexy-button {
-  background: #12a5f4;
-  border-radius: 10px;
-  width: 140px;
-  padding: 10px 0px;
-  font-size: 15px;
-  text-transform: capitalize;
-  line-height: 20px;
-  outline: none;
-  border: none;
-  color: white;
-}
-.action-label {
-  width: 60px;
-  display: inline-block;
-}
-.datatable {
-  border-collapse: collapse;
-  width: 100%;
-  margin-bottom: 15px;
-}
-.datatable td {
-  border-right: 1px solid #ddd;
-  border-bottom: 1px solid #ddd;
-  padding: 15px 25px;
-}
-.datatable td:last-child {
-  border-right: none;
-}
-.datatable tr:last-child td {
-  border-bottom: none;
-}
-.datatable tr:hover {
-  background-color: #ececec;
-  cursor: pointer;
-}
-.datatable th:first-child {
-  border-top-left-radius: 10px;
-  border-bottom-left-radius: 10px;
-  border-left-color: transparent;
-}
-.datatable th:last-child {
-  border-top-right-radius: 10px;
-  border-bottom-right-radius: 10px;
-  border-right-color: transparent;
-}
-.datatable th {
-  /*padding-top: 12px;
-    padding-bottom: 12px;*/
-  padding: 16px 0px 16px 25px;
-  text-align: left;
-  background-color: #095dd1;
-  color: #fff;
-  border-color: #948686;
-  border-top: none;
+// ── Brand palette / tokens ──────────────────────────────────────────────
+$kx-primary: #12a5f4;
+$kx-primary-deep: #095dd1;
+$kx-ink: #1f2a44;
+$kx-muted: #6b7a90;
+$kx-line: #eaeef4;
+$kx-surface: #ffffff;
+$kx-radius: 16px;
+$kx-shadow: 0 10px 30px -18px rgba(9, 93, 209, 0.35), 0 2px 8px rgba(31, 42, 68, 0.05);
+
+// ── Full-page loading overlay ───────────────────────────────────────────
+.page-loading-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 999;
+  background: rgba(17, 24, 39, 0.45);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  i {
+    color: #fff;
+    font-size: 40px;
+  }
 }
 
-@media (max-width: 767px) {
-  .datatable th {
-    padding: 10px 0px 10px 25px;
-  }
-  .datatable td {
-    padding: 10px 15px;
-  }
-  .delete-icon {
-    margin-left: 28px;
+// ── Page shell ──────────────────────────────────────────────────────────
+.invite-people-page {
+  max-width: 1080px;
+  margin: 0 auto;
+  color: $kx-ink;
+
+  * {
+    font-family: "Lato", sans-serif;
   }
 }
-@media (min-width: 992px) and (max-width: 1199px) {
-  .datatable {
-    th {
-      padding: 8px 0px 8px 25px;
-      font-size: 13px;
-    }
-    td {
-      font-size: 13px;
-      padding: 10px 25px;
-    }
+
+// ── Page header ─────────────────────────────────────────────────────────
+.page-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin-bottom: 22px;
+
+  .page-title {
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin: 0 0 4px;
   }
-  .add-another-invitation-link {
+
+  .page-subtitle {
+    margin: 0;
+    color: $kx-muted;
     font-size: 14px;
   }
-  .kexy-button {
-    width: 128px;
-    padding: 8px 0px;
+}
+
+.seat-usage {
+  min-width: 200px;
+
+  .seat-usage-count {
+    display: flex;
+    align-items: baseline;
+    justify-content: flex-end;
+    gap: 6px;
+    margin-bottom: 8px;
+
+    .seat-used {
+      font-size: 20px;
+      font-weight: 800;
+      color: $kx-primary-deep;
+    }
+
+    .seat-total {
+      font-size: 13px;
+      color: $kx-muted;
+      font-weight: 600;
+    }
+  }
+
+  .seat-bar {
+    height: 8px;
+    border-radius: 99px;
+    background: #e9eef7;
+    overflow: hidden;
+
+    .seat-bar-fill {
+      display: block;
+      height: 100%;
+      border-radius: 99px;
+      background: linear-gradient(90deg, $kx-primary, $kx-primary-deep);
+      transition: width 0.4s ease;
+    }
+  }
+}
+
+// ── Surface card ────────────────────────────────────────────────────────
+.surface-card {
+  background: $kx-surface;
+  border: 1px solid $kx-line;
+  border-radius: $kx-radius;
+  box-shadow: $kx-shadow;
+  padding: 24px;
+  margin-bottom: 26px;
+}
+
+.card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+
+  .card-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 18px;
+    font-weight: 800;
+    margin: 0;
+
+    i {
+      color: $kx-primary;
+    }
+  }
+
+  .card-sub {
+    margin: 4px 0 0;
+    color: $kx-muted;
     font-size: 13px;
   }
 }
 
-@media (min-width: 1200px) and (max-width: 1599px) {
-  .datatable {
-    th {
-      padding: 10px 0px 10px 25px;
-      font-size: 15px;
-    }
-    td {
-      font-size: 15px;
-      padding: 12px 25px;
+.count-chip {
+  flex: 0 0 auto;
+  min-width: 30px;
+  height: 30px;
+  padding: 0 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 99px;
+  background: rgba(18, 165, 244, 0.12);
+  color: $kx-primary-deep;
+  font-weight: 800;
+  font-size: 14px;
+}
+
+// ── Users table ─────────────────────────────────────────────────────────
+.table-wrap {
+  overflow-x: auto;
+  border: 1px solid $kx-line;
+  border-radius: 12px;
+}
+
+.datatable {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
+  margin: 0;
+
+  thead th {
+    text-align: left;
+    background: #f6f9fe;
+    color: $kx-muted;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 14px 20px;
+    border-bottom: 1px solid $kx-line;
+    white-space: nowrap;
+
+    &.text-right {
+      text-align: right;
     }
   }
-  .add-another-invitation-link {
+
+  tbody td {
+    padding: 14px 20px;
+    border-bottom: 1px solid $kx-line;
+    font-size: 14px;
+    vertical-align: middle;
+  }
+
+  tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  tbody tr {
+    transition: background 0.15s ease;
+
+    &:hover {
+      background: #f7fbff;
+    }
+  }
+
+  .table-state {
+    text-align: center;
+    color: $kx-muted;
+    padding: 34px 20px;
+
+    i {
+      color: $kx-primary;
+      margin-right: 8px;
+      font-size: 18px;
+    }
+
+    span {
+      display: block;
+      margin-top: 10px;
+    }
+  }
+}
+
+.user-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  .user-avatar {
+    flex: 0 0 auto;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 15px;
+    color: #fff;
+    background: linear-gradient(135deg, $kx-primary, $kx-primary-deep);
+    box-shadow: 0 4px 10px -4px rgba(9, 93, 209, 0.6);
+  }
+
+  .user-email {
+    font-weight: 600;
+    color: $kx-ink;
+    word-break: break-word;
+  }
+}
+
+.role-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.role-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 99px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: capitalize;
+  background: #eef1f6;
+  color: #55617a;
+
+  &.role-admin {
+    background: rgba(9, 93, 209, 0.1);
+    color: $kx-primary-deep;
+  }
+}
+
+.action-cell {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 99px;
+  font-size: 12px;
+  font-weight: 700;
+
+  &.status-accepted {
+    background: rgba(22, 163, 74, 0.12);
+    color: #15803d;
+  }
+
+  &.status-sent {
+    background: rgba(234, 151, 0, 0.14);
+    color: #b45309;
+  }
+}
+
+.link-action {
+  border: none;
+  background: none;
+  padding: 5px 12px;
+  border-radius: 99px;
+  color: $kx-primary-deep;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: rgba(18, 165, 244, 0.12);
+  }
+}
+
+// Small round icon buttons (edit / delete)
+.icon-btn {
+  border: none;
+  background: #f1f4f9;
+  color: $kx-muted;
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background: #e6ebf3;
+    color: $kx-ink;
+  }
+
+  &.edit:hover {
+    background: rgba(18, 165, 244, 0.14);
+    color: $kx-primary-deep;
+  }
+
+  &.danger:hover {
+    background: rgba(220, 38, 38, 0.12);
+    color: #dc2626;
+  }
+}
+
+// ── Invite form ─────────────────────────────────────────────────────────
+.invite-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 16px;
+
+  .field {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .field-remove {
+    flex: 0 0 auto;
+  }
+}
+
+.field-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: $kx-muted;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.input-wrap {
+  position: relative;
+
+  .input-icon {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9aa6b8;
+    font-size: 15px;
+    pointer-events: none;
+  }
+
+  .form-control {
+    height: 50px;
+    border: 1.5px solid #e3e9f2;
+    border-radius: 12px;
+    background: #f7f9fc;
+    padding: 0 16px 0 42px;
+    font-size: 14px;
+    color: $kx-ink;
+    width: 100%;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+
+    &::placeholder {
+      color: #9aa6b8;
+    }
+
+    &:focus {
+      outline: none;
+      background: #fff;
+      border-color: $kx-primary;
+      box-shadow: 0 0 0 4px rgba(18, 165, 244, 0.15);
+    }
+
+    &.error {
+      border-color: #dc2626;
+      background: #fff5f5;
+    }
+  }
+
+  &.select-wrap {
+    .form-control {
+      appearance: none;
+      -webkit-appearance: none;
+      cursor: pointer;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%236b7a90' d='M6 8 0 2l1.4-1.4L6 5.2 10.6.6 12 2z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 16px center;
+      padding-right: 40px;
+    }
+  }
+}
+
+.field-error {
+  display: block;
+  margin-top: 6px;
+  color: #dc2626;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.row-remove {
+  margin-top: 0;
+  height: 50px;
+  width: 50px;
+  border-radius: 12px;
+}
+
+.add-another-invitation-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 0 24px;
+  color: $kx-primary-deep;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+
+  i {
     font-size: 16px;
   }
-  .kexy-button {
-    width: 135px;
-    padding: 10px 0px;
-    font-size: 15px;
+
+  &:hover {
+    color: $kx-primary;
+  }
+}
+
+.form-actions {
+  display: flex;
+  border-top: 1px solid $kx-line;
+  padding-top: 20px;
+}
+
+// ── Modals (moved to body by NgbModal; encapsulation attrs still apply) ──
+.kx-modal {
+  padding: 4px;
+
+  .kx-modal-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 22px;
+    border-bottom: 1px solid $kx-line;
+
+    .kx-modal-title {
+      margin: 0;
+      font-size: 17px;
+      font-weight: 800;
+      color: $kx-ink;
+    }
+
+    .kx-modal-close {
+      border: none;
+      background: #f1f4f9;
+      color: $kx-muted;
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+
+      &:hover {
+        background: #e6ebf3;
+        color: $kx-ink;
+      }
+    }
+  }
+
+  .kx-modal-body {
+    padding: 22px;
+
+    .kx-modal-note {
+      margin: 0 0 16px;
+      color: $kx-muted;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+  }
+
+  .kx-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 0 22px 22px;
+  }
+}
+
+.btn-primary,
+.btn-danger,
+.btn-ghost {
+  border: none;
+  border-radius: 11px;
+  padding: 11px 22px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: transform 0.12s ease, box-shadow 0.15s ease, background 0.15s ease;
+
+  &:active {
+    transform: translateY(1px);
+  }
+}
+
+.btn-primary {
+  color: #fff;
+  background: linear-gradient(135deg, $kx-primary, $kx-primary-deep);
+  box-shadow: 0 8px 18px -8px rgba(9, 93, 209, 0.7);
+
+  &:hover {
+    box-shadow: 0 10px 22px -8px rgba(9, 93, 209, 0.85);
+  }
+}
+
+.btn-danger {
+  color: #fff;
+  background: linear-gradient(135deg, #f05252, #dc2626);
+  box-shadow: 0 8px 18px -8px rgba(220, 38, 38, 0.7);
+}
+
+.btn-ghost {
+  background: #f1f4f9;
+  color: $kx-muted;
+
+  &:hover {
+    background: #e6ebf3;
+    color: $kx-ink;
+  }
+}
+
+// ── Responsive ──────────────────────────────────────────────────────────
+@media (max-width: 767px) {
+  .invite-row {
+    flex-wrap: wrap;
+    gap: 12px;
+
+    .field {
+      flex: 1 1 100%;
+    }
+
+    .field-remove {
+      flex: 1 1 100%;
+
+      .field-label {
+        display: none;
+      }
+
+      .row-remove {
+        width: 100%;
+      }
+    }
+  }
+
+  .surface-card {
+    padding: 18px;
+  }
+
+  .datatable thead th,
+  .datatable tbody td {
+    padding: 12px 14px;
   }
 }

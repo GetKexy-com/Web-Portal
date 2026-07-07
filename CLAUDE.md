@@ -318,6 +318,39 @@ with a `.sidebar-backdrop` (shown via `*ngIf="isMobileScreen && !sidebarCollapse
 click closes). `railCollapsed` just returns `sidebarCollapsed` now, so flyouts work at
 every size. `showSidebar` was removed.
 
+---
+
+## Invite-people page (`brand-invite-people`)
+
+The team/users management page (users table + invite form + two NgbModals),
+redesigned into a modern card layout. All styling is self-contained in the
+component SCSS with a small token block at the top (`$kx-primary` `#12a5f4` →
+`$kx-primary-deep` `#095dd1`, matching the app's brand blue); no shared partial.
+
+- **Layout:** a centered `.invite-people-page` (max 1080px) holding a
+  `.page-header` (title + subtitle + a live **seat-usage** indicator: `X / Y seats`
+  with a gradient `.seat-bar-fill` whose width = `cleanUserList.length /
+  subscription.total_seats`, gated on `*ngIf="subscription"`) and stacked
+  `.surface-card`s (rounded, soft-shadowed) — one for the users table, one for the
+  invite form (`*ngIf="isAdmin"`).
+- **Users table** keeps the `datatable` directive + `*ngFor` (unchanged behavior —
+  no `dtOptions`/`dtTrigger`). Restyled: gradient **initial avatars** (`.user-avatar`,
+  first char of email via `(...).charAt(0) | uppercase`), `.role-badge`
+  (`.role-admin` highlighted), `.status-badge` (green `status-accepted`, amber
+  `status-sent`), `.link-action` (Resend), and round `.icon-btn` (`.edit`/`.danger`)
+  for the pencil/trash. Column count is 3 → state rows use `colspan="3"`.
+- **Invite form:** unchanged `formArray` (`peoplesList`) bindings/validation;
+  restyled as `.invite-row` flex rows with soft-filled `.input-wrap` fields (leading
+  `.input-icon`, blue focus ring, `.error` class on invalid), custom-caret
+  `.select-wrap`, and labels shown only on the first row (`*ngIf="i === 0"`). The
+  submit still uses `<app-kexy-button>`.
+- **Modals** (`employeeRoleChangeModal`, `userDeleteModal`) are rendered via
+  `NgbModal`, which relocates the `ng-template` content to the body — but Angular's
+  emulated-encapsulation attributes persist, so the component SCSS (`.kx-modal` +
+  `.btn-primary`/`.btn-danger`/`.btn-ghost`) **does** style them. New `.kx-modal-head`/
+  `-body`/`-footer` structure replaced the old inline-styled buttons + `close.png`
+  image. Modal logic (role change, transfer-then-delete) is unchanged.
+
 ## Conventions
 
 - **Standalone components** (no NgModules), Angular signals, `@if`/`@for` control
