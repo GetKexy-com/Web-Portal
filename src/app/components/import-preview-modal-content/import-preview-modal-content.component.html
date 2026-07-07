@@ -109,7 +109,7 @@
       <div class="ip-table-busy" *ngIf="tableBusy">
         <span class="ip-spinner sm"></span>
       </div>
-      <div class="ip-table-wrap">
+      <div class="ip-table-wrap" #scroll (scroll)="onScroll()">
       <table class="ip-table">
         <thead>
         <tr>
@@ -124,13 +124,18 @@
         </tr>
         </thead>
         <tbody>
+        <!-- Virtual-scroll spacer: preserves scroll height for rows above the window. -->
+        <tr class="ip-spacer" *ngIf="topPad">
+          <td [attr.colspan]="columns.length + 2" [style.height.px]="topPad"></td>
+        </tr>
         <tr
-          *ngFor="let item of displayed; let i = index; trackBy: trackByItem"
-          [id]="'ip-row-' + i"
+          class="ip-data-row"
+          *ngFor="let item of visibleItems; let vi = index; trackBy: trackByItem"
+          [id]="'ip-row-' + (viewStart + vi)"
           [class.row-invalid]="item.invalid"
-          [class.row-pulse]="pulseKey === i"
+          [class.row-pulse]="pulseKey === (viewStart + vi)"
         >
-          <td class="col-idx">{{ i + 1 }}</td>
+          <td class="col-idx">{{ viewStart + vi + 1 }}</td>
           <td
             *ngFor="let col of columns"
             class="cell-editable"
@@ -155,10 +160,14 @@
             />
           </td>
           <td class="col-remove">
-            <button type="button" class="ip-row-remove" (click)="removeRow(i)" title="Remove this row">
+            <button type="button" class="ip-row-remove" (click)="removeRow(viewStart + vi)" title="Remove this row">
               <i class="fa fa-trash" aria-hidden="true"></i>
             </button>
           </td>
+        </tr>
+        <!-- Virtual-scroll spacer for rows below the window. -->
+        <tr class="ip-spacer" *ngIf="bottomPad">
+          <td [attr.colspan]="columns.length + 2" [style.height.px]="bottomPad"></td>
         </tr>
         <tr *ngIf="!displayed.length">
           <td [attr.colspan]="columns.length + 2" class="ip-empty">
@@ -174,7 +183,7 @@
     <div class="ip-footer">
       <p class="ip-footer-note" *ngIf="invalidCount">
         <i class="fa fa-exclamation-triangle" aria-hidden="true"></i>
-        {{ invalidCount }} row(s) still have issues and will be skipped if not fixed.
+        {{ invalidCount }} row(s) still have issues and will be skipped. Fix the issues to include it.
       </p>
       <div class="ip-footer-btns">
         <app-kexy-button

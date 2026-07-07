@@ -11,8 +11,8 @@ $kx-warn: #b45309;
 .import-preview {
   display: flex;
   flex-direction: column;
-  height: 96vh;
-  max-height: 100vh;
+  height: 94vh;
+  max-height: 96vh;
   color: $kx-ink;
   background: #fbfcfe;
   border-radius: 16px;
@@ -391,6 +391,13 @@ $sheet-blue: #1a73e8;
       font-weight: 800;
       vertical-align: middle;
     }
+  }
+
+  // Virtual-scroll spacer rows — pure height, no borders/content.
+  tr.ip-spacer td {
+    padding: 0;
+    border: none;
+    background: #fff;
   }
 
   tbody td {

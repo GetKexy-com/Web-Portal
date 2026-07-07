@@ -2,8 +2,10 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  ElementRef,
   Input,
   OnInit,
+  ViewChild,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -54,6 +56,16 @@ export class ImportPreviewModalContentComponent implements OnInit {
 
   // Rows currently shown (respects the "show only invalid" filter).
   displayed: PreviewItem[] = [];
+  // ── Virtual scrolling ──────────────────────────────────────────────────────
+  // Only the visible window of `displayed` is rendered; spacer rows above/below
+  // preserve the scroll height so a 1000s-row grid scrolls smoothly.
+  @ViewChild('scroll') scrollRef?: ElementRef<HTMLElement>;
+  visibleItems: PreviewItem[] = [];
+  viewStart = 0;
+  topPad = 0;
+  bottomPad = 0;
+  private rowHeight = 34;
+  private readonly BUFFER = 8;
   // Precomputed summary (recomputed only when data/filter changes, never per-CD).
   validCount = 0;
   invalidCount = 0;
@@ -85,8 +97,41 @@ export class ImportPreviewModalContentComponent implements OnInit {
       this.recompute();
       this.loading = false;
       this.cdr.markForCheck();
+      // Once the grid is in the DOM, measure the real row height and recompute
+      // the window so spacer paddings line up exactly with the scrollbar.
+      setTimeout(() => this.measureRow());
     });
   }
+
+  // ── Virtual scroll window ───────────────────────────────────────────────────
+  onScroll = () => {
+    this.updateWindow();
+    // (scroll) is a template event binding, so OnPush CD runs after this handler.
+  };
+
+  private measureRow = () => {
+    const tr = this.scrollRef?.nativeElement.querySelector(
+      'tbody tr.ip-data-row',
+    ) as HTMLElement | null;
+    if (tr?.offsetHeight) this.rowHeight = tr.offsetHeight;
+    this.updateWindow();
+    this.cdr.markForCheck();
+  };
+
+  // Recompute which slice of `displayed` is rendered from the current scrollTop.
+  private updateWindow = () => {
+    const el = this.scrollRef?.nativeElement;
+    const scrollTop = el ? el.scrollTop : 0;
+    const viewport = el?.clientHeight || 640;
+    const total = this.displayed.length;
+    const start = Math.max(0, Math.floor(scrollTop / this.rowHeight) - this.BUFFER);
+    const count = Math.ceil(viewport / this.rowHeight) + this.BUFFER * 2;
+    const end = Math.min(total, start + count);
+    this.viewStart = start;
+    this.topPad = start * this.rowHeight;
+    this.bottomPad = Math.max(0, (total - end) * this.rowHeight);
+    this.visibleItems = this.displayed.slice(start, end);
+  };
 
   // Stable identity for *ngFor so filtering/removing doesn't re-render every row.
   trackByItem = (_: number, item: PreviewItem) => item;
@@ -158,6 +203,7 @@ export class ImportPreviewModalContentComponent implements OnInit {
     this.invalidPct = total ? 100 - this.validPct : 0;
     this.colInvalidCount = colCounts;
     this.displayed = this.showOnlyInvalid ? this.items.filter((i) => i.invalid) : this.items;
+    this.updateWindow();
   };
 
   // Run a grid-changing update behind a loader: paint the overlay first, do the
@@ -169,6 +215,8 @@ export class ImportPreviewModalContentComponent implements OnInit {
     this.cdr.markForCheck();
     setTimeout(() => {
       fn();
+      // Reset to the top so the visible window starts fresh after a filter/remove.
+      if (this.scrollRef) this.scrollRef.nativeElement.scrollTop = 0;
       this.recompute();
       this.cdr.markForCheck();
       setTimeout(() => {
@@ -185,15 +233,22 @@ export class ImportPreviewModalContentComponent implements OnInit {
   // Step through invalid rows one at a time: scroll the next one into view and
   // pulse it. Cycles back to the first after the last.
   jumpToNextInvalid = () => {
-    const invalidIdx = this.displayed
-      .map((it, idx) => (it.invalid ? idx : -1))
-      .filter((idx) => idx >= 0);
+    const invalidIdx: number[] = [];
+    this.displayed.forEach((it, idx) => {
+      if (it.invalid) invalidIdx.push(idx);
+    });
     if (!invalidIdx.length) return;
     this.invalidCursor = (this.invalidCursor + 1) % invalidIdx.length;
     const target = invalidIdx[this.invalidCursor];
-    const el = document.getElementById('ip-row-' + target);
-    el?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    // Row may not be rendered (virtualized) — scroll to its computed position,
+    // which re-renders the window around it; then pulse by absolute index.
+    const el = this.scrollRef?.nativeElement;
+    if (el) {
+      el.scrollTop = Math.max(0, target * this.rowHeight - el.clientHeight / 2);
+      this.updateWindow();
+    }
     this.pulseKey = target;
+    this.cdr.markForCheck();
   };
 
   // ── Inline editing ────────────────────────────────────────────────────────
