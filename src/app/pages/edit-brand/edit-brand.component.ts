@@ -60,6 +60,26 @@ export class EditBrandComponent implements OnInit {
   supplier_id: number;
   zip_code: string;
 
+  /** Website with scheme/`www.`/trailing slash stripped, for a compact display. */
+  get shortWebsite(): string {
+    const raw = (this.primaryForm?.get('website')?.value || '').trim();
+    return raw.replace(/^https?:\/\//i, '').replace(/^www\./i, '').replace(/\/+$/, '');
+  }
+
+  /** A clickable href for the website (prepends https:// when no scheme). */
+  get websiteHref(): string {
+    const raw = (this.primaryForm?.get('website')?.value || '').trim();
+    if (!raw) return '';
+    return /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
+  }
+
+  /** "City, State" from the current form values (either part optional). */
+  get shortLocation(): string {
+    const city = (this.primaryForm?.get('city')?.value || '').trim();
+    const state = (this.primaryForm?.get('state')?.value || '').trim();
+    return [city, state].filter(Boolean).join(', ');
+  }
+
   constructor(
     private _authService: AuthService,
     private httpService: HttpService,

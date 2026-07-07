@@ -24,7 +24,18 @@
         </div>
 
         <h3 class="profile-name">{{ userData?.supplier_name }}</h3>
-        <span class="role-badge">Business</span>
+<!--        <span class="role-badge">Business</span>-->
+
+        <ul class="company-meta" *ngIf="shortWebsite || shortLocation">
+          <li *ngIf="shortWebsite">
+            <i class="fa fa-globe" aria-hidden="true"></i>
+            <a [href]="websiteHref" target="_blank" rel="noopener" [title]="websiteHref">{{ shortWebsite }}</a>
+          </li>
+          <li *ngIf="shortLocation">
+            <i class="fa fa-map-marker" aria-hidden="true"></i>
+            <span>{{ shortLocation }}</span>
+          </li>
+        </ul>
 
         <div class="sidebar-actions">
           <app-kexy-button
