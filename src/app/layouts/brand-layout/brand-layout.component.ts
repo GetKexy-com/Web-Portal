@@ -110,6 +110,12 @@ export class BrandLayoutComponent implements OnInit {
     return (f + l).toUpperCase() || "U";
   }
 
+  /** Hosted profile-photo URL if the user has uploaded one, else '' (→ initials). */
+  get userAvatarUrl(): string {
+    const logo = (this.userData as any)?.logoImage?.name;
+    return logo ? environment.imageUrl + logo : "";
+  }
+
   /** Signed-in user's email, for the dropdown header. */
   get userEmail(): string {
     return this.userData?.email || "";
