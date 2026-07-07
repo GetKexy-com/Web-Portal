@@ -4,7 +4,7 @@
 >
   <i class="fa fa-cloud-upload fa-fw" aria-hidden="true"></i>
   <div class="text">
-    <p class="title">Importing contacts… {{ importProgress }}%</p>
+    <p class="title">{{ importProgress ? 'Importing contacts… ' + importProgress + '%' : 'Starting import…' }}</p>
     <div class="progress-bar-track">
       <div class="progress-bar-fill" [style.width.%]="importProgress"></div>
     </div>

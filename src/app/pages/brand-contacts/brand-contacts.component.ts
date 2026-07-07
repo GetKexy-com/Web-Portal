@@ -516,11 +516,11 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
     });
     ref.componentInstance.parsedData = data;
     ref.componentInstance.closeModal = () => ref.close();
-    // Keep the preview open (button shows "Importing…") until the API responds,
-    // then close it. Rethrow on error so the preview resets its button.
-    ref.componentInstance.startImport = async (cleaned) => {
-      await this.getImportedFileData(cleaned);
+    // Close the preview immediately; the import-progress banner shows in its place
+    // (getImportedFileData calls contactCard.beginImport() right away).
+    ref.componentInstance.startImport = (cleaned) => {
       ref.close();
+      this.getImportedFileData(cleaned);
     };
   };
 
@@ -538,16 +538,17 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
       payload['bypassEmailVerification'] = true;
     }
 
+    // Show the progress banner immediately (preview already closed), remember the
+    // submitted rows, then kick off the async import and switch to live polling.
+    this.importedContactsSubmitted = contacts;
+    this.contactCard?.beginImport();
     try {
       const res: any = await this.prospectingService.addContacts(payload);
       this.isLoading = false;
-      // Import runs async now (POST returns { importId }): remember the submitted
-      // rows, then poll for live progress via the card banner. Results are shown
-      // in handleImportCompleted when the job finishes.
-      this.importedContactsSubmitted = contacts;
       this.contactCard?.startImportPolling(res?.importId);
     } catch (e) {
       this.isLoading = false;
+      this.contactCard?.cancelImport();
       console.log(e);
       let message = '';
       if (Array.isArray(e)) {
@@ -556,14 +557,20 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
         message = e.message;
       }
       await Swal.fire('Error', message);
-      throw e; // let the preview keep the modal open + reset its button
     }
   };
 
   // Async import finished (status = complete). Refresh contacts, then show the
   // skipped-rows modal (or a success alert when nothing was skipped).
   handleImportCompleted = async (data: any) => {
-    await this.getContacts(true);
+    // Show the in-table loader (like the drip-campaign table) while the freshly
+    // imported contacts are refetched, so there's no blank gap after the banner.
+    this.isWaitingFlag = true;
+    try {
+      await this.getContacts(true);
+    } finally {
+      this.isWaitingFlag = false;
+    }
     if (data?.skipped?.length) {
       this.showImportResults(data, this.importedContactsSubmitted || []);
     } else {

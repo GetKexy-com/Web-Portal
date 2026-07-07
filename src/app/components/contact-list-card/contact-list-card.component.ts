@@ -322,12 +322,32 @@ export class ContactListCardComponent implements OnInit, OnChanges, OnDestroy, A
   public importProgress: number = 0;
   private importId: number | null = null;
   private importPoll: any = null;
-  // Import progress moves faster than list validation, so poll more frequently.
-  private readonly IMPORT_POLL_MS = 2000;
+  // Adaptive poll: 2s normally, but back off to 4s after several identical
+  // progress readings (import stalled/slow), then snap back to 2s once it moves.
+  private readonly IMPORT_POLL_FAST = 2000;
+  private readonly IMPORT_POLL_SLOW = 4000;
+  private readonly IMPORT_STALE_LIMIT = 3;
+  private importLastProgress = -1;
+  private importSameCount = 0;
 
   isImportProgress = () => {
     return this.importStatus === 'in_queue' ||
       this.importStatus === 'inprogress';
+  };
+
+  // Show the progress banner IMMEDIATELY (before the importId is known) so it
+  // appears the moment the preview modal closes. startImportPolling() then takes
+  // over once POST contacts responds; cancelImport() clears it if that POST fails.
+  beginImport = () => {
+    this.importId = null;
+    this.importStatus = 'in_queue';
+    this.importProgress = 0;
+  };
+
+  cancelImport = () => {
+    this.stopImportPolling();
+    this.importStatus = null;
+    this.importProgress = 0;
   };
 
   // Called by the parent page right after POST contacts returns an importId.
@@ -337,15 +357,36 @@ export class ContactListCardComponent implements OnInit, OnChanges, OnDestroy, A
     this.importStatus = 'in_queue';
     this.importProgress = 0;
     if (this.importPoll) return;
+    this.importLastProgress = -1;
+    this.importSameCount = 0;
+
+    // Recursive setTimeout (not setInterval) so the delay can adapt each tick.
+    const scheduleNext = () => {
+      const delay = this.importSameCount >= this.IMPORT_STALE_LIMIT
+        ? this.IMPORT_POLL_SLOW
+        : this.IMPORT_POLL_FAST;
+      this.importPoll = setTimeout(poll, delay);
+    };
 
     const poll = async () => {
+      this.importPoll = null;
       try {
         const res: any = await this.prospectingService.getImportStatus(this.importId);
         const data = res?.data ?? res; // tolerate wrapped { success, data } or bare body
         if (data) {
           const wasInProgress = this.isImportProgress();
           if (data.status != null) this.importStatus = data.status;
-          if (typeof data.progress === 'number') this.importProgress = data.progress;
+          if (typeof data.progress === 'number') {
+            // Track how many consecutive polls returned the same progress to
+            // decide the next interval.
+            if (data.progress === this.importLastProgress) {
+              this.importSameCount++;
+            } else {
+              this.importSameCount = 0;
+              this.importLastProgress = data.progress;
+            }
+            this.importProgress = data.progress;
+          }
 
           if (wasInProgress && !this.isImportProgress()) {
             if (this.importStatus === 'complete') this.onImportComplete(data);
@@ -355,16 +396,16 @@ export class ContactListCardComponent implements OnInit, OnChanges, OnDestroy, A
       } catch {
         // Ignore transient errors and keep polling.
       }
-      if (!this.isImportProgress()) this.stopImportPolling();
+      if (this.isImportProgress()) scheduleNext();
+      else this.stopImportPolling();
     };
 
     poll();
-    this.importPoll = setInterval(poll, this.IMPORT_POLL_MS);
   };
 
   private stopImportPolling = () => {
     if (this.importPoll) {
-      clearInterval(this.importPoll);
+      clearTimeout(this.importPoll);
       this.importPoll = null;
     }
     this.importId = null;

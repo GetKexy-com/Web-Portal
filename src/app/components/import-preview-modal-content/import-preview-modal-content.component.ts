@@ -371,20 +371,12 @@ export class ImportPreviewModalContentComponent implements OnInit {
     });
   };
 
-  handleImport = async () => {
+  handleImport = () => {
     if (!this.items.length || this.importing) return;
     this.importing = true;
-    this.cdr.markForCheck();
-    const keptRows = this.items.map((i) => i.row);
-    try {
-      // Preserve the original Papa shape (meta/errors) so parseCsvDataToContact
-      // keeps working; only the rows change. Stay open (button shows "Importing…")
-      // until the API responds; the page closes this modal on success.
-      await this.startImport({ ...this.parsedData, data: keptRows });
-    } catch {
-      // Import failed — keep the modal open so the user can retry.
-      this.importing = false;
-      this.cdr.markForCheck();
-    }
+    // Preserve the original Papa shape (meta/errors) so parseCsvDataToContact
+    // keeps working; only the rows change. The page closes this modal immediately
+    // and shows the import-progress banner in its place.
+    this.startImport({ ...this.parsedData, data: this.items.map((i) => i.row) });
   };
 }
