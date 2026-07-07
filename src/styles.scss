@@ -1210,3 +1210,14 @@ header#main-header #logo {
     padding: 0;
   }
 }
+
+// Shared top action-bar used across list/table pages (manage-list, landing-pages,
+// suppression-list, brand-contacts, brand-list-of-drip-campaigns, lead-magnets).
+// Page-specific tweaks (e.g. height, min-height, responsive overrides) live in the
+// respective component SCSS.
+.top-btns {
+  padding: 10px 30px;
+  display: flex;
+  justify-content: flex-end;
+  background: white;
+}
