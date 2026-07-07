@@ -87,15 +87,36 @@ a {
   z-index: 6;
 }
 
-.kx-acct-row {
+.kx-support-nav {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 6px 6px 6px 8px;
+  width: 100%;
+  padding: 8px;
+  border: none;
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.06);
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s ease;
 
-  .kx-acct-meta {
+  &:hover { background: rgba(255, 255, 255, 0.14); }
+
+  .kx-support-nav-ic {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #0f84d4, #12a5f4);
+    color: #fff;
+    font-size: 15px;
+    flex-shrink: 0;
+    box-shadow: 0 2px 6px rgba(18, 165, 244, 0.35);
+  }
+
+  .kx-support-nav-text {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
@@ -104,58 +125,28 @@ a {
     line-height: 1.2;
   }
 
-  .kx-acct-name {
-    max-width: 100%;
+  .kx-support-nav-title {
     font-size: 13.5px;
     font-weight: 700;
     color: #fff;
-    text-transform: capitalize;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
   }
 
-  .kx-acct-role {
+  .kx-support-nav-sub {
     font-size: 11px;
     font-weight: 600;
     color: rgba(255, 255, 255, 0.6);
-    text-transform: capitalize;
   }
 }
 
-.kx-acct-logout {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 34px;
-  height: 34px;
-  border: none;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.08);
-  color: rgba(255, 255, 255, 0.82);
-  font-size: 15px;
-  cursor: pointer;
-  flex-shrink: 0;
-  transition: background 0.15s ease, color 0.15s ease;
-
-  &:hover {
-    background: #dc2626;
-    color: #fff;
-  }
-}
-
-/* Collapsed rail: just the logout button, centred (avatar/name hidden) */
+/* Collapsed rail: just the support icon, centred (label hidden) */
 #main-sidebar.collapsed .sidebar-footer {
   padding: 8px 6px;
 
-  .kx-acct-row {
+  .kx-support-nav {
     justify-content: center;
-    gap: 0;
-    padding: 4px;
-    background: transparent;
+    padding: 8px;
   }
-  .kx-avatar,
-  .kx-acct-meta { display: none; }
+  .kx-support-nav-text { display: none; }
 }
 
 /* Gradient initials avatar (shared by header pill, dropdown header, footer) */
