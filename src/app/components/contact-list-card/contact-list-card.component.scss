@@ -447,6 +447,11 @@
     line-height: 1.4;
   }
 
+  /* Gentle pulse so the upload icon reads as "working" even between poll ticks. */
+  > i.import-pulse {
+    animation: import-icon-pulse 1.4s ease-in-out infinite;
+  }
+
   .text {
     flex: 1;
 
@@ -464,18 +469,79 @@
     }
 
     .progress-bar-track {
+      position: relative;
       margin-top: 8px;
       height: 6px;
       background: #cfe6fb;
       border-radius: 999px;
       overflow: hidden;
+
+      /* Before we have a real % (server still queuing), sweep a segment across
+         the empty track so it never looks frozen. */
+      &.indeterminate::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 100%;
+        width: 40%;
+        border-radius: 999px;
+        background: #2847cc;
+        animation: import-indeterminate 1.2s ease-in-out infinite;
+      }
     }
 
     .progress-bar-fill {
+      position: relative;
       height: 100%;
       background: #2847cc;
       border-radius: 999px;
       transition: width 0.4s ease;
+      overflow: hidden;
+
+      /* Shimmer sweep so a paused % still reads as active. */
+      &::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          90deg,
+          rgba(255, 255, 255, 0) 0%,
+          rgba(255, 255, 255, 0.45) 50%,
+          rgba(255, 255, 255, 0) 100%
+        );
+        animation: import-shimmer 1.3s linear infinite;
+      }
     }
+  }
+}
+
+@keyframes import-icon-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  50% {
+    opacity: 0.5;
+    transform: translateY(-1px);
+  }
+}
+
+@keyframes import-shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes import-indeterminate {
+  0% {
+    left: -40%;
+  }
+  100% {
+    left: 100%;
   }
 }

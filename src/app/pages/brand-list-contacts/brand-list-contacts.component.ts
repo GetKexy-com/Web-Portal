@@ -515,23 +515,25 @@ export class BrandListContactsComponent implements OnInit, OnDestroy {
   // Async import finished (status = complete). Refresh lists + contacts, then show
   // the skipped-rows modal (or a success alert when nothing was skipped).
   handleImportCompleted = async (data: any) => {
-    // Show the in-table loader (like the drip-campaign table) while the freshly
-    // imported contacts are refetched, so there's no blank gap after the banner.
+    // Show the completion feedback IMMEDIATELY — the moment the progress banner
+    // disappears — instead of waiting for the reload below.
+    if (data?.skipped?.length) {
+      this.showImportResults(data, this.importedContactsSubmitted || []);
+    } else {
+      this.pageUiService.showSweetAlert(
+        'Import complete',
+        `${data?.importedCount ?? 0} contact(s) imported successfully.`,
+        'success',
+      );
+    }
+    // Refresh the freshly imported contacts behind the alert/modal (in-table
+    // loader, like the drip-campaign table) so there's no blank gap.
     this.isWaitingFlag = true;
     try {
       await this.prospectingService.getLists({ supplier_id: this.userData.supplier_id });
       await this.getContacts(true);
     } finally {
       this.isWaitingFlag = false;
-    }
-    if (data?.skipped?.length) {
-      this.showImportResults(data, this.importedContactsSubmitted || []);
-    } else {
-      await this.pageUiService.showSweetAlert(
-        'Import complete',
-        `${data?.importedCount ?? 0} contact(s) imported successfully.`,
-        'success',
-      );
     }
   };
 
