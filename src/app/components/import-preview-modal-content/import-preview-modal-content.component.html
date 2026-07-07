@@ -139,10 +139,14 @@
           <td
             *ngFor="let col of columns"
             class="cell-editable"
+            tabindex="0"
             [class.cell-invalid]="item.invalidSet.has(col)"
             [class.is-editing]="isEditing(item, col)"
-            [title]="isEditing(item, col) ? '' : (item.invalidSet.has(col) ? invalidReason(col) + ' — double-click to edit' : 'Double-click to edit')"
+            [class.is-selected]="isSelected(item, col)"
+            [title]="isEditing(item, col) ? '' : (item.invalidSet.has(col) ? invalidReason(col) + ' — double-click to edit' : 'Double-click to edit, ⌘/Ctrl+C to copy')"
+            (click)="selectCell(item, col)"
             (dblclick)="startEdit(item, col)"
+            (keydown)="onCellKeydown($event, item, col)"
           >
             <!-- The text stays in the DOM (hidden while editing) as a width sizer
                  so the column doesn't jump when the input appears/disappears. -->
@@ -150,6 +154,7 @@
             <i *ngIf="item.invalidSet.has(col)" class="fa fa-exclamation-circle cell-flag"
                [class.is-hidden]="isEditing(item, col)" aria-hidden="true"></i>
             <i class="fa fa-pencil cell-edit-hint" *ngIf="!isEditing(item, col)" aria-hidden="true"></i>
+            <span class="cell-copied" *ngIf="copiedKey === cellKey(item, col)">Copied</span>
             <input
               *ngIf="isEditing(item, col)"
               class="cell-input"

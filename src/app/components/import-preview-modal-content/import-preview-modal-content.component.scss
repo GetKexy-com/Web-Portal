@@ -439,9 +439,31 @@ $sheet-blue: #1a73e8;
   td.cell-editable {
     cursor: cell;
     position: relative;
+    outline: none;
 
     .cell-text.is-hidden,
     .cell-flag.is-hidden { visibility: hidden; }
+
+    // Single-click selection ring (Google-Sheets style).
+    &.is-selected {
+      box-shadow: inset 0 0 0 2px $sheet-blue;
+      z-index: 1;
+    }
+
+    .cell-copied {
+      position: absolute;
+      top: -10px;
+      right: 4px;
+      z-index: 4;
+      background: #202124;
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 5px;
+      box-shadow: 0 4px 10px -3px rgba(0, 0, 0, 0.4);
+      pointer-events: none;
+    }
 
     .cell-edit-hint {
       opacity: 0;

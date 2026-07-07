@@ -51,8 +51,12 @@ export class ImportPreviewModalContentComponent implements OnInit {
   showOnlyInvalid = false;
   pulseKey: number | null = null;
   private invalidCursor = -1;
-  // Inline cell editing (click a cell to fix a bad email/URL in place).
+  // Inline cell editing (double-click a cell to fix a bad email/URL in place).
   editing: { item: PreviewItem; col: string } | null = null;
+  // Single-click selection (Google-Sheets-style) — highlights the cell and lets
+  // the user copy its value with Ctrl/Cmd+C.
+  selected: { item: PreviewItem; col: string } | null = null;
+  copiedKey: string | null = null;
 
   // Rows currently shown (respects the "show only invalid" filter).
   displayed: PreviewItem[] = [];
@@ -250,6 +254,35 @@ export class ImportPreviewModalContentComponent implements OnInit {
     this.pulseKey = target;
     this.cdr.markForCheck();
   };
+
+  // ── Cell selection + keyboard copy ──────────────────────────────────────────
+  isSelected = (item: PreviewItem, col: string) =>
+    this.selected?.item === item && this.selected?.col === col;
+
+  selectCell = (item: PreviewItem, col: string) => {
+    this.selected = { item, col };
+  };
+
+  // Ctrl/Cmd+C copies the selected cell's value (when not editing). Enter/F2 begins
+  // editing, mirroring spreadsheet keyboard behaviour.
+  onCellKeydown = (event: KeyboardEvent, item: PreviewItem, col: string) => {
+    if (this.isEditing(item, col)) return; // let the input handle its own keys
+    if ((event.ctrlKey || event.metaKey) && (event.key === 'c' || event.key === 'C')) {
+      const value = (item.row[col] ?? '').toString();
+      navigator.clipboard?.writeText(value);
+      this.copiedKey = this.cellKey(item, col);
+      // Clear the "Copied" hint shortly after.
+      setTimeout(() => {
+        this.copiedKey = null;
+        this.cdr.markForCheck();
+      }, 900);
+    } else if (event.key === 'Enter' || event.key === 'F2') {
+      event.preventDefault();
+      this.startEdit(item, col);
+    }
+  };
+
+  cellKey = (item: PreviewItem, col: string) => `${this.items.indexOf(item)}:${col}`;
 
   // ── Inline editing ────────────────────────────────────────────────────────
   isEditing = (item: PreviewItem, col: string) =>
