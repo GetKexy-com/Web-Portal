@@ -110,7 +110,12 @@
         <span class="ip-spinner sm"></span>
       </div>
       <div class="ip-table-wrap" #scroll (scroll)="onScroll()">
-      <table class="ip-table">
+      <table class="ip-table" [style.width.px]="tableWidth">
+        <colgroup>
+          <col class="c-idx" />
+          <col *ngFor="let col of columns" [style.width.px]="colWidths[col]" />
+          <col class="c-remove" />
+        </colgroup>
         <thead>
         <tr>
           <th class="col-idx">#</th>

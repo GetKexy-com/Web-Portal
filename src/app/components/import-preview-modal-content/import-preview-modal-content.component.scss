@@ -344,11 +344,14 @@ $sheet-blue: #1a73e8;
 .ip-table {
   border-collapse: separate;
   border-spacing: 0;
-  width: 100%;
+  table-layout: fixed; // column widths come from <colgroup>, not row content
   font-size: 13px;
   color: #202124;
   white-space: nowrap;
   font-family: "Lato", Arial, sans-serif;
+
+  col.c-idx { width: 52px; }
+  col.c-remove { width: 44px; }
 
   // Gridlines on every cell.
   thead th,
@@ -370,6 +373,8 @@ $sheet-blue: #1a73e8;
     text-transform: none;
     padding: 8px 12px;
     border-bottom: 1px solid $grid-line-strong;
+    overflow: hidden;
+    text-overflow: ellipsis;
 
     &.col-has-invalid {
       color: $kx-bad;
@@ -404,11 +409,11 @@ $sheet-blue: #1a73e8;
     height: 34px;
     padding: 6px 12px;
     background: #fff;
-    max-width: 280px;
+    overflow: hidden;
 
     .cell-text {
       display: inline-block;
-      max-width: 260px;
+      max-width: 100%;
       overflow: hidden;
       text-overflow: ellipsis;
       vertical-align: middle;

@@ -70,6 +70,13 @@ export class ImportPreviewModalContentComponent implements OnInit {
   bottomPad = 0;
   private rowHeight = 34;
   private readonly BUFFER = 8;
+  // Fixed column widths so the grid uses table-layout: fixed — column widths must
+  // NOT depend on the currently-rendered (virtualized) rows, or they blink while
+  // scrolling. `#` = 52px, remove = 44px.
+  colWidths: Record<string, number> = {};
+  tableWidth = 0;
+  private readonly IDX_W = 52;
+  private readonly REMOVE_W = 44;
   // Precomputed summary (recomputed only when data/filter changes, never per-CD).
   validCount = 0;
   invalidCount = 0;
@@ -97,6 +104,7 @@ export class ImportPreviewModalContentComponent implements OnInit {
         ? [...this.parsedData.meta.fields]
         : Object.keys(this.parsedData?.data?.[0] || {});
       this.columns = this.orderColumns(fields);
+      this.computeColumnWidths();
       this.buildItems(this.parsedData?.data || []);
       this.recompute();
       this.loading = false;
@@ -152,6 +160,26 @@ export class ImportPreviewModalContentComponent implements OnInit {
     });
     const rest = fields.filter((f) => !preferred.includes(f));
     return [...preferred, ...rest];
+  };
+
+  // Assign a stable width per column (by header meaning) so table-layout: fixed
+  // keeps columns rock-steady while virtual-scrolling.
+  private computeColumnWidths = () => {
+    let sum = 0;
+    for (const col of this.columns) {
+      const w = this.widthForColumn(col);
+      this.colWidths[col] = w;
+      sum += w;
+    }
+    this.tableWidth = this.IDX_W + sum + this.REMOVE_W;
+  };
+
+  private widthForColumn = (col: string): number => {
+    const c = (col || '').toLowerCase();
+    if (c.includes('email') || c.includes('website') || c.includes('linkedin') || c.includes('url')) return 240;
+    if (c.includes('title') || c.includes('company')) return 200;
+    if (c.includes('name')) return 150;
+    return 150;
   };
 
   private buildItems = (rows: any[]) => {
