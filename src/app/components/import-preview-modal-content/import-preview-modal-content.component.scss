@@ -11,7 +11,8 @@ $kx-warn: #b45309;
 .import-preview {
   display: flex;
   flex-direction: column;
-  max-height: 86vh;
+  height: 96vh;
+  max-height: 100vh;
   color: $kx-ink;
   background: #fbfcfe;
   border-radius: 16px;
@@ -59,10 +60,9 @@ $kx-warn: #b45309;
   }
 
   .ip-sub {
-    margin: 4px 0 0;
+    margin: 0;
     font-size: 13px;
     color: $kx-muted;
-    max-width: 720px;
     line-height: 1.5;
   }
 
@@ -87,6 +87,7 @@ $kx-warn: #b45309;
 // ── Loading ─────────────────────────────────────────────────────────────────
 .ip-loading {
   display: flex;
+  flex: 1 1 auto;
   flex-direction: column;
   align-items: center;
   justify-content: center;

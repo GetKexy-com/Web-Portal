@@ -1221,3 +1221,16 @@ header#main-header #logo {
   justify-content: flex-end;
   background: white;
 }
+
+// CSV import preview modal — larger + taller than the default xl dialog. The
+// dialog is rendered at the body by NgbModal, so this must be global.
+.import-preview-window .modal-dialog {
+  max-width: 96vw;
+  width: 1400px;
+  margin: 1.5rem auto;
+}
+.import-preview-window .modal-content {
+  border: none;
+  border-radius: 16px;
+  overflow: hidden;
+}

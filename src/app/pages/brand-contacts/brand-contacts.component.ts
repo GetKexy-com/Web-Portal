@@ -510,6 +510,7 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
     this.closeModal(); // close the upload modal
     const ref = this.modal.open(ImportPreviewModalContentComponent, {
       size: 'xl',
+      windowClass: 'import-preview-window',
       backdrop: 'static',
       keyboard: false,
     });
