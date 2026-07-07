@@ -65,7 +65,13 @@
   display: grid;
   grid-template-rows: 0fr;
   opacity: 0;
-  transition: grid-template-rows 0.28s ease, opacity 0.2s ease, margin 0.28s ease;
+
+  /* Only animate once the component has painted (see `animate` signal) — a
+     section that loads already-open renders instantly instead of replaying the
+     grow animation on every navigation. */
+  &.animate {
+    transition: grid-template-rows 0.28s ease, opacity 0.2s ease, margin 0.28s ease;
+  }
 
   &.open:not(.flyout) {
     grid-template-rows: 1fr;

@@ -15,6 +15,7 @@
     [class.flyout]="collapsed"
     [class.flyout-open]="flyoutOpen()"
     [class.open]="isOpen()"
+    [class.animate]="animate()"
   >
     @if (collapsed) {
       <div class="flyout-title">{{ label }}</div>

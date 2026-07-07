@@ -18,6 +18,15 @@ export class NavItemDropdownComponent {
   isOpen = signal(false);
   /** Click-pinned state of the collapsed flyout (hover shows it via CSS too). */
   flyoutOpen = signal(false);
+  /**
+   * Gates the accordion open/close transition. The layout is re-created on every
+   * navigation, so a section that starts open (`expand`) must render open
+   * INSTANTLY — otherwise the grid-rows transition replays on each page change
+   * (collapse-then-grow flash). Enabling this only on the user's first toggle
+   * keeps the initial render un-animated deterministically (a render-timer flag
+   * races the first paint and flashes intermittently).
+   */
+  animate = signal(false);
 
   private host = inject(ElementRef);
 
@@ -36,6 +45,9 @@ export class NavItemDropdownComponent {
       this.flyoutOpen.update(open => !open);
       return;
     }
+    // Enable the transition on the first user toggle so the accordion animates
+    // when opened/closed by hand, but never on the initial (already-open) render.
+    this.animate.set(true);
     this.isOpen.update(current => !current);
   };
 
