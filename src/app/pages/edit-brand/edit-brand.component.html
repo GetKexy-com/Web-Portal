@@ -26,9 +26,18 @@
         <h3 class="profile-name">{{ userData?.supplier_name }}</h3>
         <span class="role-badge">Business</span>
 
-        <button type="button" class="photo-link" (click)="openFileDialog()">
-          <i class="fa fa-upload" aria-hidden="true"></i> Upload new logo
-        </button>
+        <div class="sidebar-actions">
+          <app-kexy-button
+            label="Upload Logo"
+            type="button"
+            style="width: 100%"
+            iconLeft="fa-upload"
+            bgColor="transparent"
+            [borderColor]="'#0047cc'"
+            [textColor]="'#0047cc'"
+            (click)="openFileDialog()"
+          ></app-kexy-button>
+        </div>
       </aside>
 
       <!-- ── Right: editable company details ── -->

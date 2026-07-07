@@ -109,7 +109,7 @@
 
 .role-badge {
   display: inline-block;
-  margin-top: 10px;
+  margin-top: 8px;
   padding: 4px 14px;
   border-radius: 999px;
   background: #e8f3fd;
@@ -120,21 +120,13 @@
   letter-spacing: 0.02em;
 }
 
-.photo-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  margin: 18px auto 0;
-  padding: 0;
-  border: none;
-  background: none;
-  color: #0047cc;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-
-  &:hover { text-decoration: underline; }
-  i { font-size: 12px; }
+.sidebar-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 24px;
+  padding-top: 22px;
+  border-top: 1px solid #edf1f6;
 }
 
 // ── Right: form panel ──────────────────────────────────────────────────────

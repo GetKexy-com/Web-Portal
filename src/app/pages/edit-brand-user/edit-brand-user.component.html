@@ -24,25 +24,32 @@
         </div>
 
         <h3 class="profile-name">{{ userData?.firstName }} {{ userData?.lastName }}</h3>
-        <p class="profile-email">{{ userData?.email }}</p>
         <span class="role-badge" *ngIf="userData?.role">{{ userData.role }}</span>
+        <p class="profile-email">{{ userData?.email }}</p>
 
-        <button type="button" class="photo-link" (click)="openFileDialog()">
-          <i class="fa fa-upload" aria-hidden="true"></i> Upload new photo
-        </button>
+        <div class="sidebar-actions">
+          <app-kexy-button
+            label="Upload Profile Photo"
+            type="button"
+            style="width: 100%"
+            iconLeft="fa-upload"
+            bgColor="transparent"
+            [borderColor]="'#0047cc'"
+            [textColor]="'#0047cc'"
+            (click)="openFileDialog()"
+          ></app-kexy-button>
 
-        <div class="sidebar-divider"></div>
-
-        <app-kexy-button
-          label="Change Password"
-          type="button"
-          style="width: 100%"
-          iconLeft="fa-lock"
-          bgColor="transparent"
-          [borderColor]="'#0047cc'"
-          [textColor]="'#0047cc'"
-          (click)="updatePassModal(changePasswordModal)"
-        ></app-kexy-button>
+          <app-kexy-button
+            label="Change Password"
+            type="button"
+            style="width: 100%"
+            iconLeft="fa-lock"
+            bgColor="transparent"
+            [borderColor]="'#0047cc'"
+            [textColor]="'#0047cc'"
+            (click)="updatePassModal(changePasswordModal)"
+          ></app-kexy-button>
+        </div>
       </aside>
 
       <!-- ── Right: editable details ── -->
