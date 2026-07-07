@@ -40,7 +40,7 @@
         ></app-kexy-button>
 
         <app-kexy-button
-          *ngIf="!addToDripCampaignId || !selectedContacts.length"
+          *ngIf="!addToDripCampaignId && !selectedContacts.length"
           [disabled]="isWaitingFlag || isLoading"
           style="margin-right: 10px"
           label="Add Contact"
@@ -64,7 +64,20 @@
         ></app-kexy-button>
 
         <app-kexy-button
-          *ngIf="!addToDripCampaignId || !selectedContacts.length"
+          *ngIf="selectedContacts.length && !addToDripCampaignId"
+          [disabled]="isWaitingFlag || isLoading || selectAllContacts || contactCard.validationLoading || contactCard.isValidationProgress()"
+          (click)="contactCard.validateList()"
+          style="margin-right: 10px"
+          [label]="contactCard.validationLoading ? 'Please wait...' : 'Verify Selected (' + selectedContacts.length + ')'"
+          [iconLeft]="contactCard.validationLoading ? 'fa-refresh fa-spin' : 'fa-check-circle-o'"
+          tooltip="Verify email(s) for the selected contact(s)"
+          bgColor="#e7f6fe"
+          textColor="#2847cc"
+          radius="8px"
+        ></app-kexy-button>
+
+        <app-kexy-button
+          *ngIf="!addToDripCampaignId && !selectedContacts.length"
           [disabled]="isWaitingFlag || isLoading"
           style="margin-right: 10px"
           label="Import"
@@ -76,7 +89,7 @@
         ></app-kexy-button>
 
         <app-kexy-button
-          *ngIf="!addToDripCampaignId || !selectedContacts.length"
+          *ngIf="!addToDripCampaignId && !selectedContacts.length"
           (click)="exportCSV()"
           [disabled]="exportBtnLoading || isLoading || isWaitingFlag"
           [label]="exportBtnLoading ? 'Please wait...' : 'Export' "
@@ -141,6 +154,19 @@
         ></app-kexy-button>
 
         <app-kexy-button
+          *ngIf="selectedContacts.length && !addToDripCampaignId"
+          [disabled]="isWaitingFlag || isLoading || selectAllContacts || contactCard.validationLoading || contactCard.isValidationProgress()"
+          (click)="contactCard.validateList()"
+          style="margin-right: 10px"
+          label=""
+          [iconLeft]="contactCard.validationLoading ? 'fa-refresh fa-spin' : 'fa-check-circle-o'"
+          bgColor="#e7f6fe"
+          textColor="#2847cc"
+          radius="8px"
+          tooltip="Verify Selected Email(s)"
+        ></app-kexy-button>
+
+        <app-kexy-button
           *ngIf="!addToDripCampaignId"
           [disabled]="isWaitingFlag || isLoading"
           style="margin-right: 10px"
@@ -179,6 +205,7 @@
       </p>
 
       <contact-list-card
+        #contactCard
         tableHeaderBg="#0047CC"
         tableHeaderColor="#FFFFFF"
         [searchLabels]="searchLabels"

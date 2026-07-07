@@ -104,6 +104,11 @@ export class ContactListCardComponent implements OnInit, OnChanges, OnDestroy, A
   // already mid-verification when the card loads).
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['listInfo']) {
+      // Seed the card-local status from the bound list (e.g. a list already
+      // mid-verification when the card loads). On pages without a listInfo
+      // (brand-contacts) this branch never runs, so a selected-contacts run's
+      // status is preserved.
+      this.validationStatus = this.listInfo?.validationStatus ?? null;
       if (this.isValidationProgress()) this.startValidationPolling();
       else this.stopValidationPolling();
     }
@@ -175,19 +180,39 @@ export class ContactListCardComponent implements OnInit, OnChanges, OnDestroy, A
   // then reads status from lists/contacts/validation-status?contactIds=… instead
   // of the whole-list endpoint. null means a full-list run.
   private validatingContactIds: number[] | null = null;
+  // Card-local verification status — the single source of truth for the banner
+  // and polling. On list pages it's seeded from (and mirrored back to)
+  // listInfo.validationStatus so siblings sharing the same listObj (e.g.
+  // prospecting-common-card's verified badge) stay in sync. On the brand-contacts
+  // page there's no listInfo, so this tracks a selected-contacts run on its own.
+  public validationStatus: string | null = null;
 
   isValidationProgress = () => {
-    return this.listInfo && (
-      this.listInfo.validationStatus === 'pending' ||
-      this.listInfo.validationStatus === 'inprogress' ||
-      this.listInfo.validationStatus === 'in_queue'
-    );
+    return this.validationStatus === 'pending' ||
+      this.validationStatus === 'inprogress' ||
+      this.validationStatus === 'in_queue';
+  };
+
+  // Update the card status and mirror it onto the shared listObj when present.
+  private setValidationStatus = (status: string) => {
+    this.validationStatus = status;
+    if (this.listInfo) this.listInfo.validationStatus = status;
   };
 
   validateList = async () => {
     // If the user has checked specific contacts, verify ONLY those; otherwise
     // verify the whole list. The API wants EXACTLY ONE of listId / contactIds.
     const selectedIds = this.contacts.filter((c) => c.isSelected).map((c) => c.id);
+    // Whole-list verification needs a list. Without one (brand-contacts page) a
+    // selection is required — guard so we never post an empty/invalid payload.
+    if (!selectedIds.length && !this.listInfo?.id) {
+      await this.pageUiService.showSweetAlert(
+        'No contacts selected',
+        'Please select the contact(s) you want to verify.',
+        'info',
+      );
+      return;
+    }
     const postData: { listId?: number; contactIds?: number[] } = selectedIds.length
       ? { contactIds: selectedIds }
       : { listId: this.listInfo.id };
@@ -196,7 +221,7 @@ export class ContactListCardComponent implements OnInit, OnChanges, OnDestroy, A
     try {
       this.validationLoading = true;
       await this.prospectingService.validateList(postData);
-      this.listInfo.validationStatus = 'pending';
+      this.setValidationStatus('pending');
       this.startValidationPolling();
       await this.pageUiService.showSweetAlert(
         'Verification started',
@@ -217,7 +242,9 @@ export class ContactListCardComponent implements OnInit, OnChanges, OnDestroy, A
   // show the verified breakdown; on "not_validated" the job failed (progress
   // frozen) — the user can retry via the Verify button. Stops polling either way.
   private startValidationPolling = () => {
-    if (this.validationPoll || !this.listInfo?.id || !this.isValidationProgress()) return;
+    // Need something to poll: a checked subset (contactIds) or a whole list (listInfo.id).
+    if (this.validationPoll || !this.isValidationProgress()) return;
+    if (!this.validatingContactIds?.length && !this.listInfo?.id) return;
 
     const poll = async () => {
       try {
@@ -227,11 +254,11 @@ export class ContactListCardComponent implements OnInit, OnChanges, OnDestroy, A
         const data = res?.data ?? res; // tolerate wrapped { success, data } or bare body
         if (data) {
           const wasInProgress = this.isValidationProgress();
-          if (data.validationStatus != null) this.listInfo.validationStatus = data.validationStatus;
+          if (data.validationStatus != null) this.setValidationStatus(data.validationStatus);
           if (typeof data.progress === 'number') this.validationProgress = data.progress;
 
           if (wasInProgress && !this.isValidationProgress()) {
-            if (this.listInfo.validationStatus === 'complete') this.onValidationComplete(data);
+            if (this.validationStatus === 'complete') this.onValidationComplete(data);
             else this.onValidationFailed(); // 'not_validated' — job failed
           }
         }
