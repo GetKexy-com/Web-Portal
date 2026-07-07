@@ -155,8 +155,9 @@
       label="Tutorials"
     ></nav-item>
 
-    <!-- Account row pinned to the bottom: identity + a direct Logout action -->
-    <li class="sidebar-footer">
+    <!-- Account row pinned to the bottom — hidden for now (the account menu lives
+         in the top-right header; keeping this here in case we revisit it). -->
+    <li class="sidebar-footer" *ngIf="false">
       <div class="kx-acct-row">
         <span class="kx-avatar">
           <img *ngIf="userAvatarUrl" [src]="userAvatarUrl" alt="" />
