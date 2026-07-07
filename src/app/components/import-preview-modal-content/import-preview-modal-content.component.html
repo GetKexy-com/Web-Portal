@@ -33,7 +33,7 @@
       <div class="ip-banner-main">
         <p class="ip-banner-title" *ngIf="invalidCount">{{ invalidCount }} of {{ items.length }} row(s) need attention</p>
         <p class="ip-banner-title" *ngIf="!invalidCount">All {{ items.length }} row(s) look good</p>
-        <p class="ip-banner-sub" *ngIf="invalidCount">Click any highlighted cell to fix it, or remove the row. You can still import as-is.</p>
+        <p class="ip-banner-sub" *ngIf="invalidCount">Click any highlighted cell to fix it, or remove the row. Fix or remove every issue to import.</p>
         <p class="ip-banner-sub" *ngIf="!invalidCount">Everything is valid and ready to import.</p>
 
         <div class="ip-chips">
@@ -193,12 +193,12 @@
     <div class="ip-footer">
       <p class="ip-footer-note" *ngIf="invalidCount">
         <i class="fa fa-exclamation-triangle" aria-hidden="true"></i>
-        {{ invalidCount }} row(s) still have issues and will be skipped. Fix the issues to include it.
+        {{ invalidCount }} row(s) still have issues. Fix or remove them before importing.
       </p>
       <div class="ip-footer-btns">
         <app-kexy-button
           (click)="handleImport()"
-          [disabled]="!items.length || importing"
+          [disabled]="!items.length || importing || invalidCount > 0"
           [label]="importing ? 'Importing…' : ('Import ' + items.length + ' contact' + (items.length === 1 ? '' : 's'))"
           [iconLeft]="importing ? 'fa-refresh fa-spin' : 'fa-cloud-upload'"
           bgColor="#12a5f4"

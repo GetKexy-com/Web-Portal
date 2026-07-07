@@ -372,7 +372,8 @@ export class ImportPreviewModalContentComponent implements OnInit {
   };
 
   handleImport = () => {
-    if (!this.items.length || this.importing) return;
+    // Block import while any row still has an error — every row must be valid.
+    if (!this.items.length || this.importing || this.invalidCount) return;
     this.importing = true;
     // Preserve the original Papa shape (meta/errors) so parseCsvDataToContact
     // keeps working; only the rows change. The page closes this modal immediately
