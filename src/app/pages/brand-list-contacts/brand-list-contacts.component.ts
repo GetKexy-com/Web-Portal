@@ -53,6 +53,10 @@ export class BrandListContactsComponent implements OnInit, OnDestroy {
   sortBy = '';
   sortType = '';
   selectAllContacts = false;
+  // Rows submitted in the last CSV import — kept so we can map the async import's
+  // skipped indices back to full rows when it completes.
+  private importedContactsSubmitted: any[] = [];
+  @ViewChild('contactCard') contactCard: ContactListCardComponent;
 
   constructor(
     private prospectingService: ProspectingService,
@@ -459,14 +463,32 @@ export class BrandListContactsComponent implements OnInit, OnDestroy {
 
     try {
       const res: any = await this.prospectingService.addContacts(payload);
-      await this.prospectingService.getLists({ supplier_id: this.userData.supplier_id });
-      await this.getContacts(true);
       this.isLoading = false;
       this.closeModal();
-      this.showImportResults(res, contacts);
+      // Import runs async now (POST returns { importId }): remember the submitted
+      // rows, then poll for live progress via the card banner. Results are shown
+      // in handleImportCompleted when the job finishes.
+      this.importedContactsSubmitted = contacts;
+      this.contactCard?.startImportPolling(res?.importId);
     } catch (e) {
       this.isLoading = false;
       await Swal.fire('Error', e.error);
+    }
+  };
+
+  // Async import finished (status = complete). Refresh lists + contacts, then show
+  // the skipped-rows modal (or a success alert when nothing was skipped).
+  handleImportCompleted = async (data: any) => {
+    await this.prospectingService.getLists({ supplier_id: this.userData.supplier_id });
+    await this.getContacts(true);
+    if (data?.skipped?.length) {
+      this.showImportResults(data, this.importedContactsSubmitted || []);
+    } else {
+      await this.pageUiService.showSweetAlert(
+        'Import complete',
+        `${data?.importedCount ?? 0} contact(s) imported successfully.`,
+        'success',
+      );
     }
   };
 

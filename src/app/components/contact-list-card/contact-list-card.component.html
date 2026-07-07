@@ -1,4 +1,17 @@
 <section
+  *ngIf="isImportProgress()"
+  class="list-verification-progress"
+>
+  <i class="fa fa-cloud-upload fa-fw" aria-hidden="true"></i>
+  <div class="text">
+    <p class="title">Importing contacts… {{ importProgress }}%</p>
+    <div class="progress-bar-track">
+      <div class="progress-bar-fill" [style.width.%]="importProgress"></div>
+    </div>
+    <p class="desc">Your contacts are being imported. This can take a little while for large files.</p>
+  </div>
+</section>
+<section
   *ngIf="isValidationProgress() "
   class="list-verification-progress"
 >

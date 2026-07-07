@@ -10,6 +10,7 @@
 
     <section>
       <contact-list-card
+        #contactCard
         tableHeaderBg="#0047CC"
         tableHeaderColor="#FFFFFF"
         [searchLabels]="[]"
@@ -27,6 +28,7 @@
         [limit]="limit"
         (selectedLimit)="receivedLimitNumber($event)"
         (refreshContacts)="getContacts(true)"
+        (importCompleted)="handleImportCompleted($event)"
         [paginationLeftArrowClick]="paginationLeftArrowClick"
         [paginationRightArrowClick]="paginationRightArrowClick"
         [navigateSpecificPage]="navigateSpecificPage"

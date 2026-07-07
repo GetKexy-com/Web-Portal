@@ -582,6 +582,9 @@ export class ProspectingService {
     });
   };
 
+  // POST contacts now kicks off an ASYNC import: it responds immediately (202)
+  // with { importId, status, total } (under res.data). Poll getImportStatus() to
+  // learn when it finished and to read the final importedCount/skippedCount/skipped.
   addContacts = async (postData) => {
     return new Promise(async (resolve, reject) => {
       this.httpService.post('contacts', postData).subscribe({
@@ -591,6 +594,20 @@ export class ProspectingService {
             reject(err.error);
           }
         },
+      });
+    });
+  };
+
+  // GET contacts/import/:id — status/progress of an async CSV import.
+  // Body (under the standard { success, data } wrapper): { importId, status
+  // (in_queue → inprogress → complete | failed), progress (0–100, capped at 99
+  // until committed), total, importedCount, skippedCount, skipped[], error }.
+  // Resolves the raw response; callers read res.data ?? res.
+  getImportStatus = async (importId) => {
+    return new Promise((resolve, reject) => {
+      this.httpService.get(`contacts/import/${importId}`).subscribe({
+        next: (res: any) => resolve(res),
+        error: (err) => reject(err.error || err),
       });
     });
   };

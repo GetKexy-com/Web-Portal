@@ -80,6 +80,10 @@ export class ContactListCardComponent implements OnInit, OnChanges, OnDestroy, A
   // Emitted when email verification finishes so the parent page can reload the
   // contacts and show the updated email statuses.
   @Output() refreshContacts: EventEmitter<void> = new EventEmitter();
+  // Emitted when an async CSV import finishes (status = complete) with the final
+  // status body ({ importedCount, skippedCount, skipped[], total }). The parent
+  // reloads contacts and opens the import-results modal.
+  @Output() importCompleted: EventEmitter<any> = new EventEmitter();
 
   public tableWidth = 500;
   public columnList: any[];
@@ -117,6 +121,7 @@ export class ContactListCardComponent implements OnInit, OnChanges, OnDestroy, A
   ngOnDestroy(): void {
     if (this.loadingSubscription) this.loadingSubscription.unsubscribe();
     this.stopValidationPolling();
+    this.stopImportPolling();
   }
 
   ngAfterViewChecked() {
@@ -300,6 +305,77 @@ export class ContactListCardComponent implements OnInit, OnChanges, OnDestroy, A
     this.pageUiService.showSweetAlert(
       'Verification failed',
       'Something went wrong while verifying emails. Please try again.',
+      'error',
+    );
+  };
+
+  // ── Async CSV import progress ─────────────────────────────────────────────
+  // A CSV import is queued via POST contacts (returns { importId }); the card
+  // then polls GET contacts/import/:id and shows a live-progress banner (same
+  // model as list validation above). On completion it emits importCompleted with
+  // the final body so the parent can refresh + open the import-results modal.
+  public importStatus: string | null = null;
+  public importProgress: number = 0;
+  private importId: number | null = null;
+  private importPoll: any = null;
+  // Import progress moves faster than list validation, so poll more frequently.
+  private readonly IMPORT_POLL_MS = 2000;
+
+  isImportProgress = () => {
+    return this.importStatus === 'in_queue' ||
+      this.importStatus === 'inprogress';
+  };
+
+  // Called by the parent page right after POST contacts returns an importId.
+  startImportPolling = (importId: number) => {
+    if (importId == null) return;
+    this.importId = importId;
+    this.importStatus = 'in_queue';
+    this.importProgress = 0;
+    if (this.importPoll) return;
+
+    const poll = async () => {
+      try {
+        const res: any = await this.prospectingService.getImportStatus(this.importId);
+        const data = res?.data ?? res; // tolerate wrapped { success, data } or bare body
+        if (data) {
+          const wasInProgress = this.isImportProgress();
+          if (data.status != null) this.importStatus = data.status;
+          if (typeof data.progress === 'number') this.importProgress = data.progress;
+
+          if (wasInProgress && !this.isImportProgress()) {
+            if (this.importStatus === 'complete') this.onImportComplete(data);
+            else this.onImportFailed(data); // 'failed'
+          }
+        }
+      } catch {
+        // Ignore transient errors and keep polling.
+      }
+      if (!this.isImportProgress()) this.stopImportPolling();
+    };
+
+    poll();
+    this.importPoll = setInterval(poll, this.IMPORT_POLL_MS);
+  };
+
+  private stopImportPolling = () => {
+    if (this.importPoll) {
+      clearInterval(this.importPoll);
+      this.importPoll = null;
+    }
+    this.importId = null;
+  };
+
+  private onImportComplete = (data: any) => {
+    this.importProgress = 100;
+    // Parent reloads contacts and opens the import-results modal (skipped rows).
+    this.importCompleted.emit(data);
+  };
+
+  private onImportFailed = (data: any) => {
+    this.pageUiService.showSweetAlert(
+      'Import failed',
+      data?.error || 'Something went wrong while importing contacts. Please try again.',
       'error',
     );
   };
