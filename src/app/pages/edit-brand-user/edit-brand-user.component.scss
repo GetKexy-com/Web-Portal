@@ -1,3 +1,4 @@
+// ── Page shell ────────────────────────────────────────────────────────────
 .brand-list-contacts-page {
   background: #e7f6fe;
   padding: 18px 24px;
@@ -8,181 +9,297 @@
   }
 }
 
-.tr-main-box {
-  overflow: hidden;
-  position: relative;
-  min-height: 600px;
-  background: white;
-  width: 1000px;
-  box-shadow: 0px 0px 10px 4px #d8d3d3;
-  margin: 40px auto auto;
-  padding: 20px;
-}
+// ── Two-panel layout: profile summary + editable form ──────────────────────
+.profile-grid {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
 
-.kexy-logo {
-  text-align: center;
-  margin-bottom: 20px;
-  margin-top: 20px;
-}
-
-.tr-kexy-button {
-  text-align: center;
-  margin-bottom: 20px;
-}
-
-.form-group {
-  margin-bottom: 16px;
-}
-
-.kexy-button {
-  background: #12a5f4;
-  border-radius: 10px;
-  width: 360px;
-  padding: 18px;
-  font-size: 18px;
-  text-transform: capitalize;
-  line-height: 22px;
-  border: none;
-  color: white;
-}
-
-.profile-photo {
-  width: fit-content;
-  //height: 178px;
-  border-radius: 10px;
-  margin-top: 60px;
-  max-height: 150px;
-}
-.profile-photo-wrap {
-  margin-top: 20px;
-}
-.no-profile-image {
-  margin-top: 0px;
-  max-width: 134px;
-}
-.input-label-text {
-  font-size: 11px;
-  line-height: 11px;
-  &.edit-password {
-    font-size: 12px;
+  @media (max-width: 991px) {
+    flex-direction: column;
   }
 }
+
+// Shared card surface
+.profile-sidebar,
+.form-panel {
+  background: #fff;
+  border: 1px solid #e6ecf3;
+  border-radius: 16px;
+  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.06);
+}
+
+// ── Left: profile summary ──────────────────────────────────────────────────
+.profile-sidebar {
+  flex: 0 0 300px;
+  width: 300px;
+  padding: 28px 24px;
+  text-align: center;
+
+  @media (max-width: 991px) {
+    flex: none;
+    width: 100%;
+  }
+}
+
+.avatar-wrap {
+  position: relative;
+  width: 116px;
+  height: 116px;
+  margin: 4px auto 18px;
+}
+
+.avatar {
+  width: 116px;
+  height: 116px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #fff;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.16);
+  background: #eef3f9;
+}
+
+.avatar-initials {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+  font-weight: 700;
+  color: #fff;
+  text-transform: uppercase;
+  background: linear-gradient(135deg, #0f84d4, #12a5f4);
+  letter-spacing: 1px;
+}
+
+.avatar-edit {
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  background: #0047cc;
+  color: #fff;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 71, 204, 0.35);
+  transition: background 0.15s ease, transform 0.15s ease;
+
+  &:hover {
+    background: #0038a3;
+    transform: translateY(-1px);
+  }
+}
+
+.profile-name {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #1f2937;
+  text-transform: capitalize;
+}
+
+.profile-email {
+  margin: 4px 0 12px;
+  font-size: 13px;
+  color: #6b7280;
+  word-break: break-word;
+}
+
+.role-badge {
+  display: inline-block;
+  padding: 4px 14px;
+  border-radius: 999px;
+  background: #e8f3fd;
+  color: #0b72b7;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: capitalize;
+  letter-spacing: 0.02em;
+}
+
+.photo-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 16px auto 0;
+  padding: 0;
+  border: none;
+  background: none;
+  color: #0047cc;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover { text-decoration: underline; }
+  i { font-size: 12px; }
+}
+
+.sidebar-divider {
+  height: 1px;
+  background: #edf1f6;
+  margin: 22px 0 20px;
+}
+
+// ── Right: form panel ──────────────────────────────────────────────────────
+.form-panel {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 28px 30px;
+}
+
+.panel-head {
+  margin-bottom: 22px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #edf1f6;
+}
+
+.panel-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.panel-subtitle {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.field-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px 20px;
+
+  @media (max-width: 575px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+}
+
+.field-label {
+  margin-bottom: 7px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #556070;
+  letter-spacing: 0.01em;
+}
+
+// ── Inputs (scoped to this component only) ─────────────────────────────────
+:host ::ng-deep .form-control {
+  height: 46px;
+  padding: 10px 14px;
+  font-size: 14px;
+  color: #1f2937;
+  background: #f7f9fc;
+  border: 1.5px solid #e4e8f0;
+  border-radius: 10px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+
+  &::placeholder { color: #9aa4b2; }
+
+  &:focus {
+    background: #fff;
+    border-color: #12a5f4;
+    box-shadow: 0 0 0 3px rgba(18, 165, 244, 0.15);
+    outline: none;
+  }
+
+  &:disabled {
+    background: #eef1f5;
+    color: #8a94a3;
+    cursor: not-allowed;
+  }
+
+  &.error {
+    border-color: #dc2626;
+    background: #fff5f5;
+  }
+}
+
+:host ::ng-deep select.form-control {
+  padding-bottom: 10px;
+  cursor: pointer;
+}
+
+// Phone field — align with the new input look
+.phonefields {
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  border: 1.5px solid #e4e8f0;
+  border-radius: 10px;
+  background: #f7f9fc;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+
+  &:focus-within {
+    background: #fff;
+    border-color: #12a5f4;
+    box-shadow: 0 0 0 3px rgba(18, 165, 244, 0.15);
+  }
+}
+
+.phonecode {
+  padding: 0 6px 0 14px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #556070;
+  white-space: nowrap;
+}
+
+:host ::ng-deep .phoneNumber.form-control {
+  flex: 1 1 auto;
+  height: 44px;
+  border: none !important;
+  background: transparent;
+  padding-left: 4px;
+  box-shadow: none !important;
+
+  &:focus {
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent;
+  }
+}
+
+// ── Actions ────────────────────────────────────────────────────────────────
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 26px;
+  padding-top: 20px;
+  border-top: 1px solid #edf1f6;
+}
+
+// ── Change-password modal ──────────────────────────────────────────────────
+.input-label-text {
+  font-size: 12px;
+  font-weight: 600;
+  color: #556070;
+}
+
 .input-wrap {
   position: relative;
+
   .eye-wrapper {
     cursor: pointer;
     position: absolute;
     width: 30px;
-    right: 5px;
-    bottom: 15px;
+    right: 8px;
+    bottom: 12px;
+    color: #6b7280;
   }
-
-}
-.tr-form {
-  width: 360px;
-  margin: auto;
 }
 
 .tr-hidden {
   display: none;
-}
-.phonecode {
-  // float: left;
-  //background-color: #e7f6fe;
-  border: none;
-  padding: 17px 9px 14px 14px;
-  font-size: 18px;
-}
-.phoneNumber {
-  width: 80%;
-  // float: left;
-  padding-left: 0px;
-  border: none;
-  padding-top: 5px;
-}
-.phonefields {
-  overflow: hidden;
-  border: 1px solid #ccc;
-  //background: #e7f6fe;
-  border-radius: 6px;
-  display: flex;
-}
-.phoneNumber:focus {
-  border: none !important;
-  box-shadow: none;
-}
-@media (max-width: 767px) {
-  .phonefields {
-    display: flex;
-  }
-}
-@media (min-width: 980px) and (max-width: 1199px) {
-  .profile-photo {
-    margin-top: 0px;
-    //width: 80px;
-  }
-  .no-profile-image {
-    //max-width: 75px;
-  }
-  .kexy-button {
-    width: 300px;
-    font-size: 13px;
-    padding: 12px;
-  }
-  .form-control {
-    font-size: 13px;
-    padding: 12px 20px;
-    height: 45px;
-  }
-  .tr-form {
-    width: 300px;
-  }
-  .phonecode {
-    font-size: 13px;
-    padding: 13px 3px 13px 14px;
-  }
-  .phoneNumber {
-    padding-left: 0;
-  }
-  .kexy-logo {
-    margin-top: 0;
-  }
-  .profile-photo-wrap {
-    margin-top: 0;
-  }
-}
-@media (min-width: 1200px) and (max-width: 1599px) {
-  .profile-photo {
-    margin-top: 0px;
-    //width: 85px;
-  }
-  .no-profile-image {
-    max-width: 80px;
-  }
-  .kexy-button {
-    width: 320px;
-    font-size: 15px;
-    padding: 14px;
-  }
-  .form-control {
-    font-size: 15px;
-    padding: 12px 20px;
-    height: 50px;
-  }
-  .tr-form {
-    width: 320px;
-  }
-  .phonecode {
-    font-size: 15px;
-    padding: 13px 5px 13px 14px;
-  }
-  .phoneNumber {
-    padding-left: 0;
-  }
-  .kexy-logo {
-    margin-top: 0;
-  }
-  .profile-photo-wrap {
-    margin-top: 0;
-  }
 }
