@@ -14,68 +14,68 @@ a {
   cursor: pointer !important;
 }
 
-/* ── Header user menu: avatar pill + rich profile dropdown ── */
-.kx-user-dropdown {
-  ::ng-deep .dropdown-toggle::after { display: none; } /* kill Bootstrap caret */
-}
-
-.kx-user-pill {
+/* ── Header customer-support button ── */
+.kx-support-btn {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  padding: 5px 12px 5px 5px;
-  border: 1px solid #e6ecf3;
+  padding: 6px 16px 6px 6px;
+  border: 1px solid #d6e9fb;
   border-radius: 999px;
-  background: #fff;
+  background: #eef7ff;
   cursor: pointer;
   transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
 
   &:hover {
-    background: #f6f9fd;
-    border-color: #d3def0;
-    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+    background: #e2f0ff;
+    border-color: #b8dcfa;
+    box-shadow: 0 4px 12px rgba(18, 165, 244, 0.18);
   }
 
-  .kx-user-meta {
+  .kx-support-ic {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #0f84d4, #12a5f4);
+    color: #fff;
+    font-size: 15px;
+    flex-shrink: 0;
+    box-shadow: 0 2px 6px rgba(18, 165, 244, 0.35);
+  }
+
+  .kx-support-text {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    line-height: 1.1;
+    line-height: 1.15;
   }
 
-  .kx-user-fullname {
+  .kx-support-title {
     font-size: 14px;
     font-weight: 700;
-    color: #1f2937;
-    text-transform: capitalize;
+    color: #0b72b7;
   }
 
-  .kx-user-role {
+  .kx-support-sub {
     font-size: 11px;
     font-weight: 600;
-    color: #8a94a3;
-    text-transform: capitalize;
-  }
-
-  .kx-caret {
-    font-size: 15px;
-    color: #9aa4b2;
-    transition: transform 0.2s ease;
+    color: #6b93b6;
   }
 }
-
-.kx-user-dropdown.show .kx-user-pill .kx-caret { transform: rotate(180deg); }
 
 @media (max-width: 991px) {
-  .kx-user-pill {
-    gap: 6px;
-    padding: 4px 8px 4px 4px;
+  .kx-support-btn {
+    gap: 0;
+    padding: 4px;
 
-    .kx-user-meta { display: none; }
+    .kx-support-text { display: none; }
   }
 }
 
-/* ── Sidebar footer: identity + direct Logout (no popover) ── */
+/* ── Sidebar footer account menu (Slack / Linear / Vercel pattern) ── */
 .sidebar-footer {
   margin-top: auto;          /* push to the very bottom of the flex sidebar */
   position: sticky;
@@ -87,13 +87,20 @@ a {
   z-index: 6;
 }
 
-.kx-acct-row {
+.kx-acct-toggle {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 6px 6px 6px 8px;
+  width: 100%;
+  padding: 8px;
+  border: none;
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.06);
+  cursor: pointer;
+  transition: background 0.15s ease;
+
+  &::after { display: none; }   /* kill Bootstrap's dropdown caret */
+  &:hover { background: rgba(255, 255, 255, 0.14); }
 
   .kx-acct-meta {
     display: flex;
@@ -121,41 +128,25 @@ a {
     color: rgba(255, 255, 255, 0.6);
     text-transform: capitalize;
   }
-}
 
-.kx-acct-logout {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 34px;
-  height: 34px;
-  border: none;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.08);
-  color: rgba(255, 255, 255, 0.82);
-  font-size: 15px;
-  cursor: pointer;
-  flex-shrink: 0;
-  transition: background 0.15s ease, color 0.15s ease;
-
-  &:hover {
-    background: #dc2626;
-    color: #fff;
+  .kx-acct-caret {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.6);
+    flex-shrink: 0;
   }
 }
 
-/* Collapsed rail: just the logout button, centred (avatar/name hidden) */
+/* Collapsed rail: just the avatar, centred */
 #main-sidebar.collapsed .sidebar-footer {
   padding: 8px 6px;
 
-  .kx-acct-row {
+  .kx-acct-toggle {
     justify-content: center;
-    gap: 0;
-    padding: 4px;
-    background: transparent;
+    padding: 8px;
+
+    .kx-acct-meta,
+    .kx-acct-caret { display: none; }
   }
-  .kx-avatar,
-  .kx-acct-meta { display: none; }
 }
 
 /* Gradient initials avatar (shared by header pill, dropdown header, footer) */
