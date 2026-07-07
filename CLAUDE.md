@@ -75,17 +75,33 @@ set the local status so the banner hides.
 ## Email-verification progress (contact lists)
 
 A list's contacts can be email-verified. `contact-list-card` shows a blue
-`.list-verification-progress` banner (spinner + live %) while a list's
-`validationStatus` is `pending`/`inprogress`/`in_queue` (`isValidationProgress()`).
+`.list-verification-progress` banner (spinner + live %) while verification is
+running. State lives in a **card-local `validationStatus`** (the single source of
+truth for `isValidationProgress()` — `pending`/`inprogress`/`in_queue`), NOT in
+`listInfo` directly: on list pages it's seeded from `listInfo.validationStatus`
+in `ngOnChanges` and mirrored back via `setValidationStatus()` (so siblings
+sharing the same `listObj`, e.g. `prospecting-common-card`'s badge, stay in
+sync); on the **`brand-contacts` page there is NO `listInfo`**, so it tracks a
+selected-contacts run on its own.
 
-- **Verify all vs. selected:** `validateList()` POSTs `lists/validate` with
-  **exactly one** of `{ listId }` or `{ contactIds: number[] }` (the API rejects
-  sending both — `400 "Provide exactly one of listId or contactIds"`). If the
-  user has **checked** any contacts (`contact.isSelected`), it sends only their
-  `Contact.id`s as `contactIds` so ONLY those are verified; with none checked it
-  sends only `listId` to verify the whole list. The button label reflects this —
-  `Verify Selected (N)` when N contacts are checked, else `Verify Email(s)`
-  (`getSelectedItemCount()` drives both).
+- **Verify all vs. selected vs. select-all:** `validateList()` POSTs
+  `lists/validate` with **exactly one** of `{ listId }` or
+  `{ contactIds: number[] }` (the API rejects sending both — `400 "Provide
+  exactly one of listId or contactIds"`). It computes
+  `useWholeList = (selectAllContacts && listInfo.id) || no contacts checked`:
+  - **checked subset** → `{ contactIds }` (only those verified);
+  - **nothing checked** → `{ listId }` (whole list);
+  - **"Select all N records" active** → `{ listId }` too — a cross-page selection
+    can only carry the loaded page's ids, so we verify the whole list instead.
+  Guard: if `useWholeList` but there's no `listInfo.id` (brand-contacts), it
+  alerts "No contacts selected" and bails.
+- **Where the button lives:** on `brand-list-contacts` the Verify button is
+  inside the card (`showActionBtns`); label = `Verify Selected (totalContactsCount)`
+  when select-all is on, else `Verify Selected (getSelectedItemCount())`, else
+  `Verify List`. On `brand-contacts` the card has NO `showActionBtns`, so the page
+  renders its OWN `Verify Selected (N)` button in `.top-btns` (via a `#contactCard`
+  template ref → `contactCard.validateList()`), shown only when contacts are
+  checked and **disabled under `selectAllContacts`** (no list to fall back to).
 - **Live progress** comes from the backend `GET lists/:id/validation-status`
   (`prospectingService.getValidationStatus(listId)`). Response body (under the
   standard `{ success, data }` wrapper): `data.validationStatus`, `data.progress`
@@ -121,27 +137,70 @@ A list's contacts can be email-verified. `contact-list-card` shows a blue
 
 ---
 
-## CSV contact import results
+## CSV contact import (async) + results
 
-After a CSV import, the contact pages show which rows were skipped. The
-`POST contacts` response (`prospectingService.addContacts`, which resolves the
-`data` object) is `{ importedCount, imported[], skippedCount, skipped[] }`, where
-each `skipped` item is `{ contact, email, errors[] }` and `contact` is the INDEX
-into the submitted `contacts` array.
+CSV import is **asynchronous**. `POST contacts` (`prospectingService.addContacts`,
+resolves `res.data`) now returns immediately (HTTP 202) with
+`{ importId, status, total }` — NOT the final result. The frontend polls
+`GET contacts/import/:id` (`prospectingService.getImportStatus(importId)`) until
+`status` is `complete` or `failed`. Poll body (under `{ success, data }`):
+`{ importId, status (in_queue → inprogress → complete | failed), progress (0–100,
+capped at 99 until committed), total, importedCount, skippedCount, skipped[],
+error }`. On `complete`, `importedCount`/`skippedCount`/`skipped` hold what the
+POST used to return synchronously.
 
+- **Polling lives in `contact-list-card`** (shared by both pages), mirroring the
+  verification flow: `startImportPolling(importId)` polls every **2s**
+  (`IMPORT_POLL_MS`, faster than the 5s validation poll), shows a second
+  `.list-verification-progress` banner ("Importing contacts… N%" + progress bar
+  from `importProgress`), and on `complete` emits `@Output() importCompleted`
+  with the final body; `failed` shows an error alert. Cleaned up in `ngOnDestroy`.
+- **Page flow:** `getImportedFileData` calls `addContacts`, closes the upload
+  modal, stashes the submitted rows in `importedContactsSubmitted`, then calls
+  `contactCard.startImportPolling(res.importId)` (each page has a `#contactCard`
+  `@ViewChild`). `(importCompleted)="handleImportCompleted($event)"` then reloads
+  contacts (list page also `getLists`) and either opens the results modal (if
+  `skipped.length`) or shows an "Import complete" success alert.
 - `ImportResultsModalContentComponent` (`components/import-results-modal-content`)
   is a reusable standalone modal: a summary (imported / skipped pills) + a table
   of skipped rows (Name, Email, Company, Job Title, Location, Errors).
-- Both `brand-list-contacts` and `brand-contacts` capture the response in
-  `getImportedFileData` and call `showImportResults(res, contacts)`, which maps
-  each skipped item back to its full row and opens the modal (only when
-  `skipped.length > 0`). Opened with `size: 'xl'`, `backdrop: 'static'`,
-  `keyboard: false` — closes ONLY via Done / X.
+- `showImportResults(data, contacts)` maps each skipped item back to its full row
+  and opens the modal (only when `skipped.length > 0`). Opened with `size: 'xl'`,
+  `backdrop: 'static'`, `keyboard: false` — closes ONLY via Done / X. Each
+  `skipped` item is `{ contact, email, errors[] }` where `contact` is the INDEX
+  into the submitted `contacts` array.
 - **Mapping gotcha:** the submitted `contacts` are flat `Contact.contactPostDto`
   objects (top-level `firstName`/`lastName`/`title`/`email`/`city`/`state`/
   `country`, company under `organization.name`) — NOT nested under `.details`.
   Map `skipped[i].contact` by index, falling back to an email match, then read
   those flat fields. `email`/`errors` come from the skipped entry (authoritative).
+
+---
+
+## Contact selection & cross-page "select all"
+
+Contact pages (`brand-contacts`, `brand-list-contacts`) let the user check rows
+(`Contact.isSelected`, mirrored into `selectedContacts`) OR click **"Select all N
+records"** (`selectAllContacts` flag + `prospectingService.selectedAllContacts`),
+which means *every contact across all pages*, not just the loaded ones.
+
+- **Bulk-action payloads:** when `selectAllContacts` is on, bulk actions send the
+  whole **filtered set** to the backend instead of the loaded ids: set
+  `selectedAllContacts: true` (boolean, **camelCase**), `selectedAllContactsPayload:
+  <the page's getContacts filter payload>` and `contacts: []`. This applies to
+  `deleteContacts` (both pages) AND `deleteContactsFromList` (list page). Use the
+  **camelCase** keys — the API's DTO whitelist **rejects** the old snake_case
+  `selected_all_contacts` / `selected_all_contacts_payload` (`"property … should not
+  exist"`). On `brand-list-contacts` the payload comes from `getContactApiPostData()`
+  (scoped to the list via `listIds: [listId]`), so select-all stays list-scoped.
+- **Button counts:** the card's `Delete (N)` / `Remove From List (N)` and the
+  `Verify Selected (N)` labels all show `N = selectAllContacts ? totalContactsCount
+  : getSelectedItemCount()`.
+- **Reset on reload (gotcha):** `setContactSubscription` clears BOTH
+  `selectedContacts` and `selectAllContacts` on every data emission. Without the
+  `selectAllContacts` reset, the flag survived a reload (e.g. after a CSV import)
+  and the buttons kept showing the full `totalContactsCount` even though the fresh
+  rows weren't selected. Pagination handlers also reset it explicitly.
 
 ---
 

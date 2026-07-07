@@ -425,8 +425,8 @@ export class BrandListContactsComponent implements OnInit, OnDestroy {
       listId: this.listId,
     };
     if (this.selectAllContacts) {
-      postData['selected_all_contacts'] = 'true';
-      postData['selected_all_contacts_payload'] = this.getContactApiPostData();
+      postData['selectedAllContacts'] = true;
+      postData['selectedAllContactsPayload'] = this.getContactApiPostData();
       postData['contacts'] = [];
     }
 
