@@ -380,6 +380,14 @@ export class BrandListContactsComponent implements OnInit, OnDestroy {
       companyId: this.userData.supplier_id,
       contacts: contactIds,
     };
+    // "Select all" spans every page, not just the loaded contactIds — tell the
+    // API to delete the whole filtered set (scoped to this list) instead of the
+    // current page. Mirrors the brand-contacts page's deleteContacts.
+    if (this.selectAllContacts) {
+      postData['selectedAllContacts'] = true;
+      postData['selectedAllContactsPayload'] = this.getContactApiPostData();
+      postData['contacts'] = [];
+    }
     try {
       await this.prospectingService.deleteContacts(postData);
       await this.getContacts(true);
