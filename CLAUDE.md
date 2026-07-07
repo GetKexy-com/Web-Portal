@@ -95,13 +95,15 @@ selected-contacts run on its own.
     can only carry the loaded page's ids, so we verify the whole list instead.
   Guard: if `useWholeList` but there's no `listInfo.id` (brand-contacts), it
   alerts "No contacts selected" and bails.
-- **Where the button lives:** on `brand-list-contacts` the Verify button is
-  inside the card (`showActionBtns`); label = `Verify Selected (totalContactsCount)`
-  when select-all is on, else `Verify Selected (getSelectedItemCount())`, else
-  `Verify List`. On `brand-contacts` the card has NO `showActionBtns`, so the page
-  renders its OWN `Verify Selected (N)` button in `.top-btns` (via a `#contactCard`
-  template ref → `contactCard.validateList()`), shown only when contacts are
-  checked and **disabled under `selectAllContacts`** (no list to fall back to).
+- **Where the button lives:** on `brand-list-contacts` the button is inside the
+  card (`showActionBtns`); label = `Validate Emails (totalContactsCount)` when
+  select-all is on, else `Validate Emails (getSelectedItemCount())`, else
+  `Validate List Emails`. On `brand-contacts` the card has NO `showActionBtns`, so
+  the page renders its OWN `Validate Emails (N)` button in `.top-btns` (via a
+  `#contactCard` template ref → `contactCard.validateList()`), shown only when
+  contacts are checked and **disabled under `selectAllContacts`** (no list to fall
+  back to). (Label copy is "Validate Emails", not "Verify …", so it's clear the
+  action validates email addresses.)
 - **Live progress** comes from the backend `GET lists/:id/validation-status`
   (`prospectingService.getValidationStatus(listId)`). Response body (under the
   standard `{ success, data }` wrapper): `data.validationStatus`, `data.progress`
@@ -194,7 +196,7 @@ which means *every contact across all pages*, not just the loaded ones.
   exist"`). On `brand-list-contacts` the payload comes from `getContactApiPostData()`
   (scoped to the list via `listIds: [listId]`), so select-all stays list-scoped.
 - **Button counts:** the card's `Delete (N)` / `Remove From List (N)` and the
-  `Verify Selected (N)` labels all show `N = selectAllContacts ? totalContactsCount
+  `Validate Emails (N)` labels all show `N = selectAllContacts ? totalContactsCount
   : getSelectedItemCount()`.
 - **Reset on reload (gotcha):** `setContactSubscription` clears BOTH
   `selectedContacts` and `selectAllContacts` on every data emission. Without the

@@ -79,7 +79,7 @@
             *ngIf="contacts.length"
             (click)="validateList()"
             [disabled]="validationLoading || isValidationProgress()"
-            [label]="validationLoading ? 'Please wait...' : (selectAllContacts ? 'Verify Selected (' + totalContactsCount + ')' : (getSelectedItemCount() ? 'Verify Selected (' + getSelectedItemCount() + ')' : 'Verify List')) "
+            [label]="validationLoading ? 'Please wait...' : (selectAllContacts ? 'Validate Emails (' + totalContactsCount + ')' : (getSelectedItemCount() ? 'Validate Emails (' + getSelectedItemCount() + ')' : 'Validate List Emails')) "
             [iconLeft]="validationLoading ? 'fa-refresh fa-spin' : 'fa-check-circle-o'"
             bgColor="#e7f6fe"
             textColor="#2847cc"

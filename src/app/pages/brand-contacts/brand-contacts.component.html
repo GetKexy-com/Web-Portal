@@ -68,9 +68,9 @@
           [disabled]="isWaitingFlag || isLoading || selectAllContacts || contactCard.validationLoading || contactCard.isValidationProgress()"
           (click)="contactCard.validateList()"
           style="margin-right: 10px"
-          [label]="contactCard.validationLoading ? 'Please wait...' : 'Verify Selected (' + selectedContacts.length + ')'"
+          [label]="contactCard.validationLoading ? 'Please wait...' : 'Validate Emails (' + selectedContacts.length + ')'"
           [iconLeft]="contactCard.validationLoading ? 'fa-refresh fa-spin' : 'fa-check-circle-o'"
-          tooltip="Verify email(s) for the selected contact(s)"
+          tooltip="Validate emails for the selected contact(s)"
           bgColor="#e7f6fe"
           textColor="#2847cc"
           radius="8px"
@@ -163,7 +163,7 @@
           bgColor="#e7f6fe"
           textColor="#2847cc"
           radius="8px"
-          tooltip="Verify Selected Email(s)"
+          tooltip="Validate Emails"
         ></app-kexy-button>
 
         <app-kexy-button
