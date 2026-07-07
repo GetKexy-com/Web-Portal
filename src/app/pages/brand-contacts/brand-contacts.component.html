@@ -28,6 +28,7 @@
         ></app-kexy-button>
 
         <app-kexy-button
+          *ngIf="!selectedContacts.length"
           (click)="handleSearchBtnClick()"
           [disabled]="isWaitingFlag || isLoading"
           style="margin-right: 10px"
@@ -39,7 +40,7 @@
         ></app-kexy-button>
 
         <app-kexy-button
-          *ngIf="!addToDripCampaignId"
+          *ngIf="!addToDripCampaignId || !selectedContacts.length"
           [disabled]="isWaitingFlag || isLoading"
           style="margin-right: 10px"
           label="Add Contact"
@@ -63,7 +64,7 @@
         ></app-kexy-button>
 
         <app-kexy-button
-          *ngIf="!addToDripCampaignId"
+          *ngIf="!addToDripCampaignId || !selectedContacts.length"
           [disabled]="isWaitingFlag || isLoading"
           style="margin-right: 10px"
           label="Import"
@@ -75,7 +76,7 @@
         ></app-kexy-button>
 
         <app-kexy-button
-          *ngIf="!addToDripCampaignId"
+          *ngIf="!addToDripCampaignId || !selectedContacts.length"
           (click)="exportCSV()"
           [disabled]="exportBtnLoading || isLoading || isWaitingFlag"
           [label]="exportBtnLoading ? 'Please wait...' : 'Export' "
