@@ -304,29 +304,46 @@ $kx-warn: #b45309;
   animation: ip-spin 0.8s linear infinite;
 }
 
+// Google-Sheets-style grid.
+$grid-line: #e1e3e6;
+$grid-line-strong: #c7cbd1;
+$sheet-header-bg: #f8f9fa;
+$sheet-blue: #1a73e8;
+
 .ip-table {
   border-collapse: separate;
   border-spacing: 0;
   width: 100%;
   font-size: 13px;
+  color: #202124;
   white-space: nowrap;
+  font-family: "Lato", Arial, sans-serif;
+
+  // Gridlines on every cell.
+  thead th,
+  tbody td {
+    border-right: 1px solid $grid-line;
+    border-bottom: 1px solid $grid-line;
+  }
 
   thead th {
     position: sticky;
     top: 0;
     z-index: 2;
-    background: #f3f7fd;
-    color: $kx-muted;
+    background: $sheet-header-bg;
+    color: #5f6368;
     text-align: left;
-    font-size: 11px;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    padding: 11px 14px;
-    border-bottom: 2px solid #e2e9f3;
-    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.02);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0;
+    text-transform: none;
+    padding: 8px 12px;
+    border-bottom: 1px solid $grid-line-strong;
 
-    &.col-has-invalid { color: $kx-bad; }
+    &.col-has-invalid {
+      color: $kx-bad;
+      background: #fce8e8;
+    }
 
     .col-badge {
       display: inline-block;
@@ -346,23 +363,42 @@ $kx-warn: #b45309;
   }
 
   tbody td {
-    padding: 10px 14px;
-    border-bottom: 1px solid #f2f5f9;
-    color: #33405a;
-    max-width: 260px;
+    height: 34px;
+    padding: 6px 12px;
+    background: #fff;
+    max-width: 280px;
 
     .cell-text {
       display: inline-block;
-      max-width: 240px;
+      max-width: 260px;
       overflow: hidden;
       text-overflow: ellipsis;
       vertical-align: middle;
     }
   }
 
-  // Click-to-edit cells.
+  // Subtle whole-row hover.
+  tbody tr:hover td { background: #f6faff; }
+
+  // Invalid row tint + the specific offending cell.
+  tr.row-invalid td { background: #fff6f6; }
+  tr.row-invalid:hover td { background: #ffefef; }
+
+  td.cell-invalid {
+    background: #fcdede !important;
+    color: $kx-bad;
+    font-weight: 600;
+
+    .cell-flag {
+      margin-left: 6px;
+      color: $kx-bad;
+      font-size: 12px;
+    }
+  }
+
+  // Click-to-edit cells — the selected/editing cell gets a Google-blue outline.
   td.cell-editable {
-    cursor: text;
+    cursor: cell;
 
     .cell-edit-hint {
       opacity: 0;
@@ -375,80 +411,63 @@ $kx-warn: #b45309;
     &:hover .cell-edit-hint { opacity: 1; }
 
     &.is-editing {
-      padding: 4px 8px;
-      box-shadow: inset 0 0 0 2px $kx-primary;
+      padding: 0;
+      box-shadow: inset 0 0 0 2px $sheet-blue;
       background: #fff !important;
     }
 
     .cell-input {
       width: 100%;
       min-width: 140px;
+      height: 100%;
       border: none;
       outline: none;
       background: transparent;
       font: inherit;
-      color: $kx-ink;
-      padding: 5px 4px;
-    }
-  }
-
-  // Zebra striping for readability.
-  tbody tr:nth-child(even) td { background: #fbfcfe; }
-  tbody tr:hover td { background: #f2f8ff; }
-
-  // Invalid row + the specific offending cell.
-  tr.row-invalid td { background: $kx-bad-bg; }
-  tr.row-invalid:hover td { background: #ffeaea; }
-
-  td.cell-invalid {
-    background: #ffe0e0 !important;
-    color: $kx-bad;
-    font-weight: 700;
-    box-shadow: inset 2px 0 0 $kx-bad;
-
-    .cell-flag {
-      margin-left: 6px;
-      color: $kx-bad;
-      font-size: 12px;
+      color: #202124;
+      padding: 6px 12px;
     }
   }
 
   // Brief highlight when the "next issue" stepper lands on a row.
   tr.row-pulse td { animation: ip-pulse 1.2s ease-out; }
 
+  // Row-number gutter = Sheets row header.
   .col-idx {
-    width: 46px;
-    text-align: right;
-    color: #9aa6b8;
+    width: 50px;
+    text-align: center;
+    color: #5f6368;
+    font-size: 11px;
     font-variant-numeric: tabular-nums;
+    background: $sheet-header-bg;
+    border-right: 1px solid $grid-line-strong;
     position: sticky;
     left: 0;
-    background: #fff;
     z-index: 1;
   }
 
-  tbody tr:nth-child(even) .col-idx { background: #fbfcfe; }
-  tr.row-invalid .col-idx { background: $kx-bad-bg; color: $kx-bad; }
+  thead .col-idx { z-index: 3; } // top-left corner stays above everything
+  tr.row-invalid .col-idx { background: #fbeaea; color: $kx-bad; }
 
   .col-remove {
-    width: 48px;
+    width: 44px;
     text-align: center;
+    background: #fff;
+    border-left: 1px solid $grid-line-strong;
     position: sticky;
     right: 0;
-    background: #fff;
     z-index: 1;
   }
 
-  tbody tr:nth-child(even) .col-remove { background: #fbfcfe; }
-  tr.row-invalid .col-remove { background: $kx-bad-bg; }
+  tr.row-invalid .col-remove { background: #fff6f6; }
 
   .ip-row-remove {
     border: none;
     background: transparent;
-    color: #c2c9d6;
-    width: 30px;
-    height: 30px;
-    border-radius: 7px;
+    color: #b0b6bf;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
     cursor: pointer;
     transition: all 0.15s ease;
 
@@ -464,6 +483,7 @@ $kx-warn: #b45309;
     color: $kx-muted;
     white-space: normal;
     font-size: 14px;
+    background: #fff;
   }
 }
 

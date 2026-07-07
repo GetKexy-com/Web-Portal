@@ -168,14 +168,6 @@
       </p>
       <div class="ip-footer-btns">
         <app-kexy-button
-          (click)="closeModal()"
-          label="Cancel"
-          bgColor="#f1f4f9"
-          textColor="#6b7a90"
-          radius="10px"
-          padding="10px 22px"
-        ></app-kexy-button>
-        <app-kexy-button
           (click)="handleImport()"
           [disabled]="!items.length || importing"
           [label]="'Import ' + items.length + ' contact' + (items.length === 1 ? '' : 's')"
