@@ -226,12 +226,18 @@ cells stay aligned.
   width once the sidebar appeared. Reading the wrapper needs an injected
   `ElementRef` (named `host`). `active-contacts-table` is intentionally exempt (it
   uses a fixed `tableWidth`, no sidebar math).
-- **Sticky header + vertical scroll** (currently only on
-  `list-of-drip-campaign-table`): `.new-table-wrapper` gets a `max-height` +
-  `overflow: auto`; the header CELLS (`tr.n-header td`, NOT the `<tr>` — sticky
-  doesn't work on table rows) get `position: sticky; top: 0` + an opaque
-  background so body rows don't show through. To roll this out to the other cards,
-  apply the same two rules.
+- **Sticky header + vertical scroll** (on `list-of-drip-campaign-table` and
+  `contact-list-card`): the header CELLS (`tr.n-header td`, NOT the `<tr>` — sticky
+  doesn't work on table rows) get `position: sticky; top: 0` + an opaque background
+  so body rows don't show through. The scroll container just needs a bounded height
+  + `overflow`: `list-of-drip-campaign-table` puts `max-height` + `overflow: auto`
+  on `.new-table-wrapper`; `contact-list-card` instead scrolls vertically inside
+  `.list-wrapper` (bounded height set inline in the template, `overflow: scroll`)
+  while `.new-table-wrapper` owns the horizontal scroll — sticky pins relative to
+  whichever ancestor scrolls vertically. On `contact-list-card` the header cells
+  also carry an inline `[style.background-color]="tableHeaderBg"` (`#0047CC`) that
+  overrides the fallback background. To roll this out to the other cards, apply the
+  same sticky-cell rule and give the body a bounded, scrollable container.
 
 ---
 

@@ -129,6 +129,17 @@
           position: relative;
           z-index: 1000;
           font-weight: bold;
+
+          // Keep the header pinned to the top of the scroll container (.list-wrapper)
+          // while the body scrolls vertically. Sticky must be on the cells (not the
+          // <tr>) to work in a table. The opaque background stops body rows showing
+          // through; the inline [tableHeaderBg] (#0047CC) overrides it in practice.
+          td {
+            position: sticky;
+            top: 0;
+            z-index: 3;
+            background: #ffffff;
+          }
         }
 
         .n-header-product {
