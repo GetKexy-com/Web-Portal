@@ -157,12 +157,16 @@ POST used to return synchronously.
   `.list-verification-progress` banner ("Importing contacts… N%" + progress bar
   from `importProgress`), and on `complete` emits `@Output() importCompleted`
   with the final body; `failed` shows an error alert. Cleaned up in `ngOnDestroy`.
-- **Page flow:** `getImportedFileData` calls `addContacts`, closes the upload
-  modal, stashes the submitted rows in `importedContactsSubmitted`, then calls
+- **Page flow:** the upload modal's `(parsedFileData)` now opens the **preview
+  modal** first (see below) via `showImportPreview`, NOT a direct import. When the
+  user confirms in the preview, it calls `getImportedFileData(cleaned)` which calls
+  `addContacts`, stashes the submitted rows in `importedContactsSubmitted`, then
   `contactCard.startImportPolling(res.importId)` (each page has a `#contactCard`
   `@ViewChild`). `(importCompleted)="handleImportCompleted($event)"` then reloads
   contacts (list page also `getLists`) and either opens the results modal (if
-  `skipped.length`) or shows an "Import complete" success alert.
+  `skipped.length`) or shows an "Import complete" success alert. (Modal lifecycle
+  is handled by `showImportPreview`, so `getImportedFileData` no longer closes any
+  modal itself.)
 - `ImportResultsModalContentComponent` (`components/import-results-modal-content`)
   is a reusable standalone modal: a summary (imported / skipped pills) + a table
   of skipped rows (Name, Email, Company, Job Title, Location, Errors).
@@ -176,6 +180,38 @@ POST used to return synchronously.
   `country`, company under `organization.name`) — NOT nested under `.details`.
   Map `skipped[i].contact` by index, falling back to an email match, then read
   those flat fields. `email`/`errors` come from the skipped entry (authoritative).
+
+### Pre-import preview (EXPERIMENTAL)
+
+`ImportPreviewModalContentComponent` (`components/import-preview-modal-content`) is
+a spreadsheet-style review step shown BEFORE the import runs. Both pages route the
+upload modal's parsed data into it via `showImportPreview(data)` (opens `xl`,
+`backdrop: 'static'`, `keyboard: false`), whose `startImport` callback closes the
+preview and hands `{ ...parsedData, data: keptRows }` to `getImportedFileData`.
+
+- **Input** is the raw Papa-parse result (`{ data, meta.fields, errors }`).
+  Columns come from `meta.fields`, reordered to `First Name, Last Name, Email,
+  Website, Linkedin`, then the rest (case-insensitive match via `orderColumns`).
+- **Validation** (`isCellInvalid`): the `Email` column must match a basic email
+  regex (required); URL columns (matched by `/linkedin|website|url/i`) must be
+  well-formed **only if non-empty** (empty is fine — the importer fills defaults).
+  Kept lenient on purpose to mirror what `parseCsvDataToContact` tolerates. Each
+  row is precomputed into a `PreviewItem { row, invalidCols[], invalid }`.
+- **UI:** a status banner (green "all good" / amber "N need attention") with count
+  chips + a valid/invalid health bar; sticky-header grid with per-column invalid
+  count badges, sticky `#`/remove columns, zebra rows, red-highlighted invalid
+  cells (⚠ + tooltip reason), and a row pulse.
+- **Find/fix:** "Next issue" steps through invalid rows (scroll + pulse, cycles);
+  "Only invalid" filters the grid (`displayedItems`); per-row remove + "Remove N
+  invalid". **Inline edit:** click a cell → input (`[(ngModel)]="item.row[col]"`);
+  Enter/blur commits and re-validates that row (`revalidate`), Esc cancels. Edits
+  mutate the row objects in place, so they flow straight into the import.
+- **Loaders:** initial validation/first render is deferred behind a spinner
+  (`loading`); filter/remove re-renders (heavy on big files) run behind a
+  `.ip-table-busy` overlay via `runTableUpdate()` (flip `tableBusy`, defer the work
+  a tick so the spinner paints, hide after the re-render). `trackByItem` keeps the
+  `*ngFor` cheap. Action buttons (Only invalid / Remove / Cancel / Import) are
+  `<app-kexy-button>`.
 
 ---
 

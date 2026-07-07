@@ -20,6 +20,9 @@ import {
   ImportResultsModalContentComponent,
 } from '../../components/import-results-modal-content/import-results-modal-content.component';
 import {
+  ImportPreviewModalContentComponent,
+} from '../../components/import-preview-modal-content/import-preview-modal-content.component';
+import {
   SearchContactModalContentComponent,
 } from '../../components/search-contact-modal-content/search-contact-modal-content.component';
 import {
@@ -500,6 +503,24 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
     this.selectedLabel = data;
   };
 
+  // EXPERIMENTAL: instead of importing straight away, open a spreadsheet-style
+  // preview so the user can review/remove rows with invalid email/URL first.
+  // The preview hands the cleaned Papa result back via startImport → getImportedFileData.
+  showImportPreview = (data) => {
+    this.closeModal(); // close the upload modal
+    const ref = this.modal.open(ImportPreviewModalContentComponent, {
+      size: 'xl',
+      backdrop: 'static',
+      keyboard: false,
+    });
+    ref.componentInstance.parsedData = data;
+    ref.componentInstance.closeModal = () => ref.close();
+    ref.componentInstance.startImport = (cleaned) => {
+      ref.close();
+      this.getImportedFileData(cleaned);
+    };
+  };
+
   getImportedFileData = async (data) => {
     this.isLoading = true;
     const contacts = Contact.parseCsvDataToContact(data);
@@ -517,7 +538,6 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
     try {
       const res: any = await this.prospectingService.addContacts(payload);
       this.isLoading = false;
-      this.closeModal();
       // Import runs async now (POST returns { importId }): remember the submitted
       // rows, then poll for live progress via the card banner. Results are shown
       // in handleImportCompleted when the job finishes.

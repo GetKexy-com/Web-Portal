@@ -50,7 +50,7 @@
       [closeModal]="closeModal"
       [isLoading]="isLoading"
       [bypassEmailVerification]="handleBypassEmailVerification"
-      (parsedFileData)="getImportedFileData($event)"
+      (parsedFileData)="showImportPreview($event)"
       sampleCsvUrl="/assets/contact-list-sample.csv"
       additionalFileRelatedText="KEXY ensures data integrity by cleaning and validating every imported list. We charge 1 credit for every 100 contacts. For instance, importing a list of 1,000 contacts will deduct 10 credits from your account."
     >

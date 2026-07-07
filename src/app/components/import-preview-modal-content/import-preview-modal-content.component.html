@@ -1,0 +1,191 @@
+<div class="import-preview">
+  <!-- Header -->
+  <div class="ip-head">
+    <div class="ip-head-text">
+      <span class="ip-icon-badge"><i class="fa fa-table" aria-hidden="true"></i></span>
+      <div>
+        <h3 class="ip-title">Preview import</h3>
+        <p class="ip-sub">
+          Review your contacts before importing. Rows with an invalid email or URL are highlighted —
+          remove them (or fix your file and re-upload), then import.
+        </p>
+      </div>
+    </div>
+    <button type="button" class="ip-close" (click)="closeModal()" aria-label="Close">
+      <i class="fa fa-times" aria-hidden="true"></i>
+    </button>
+  </div>
+
+  <!-- Loading -->
+  <div class="ip-loading" *ngIf="loading">
+    <span class="ip-spinner"></span>
+    <p class="ip-loading-title">Preparing preview…</p>
+    <p class="ip-loading-sub">Validating your contacts. This can take a few seconds for large files.</p>
+  </div>
+
+  <ng-container *ngIf="!loading">
+    <!-- Status banner -->
+    <div class="ip-banner" [class.all-good]="!invalidCount" [class.has-issues]="invalidCount">
+      <span class="ip-banner-ic">
+        <i class="fa" [class.fa-check-circle]="!invalidCount" [class.fa-exclamation-triangle]="invalidCount" aria-hidden="true"></i>
+      </span>
+
+      <div class="ip-banner-main">
+        <p class="ip-banner-title" *ngIf="invalidCount">{{ invalidCount }} of {{ items.length }} row(s) need attention</p>
+        <p class="ip-banner-title" *ngIf="!invalidCount">All {{ items.length }} row(s) look good</p>
+        <p class="ip-banner-sub" *ngIf="invalidCount">Click any highlighted cell to fix it, or remove the row. You can still import as-is.</p>
+        <p class="ip-banner-sub" *ngIf="!invalidCount">Everything is valid and ready to import.</p>
+
+        <div class="ip-chips">
+          <span class="chip-count"><b>{{ items.length }}</b> total</span>
+          <span class="chip-count ok"><b>{{ validCount }}</b> valid</span>
+          <span class="chip-count bad" *ngIf="invalidCount"><b>{{ invalidCount }}</b> invalid</span>
+          <span class="chip-count warn" *ngIf="invalidEmailCount"><b>{{ invalidEmailCount }}</b> bad email</span>
+          <span class="chip-count warn" *ngIf="invalidUrlCount"><b>{{ invalidUrlCount }}</b> bad URL</span>
+        </div>
+      </div>
+
+      <div class="ip-banner-aside">
+        <div class="ip-health" *ngIf="items.length">
+          <span class="ip-health-bar" [title]="validPct + '% ready to import'">
+            <span class="seg valid" [style.width.%]="validPct"></span>
+            <span class="seg invalid" [style.width.%]="invalidPct"></span>
+          </span>
+          <span class="ip-health-pct">{{ validPct }}% ready</span>
+        </div>
+
+        <div class="ip-banner-actions" *ngIf="invalidCount">
+          <app-kexy-button
+            (click)="jumpToNextInvalid()"
+            label="Next issue"
+            iconLeft="fa-arrow-down"
+            bgColor="#ffffff"
+            textColor="#b45309"
+            radius="8px"
+            fontSize="13px"
+            padding="7px 12px"
+          ></app-kexy-button>
+          <app-kexy-button
+            (click)="toggleShowOnlyInvalid()"
+            [label]="showOnlyInvalid ? 'Show all' : 'Only invalid'"
+            [iconLeft]="showOnlyInvalid ? 'fa-list-ul' : 'fa-filter'"
+            [bgColor]="showOnlyInvalid ? '#cfe8fb' : '#ffffff'"
+            textColor="#2847cc"
+            radius="8px"
+            fontSize="13px"
+            padding="7px 12px"
+          ></app-kexy-button>
+          <app-kexy-button
+            (click)="removeInvalid()"
+            [label]="'Remove ' + invalidCount"
+            iconLeft="fa-trash"
+            bgColor="#ffffff"
+            textColor="#dc2626"
+            radius="8px"
+            fontSize="13px"
+            padding="7px 12px"
+          ></app-kexy-button>
+        </div>
+      </div>
+    </div>
+
+    <p class="ip-filter-note" *ngIf="showOnlyInvalid">
+      <i class="fa fa-filter" aria-hidden="true"></i>
+      Showing {{ displayedItems.length }} invalid of {{ items.length }} row(s)
+    </p>
+
+    <!-- Spreadsheet -->
+    <div class="ip-table-region">
+      <div class="ip-table-busy" *ngIf="tableBusy">
+        <span class="ip-spinner sm"></span>
+      </div>
+      <div class="ip-table-wrap">
+      <table class="ip-table">
+        <thead>
+        <tr>
+          <th class="col-idx">#</th>
+          <th *ngFor="let col of columns" [class.col-has-invalid]="columnInvalidCount(col)">
+            {{ col }}
+            <span class="col-badge" *ngIf="columnInvalidCount(col)" [title]="columnInvalidCount(col) + ' invalid'">
+              {{ columnInvalidCount(col) }}
+            </span>
+          </th>
+          <th class="col-remove"></th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr
+          *ngFor="let item of displayedItems; let i = index; trackBy: trackByItem"
+          [id]="'ip-row-' + i"
+          [class.row-invalid]="item.invalid"
+          [class.row-pulse]="pulseKey === i"
+        >
+          <td class="col-idx">{{ i + 1 }}</td>
+          <td
+            *ngFor="let col of columns"
+            class="cell-editable"
+            [class.cell-invalid]="item.invalidCols.includes(col)"
+            [class.is-editing]="isEditing(item, col)"
+            [title]="isEditing(item, col) ? '' : (item.invalidCols.includes(col) ? invalidReason(col) + ' — click to edit' : 'Click to edit')"
+            (click)="startEdit(item, col)"
+          >
+            <input
+              *ngIf="isEditing(item, col)"
+              class="cell-input"
+              [(ngModel)]="item.row[col]"
+              (blur)="stopEdit()"
+              (keydown.enter)="stopEdit()"
+              (keydown.escape)="stopEdit()"
+              (click)="$event.stopPropagation()"
+            />
+            <ng-container *ngIf="!isEditing(item, col)">
+              <span class="cell-text">{{ item.row[col] }}</span>
+              <i *ngIf="item.invalidCols.includes(col)" class="fa fa-exclamation-circle cell-flag" aria-hidden="true"></i>
+              <i class="fa fa-pencil cell-edit-hint" aria-hidden="true"></i>
+            </ng-container>
+          </td>
+          <td class="col-remove">
+            <button type="button" class="ip-row-remove" (click)="removeRow(i)" title="Remove this row">
+              <i class="fa fa-trash" aria-hidden="true"></i>
+            </button>
+          </td>
+        </tr>
+        <tr *ngIf="!displayedItems.length">
+          <td [attr.colspan]="columns.length + 2" class="ip-empty">
+            {{ items.length ? 'No invalid rows — everything looks good!' : 'No rows left to import. Cancel and upload a file with valid contacts.' }}
+          </td>
+        </tr>
+        </tbody>
+      </table>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="ip-footer">
+      <p class="ip-footer-note" *ngIf="invalidCount">
+        <i class="fa fa-exclamation-triangle" aria-hidden="true"></i>
+        {{ invalidCount }} row(s) still have issues and will be imported as-is unless removed.
+      </p>
+      <div class="ip-footer-btns">
+        <app-kexy-button
+          (click)="closeModal()"
+          label="Cancel"
+          bgColor="#f1f4f9"
+          textColor="#6b7a90"
+          radius="10px"
+          padding="10px 22px"
+        ></app-kexy-button>
+        <app-kexy-button
+          (click)="handleImport()"
+          [disabled]="!items.length || importing"
+          [label]="'Import ' + items.length + ' contact' + (items.length === 1 ? '' : 's')"
+          [iconLeft]="importing ? 'fa-refresh fa-spin' : 'fa-cloud-upload'"
+          bgColor="#12a5f4"
+          textColor="white"
+          radius="10px"
+          padding="10px 24px"
+        ></app-kexy-button>
+      </div>
+    </div>
+  </ng-container>
+</div>

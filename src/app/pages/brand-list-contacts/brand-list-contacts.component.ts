@@ -19,6 +19,9 @@ import {
 import {
   ImportResultsModalContentComponent,
 } from '../../components/import-results-modal-content/import-results-modal-content.component';
+import {
+  ImportPreviewModalContentComponent,
+} from '../../components/import-preview-modal-content/import-preview-modal-content.component';
 import { ProspectingContactsComponent } from '../../components/prospecting-contacts/prospecting-contacts.component';
 import { CommonModule } from '@angular/common';
 import { Contact } from '../../models/Contact';
@@ -459,6 +462,23 @@ export class BrandListContactsComponent implements OnInit, OnDestroy {
     this.bypassEmailVerification = bypass;
   };
 
+  // EXPERIMENTAL: open the spreadsheet-style preview (review/remove invalid
+  // email/URL rows) before running the actual import.
+  showImportPreview = (data) => {
+    this.closeModal(); // close the upload modal
+    const ref = this.modal.open(ImportPreviewModalContentComponent, {
+      size: 'xl',
+      backdrop: 'static',
+      keyboard: false,
+    });
+    ref.componentInstance.parsedData = data;
+    ref.componentInstance.closeModal = () => ref.close();
+    ref.componentInstance.startImport = (cleaned) => {
+      ref.close();
+      this.getImportedFileData(cleaned);
+    };
+  };
+
   getImportedFileData = async (data) => {
     this.isLoading = true;
 
@@ -477,7 +497,6 @@ export class BrandListContactsComponent implements OnInit, OnDestroy {
     try {
       const res: any = await this.prospectingService.addContacts(payload);
       this.isLoading = false;
-      this.closeModal();
       // Import runs async now (POST returns { importId }): remember the submitted
       // rows, then poll for live progress via the card banner. Results are shown
       // in handleImportCompleted when the job finishes.
