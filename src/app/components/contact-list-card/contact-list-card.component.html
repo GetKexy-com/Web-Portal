@@ -48,7 +48,7 @@
           <app-kexy-button
             *ngIf="selectedContacts.length"
             (click)="deleteContacts()"
-            label="Delete"
+            [label]="'Delete (' + (selectAllContacts ? totalContactsCount : getSelectedItemCount()) + ')'"
             tooltip="This action permanently deletes your account and all associated data. This cannot be undone."
             iconLeft="fa-trash"
             bgColor="#e7f6fe"
@@ -58,7 +58,7 @@
           <app-kexy-button
             *ngIf="selectedContacts.length"
             (click)="deleteContactsFromList()"
-            label="Remove From List"
+            [label]="'Remove From List (' + (selectAllContacts ? totalContactsCount : getSelectedItemCount()) + ')'"
             tooltip="Remove From List"
             iconLeft="fa-minus-circle"
             bgColor="#e7f6fe"
@@ -79,7 +79,7 @@
             *ngIf="contacts.length"
             (click)="validateList()"
             [disabled]="validationLoading || isValidationProgress()"
-            [label]="validationLoading ? 'Please wait...' : (getSelectedItemCount() ? 'Verify Selected (' + getSelectedItemCount() + ')' : 'Verify List') "
+            [label]="validationLoading ? 'Please wait...' : (selectAllContacts ? 'Verify Selected (' + totalContactsCount + ')' : (getSelectedItemCount() ? 'Verify Selected (' + getSelectedItemCount() + ')' : 'Verify List')) "
             [iconLeft]="validationLoading ? 'fa-refresh fa-spin' : 'fa-check-circle-o'"
             bgColor="#e7f6fe"
             textColor="#2847cc"

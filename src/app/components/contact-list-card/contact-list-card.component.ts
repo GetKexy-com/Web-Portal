@@ -205,12 +205,15 @@ export class ContactListCardComponent implements OnInit, OnChanges, OnDestroy, A
   };
 
   validateList = async () => {
-    // If the user has checked specific contacts, verify ONLY those; otherwise
-    // verify the whole list. The API wants EXACTLY ONE of listId / contactIds.
     const selectedIds = this.contacts.filter((c) => c.isSelected).map((c) => c.id);
+    // "Select all" spans every page, so verify the WHOLE list by id (backend
+    // verifies all its contacts) rather than just the loaded page's ids. Otherwise
+    // verify the checked subset, or — with nothing checked — the whole list.
+    // The API wants EXACTLY ONE of listId / contactIds.
+    const useWholeList = (this.selectAllContacts && !!this.listInfo?.id) || !selectedIds.length;
     // Whole-list verification needs a list. Without one (brand-contacts page) a
     // selection is required — guard so we never post an empty/invalid payload.
-    if (!selectedIds.length && !this.listInfo?.id) {
+    if (useWholeList && !this.listInfo?.id) {
       await this.pageUiService.showSweetAlert(
         'No contacts selected',
         'Please select the contact(s) you want to verify.',
@@ -218,11 +221,12 @@ export class ContactListCardComponent implements OnInit, OnChanges, OnDestroy, A
       );
       return;
     }
-    const postData: { listId?: number; contactIds?: number[] } = selectedIds.length
-      ? { contactIds: selectedIds }
-      : { listId: this.listInfo.id };
-    // Remember the subset so polling reads its status from the contactIds endpoint.
-    this.validatingContactIds = selectedIds.length ? selectedIds : null;
+    const postData: { listId?: number; contactIds?: number[] } = useWholeList
+      ? { listId: this.listInfo.id }
+      : { contactIds: selectedIds };
+    // Remember the subset (if any) so polling reads its status from the contactIds
+    // endpoint; null means a whole-list run.
+    this.validatingContactIds = useWholeList ? null : selectedIds;
     try {
       this.validationLoading = true;
       await this.prospectingService.validateList(postData);
@@ -294,7 +298,7 @@ export class ContactListCardComponent implements OnInit, OnChanges, OnDestroy, A
     const verified = data?.breakdown?.verified;
     const total = data?.total;
     const message = (verified != null && total != null)
-      ? `${verified} of ${total} email(s) verified.`
+      ? `${verified} of ${total} email(s) valid.`
       : 'Email verification has finished.';
     this.pageUiService.showSweetAlert('Verification complete', message, 'success');
   };

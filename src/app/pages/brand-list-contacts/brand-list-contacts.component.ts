@@ -154,8 +154,13 @@ export class BrandListContactsComponent implements OnInit, OnDestroy {
       this.totalPage = Math.ceil(this.totalContactsCount / this.limit);
       this.listObj['contactListCount'] = this.totalContactsCount;
 
-      // Resetting edit and contact button showing condition
+      // Resetting edit and contact button showing condition. Also clear the
+      // cross-page "select all" flag — the freshly loaded contacts aren't selected,
+      // so leaving it on made the Verify button show the full count after a reload
+      // (e.g. right after a CSV import).
       this.selectedContacts = [];
+      this.selectAllContacts = false;
+      this.prospectingService.selectedAllContacts = false;
     });
   };
 
