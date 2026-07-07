@@ -103,6 +103,23 @@ export class BrandLayoutComponent implements OnInit {
     return this.userData ? this.userData.firstName + " " + this.userData.lastName : "";
   }
 
+  /** Two-letter initials for the header avatar (falls back to "U"). */
+  get userInitials(): string {
+    const f = this.userData?.firstName?.charAt(0) || "";
+    const l = this.userData?.lastName?.charAt(0) || "";
+    return (f + l).toUpperCase() || "U";
+  }
+
+  /** Signed-in user's email, for the dropdown header. */
+  get userEmail(): string {
+    return this.userData?.email || "";
+  }
+
+  /** Signed-in user's role label, for the dropdown header badge. */
+  get userRole(): string {
+    return this.userData?.role || "";
+  }
+
   /** True whenever the sidebar is a collapsed icon rail (any screen size). */
   get railCollapsed(): boolean {
     return this.sidebarCollapsed;
