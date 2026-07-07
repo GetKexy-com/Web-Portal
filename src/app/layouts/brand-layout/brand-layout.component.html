@@ -154,6 +154,54 @@
       [onClick]="tutorialsNavItemClicked"
       label="Tutorials"
     ></nav-item>
+
+    <!-- Account menu pinned to the bottom (Slack / Linear / Vercel pattern) -->
+    <li class="sidebar-footer" ngbDropdown placement="top-start" container="body">
+      <button class="kx-acct-toggle" ngbDropdownToggle [attr.data-label]="username" [title]="username">
+        <span class="kx-avatar">{{ userInitials }}</span>
+        <span class="kx-acct-meta">
+          <span class="kx-acct-name">{{ username }}</span>
+          <span class="kx-acct-role" *ngIf="userRole">{{ userRole }}</span>
+        </span>
+        <i class="fa fa-ellipsis-h kx-acct-caret" aria-hidden="true"></i>
+      </button>
+      <div ngbDropdownMenu class="kx-dropdown-menu kx-acct-menu">
+        <div class="kx-dd-header">
+          <span class="kx-avatar kx-avatar-lg">{{ userInitials }}</span>
+          <div class="kx-dd-identity">
+            <div class="kx-dd-name">{{ username }}</div>
+            <div class="kx-dd-email" *ngIf="userEmail">{{ userEmail }}</div>
+            <span class="kx-dd-role" *ngIf="userRole">{{ userRole }}</span>
+          </div>
+        </div>
+
+        <div class="kx-dd-group">
+          <button ngbDropdownItem (click)="editProfileTapped()">
+            <span class="kx-dd-ic"><i class="fa fa-user" aria-hidden="true"></i></span>
+            <span>Edit Profile</span>
+          </button>
+          <button *ngIf="isAdmin" ngbDropdownItem (click)="editCompanyTapped()">
+            <span class="kx-dd-ic"><i class="fa fa-pencil-square-o" aria-hidden="true"></i></span>
+            <span>Edit Company</span>
+          </button>
+          <button ngbDropdownItem (click)="subscriptionsTapped()">
+            <span class="kx-dd-ic"><i class="fa fa-credit-card" aria-hidden="true"></i></span>
+            <span>Subscriptions</span>
+          </button>
+          <button ngbDropdownItem (click)="support()">
+            <span class="kx-dd-ic"><i class="fa fa-headphones" aria-hidden="true"></i></span>
+            <span>Support</span>
+          </button>
+        </div>
+
+        <div class="kx-dd-divider"></div>
+
+        <button ngbDropdownItem class="kx-dd-logout" (click)="handleLogout()">
+          <span class="kx-dd-ic"><i class="fa fa-sign-out" aria-hidden="true"></i></span>
+          <span>Logout</span>
+        </button>
+      </div>
+    </li>
   </ul>
 
   <!-- End of Sidebar -->
@@ -189,56 +237,7 @@
           <span style="font-size: 14px; font-weight: bold">{{ headline }}</span>
         </div>
 
-        <div class="col">
-          <div class="modify-content text-end">
-            <div ngbDropdown class="d-inline-block kx-user-dropdown" placement="bottom-end">
-              <button class="kx-user-pill" id="dropdownBasic1" ngbDropdownToggle>
-                <span class="kx-avatar">{{ userInitials }}</span>
-                <span class="kx-user-meta">
-                  <span class="kx-user-fullname">{{ username }}</span>
-                  <span class="kx-user-role" *ngIf="userRole">{{ userRole }}</span>
-                </span>
-                <i class="fa fa-angle-down kx-caret" aria-hidden="true"></i>
-              </button>
-              <div ngbDropdownMenu aria-labelledby="dropdownBasic1" class="kx-dropdown-menu">
-                <div class="kx-dd-header">
-                  <span class="kx-avatar kx-avatar-lg">{{ userInitials }}</span>
-                  <div class="kx-dd-identity">
-                    <div class="kx-dd-name">{{ username }}</div>
-                    <div class="kx-dd-email" *ngIf="userEmail">{{ userEmail }}</div>
-                    <span class="kx-dd-role" *ngIf="userRole">{{ userRole }}</span>
-                  </div>
-                </div>
-
-                <div class="kx-dd-group">
-                  <button ngbDropdownItem (click)="editProfileTapped()">
-                    <span class="kx-dd-ic"><i class="fa fa-user" aria-hidden="true"></i></span>
-                    <span>Edit Profile</span>
-                  </button>
-                  <button *ngIf="isAdmin" ngbDropdownItem (click)="editCompanyTapped()">
-                    <span class="kx-dd-ic"><i class="fa fa-pencil-square-o" aria-hidden="true"></i></span>
-                    <span>Edit Company</span>
-                  </button>
-                  <button ngbDropdownItem (click)="subscriptionsTapped()">
-                    <span class="kx-dd-ic"><i class="fa fa-credit-card" aria-hidden="true"></i></span>
-                    <span>Subscriptions</span>
-                  </button>
-                  <button ngbDropdownItem (click)="support()">
-                    <span class="kx-dd-ic"><i class="fa fa-headphones" aria-hidden="true"></i></span>
-                    <span>Support</span>
-                  </button>
-                </div>
-
-                <div class="kx-dd-divider"></div>
-
-                <button ngbDropdownItem class="kx-dd-logout" (click)="handleLogout()">
-                  <span class="kx-dd-ic"><i class="fa fa-sign-out" aria-hidden="true"></i></span>
-                  <span>Logout</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <div class="col"></div>
       </div>
       <div class="text-center" *ngIf="isUploadingCsvFlag">
         <div class="spinner-border" role="status">
