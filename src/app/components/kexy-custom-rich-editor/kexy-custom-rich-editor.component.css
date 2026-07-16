@@ -613,8 +613,11 @@ kexy-custom-rich-editor .email-meta .subject-input * {
   color: #475569;
 }
 
-.editor-canvas table { width: 100%; border-collapse: collapse; margin-bottom: 14px; }
-.editor-canvas td, .editor-canvas th { border: 1px solid var(--border); padding: 8px; }
+/* Content tables get editor sizing/gridlines; layout tables (role=presentation:
+   pasted email shells / our media-block wrappers) keep their own styling. */
+.editor-canvas table:not([role="presentation"]) { width: 100%; border-collapse: collapse; margin-bottom: 14px; }
+.editor-canvas table:not([role="presentation"]) td,
+.editor-canvas table:not([role="presentation"]) th { border: 1px solid var(--border); padding: 8px; }
 
 /* Checklist (unordered list rendered with checkbox markers) */
 .editor-canvas ul.kx-checklist { list-style: none; padding-left: 4px; }

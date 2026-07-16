@@ -75,6 +75,13 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
    *  won't clobber the textarea (and their caret) with a reformatted mirror. */
   private htmlEditing = false;
 
+  /** When the loaded/pasted content was a FULL html document, we keep its shell
+   *  (doctype + <html>/<head>/<body>) here with a marker where the body content
+   *  goes, so export re-emits the user's own document verbatim instead of
+   *  wrapping the body in our email-table shell. Null = fragment mode (we wrap). */
+  private fullDocTemplate: string | null = null;
+  private readonly FULLDOC_BODY_MARKER = '<!--KEXY_BODY-->';
+
   /** The last URL inserted via the link popover — used to pre-fill it next time. */
   private lastLinkUrl = '';
 
@@ -153,6 +160,11 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
    * so the canvas HTML is clean from the start, not just at export/save time.
    */
   private onPaste = (): void => {
+    // Design-canvas paste is a WYSIWYG fragment insert at the caret: let the
+    // browser's native paste run (it extracts the StartFragment portion out of
+    // the clipboard's html/body wrapper), then strip cruft next tick. A WHOLE
+    // html document is adopted as the email only via the HTML source tab /
+    // loadContent, where the pasted text IS the literal source (see applyContent).
     setTimeout(() => this.sanitizeCanvas(), 0);
   };
 
@@ -425,7 +437,7 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
   onSourceInput(event: Event): void {
     if (!this.state.sourceMode()) return;
     const textarea = event.target as HTMLTextAreaElement;
-    this.canvas.innerHTML = textarea.value;
+    this.applyContent(textarea.value);
     this.hydrateEditorBlocks();
     // Strip phantom borders + Tailwind --tw-* cruft from edited/pasted source.
     this.sanitizeCanvas();
@@ -433,33 +445,34 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
   }
 
   /**
-   * The HTML tab is an editable source view of the editor's raw HTML. Edits are
-   * applied straight to the canvas (so Design/Preview/getHtml reflect them), and
-   * phantom borders are stripped as the source is edited — the same cleanup the
-   * design canvas gets on paste. We edit the RAW canvas HTML (not the inlined
-   * export document) because re-importing the export shell would nest a second
-   * email shell on the next getHtml().
+   * The HTML tab is an editable source view. Edits are applied straight to the
+   * canvas (so Design/Preview/getHtml reflect them) and cleaned as they're
+   * typed. Content routes through applyContent, so pasting/typing a FULL html
+   * document switches to passthrough mode (we keep the user's shell and don't
+   * wrap in ours); a fragment stays fragment mode (we wrap on export).
    */
   onHtmlInput(event: Event): void {
     if (this.state.mode() !== 'html') return;
     this.htmlEditing = true;
     const textarea = event.target as HTMLTextAreaElement;
-    this.canvas.innerHTML = textarea.value;
+    this.applyContent(textarea.value);
     this.hydrateEditorBlocks();
     this.sanitizeCanvas();
+    this.mergeTags.renderChipsInElement(this.canvas);
     this.refreshOutputs();
   }
 
   /** After a paste lands in the HTML tab, adopt + clean it and reflect the
-   *  cleaned source back so the box visibly shows border-free HTML. */
+   *  cleaned (and pretty-printed) source back so the box shows tidy HTML. */
   onHtmlPaste(): void {
     setTimeout(() => {
       if (this.state.mode() !== 'html' || !this.htmlEditorRef) return;
       const textarea = this.htmlEditorRef.nativeElement;
-      this.canvas.innerHTML = textarea.value;
+      this.applyContent(textarea.value);
       this.hydrateEditorBlocks();
       this.sanitizeCanvas();
-      textarea.value = this.utils.formatHtml(this.canvas.innerHTML);
+      this.mergeTags.renderChipsInElement(this.canvas);
+      textarea.value = this.utils.formatHtml(this.getRawHtml());
       this.htmlEditing = false;
       this.refreshOutputs();
     }, 0);
@@ -1214,13 +1227,38 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
     // }
   }
 
+  /** A FULL html document (has a doctype / `<html>` / `<body>`), vs a fragment. */
+  private isFullDocument(html: string): boolean {
+    return /<!doctype\b/i.test(html) || /<html[\s>]/i.test(html) || /<body[\s>]/i.test(html);
+  }
+
+  /**
+   * Put HTML into the canvas. If it's a FULL document, remember its shell
+   * (doctype + head + body attributes) in `fullDocTemplate` with a marker where
+   * the body goes, and load only the body into the canvas — so on export we
+   * re-emit the user's own document and never add our email-table/html shell.
+   * A fragment clears the template (fragment mode → we wrap on export as before).
+   */
+  private applyContent(html: string): void {
+    if (this.isFullDocument(html)) {
+      const doc = new DOMParser().parseFromString(html, 'text/html');
+      const bodyContent = doc.body.innerHTML;
+      doc.body.innerHTML = this.FULLDOC_BODY_MARKER;
+      this.fullDocTemplate = '<!DOCTYPE html>\n' + doc.documentElement.outerHTML;
+      this.canvas.innerHTML = bodyContent;
+    } else {
+      this.fullDocTemplate = null;
+      this.canvas.innerHTML = html;
+    }
+  }
+
   /**
    * Replace the editor content with arbitrary HTML supplied by a host
    * component. Hydrates media blocks, renders [merge_tags] as chips and
    * refreshes the preview/HTML outputs.
    */
   setContent(html: string): void {
-    this.canvas.innerHTML = html ?? '';
+    this.applyContent(html ?? '');
     this.hydrateEditorBlocks();
     this.mergeTags.renderChipsInElement(this.canvas);
     this.selectBlock(null);
@@ -1267,6 +1305,7 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
   }
 
   loadSample(imageSvg: string, videoSvg: string): void {
+    this.fullDocTemplate = null; // sample is a fragment → wrap on export
     this.canvas.innerHTML = `
       <p>Hi [receiver_first_name],</p>
       <p>I came across your request for life insurance information and wanted to reach out personally.</p>
@@ -1303,7 +1342,7 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
    * shell / `<title>`. This is the fragment a host should send/store as the
    * message content; `generateEmailHtml` wraps it in a full standalone document.
    */
-  getInlinedBodyHtml(): string {
+  getInlinedBodyHtml(applyEmailStyles = !this.fullDocTemplate): string {
     const clone = this.canvas.cloneNode(true) as HTMLElement;
     clone.querySelectorAll('.selected').forEach(n => n.classList.remove('selected'));
     clone.querySelectorAll('.resize-handle').forEach(n => n.remove());
@@ -1311,7 +1350,14 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
     // Chips are a design-time affordance — export the raw [tag] text instead
     this.mergeTags.stripChipsToRaw(clone);
     this.utils.normalizeFontTags(clone);
-    this.utils.inlineEmailStyles(clone);
+    if (applyEmailStyles) {
+      this.utils.inlineEmailStyles(clone);
+    } else {
+      // Full-document passthrough: the user's document already carries its own
+      // styling — don't impose our element style map, only run the cruft cleanup.
+      this.utils.neutralizePhantomBorders(clone);
+      this.utils.stripTailwindVars(clone);
+    }
     this.utils.transformMediaBlocks(
       clone,
       (v) => this.utils.escapeHtml(v),
@@ -1322,6 +1368,14 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
 
   generateEmailHtml(subject: string): string {
     const body = this.getInlinedBodyHtml();
+
+    // Full-document passthrough: re-emit the user's own document (their shell,
+    // head, body) with the current body content — no email-table/html shell of
+    // ours added. getInlinedBodyHtml skips our style map in this mode.
+    if (this.fullDocTemplate) {
+      // Replacement FUNCTION so `$`-sequences in body aren't treated specially.
+      return this.fullDocTemplate.replace(this.FULLDOC_BODY_MARKER, () => body);
+    }
 
     return `<!DOCTYPE html>
 <html lang="en">
@@ -1360,7 +1414,13 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
     clone.querySelectorAll('.resize-handle').forEach(n => n.remove());
     clone.querySelectorAll('[contenteditable]').forEach(n => n.removeAttribute('contenteditable'));
     this.mergeTags.stripChipsToRaw(clone);
-    return clone.innerHTML.trim();
+    const body = clone.innerHTML.trim();
+    // Preserve the full-document shell for round-trips: reloading this via
+    // setContent re-detects it as a full doc and stays in passthrough mode.
+    if (this.fullDocTemplate) {
+      return this.fullDocTemplate.replace(this.FULLDOC_BODY_MARKER, () => body);
+    }
+    return body;
   }
 
   refreshOutputs(): void {
@@ -1371,7 +1431,7 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
     // Mirror the raw editor HTML into the (editable) HTML tab, pretty-printed,
     // unless the user is mid-edit there — otherwise we'd overwrite their caret.
     if (this.state.mode() === 'html' && !this.htmlEditing && this.htmlEditorRef) {
-      this.htmlEditorRef.nativeElement.value = this.utils.formatHtml(this.canvas.innerHTML);
+      this.htmlEditorRef.nativeElement.value = this.utils.formatHtml(this.getRawHtml());
     }
     const html = this.generateEmailHtml(this.state.subject());
     this.state.setHtmlOutput(html);

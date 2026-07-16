@@ -261,12 +261,30 @@ export class EditorUtilsService {
       ['ol', 'margin:0 0 16px 22px; padding:0;'],
       ['li', 'margin:0 0 8px;'],
       ['blockquote', 'margin:0 0 16px; padding-left:12px; border-left:4px solid #b8dff8; color:#475569;'],
-      ['table', 'width:100%; border-collapse:collapse; margin:0 0 16px;'],
-      ['td', 'border:1px solid #d7deea; padding:8px;'],
-      ['th', 'border:1px solid #d7deea; padding:8px; text-align:left; background:#f8fbff;'],
     ];
     map.forEach(([selector, styles]) => {
       root.querySelectorAll(selector).forEach((el) => this.appendStyle(el as HTMLElement, styles));
+    });
+
+    // Tables: style CONTENT tables only. Layout tables — `role="presentation"`
+    // (email shells, pasted layouts, our own media-block wrappers) — carry their
+    // own sizing/spacing and must NOT get content-table borders/width/padding.
+    const inLayoutTable = (el: Element): boolean => {
+      const t = el.closest('table');
+      return !!t && t.matches('[role="presentation" i]');
+    };
+    root.querySelectorAll('table').forEach((el) => {
+      if (!el.matches('[role="presentation" i]')) {
+        this.appendStyle(el as HTMLElement, 'width:100%; border-collapse:collapse; margin:0 0 16px;');
+      }
+    });
+    root.querySelectorAll('td').forEach((el) => {
+      if (!inLayoutTable(el)) this.appendStyle(el as HTMLElement, 'border:1px solid #d7deea; padding:8px;');
+    });
+    root.querySelectorAll('th').forEach((el) => {
+      if (!inLayoutTable(el)) {
+        this.appendStyle(el as HTMLElement, 'border:1px solid #d7deea; padding:8px; text-align:left; background:#f8fbff;');
+      }
     });
 
     // Anchors are handled separately:
@@ -359,13 +377,29 @@ export class EditorUtilsService {
     'thead', 'tr', 'ul',
   ]);
 
-  /** Pretty-print an HTML fragment (the raw editor body) for readable display. */
+  /** Pretty-print HTML for readable display. Handles both a body fragment and a
+   *  full `<!doctype html>` document (doctype + <html>/<head> preserved, body
+   *  indented). */
   formatHtml(html: string): string {
     if (!html || !html.trim()) return '';
+    const isFull = /<!doctype\b/i.test(html) || /<html[\s>]/i.test(html);
     const doc = new DOMParser().parseFromString(html, 'text/html');
-    let out = '';
-    doc.body.childNodes.forEach((n) => { out += this.formatNode(n, 0); });
-    return out.replace(/\n+$/, '');
+
+    const formatChildren = (parent: Node, depth: number): string => {
+      let out = '';
+      parent.childNodes.forEach((n) => { out += this.formatNode(n, depth); });
+      return out.replace(/\n+$/, '');
+    };
+
+    if (!isFull) return formatChildren(doc.body, 0);
+
+    const doctype = doc.doctype ? `<!DOCTYPE ${doc.doctype.name}>` : '<!DOCTYPE html>';
+    const head = formatChildren(doc.head, 2);
+    const body = formatChildren(doc.body, 2);
+    return `${doctype}\n${this.formatOpenTag(doc.documentElement)}\n`
+      + `  <head>\n${head}\n  </head>\n`
+      + `  ${this.formatOpenTag(doc.body)}\n${body}\n  </body>\n`
+      + `</html>`;
   }
 
   private formatNode(node: Node, depth: number): string {
