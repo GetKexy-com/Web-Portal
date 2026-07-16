@@ -249,6 +249,8 @@ export class EditorUtilsService {
     // width and a dark border appears. Match the design intent by zeroing the
     // width on any side that has a style but no explicit width.
     this.neutralizePhantomBorders(root);
+    // Drop Tailwind's --tw-* inline custom-property cruft (we don't use Tailwind).
+    this.stripTailwindVars(root);
 
     const map: [string, string][] = [
       ['p', 'margin:0 0 16px; font-size:14px; line-height:1.6;'],
@@ -307,6 +309,29 @@ export class EditorUtilsService {
           el.style.setProperty(`border-${side}-width`, '0');
         }
       });
+    });
+  }
+
+  /**
+   * Remove Tailwind's `--tw-*` inline CSS custom properties (translate/rotate/
+   * scale/blur/gradient/etc. reset vars) that content pasted from Tailwind-styled
+   * pages carries. We don't use Tailwind, so they're pure cruft that bloats the
+   * markup. Tailwind utility *classes* are left alone — they're inert in email
+   * and removing all classes would strip our own (merge-tag-chip, media-block…).
+   * If stripping empties the style attribute, the attribute is dropped too.
+   */
+  stripTailwindVars(root: HTMLElement): void {
+    const els = [root, ...Array.from(root.querySelectorAll<HTMLElement>('*'))];
+    els.forEach((el) => {
+      if (!el.style || !el.style.length) return;
+      const twProps: string[] = [];
+      for (let i = 0; i < el.style.length; i++) {
+        const prop = el.style.item(i);
+        if (prop.startsWith('--tw-')) twProps.push(prop);
+      }
+      if (!twProps.length) return;
+      twProps.forEach((p) => el.style.removeProperty(p));
+      if (!el.getAttribute('style')?.trim()) el.removeAttribute('style');
     });
   }
 

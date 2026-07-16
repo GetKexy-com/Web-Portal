@@ -153,8 +153,16 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
    * so the canvas HTML is clean from the start, not just at export/save time.
    */
   private onPaste = (): void => {
-    setTimeout(() => this.utils.neutralizePhantomBorders(this.canvas), 0);
+    setTimeout(() => this.sanitizeCanvas(), 0);
   };
+
+  /** Strip cruft that pasted/edited content brings in but we don't want in the
+   *  canvas HTML: phantom borders (style but no width/color) + Tailwind --tw-*
+   *  inline custom properties. */
+  private sanitizeCanvas(): void {
+    this.utils.neutralizePhantomBorders(this.canvas);
+    this.utils.stripTailwindVars(this.canvas);
+  }
 
   // ── Drag-and-drop reposition of media blocks ──
   private onBlockDragStart = (event: DragEvent): void => {
@@ -419,8 +427,8 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
     const textarea = event.target as HTMLTextAreaElement;
     this.canvas.innerHTML = textarea.value;
     this.hydrateEditorBlocks();
-    // Strip phantom borders (style but no width/color) from edited/pasted source.
-    this.utils.neutralizePhantomBorders(this.canvas);
+    // Strip phantom borders + Tailwind --tw-* cruft from edited/pasted source.
+    this.sanitizeCanvas();
     this.refreshOutputs();
   }
 
@@ -438,7 +446,7 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
     const textarea = event.target as HTMLTextAreaElement;
     this.canvas.innerHTML = textarea.value;
     this.hydrateEditorBlocks();
-    this.utils.neutralizePhantomBorders(this.canvas);
+    this.sanitizeCanvas();
     this.refreshOutputs();
   }
 
@@ -450,7 +458,7 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
       const textarea = this.htmlEditorRef.nativeElement;
       this.canvas.innerHTML = textarea.value;
       this.hydrateEditorBlocks();
-      this.utils.neutralizePhantomBorders(this.canvas);
+      this.sanitizeCanvas();
       textarea.value = this.utils.formatHtml(this.canvas.innerHTML);
       this.htmlEditing = false;
       this.refreshOutputs();
