@@ -284,6 +284,27 @@ export class EditorUtilsService {
   }
 
   /**
+   * String-level counterpart to {@link neutralizePhantomBorders} for HTML that
+   * did NOT come straight out of the editor's export clone — e.g. a drip
+   * email's already-saved `emailContent` full document, or a body fragment.
+   * Parses the HTML, strips phantom borders, and serializes back. Accepts both
+   * a full `<!doctype html>` document (doctype + shell preserved) and a bare
+   * fragment (returns the cleaned fragment). Returns the input untouched when
+   * falsy. Safe to run repeatedly (idempotent — a cleaned border stays width 0).
+   */
+  stripPhantomBorders(html: string): string {
+    if (!html) return html;
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    this.neutralizePhantomBorders(doc.body);
+    const isFullDocument = /<!doctype\b/i.test(html) || /<html[\s>]/i.test(html);
+    if (isFullDocument) {
+      const doctype = doc.doctype ? `<!DOCTYPE ${doc.doctype.name}>\n` : '<!DOCTYPE html>\n';
+      return doctype + doc.documentElement.outerHTML;
+    }
+    return doc.body.innerHTML;
+  }
+
+  /**
    * Zero the width of any border side that declares a visible style but sets
    * NEITHER an explicit width NOR an explicit color — i.e. it would render at
    * the UA defaults `medium` (~3px) + `currentColor`. That combination is the
