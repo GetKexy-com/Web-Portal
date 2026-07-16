@@ -107,6 +107,21 @@ export class KexyCustomRichEditorComponent implements AfterViewInit {
   /** Initial subject line (plain text with optional [tokens]). */
   @Input() subject?: string;
 
+  /** When true, export/preview emit the body in a bare document WITHOUT our
+   *  email-table shell (used for "Plain Text" style emails). Reactive: toggling
+   *  it re-renders the preview + HTML output. */
+  private _plainText = false;
+  @Input() set plainText(value: boolean) {
+    this._plainText = !!value;
+    if (this.editorCanvasRef) {
+      this.editorCanvasRef.plainText = this._plainText;
+      this.editorCanvasRef.refreshOutputs();
+    }
+  }
+  get plainText(): boolean {
+    return this._plainText;
+  }
+
   /** Emits the serialized subject (raw [tokens]) whenever it changes. */
   readonly subjectChanged = output<string>();
 
@@ -132,6 +147,10 @@ export class KexyCustomRichEditorComponent implements AfterViewInit {
     };
     this.toolbarRef.uploadImage = uploader;
     this.editorCanvasRef.uploadImage = uploader;
+
+    // Apply the plain-text flag before the first render so the initial
+    // preview/output honor it (the @Input setter no-ops until the view exists).
+    this.editorCanvasRef.plainText = this._plainText;
 
     // Load the supplied content, or the built-in sample when none was given
     if (this.content != null) {

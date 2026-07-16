@@ -9,7 +9,7 @@
       <div class="input-wrap">
 
         <!--Email Tones-->
-        <div class="label-and-input d-flex" style="border-bottom: 1px solid #E7F6FE">
+        <div class="label-and-input d-flex align-items-end" style="border-bottom: 1px solid #E7F6FE">
           <kexy-select-dropdown
             style="flex: 1"
             label="Email Tone"
@@ -95,6 +95,7 @@
               [content]="emailContent"
               [subject]="emailSubject"
               (subjectChanged)="emailSubject = $event"
+              [plainText]="selectedEmailStyle?.key === 'plain_text'"
             ></kexy-custom-rich-editor>
           </div>
           <div *ngIf="!emailSubject">

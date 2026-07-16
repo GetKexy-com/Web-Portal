@@ -36,6 +36,10 @@ export class PreviewDripEmailContentComponent implements OnInit, AfterViewInit {
   // True when emailContent is already a full <html> document (the editor's
   // getHtml() export) — such content must NOT be re-wrapped in the shell.
   private isFullDocument = false;
+  // Plain Text style → the fragment fallback wraps WITHOUT the email-table shell
+  // (matches the editor). Defaults to plain text (mirrors the editor's default)
+  // unless the email is explicitly 'html'.
+  private isPlainText = false;
 
   constructor(
     public activeCanvas: NgbActiveOffcanvas,
@@ -47,6 +51,7 @@ export class PreviewDripEmailContentComponent implements OnInit, AfterViewInit {
 
   ngOnInit(): void {
     this.dripEmail = this.dripCampaignService.getEditEmail();
+    this.isPlainText = (this.dripEmail['emailStyle'] || 'plain_text') === 'plain_text';
     this.__initSenderInfo();
     this.spinEmail();
   }
@@ -140,18 +145,31 @@ export class PreviewDripEmailContentComponent implements OnInit, AfterViewInit {
 
   private __buildPreviewHtml(subject: string, body: string): string {
     const safeBody = (body || '').trim() || '<p>&nbsp;</p>';
-    return `<!DOCTYPE html>
+    const head = `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <base target="_blank" rel="noopener noreferrer" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>${this.__escapeHtml(subject || 'Email')}</title>
-</head>
+</head>`;
+
+    // Plain Text style: mirror the editor's plainText export — no email-table
+    // shell, just the design canvas's 14px padding + base type. Keeps this modal
+    // and the editor preview identical for plain-text emails.
+    if (this.isPlainText) {
+      return `${head}
+<body style="margin:0; padding:14px; background:#ffffff; font-family:Arial, Helvetica, sans-serif; font-size:14px; line-height:1.6; color:#1f2937;">
+${safeBody}
+</body>
+</html>`;
+    }
+
+    return `${head}
 <body style="margin:0; padding:0; background:#f3f4f6;">
   <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%; border-collapse:collapse; background:#f3f4f6;">
     <tr>
-      <td align="center" style="padding:24px 12px;">
+      <td align="center" style="padding:12px 12px;">
         <table role="presentation" width="600" cellspacing="0" cellpadding="0" border="0" style="width:600px; max-width:600px; border-collapse:collapse; background:#ffffff; font-family:Arial, Helvetica, sans-serif; color:#1f2937;">
           <tr>
             <td style="padding:24px; font-family:Arial, Helvetica, sans-serif; font-size:14px; line-height:1.6; color:#1f2937;">

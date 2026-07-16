@@ -82,6 +82,10 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
   private fullDocTemplate: string | null = null;
   private readonly FULLDOC_BODY_MARKER = '<!--KEXY_BODY-->';
 
+  /** Plain-text style: emit the body in a bare document (doctype/head/body) with
+   *  NO email-table shell of ours. Set by the host via the plainText @Input. */
+  plainText = false;
+
   /** The last URL inserted via the link popover — used to pre-fill it next time. */
   private lastLinkUrl = '';
 
@@ -1358,10 +1362,11 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
     return els.length > 0 && els.every((el) => el.tagName.toLowerCase() === 'table');
   }
 
-  /** True when export should re-emit content as-is (no shell / no style map):
-   *  a full pasted document OR a self-contained table layout. */
+  /** True when export should re-emit content as-is (no style map): a full pasted
+   *  document, a self-contained table layout, OR plain-text style (send the body
+   *  as the user sees it in the HTML tab, without imposing our element styles). */
   private isPassthrough(): boolean {
-    return !!this.fullDocTemplate || this.isTableRootedBody();
+    return !!this.fullDocTemplate || this.isTableRootedBody() || this.plainText;
   }
 
   getInlinedBodyHtml(applyEmailStyles = !this.isPassthrough()): string {
@@ -1407,8 +1412,19 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
   <title>${this.utils.escapeHtml(subject || 'Email')}</title>
 </head>`;
 
-    // Table-rooted layout: the pasted table IS the email layout (owns its own
-    // width/centering), so wrap in the document only — NOT our email-table shell.
+    // Plain-text style: no email-table shell, but keep the design canvas's own
+    // padding (14px) + base type so the Preview and the inbox have the same gap
+    // as Design mode (content doesn't touch the edges).
+    if (this.plainText) {
+      return `${head}
+<body style="margin:0; padding:14px; background:#ffffff; font-family:Arial, Helvetica, sans-serif; font-size:14px; line-height:1.6; color:#1f2937;">
+${body}
+</body>
+</html>`;
+    }
+
+    // Table-rooted layout: the pasted table owns its own width/centering, so wrap
+    // in the document only — NO shell, NO padding (edge-to-edge).
     if (this.isTableRootedBody()) {
       return `${head}
 <body style="margin:0; padding:0;">
@@ -1421,7 +1437,7 @@ ${body}
 <body style="margin:0; padding:0; background:#f3f4f6;">
   <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%; border-collapse:collapse; background:#f3f4f6;">
     <tr>
-      <td align="center" style="padding:24px 12px;">
+      <td align="center" style="padding:12px 12px;">
         <table role="presentation" width="600" cellspacing="0" cellpadding="0" border="0" style="width:600px; max-width:600px; border-collapse:collapse; background:#ffffff; font-family:Arial, Helvetica, sans-serif; color:#1f2937;">
           <tr>
             <td style="padding:24px; font-family:Arial, Helvetica, sans-serif; font-size:14px; line-height:1.6; color:#1f2937;">

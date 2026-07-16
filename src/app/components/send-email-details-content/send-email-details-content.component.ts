@@ -187,6 +187,9 @@ export class SendEmailDetailsContentComponent implements OnInit, OnDestroy {
     // the email shell so the styling survives in the recipient's inbox. It is sent
     // / previewed, never loaded back into the editor.
     const rawEditorContent = this.editor?.getRawHtml() || this.emailContent;
+    // getHtml() reflects the selected style (the editor's plainText @Input): HTML
+    // style → the inlined email-shell document; Plain Text → the same un-shelled,
+    // padded document the Preview shows, so preview and the inbox match exactly.
     const emailContent = this.editor?.getHtml() || this.emailContent;
     // Subject now lives in the editor; serialize it back to raw [tokens].
     this.emailSubject = this.editor?.getSubject() ?? this.emailSubject;
