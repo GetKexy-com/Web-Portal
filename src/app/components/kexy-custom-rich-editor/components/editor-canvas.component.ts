@@ -1342,7 +1342,29 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
    * shell / `<title>`. This is the fragment a host should send/store as the
    * message content; `generateEmailHtml` wraps it in a full standalone document.
    */
-  getInlinedBodyHtml(applyEmailStyles = !this.fullDocTemplate): string {
+  /** The canvas content is a self-contained table layout: every significant
+   *  top-level element is a `<table>` (trailing empty spacer `<p>`/`<br>` and
+   *  whitespace ignored). Such content owns its own width/spacing, so we neither
+   *  wrap it in our email-table shell nor impose our element styles. */
+  private isTableRootedBody(): boolean {
+    const els = Array.from(this.canvas.children).filter((el) => {
+      const tag = el.tagName.toLowerCase();
+      if (tag === 'br') return false;
+      if ((tag === 'p' || tag === 'div')
+        && !el.textContent?.trim()
+        && !el.querySelector('img,table,hr,a')) return false;
+      return true;
+    });
+    return els.length > 0 && els.every((el) => el.tagName.toLowerCase() === 'table');
+  }
+
+  /** True when export should re-emit content as-is (no shell / no style map):
+   *  a full pasted document OR a self-contained table layout. */
+  private isPassthrough(): boolean {
+    return !!this.fullDocTemplate || this.isTableRootedBody();
+  }
+
+  getInlinedBodyHtml(applyEmailStyles = !this.isPassthrough()): string {
     const clone = this.canvas.cloneNode(true) as HTMLElement;
     clone.querySelectorAll('.selected').forEach(n => n.classList.remove('selected'));
     clone.querySelectorAll('.resize-handle').forEach(n => n.remove());
@@ -1377,13 +1399,25 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
       return this.fullDocTemplate.replace(this.FULLDOC_BODY_MARKER, () => body);
     }
 
-    return `<!DOCTYPE html>
+    const head = `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>${this.utils.escapeHtml(subject || 'Email')}</title>
-</head>
+</head>`;
+
+    // Table-rooted layout: the pasted table IS the email layout (owns its own
+    // width/centering), so wrap in the document only — NOT our email-table shell.
+    if (this.isTableRootedBody()) {
+      return `${head}
+<body style="margin:0; padding:0;">
+${body}
+</body>
+</html>`;
+    }
+
+    return `${head}
 <body style="margin:0; padding:0; background:#f3f4f6;">
   <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%; border-collapse:collapse; background:#f3f4f6;">
     <tr>
