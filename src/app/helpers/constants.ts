@@ -223,6 +223,10 @@ export const constants = {
     { key: 'medium', value: 'Medium' },
     { key: 'long', value: 'Long' },
   ],
+  EMAIL_STYLES: [
+    { key: 'plain_text', value: 'Plain Text Email' },
+    { key: 'html', value: 'Html Email' },
+  ],
   DRIP_CAMPAIGN_STATUS: [
     { key: 'all', value: 'All' },
     { key: 'active', value: 'Active' },

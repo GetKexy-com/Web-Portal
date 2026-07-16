@@ -49,6 +49,9 @@ export class SendEmailDetailsContentComponent implements OnInit, OnDestroy {
   public emailLengthKeys = constants.EMAIL_LENGTH_KEYS;
   // Set first index which is "short" by default.
   public selectedEmailLength;
+  public emailStyleKeys = constants.EMAIL_STYLES;
+  // Defaults to the first index ("Plain Text Email").
+  public selectedEmailStyle;
   public hasPromotion;
   public dripCampaign;
   public isCheckedAddUnsubscribeLink = true;
@@ -127,6 +130,13 @@ export class SendEmailDetailsContentComponent implements OnInit, OnDestroy {
       this.onEmailLengthSelect(this.emailLengthKeys[0]);
     }
 
+    // Set email style (defaults to Plain Text Email)
+    const emailStyle = this.dripEmail['emailStyle'];
+    const styleIndex = emailStyle
+      ? this.emailStyleKeys.findIndex((i) => i.key === emailStyle)
+      : -1;
+    this.onEmailStyleSelect(this.emailStyleKeys[styleIndex > -1 ? styleIndex : 0]);
+
     const isAddUnsubscribeLink = this.dripEmail['isAddUnsubscribeLink'];
     console.log('isAddUnsubscribeLink', isAddUnsubscribeLink);
     if (isAddUnsubscribeLink) {
@@ -164,6 +174,10 @@ export class SendEmailDetailsContentComponent implements OnInit, OnDestroy {
     this.selectedEmailToneKey = tone.value;
   };
 
+  onEmailStyleSelect = (selectedValue, index = null, rowIndex = null) => {
+    this.selectedEmailStyle = selectedValue;
+  };
+
   handleSubmit = async () => {
     this.submitted = true;
     this.isLoading = true;
@@ -181,6 +195,7 @@ export class SendEmailDetailsContentComponent implements OnInit, OnDestroy {
     this.dripEmail['rawEditorContent'] = rawEditorContent;
     this.dripEmail['emailTone'] = this.selectedEmailToneKey;
     this.dripEmail['emailLength'] = this.selectedEmailLength.value;
+    this.dripEmail['emailStyle'] = this.selectedEmailStyle?.key;
     this.dripEmail['isAddUnsubscribeLink'] = this.isCheckedAddUnsubscribeLink ? 1 : 0;
     // If drip email does not have an ID, it means user did not save it yet.
     // So we avoid calling the update api and only update local data and hide the canvas
@@ -195,6 +210,7 @@ export class SendEmailDetailsContentComponent implements OnInit, OnDestroy {
       rawEditorContent,
       emailTone: this.selectedEmailToneKey,
       emailLength: this.selectedEmailLength.value,
+      emailStyle: this.selectedEmailStyle?.key,
       delayBetweenPreviousEmail: JSON.stringify(this.dripEmail.delayBetweenPreviousEmail),
       isAddUnsubscribeLink: this.isCheckedAddUnsubscribeLink,
     };

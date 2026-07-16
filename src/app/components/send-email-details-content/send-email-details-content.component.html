@@ -9,8 +9,9 @@
       <div class="input-wrap">
 
         <!--Email Tones-->
-        <div class="label-and-input d-flex align-items-end" style="border-bottom: 1px solid #E7F6FE">
+        <div class="label-and-input d-flex" style="border-bottom: 1px solid #E7F6FE">
           <kexy-select-dropdown
+            style="flex: 1"
             label="Email Tone"
             shortNoteBesideLabel=""
             [selectAllBtn]="false"
@@ -24,13 +25,14 @@
             [deleteIcon]="false"
             [onDeleteClick]=""
             [onEditClick]=""
+            [isClearable]="false"
             optionStyle="button"
             backgroundColor="white"
             placeholder="Please Select"
-            style="flex: 1"
+
           ></kexy-select-dropdown>
           <kexy-select-dropdown
-            style="margin-left: 10px"
+            style="margin-left: 10px; flex: 1"
             label="Email Length"
             shortNoteBesideLabel=""
             [selectAllBtn]="false"
@@ -46,6 +48,29 @@
             [onDeleteClick]=""
             [onEditClick]=""
             [isSearchAble]="false"
+            [isClearable]="false"
+            optionStyle="button"
+            backgroundColor="white"
+            placeholder="Please Select"
+          ></kexy-select-dropdown>
+          <kexy-select-dropdown
+            style="margin-left: 10px; flex: 1"
+            label="Email Style"
+            shortNoteBesideLabel=""
+            [selectAllBtn]="false"
+            [required]="false"
+            [options]="emailStyleKeys"
+            [addNewBtn]="false"
+            [onAddNewClick]=""
+            [selectedOption]="selectedEmailStyle ? selectedEmailStyle['value'] : ''"
+            [onSelectSingleItem]="onEmailStyleSelect"
+            [rowIndex]="2"
+            [editIcon]="false"
+            [deleteIcon]="false"
+            [onDeleteClick]=""
+            [onEditClick]=""
+            [isSearchAble]="false"
+            [isClearable]="false"
             optionStyle="button"
             backgroundColor="white"
             placeholder="Please Select"
