@@ -7,7 +7,6 @@ import { DripEmail } from '../../models/DripEmail';
 import { KexyButtonComponent } from '../kexy-button/kexy-button.component';
 import { PageUiService } from '../../services/page-ui.service';
 import { AuthService } from '../../services/auth.service';
-import { EditorUtilsService } from '../kexy-custom-rich-editor/services/editor-utils.service';
 
 @Component({
   selector: 'app-preview-drip-email-content',
@@ -43,7 +42,6 @@ export class PreviewDripEmailContentComponent implements OnInit, AfterViewInit {
     private pageUiService: PageUiService,
     private dripCampaignService: DripCampaignService,
     private authService: AuthService,
-    private editorUtils: EditorUtilsService,
   ) {
   }
 
@@ -99,10 +97,7 @@ export class PreviewDripEmailContentComponent implements OnInit, AfterViewInit {
     // center/lay out, so it's a fallback. Raw AI text is the last resort.
     const editorContent = this.dripEmail['emailContent'] || this.dripEmail['rawEditorContent'];
     if (editorContent) {
-      // Strip phantom borders so this preview matches what save/send persists
-      // (saveEmails runs the same cleaner) — otherwise a legacy email would show
-      // a border here that the cleaned, sent version won't have (or vice versa).
-      this.emailContent = this.editorUtils.stripPhantomBorders(this.__expandSpintax(editorContent));
+      this.emailContent = this.__expandSpintax(editorContent);
       this.isFullDocument = this.__looksLikeFullDocument(editorContent);
     } else {
       this.emailContent = this.__formatEmailContent(this.dripEmail['aiRawData']);

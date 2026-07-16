@@ -37,7 +37,6 @@ import { LeadMagnetService } from '../../services/lead-magnet.service';
 import { CAMPAIGN_STATUS, DripCampaign } from '../../models/DripCampaign';
 import { StorageService } from '../../services/storage.service';
 import { ScrapeProgressCardComponent } from '../scrape-progress-card/scrape-progress-card.component';
-import { EditorUtilsService } from '../kexy-custom-rich-editor/services/editor-utils.service';
 
 @Component({
   selector: 'generate-drip-campaign',
@@ -110,7 +109,6 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
     private pageUiService: PageUiService,
     private _authService: AuthService,
     private route: ActivatedRoute,
-    private editorUtils: EditorUtilsService,
   ) {
   }
 
@@ -536,11 +534,7 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
       const email = {
         emailSequence: e.emailSequence,
         emailSubject: e.emailSubject,
-        // Strip phantom borders (style but no width/color — Tailwind paste cruft)
-        // before persisting: this is the HTML the backend sends verbatim to the
-        // inbox, so legacy content saved before the editor-export fix gets cleaned
-        // on the next save too, not just freshly-exported emails.
-        emailContent: this.editorUtils.stripPhantomBorders(e.emailContent),
+        emailContent: e.emailContent,
         aiRawData: e.aiRawData,
         rawEditorContent: e.rawEditorContent,
         delayBetweenPreviousEmail: JSON.stringify(e.delayBetweenPreviousEmail),
