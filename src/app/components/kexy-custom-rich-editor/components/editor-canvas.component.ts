@@ -451,7 +451,7 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
       this.canvas.innerHTML = textarea.value;
       this.hydrateEditorBlocks();
       this.utils.neutralizePhantomBorders(this.canvas);
-      textarea.value = this.canvas.innerHTML;
+      textarea.value = this.utils.formatHtml(this.canvas.innerHTML);
       this.htmlEditing = false;
       this.refreshOutputs();
     }, 0);
@@ -1360,10 +1360,10 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
     if (this.state.sourceMode()) {
       this.sourceEditorRef.nativeElement.value = this.canvas.innerHTML;
     }
-    // Mirror the raw editor HTML into the (editable) HTML tab, unless the user
-    // is mid-edit there — otherwise we'd overwrite their text and caret.
+    // Mirror the raw editor HTML into the (editable) HTML tab, pretty-printed,
+    // unless the user is mid-edit there — otherwise we'd overwrite their caret.
     if (this.state.mode() === 'html' && !this.htmlEditing && this.htmlEditorRef) {
-      this.htmlEditorRef.nativeElement.value = this.canvas.innerHTML;
+      this.htmlEditorRef.nativeElement.value = this.utils.formatHtml(this.canvas.innerHTML);
     }
     const html = this.generateEmailHtml(this.state.subject());
     this.state.setHtmlOutput(html);

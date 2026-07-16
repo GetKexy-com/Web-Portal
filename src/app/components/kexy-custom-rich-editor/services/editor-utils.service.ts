@@ -315,6 +315,83 @@ export class EditorUtilsService {
     el.setAttribute('style', `${current}${current && !current.trim().endsWith(';') ? ';' : ''}${styles}`);
   }
 
+  // ── HTML pretty-printer (for the editable HTML tab) ──
+  // Dependency-free: indents/line-breaks ONLY around block-level elements and
+  // serializes inline content verbatim, so re-importing the formatted HTML into
+  // the canvas never corrupts inline spacing (the whitespace we add sits between
+  // blocks, where it's insignificant, and is dropped on the next format pass —
+  // so it's idempotent and never accumulates).
+  private readonly FMT_INDENT = '  ';
+  private readonly FMT_VOID = new Set([
+    'area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta',
+    'param', 'source', 'track', 'wbr',
+  ]);
+  private readonly FMT_BLOCK = new Set([
+    'html', 'head', 'body', 'address', 'article', 'aside', 'blockquote', 'div',
+    'dl', 'dt', 'dd', 'fieldset', 'figcaption', 'figure', 'footer', 'form',
+    'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'header', 'hr', 'li', 'main', 'nav',
+    'ol', 'p', 'pre', 'section', 'table', 'tbody', 'td', 'tfoot', 'th',
+    'thead', 'tr', 'ul',
+  ]);
+
+  /** Pretty-print an HTML fragment (the raw editor body) for readable display. */
+  formatHtml(html: string): string {
+    if (!html || !html.trim()) return '';
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    let out = '';
+    doc.body.childNodes.forEach((n) => { out += this.formatNode(n, 0); });
+    return out.replace(/\n+$/, '');
+  }
+
+  private formatNode(node: Node, depth: number): string {
+    const pad = this.FMT_INDENT.repeat(depth);
+    if (node.nodeType === Node.TEXT_NODE) {
+      const text = node.textContent ?? '';
+      // Whitespace-only text between blocks is insignificant — drop it.
+      return text.trim() ? pad + text.trim() + '\n' : '';
+    }
+    if (node.nodeType === Node.COMMENT_NODE) {
+      return pad + `<!--${node.textContent ?? ''}-->\n`;
+    }
+    if (node.nodeType !== Node.ELEMENT_NODE) return '';
+
+    const el = node as Element;
+    const tag = el.tagName.toLowerCase();
+    const open = this.formatOpenTag(el);
+    if (this.FMT_VOID.has(tag)) return pad + open + '\n';
+
+    // Block mode ONLY when this is a block element whose children are blocks and
+    // it has no significant direct text — otherwise keep the inner content on one
+    // line verbatim so inline spacing is preserved exactly.
+    const blockMode = this.FMT_BLOCK.has(tag)
+      && this.formatHasBlockChild(el)
+      && !this.formatHasDirectText(el);
+    if (!blockMode) {
+      return pad + open + el.innerHTML.trim() + `</${tag}>\n`;
+    }
+    let out = pad + open + '\n';
+    el.childNodes.forEach((child) => { out += this.formatNode(child, depth + 1); });
+    return out + pad + `</${tag}>\n`;
+  }
+
+  private formatOpenTag(el: Element): string {
+    let s = '<' + el.tagName.toLowerCase();
+    Array.from(el.attributes).forEach((a) => {
+      s += ` ${a.name}="${a.value.replace(/"/g, '&quot;')}"`;
+    });
+    return s + '>';
+  }
+
+  private formatHasBlockChild(el: Element): boolean {
+    return Array.from(el.children).some((c) => this.FMT_BLOCK.has(c.tagName.toLowerCase()));
+  }
+
+  private formatHasDirectText(el: Element): boolean {
+    return Array.from(el.childNodes).some(
+      (n) => n.nodeType === Node.TEXT_NODE && !!(n.textContent ?? '').trim(),
+    );
+  }
+
   replaceNodeWithHtml(node: Element, html: string): void {
     const template = document.createElement('template');
     template.innerHTML = html.trim();
