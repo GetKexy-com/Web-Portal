@@ -41,7 +41,14 @@ import { InsertImageOptions, InsertVideoOptions } from '../models/editor.models'
     </div>
 
     <div class="mode-panel" [class.active]="state.mode() === 'html'">
-      <textarea class="html-output" spellcheck="false" [value]="state.htmlOutput()" readonly></textarea>
+      <textarea
+        #htmlEditor
+        class="html-output"
+        spellcheck="false"
+        (input)="onHtmlInput($event)"
+        (paste)="onHtmlPaste()"
+        (blur)="onHtmlBlur()"
+      ></textarea>
     </div>
 
     <app-fallback-popover #fallbackPopover (fallbackChanged)="refreshChipIndicators()"></app-fallback-popover>
@@ -51,6 +58,7 @@ import { InsertImageOptions, InsertVideoOptions } from '../models/editor.models'
 export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
   @ViewChild('canvas') canvasRef!: ElementRef<HTMLDivElement>;
   @ViewChild('sourceEditor') sourceEditorRef!: ElementRef<HTMLTextAreaElement>;
+  @ViewChild('htmlEditor') htmlEditorRef!: ElementRef<HTMLTextAreaElement>;
   @ViewChild('previewFrame') previewFrameRef!: ElementRef<HTMLIFrameElement>;
   @ViewChild('fallbackPopover') fallbackPopoverRef!: FallbackPopoverComponent;
   @ViewChild('linkPopover') linkPopoverRef!: LinkPopoverComponent;
@@ -62,6 +70,10 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
   readonly mergeTags = inject(MergeTagService);
 
   private savedRange: Range | null = null;
+
+  /** True while the user is actively typing in the HTML tab, so refreshOutputs
+   *  won't clobber the textarea (and their caret) with a reformatted mirror. */
+  private htmlEditing = false;
 
   /** The last URL inserted via the link popover — used to pre-fill it next time. */
   private lastLinkUrl = '';
@@ -407,6 +419,48 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
     const textarea = event.target as HTMLTextAreaElement;
     this.canvas.innerHTML = textarea.value;
     this.hydrateEditorBlocks();
+    // Strip phantom borders (style but no width/color) from edited/pasted source.
+    this.utils.neutralizePhantomBorders(this.canvas);
+    this.refreshOutputs();
+  }
+
+  /**
+   * The HTML tab is an editable source view of the editor's raw HTML. Edits are
+   * applied straight to the canvas (so Design/Preview/getHtml reflect them), and
+   * phantom borders are stripped as the source is edited — the same cleanup the
+   * design canvas gets on paste. We edit the RAW canvas HTML (not the inlined
+   * export document) because re-importing the export shell would nest a second
+   * email shell on the next getHtml().
+   */
+  onHtmlInput(event: Event): void {
+    if (this.state.mode() !== 'html') return;
+    this.htmlEditing = true;
+    const textarea = event.target as HTMLTextAreaElement;
+    this.canvas.innerHTML = textarea.value;
+    this.hydrateEditorBlocks();
+    this.utils.neutralizePhantomBorders(this.canvas);
+    this.refreshOutputs();
+  }
+
+  /** After a paste lands in the HTML tab, adopt + clean it and reflect the
+   *  cleaned source back so the box visibly shows border-free HTML. */
+  onHtmlPaste(): void {
+    setTimeout(() => {
+      if (this.state.mode() !== 'html' || !this.htmlEditorRef) return;
+      const textarea = this.htmlEditorRef.nativeElement;
+      this.canvas.innerHTML = textarea.value;
+      this.hydrateEditorBlocks();
+      this.utils.neutralizePhantomBorders(this.canvas);
+      textarea.value = this.canvas.innerHTML;
+      this.htmlEditing = false;
+      this.refreshOutputs();
+    }, 0);
+  }
+
+  /** Done editing the HTML tab — allow refreshOutputs to re-mirror the (now
+   *  cleaned/normalized) canvas HTML back into the box. */
+  onHtmlBlur(): void {
+    this.htmlEditing = false;
     this.refreshOutputs();
   }
 
@@ -1305,6 +1359,11 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
     this.utils.normalizeFontTags(this.canvas);
     if (this.state.sourceMode()) {
       this.sourceEditorRef.nativeElement.value = this.canvas.innerHTML;
+    }
+    // Mirror the raw editor HTML into the (editable) HTML tab, unless the user
+    // is mid-edit there — otherwise we'd overwrite their text and caret.
+    if (this.state.mode() === 'html' && !this.htmlEditing && this.htmlEditorRef) {
+      this.htmlEditorRef.nativeElement.value = this.canvas.innerHTML;
     }
     const html = this.generateEmailHtml(this.state.subject());
     this.state.setHtmlOutput(html);
