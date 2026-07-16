@@ -239,6 +239,17 @@ export class EditorUtilsService {
   }
 
   inlineEmailStyles(root: HTMLElement): void {
+    // Neutralize "phantom" borders BEFORE we add our own (blockquote/td/th).
+    // Content pasted from Tailwind-styled sources carries `border-style: solid`
+    // with NO width, because Tailwind's preflight resets `border-width: 0`
+    // globally (and our host app's styles.scss does the same via `border: 0`).
+    // In the design canvas those declarations are invisible, but the preview
+    // iframe / the recipient's inbox are plain documents with no such reset, so
+    // the border falls back to the CSS default `medium` (~3px) `currentColor`
+    // width and a dark border appears. Match the design intent by zeroing the
+    // width on any side that has a style but no explicit width.
+    this.neutralizePhantomBorders(root);
+
     const map: [string, string][] = [
       ['p', 'margin:0 0 16px; font-size:14px; line-height:1.6;'],
       ['h1', 'margin:0 0 16px; font-size:28px; line-height:1.25;'],
@@ -269,6 +280,32 @@ export class EditorUtilsService {
       if (!a.style.textDecoration && !a.style.textDecorationLine) {
         this.appendStyle(a, 'text-decoration:none;');
       }
+    });
+  }
+
+  /**
+   * Zero the width of any border side that declares a visible style but sets
+   * NEITHER an explicit width NOR an explicit color — i.e. it would render at
+   * the UA defaults `medium` (~3px) + `currentColor`. That combination is the
+   * signature of paste cruft (Tailwind's preflight emits `border-style: solid`
+   * on every element with no width/color of its own). Sides that set their own
+   * width OR color are treated as deliberate and left untouched: the divider
+   * `<hr>`, a real `border-left`, a colored `border-style: solid` border, etc.
+   * Applies to `root` and every descendant.
+   */
+  private neutralizePhantomBorders(root: HTMLElement): void {
+    const sides = ['top', 'right', 'bottom', 'left'];
+    const els = [root, ...Array.from(root.querySelectorAll<HTMLElement>('*'))];
+    els.forEach((el) => {
+      if (!el.style) return;
+      sides.forEach((side) => {
+        const style = el.style.getPropertyValue(`border-${side}-style`);
+        const width = el.style.getPropertyValue(`border-${side}-width`);
+        const color = el.style.getPropertyValue(`border-${side}-color`);
+        if (style && style !== 'none' && style !== 'hidden' && !width && !color) {
+          el.style.setProperty(`border-${side}-width`, '0');
+        }
+      });
     });
   }
 
