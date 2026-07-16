@@ -312,9 +312,10 @@ export class EditorUtilsService {
    * on every element with no width/color of its own). Sides that set their own
    * width OR color are treated as deliberate and left untouched: the divider
    * `<hr>`, a real `border-left`, a colored `border-style: solid` border, etc.
-   * Applies to `root` and every descendant.
+   * Applies to `root` and every descendant. Public so the editor canvas can
+   * clean pasted content in place (see EditorCanvasComponent's paste handler).
    */
-  private neutralizePhantomBorders(root: HTMLElement): void {
+  neutralizePhantomBorders(root: HTMLElement): void {
     const sides = ['top', 'right', 'bottom', 'left'];
     const els = [root, ...Array.from(root.querySelectorAll<HTMLElement>('*'))];
     els.forEach((el) => {

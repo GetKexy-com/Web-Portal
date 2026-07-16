@@ -103,6 +103,8 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
     // Delegate resize-handle drags so handles work even when a block is added
     // via insertHTML (undo/redo, source edit, paste) and has no bound listener.
     this.canvas.addEventListener('pointerdown', this.onResizePointerDown);
+    // Strip phantom borders from pasted content so the canvas HTML stays clean.
+    this.canvas.addEventListener('paste', this.onPaste);
     // Native drag-and-drop to reposition media blocks within the canvas.
     this.canvas.addEventListener('dragstart', this.onBlockDragStart);
     this.canvas.addEventListener('dragover', this.onBlockDragOver);
@@ -116,6 +118,7 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
     document.removeEventListener('pointerup', this.onPointerUp);
     document.removeEventListener('click', this.onDocumentClick);
     this.canvas.removeEventListener('pointerdown', this.onResizePointerDown);
+    this.canvas.removeEventListener('paste', this.onPaste);
     this.canvas.removeEventListener('dragstart', this.onBlockDragStart);
     this.canvas.removeEventListener('dragover', this.onBlockDragOver);
     this.canvas.removeEventListener('drop', this.onBlockDrop);
@@ -127,6 +130,18 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
     if ((event.target as HTMLElement).closest('.resize-handle')) {
       this.startResizeDrag(event);
     }
+  };
+
+  /**
+   * Pasted content (Word, Google Docs, Tailwind-styled pages) often carries a
+   * width-less `border-style: solid` that's invisible here but renders as a dark
+   * border in the recipient's inbox. Rather than reimplement the browser's own
+   * paste (fragment extraction/sanitization), let the native paste land, then
+   * strip phantom borders from whatever the canvas received on the next tick —
+   * so the canvas HTML is clean from the start, not just at export/save time.
+   */
+  private onPaste = (): void => {
+    setTimeout(() => this.utils.neutralizePhantomBorders(this.canvas), 0);
   };
 
   // ── Drag-and-drop reposition of media blocks ──
