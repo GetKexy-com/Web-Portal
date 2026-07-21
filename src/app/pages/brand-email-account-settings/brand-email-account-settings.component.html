@@ -1,200 +1,266 @@
-<brand-layout layoutPaddingNone="true" headerBgWhite="true">
-  <main class="slack-integration-page">
-    <section class="card-area-wrap">
-      <prospecting-common-card
-        cardTitle="SMTP Settings"
-        cardTitleLogo="/assets/icon/blue-box-icon.svg"
-      >
-        <div class="details-content mt-2">
-          <a href="#" (click)="openVideoDialog(emailAccountSettingsVideo); $event.preventDefault()">
-            <i class="fa fa-play-circle-o" aria-hidden="true"></i>
-            Watch video
-          </a>
-          <a href="https://docs.google.com/document/d/1_56QqdPV0d6FomIuxnro8hycooTeZ97zMZ1LQ6UGngE/edit?tab=t.0"
-             target="_blank">
-            <i class="fa fa-book" aria-hidden="true"></i>
-            Read guide
-          </a>
-          <a href="#" (click)="support(); $event.preventDefault()">
-            <i class="fa fa-question-circle" aria-hidden="true"></i>
-            Help
-          </a>
+<brand-layout>
+  <div class="smtp-settings-page">
+    <!-- Page header -->
+    <div class="page-header">
+      <div class="page-header-text">
+        <h1 class="page-title">SMTP Accounts</h1>
+        <p class="page-subtitle">
+          Manage the email accounts KEXY uses to send your campaigns. Add as many SMTP
+          accounts as you need.
+        </p>
+      </div>
+      <div class="resources">
+        <a href="#" (click)="openVideoDialog(emailAccountSettingsVideo); $event.preventDefault()">
+          <i class="fa fa-play-circle-o" aria-hidden="true"></i> Watch video
+        </a>
+        <a href="https://docs.google.com/document/d/1_56QqdPV0d6FomIuxnro8hycooTeZ97zMZ1LQ6UGngE/edit?tab=t.0"
+           target="_blank">
+          <i class="fa fa-book" aria-hidden="true"></i> Read guide
+        </a>
+        <a href="#" (click)="support(); $event.preventDefault()">
+          <i class="fa fa-question-circle" aria-hidden="true"></i> Help
+        </a>
+      </div>
+    </div>
+
+    <!-- SMTP accounts card -->
+    <div class="surface-card">
+      <div class="card-head">
+        <div class="card-head-text">
+          <h2 class="card-title"><i class="fa fa-server" aria-hidden="true"></i> Sending Accounts</h2>
+          <p class="card-sub">SMTP servers used to deliver your outgoing emails</p>
         </div>
-      </prospecting-common-card>
-    </section>
-
-    <section
-      class="message"
-      [class.failed]="connectionFailed"
-      [class.success]="isConnectionSuccessful"
-      *ngIf="connectionMessage"
-    >
-      <p class="m-0">
-        <i class="fa" [class.fa-exclamation-triangle]="connectionFailed"
-           [class.fa-check-circle-o]="isConnectionSuccessful"
-           aria-hidden="true"></i>
-        {{ connectionMessage }}
-      </p>
-    </section>
-
-    <section class="card-area-wrap">
-      <div class="card-content">
-        <p class="section-title">SMTP (Sending emails)</p>
-
-        <div class="d-flex gap-3 mt-3">
-<!--          <app-kexy-button-->
-<!--            label="Connect with Gmail"-->
-<!--            type="button"-->
-<!--            iconLeft="fa-google"-->
-<!--            bgColor="transparent"-->
-<!--            [borderColor]="isGmailConnected ? '#0047cc' : 'black'"-->
-<!--            [textColor]="isGmailConnected ? '#0047cc' : 'black'"-->
-<!--            (click)="handleCallGoogleSmtpApi()"-->
-<!--            [disabled]="isLoading"-->
-<!--          ></app-kexy-button>-->
-
+        <div class="card-head-actions">
+          <span class="count-chip" *ngIf="!isLoadingList">{{ totalSmtp }}</span>
           <app-kexy-button
-            label="Connect with Smtp"
+            style="width: 120px"
             type="button"
-            bgColor="transparent"
-            [borderColor]="isSmtpConnected ? '#0047cc' : 'black'"
-            [textColor]="isSmtpConnected ? '#0047cc' : 'black'"
-            (click)="handleClickConnectSmtpBtn()"
-            [disabled]="isLoading"
+            label="Add SMTP"
+            iconLeft="fa-plus"
+            bgColor="#12a5f4"
+            textColor="white"
+            (click)="openAddSmtpModal(addSmtpModal)"
           ></app-kexy-button>
         </div>
+      </div>
 
-        <form *ngIf="showSmtpForm" [formGroup]="primaryForm" (ngSubmit)="handleSubmit()">
-          <div class="container-fluid">
-            <div class="row">
-              <div class="col-12 col-md-6 ps-0">
-                <div class="col-12 mt-3 ps-0">
-                  <label class="input-label-text">
-                    From name
-                    <i class="fa fa-asterisk" aria-hidden="true"></i>
-                  </label>
-                  <input type="text" class="form-control" placeholder="Enter your name" name="smtpFromName"
-                         formControlName="smtpFromName" />
-                  <div *ngIf="formValidationErrorCheck('smtpFromName')">
-                    <error-message-card message="Field is required!"></error-message-card>
-                  </div>
-                </div>
-                <div class="col-12 mt-3 ps-0">
-                  <label class="input-label-text">
-                    SMTP Email/Username
-                    <i class="fa fa-asterisk" aria-hidden="true"></i>
-                  </label>
-                  <input type="email" class="form-control"
-                         placeholder="Enter email address"
-                         name="smtpUsername"
-                         formControlName="smtpUsername" />
-                  <div *ngIf="formValidationErrorCheck('smtpUsername')">
-                    <error-message-card message="Field is required!"></error-message-card>
-                  </div>
-                </div>
-                <div class="col-12 mt-3 ps-0">
-                  <label class="input-label-text">
-                    Host
-                    <i class="fa fa-asterisk" aria-hidden="true"></i>
-                  </label>
-                  <input type="text" class="form-control" placeholder="Enter SMTP host" name="smtpHost"
-                         formControlName="smtpHost" />
-                  <div *ngIf="formValidationErrorCheck('smtpHost')">
-                    <error-message-card message="Field is required!"></error-message-card>
-                  </div>
-                </div>
-                <div class="col-12 mt-3 ps-0">
-                  <div class="d-flex align-items-center gap-3">
-                    <div>
-                      <input type="radio" id="tls" name="smtpSecurityType" value="tls" formControlName="smtpSecurityType">
-                      <label for="tls" class="ms-1">TLS</label><br>
-                    </div>
-                    <div>
-                      <input type="radio" id="ssl" name="smtpSecurityType" value="ssl" formControlName="smtpSecurityType">
-                      <label for="ssl" class="ms-1">SSL</label><br>
-                    </div>
-                    <div>
-                      <input type="radio" id="none" name="smtpSecurityType" value="none" formControlName="smtpSecurityType">
-                      <label for="none" class="ms-1">None</label>
-                    </div>
-                  </div>
-                </div>
-                <div class="col-12 mt-3 d-flex ps-0">
-                  <div style="width: 150px">
-                    <app-kexy-button
-                      [label]="isLoading ? 'Please wait...' : 'Save'"
-                      [iconLeft]="isLoading ? 'fa-refresh fa-spin' : ''"
-                      [disabled]="isLoading || disconnectedLoading"
-                      type="submit"
-                      class="w-100"
-                    ></app-kexy-button>
-                  </div>
+      <div class="table-wrap">
+        <table class="datatable">
+          <thead>
+          <tr>
+            <th>Account</th>
+            <th>Host</th>
+            <th>Port</th>
+            <th>Security</th>
+            <th class="text-right">Action</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr *ngIf="isLoadingList">
+            <td colspan="5" class="table-state">
+              <i class="fa fa-spinner fa-spin" aria-hidden="true"></i> Loading SMTP accounts…
+            </td>
+          </tr>
+          <tr *ngIf="!isLoadingList && smtpList.length === 0">
+            <td colspan="5" class="table-state">
+              <i class="fa fa-envelope-o" aria-hidden="true"></i>
+              <span>No SMTP accounts yet. Click "Add SMTP" to connect one.</span>
+            </td>
+          </tr>
 
-                  <div style="width: 150px; margin-left: 15px">
-                    <app-kexy-button
-                      *ngIf="isConnectionSuccessful"
-                      [label]="disconnectedLoading ? 'Please wait...' : 'Disconnect'"
-                      [iconLeft]="disconnectedLoading ? 'fa-refresh fa-spin' : ''"
-                      [disabled]="isLoading || disconnectedLoading"
-                      (click)="deleteSmtp()"
-                      bgColor="red"
-                    ></app-kexy-button>
-                  </div>
-                </div>
-
-              </div>
-              <div class="col-12 col-md-6 ps-0">
-                <div class="col-12 mt-3 ps-0">
-                  <label class="input-label-text">
-                    From email
-                    <i class="fa fa-asterisk" aria-hidden="true"></i>
-                  </label>
-                  <input type="email" class="form-control" placeholder="Enter email address" name="smtpFromEmail"
-                         formControlName="smtpFromEmail" />
-                  <div *ngIf="formValidationErrorCheck('smtpFromEmail')">
-                    <error-message-card message="Field is required!"></error-message-card>
-                  </div>
-                </div>
-                <div class="col-12 mt-3 ps-0">
-                  <label class="input-label-text">
-                    Password
-                    <i class="fa fa-asterisk" aria-hidden="true"></i>
-                  </label>
-                  <input type="password" class="form-control" placeholder="Enter password"
-                         name="smtpPassword"
-                         formControlName="smtpPassword" />
-                  <div *ngIf="formValidationErrorCheck('smtpPassword')">
-                    <error-message-card message="Field is required!"></error-message-card>
-                  </div>
-                </div>
-                <div class="col-12 mt-4 ps-0">
-                  <kexy-select-dropdown
-                    label="Port"
-                    shortNoteBesideLabel=""
-                    [selectAllBtn]="false"
-                    [required]="false"
-                    [options]="ports"
-                    [addNewBtn]="false"
-                    [onAddNewClick]=""
-                    [selectedOption]="selectedPort"
-                    [onSelectSingleItem]="onEmailPortSelect"
-                    [rowIndex]="1"
-                    [editIcon]="false"
-                    [deleteIcon]="false"
-                    [onDeleteClick]=""
-                    [onEditClick]=""
-                    optionStyle="button"
-                    backgroundColor="white"
-                    placeholder="Please Select"
-                  ></kexy-select-dropdown>
+          <tr *ngFor="let smtp of smtpList; let i = index">
+            <td>
+              <div class="account-cell">
+                <span class="account-avatar">
+                  {{ (smtp.smtpFromEmail || smtp.smtpUsername || '?').charAt(0) | uppercase }}
+                </span>
+                <div class="account-text">
+                  <span class="account-name">{{ smtp.smtpFromName || '—' }}</span>
+                  <span class="account-email">{{ smtp.smtpFromEmail || smtp.smtpUsername }}</span>
                 </div>
               </div>
+            </td>
+            <td><span class="mono">{{ smtp.smtpHost || '—' }}</span></td>
+            <td><span class="mono">{{ smtp.smtpPort || '—' }}</span></td>
+            <td>
+              <span class="security-badge" [class.none]="(smtp.smtpSecurityType || '') === 'none'">
+                {{ smtp.smtpSecurityType ? (smtp.smtpSecurityType | uppercase) : '—' }}
+              </span>
+            </td>
+            <td>
+              <div class="action-cell">
+                <button
+                  type="button"
+                  class="icon-btn danger"
+                  title="Remove SMTP account"
+                  [disabled]="deletingId === smtp.id"
+                  (click)="deleteSmtp(smtp)"
+                >
+                  <i
+                    class="fa"
+                    [class.fa-trash]="deletingId !== smtp.id"
+                    [class.fa-spinner]="deletingId === smtp.id"
+                    [class.fa-spin]="deletingId === smtp.id"
+                    aria-hidden="true"
+                  ></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add SMTP modal -->
+  <ng-template #addSmtpModal let-c="close" let-d="dismiss">
+    <div class="kx-modal add-smtp-modal">
+      <div class="kx-modal-head">
+        <h3 class="kx-modal-title">Add SMTP Account</h3>
+        <button type="button" class="kx-modal-close" (click)="closeAddSmtpModal()" aria-label="Close">
+          <i class="fa fa-times" aria-hidden="true"></i>
+        </button>
+      </div>
+
+      <form [formGroup]="addSmtpForm" (ngSubmit)="handleSubmit()">
+        <div class="kx-modal-body">
+          <p class="kx-modal-note">
+            We'll test the connection before saving. Your password is only used to authenticate
+            with your provider.
+          </p>
+
+          <div class="field-grid">
+            <div class="field">
+              <label class="field-label">From name <span class="req">*</span></label>
+              <div class="input-wrap">
+                <i class="fa fa-user-o input-icon" aria-hidden="true"></i>
+                <input
+                  type="text"
+                  class="form-control"
+                  placeholder="Enter your name"
+                  formControlName="smtpFromName"
+                  [class.error]="formValidationErrorCheck('smtpFromName')"
+                />
+              </div>
+              <span class="field-error" *ngIf="formValidationErrorCheck('smtpFromName')">Field is required</span>
+            </div>
+
+            <div class="field">
+              <label class="field-label">From email <span class="req">*</span></label>
+              <div class="input-wrap">
+                <i class="fa fa-envelope-o input-icon" aria-hidden="true"></i>
+                <input
+                  type="email"
+                  class="form-control"
+                  placeholder="name@example.com"
+                  formControlName="smtpFromEmail"
+                  [class.error]="formValidationErrorCheck('smtpFromEmail')"
+                />
+              </div>
+              <span class="field-error" *ngIf="formValidationErrorCheck('smtpFromEmail')">Enter a valid email</span>
+            </div>
+
+            <div class="field">
+              <label class="field-label">SMTP email / username <span class="req">*</span></label>
+              <div class="input-wrap">
+                <i class="fa fa-at input-icon" aria-hidden="true"></i>
+                <input
+                  type="text"
+                  class="form-control"
+                  placeholder="Enter email address"
+                  formControlName="smtpUsername"
+                  [class.error]="formValidationErrorCheck('smtpUsername')"
+                />
+              </div>
+              <span class="field-error" *ngIf="formValidationErrorCheck('smtpUsername')">Field is required</span>
+            </div>
+
+            <div class="field">
+              <label class="field-label">Password <span class="req">*</span></label>
+              <div class="input-wrap">
+                <i class="fa fa-lock input-icon" aria-hidden="true"></i>
+                <input
+                  type="password"
+                  class="form-control"
+                  placeholder="Enter password"
+                  formControlName="smtpPassword"
+                  [class.error]="formValidationErrorCheck('smtpPassword')"
+                />
+              </div>
+              <span class="field-error" *ngIf="formValidationErrorCheck('smtpPassword')">Field is required</span>
+            </div>
+
+            <div class="field">
+              <label class="field-label">Host <span class="req">*</span></label>
+              <div class="input-wrap">
+                <i class="fa fa-server input-icon" aria-hidden="true"></i>
+                <input
+                  type="text"
+                  class="form-control"
+                  placeholder="smtp.example.com"
+                  formControlName="smtpHost"
+                  [class.error]="formValidationErrorCheck('smtpHost')"
+                />
+              </div>
+              <span class="field-error" *ngIf="formValidationErrorCheck('smtpHost')">Field is required</span>
+            </div>
+
+            <div class="field">
+              <label class="field-label">Port <span class="req">*</span></label>
+              <div class="input-wrap select-wrap">
+                <i class="fa fa-plug input-icon" aria-hidden="true"></i>
+                <select
+                  class="form-control"
+                  formControlName="smtpPort"
+                  [class.error]="formValidationErrorCheck('smtpPort')"
+                >
+                  <option value="">Please select</option>
+                  <option *ngFor="let port of ports" [value]="port.key">{{ port.value }}</option>
+                </select>
+              </div>
+              <span class="field-error" *ngIf="formValidationErrorCheck('smtpPort')">Selection is required</span>
             </div>
           </div>
-        </form>
-      </div>
-    </section>
-  </main>
+
+          <div class="field security-field">
+            <label class="field-label">Security</label>
+            <div class="security-options">
+              <label class="radio-pill" [class.checked]="addSmtpForm.get('smtpSecurityType')?.value === 'tls'">
+                <input type="radio" value="tls" formControlName="smtpSecurityType" /> TLS
+              </label>
+              <label class="radio-pill" [class.checked]="addSmtpForm.get('smtpSecurityType')?.value === 'ssl'">
+                <input type="radio" value="ssl" formControlName="smtpSecurityType" /> SSL
+              </label>
+              <label class="radio-pill" [class.checked]="addSmtpForm.get('smtpSecurityType')?.value === 'none'">
+                <input type="radio" value="none" formControlName="smtpSecurityType" /> None
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="kx-modal-footer">
+          <app-kexy-button
+            type="button"
+            label="Cancel"
+            bgColor="#f1f4f9"
+            textColor="#6b7a90"
+            [disabled]="isLoading"
+            (click)="closeAddSmtpModal()"
+          ></app-kexy-button>
+          <app-kexy-button
+            style="width: 120px"
+            type="submit"
+            [label]="isLoading ? 'Testing & saving…' : 'Test & Save'"
+            [iconLeft]="isLoading ? 'fa-refresh fa-spin' : ''"
+            [disabled]="isLoading"
+            bgColor="#12a5f4"
+            textColor="white"
+          ></app-kexy-button>
+        </div>
+      </form>
+    </div>
+  </ng-template>
 
   <ng-template #emailAccountSettingsVideo let-c="close" let-d="dismiss">
     <div class="modal-body" style="padding: 0; height: 500px">

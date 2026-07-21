@@ -692,6 +692,26 @@ export class DripCampaignService {
     });
   };
 
+  // Multi-SMTP list. GET /smtp?companyId=&page=&limit= returns res.data as
+  // { smtps, total, smtpOAuth } (passwords blanked). All query params optional;
+  // `getSmtpList` forwards whatever is provided. The component normalizes the
+  // response (reads data.smtps; also tolerates the legacy single-object shape).
+  // Create a new account: POST /smtp (testSmtpConnection). Remove: DELETE smtp/:id.
+  getSmtpList = async (postData: { companyId?: any; page?: number; limit?: number }) => {
+    return new Promise(async (resolve, reject) => {
+      const params = new URLSearchParams();
+      if (postData?.companyId != null) params.set('companyId', String(postData.companyId));
+      if (postData?.page != null) params.set('page', String(postData.page));
+      if (postData?.limit != null) params.set('limit', String(postData.limit));
+      const query = params.toString();
+      const url = query ? `smtp?${query}` : 'smtp';
+      this.httpService.get(url).subscribe({
+        next: (res) => resolve(res.data),
+        error: (err) => reject(err.error ? err.error : err),
+      });
+    });
+  };
+
   deleteSmtp = async (postData) => {
     return new Promise(async (resolve, reject) => {
       const url = `smtp/${postData.id}`;

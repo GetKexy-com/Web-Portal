@@ -1,87 +1,535 @@
-.slack-integration-page {
-  background: #e7f6fe;
-  padding: 18px 24px;
-  height: calc(100vh - 70px);
+// ── Brand palette / tokens (mirrors brand-invite-people) ────────────────
+$kx-primary: #12a5f4;
+$kx-primary-deep: #095dd1;
+$kx-ink: #1f2a44;
+$kx-muted: #6b7a90;
+$kx-line: #eaeef4;
+$kx-surface: #ffffff;
+$kx-radius: 16px;
+$kx-shadow: 0 10px 30px -18px rgba(9, 93, 209, 0.35), 0 2px 8px rgba(31, 42, 68, 0.05);
 
-  .card-area-wrap {
-    margin-top: 20px;
+// ── Page shell ──────────────────────────────────────────────────────────
+.smtp-settings-page {
+  //max-width: 1080px;
+  margin: 0 auto;
+  color: $kx-ink;
 
-    .card-content {
-      background: white;
-      border-radius: 10px;
-      padding: 20px;
+  * {
+    font-family: "Lato", sans-serif;
+  }
+}
 
-      .section-title {
-        margin-bottom: 0;
-        font-weight: bold;
-      }
-    }
+// ── Page header ─────────────────────────────────────────────────────────
+.page-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin-bottom: 22px;
 
-    .details-content {
-      display: flex;
+  .page-title {
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin: 0 0 4px;
+  }
+
+  .page-subtitle {
+    margin: 0;
+    color: $kx-muted;
+    font-size: 14px;
+    max-width: 620px;
+  }
+
+  .resources {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    flex-wrap: wrap;
+
+    a {
+      color: $kx-muted;
+      font-size: 13px;
+      font-weight: 600;
+      display: inline-flex;
       align-items: center;
-      gap: 20px;
+      gap: 6px;
+      transition: color 0.15s ease;
 
-      a {
-        color: black;
-        opacity: 60%;
-        font-size: 14px;
+      i {
+        color: $kx-primary;
+      }
+
+      &:hover {
+        color: $kx-primary-deep;
       }
     }
+  }
+}
 
-    form {
-      label {
-        position: relative;
+// ── Surface card ────────────────────────────────────────────────────────
+.surface-card {
+  background: $kx-surface;
+  border: 1px solid $kx-line;
+  border-radius: $kx-radius;
+  box-shadow: $kx-shadow;
+  padding: 24px;
+  margin-bottom: 26px;
+}
 
-        i {
-          font-size: 8px;
-          color: red;
-          position: absolute;
-          margin-left: 3px;
-        }
-      }
+.card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+
+  .card-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 18px;
+    font-weight: 800;
+    margin: 0;
+
+    i {
+      color: $kx-primary;
     }
+  }
+
+  .card-sub {
+    margin: 4px 0 0;
+    color: $kx-muted;
+    font-size: 13px;
+  }
+
+  .card-head-actions {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex: 0 0 auto;
+  }
+}
+
+.count-chip {
+  flex: 0 0 auto;
+  min-width: 30px;
+  height: 30px;
+  padding: 0 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 99px;
+  background: rgba(18, 165, 244, 0.12);
+  color: $kx-primary-deep;
+  font-weight: 800;
+  font-size: 14px;
+}
+
+// ── Table ───────────────────────────────────────────────────────────────
+.table-wrap {
+  overflow-x: auto;
+  border: 1px solid $kx-line;
+  border-radius: 12px;
+}
+
+.datatable {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
+  margin: 0;
+
+  thead th {
+    text-align: left;
+    background: #f6f9fe;
+    color: $kx-muted;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 14px 20px;
+    border-bottom: 1px solid $kx-line;
+    white-space: nowrap;
+
+    &.text-right {
+      text-align: right;
+    }
+  }
+
+  tbody td {
+    padding: 14px 20px;
+    border-bottom: 1px solid $kx-line;
+    font-size: 14px;
+    vertical-align: middle;
+  }
+
+  tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  tbody tr {
+    transition: background 0.15s ease;
+
+    &:hover {
+      background: #f7fbff;
+    }
+  }
+
+  .table-state {
+    text-align: center;
+    color: $kx-muted;
+    padding: 34px 20px;
+
+    i {
+      color: $kx-primary;
+      margin-right: 8px;
+      font-size: 18px;
+    }
+
+    span {
+      display: block;
+      margin-top: 10px;
+    }
+  }
+
+  .mono {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 13px;
+    color: #4a5670;
+  }
+}
+
+.account-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  .account-avatar {
+    flex: 0 0 auto;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 15px;
+    color: #fff;
+    background: linear-gradient(135deg, $kx-primary, $kx-primary-deep);
+    box-shadow: 0 4px 10px -4px rgba(9, 93, 209, 0.6);
+  }
+
+  .account-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+
+    .account-name {
+      font-weight: 700;
+      color: $kx-ink;
+      word-break: break-word;
+    }
+
+    .account-email {
+      font-size: 13px;
+      color: $kx-muted;
+      word-break: break-word;
+    }
+  }
+}
+
+.security-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 99px;
+  font-size: 12px;
+  font-weight: 700;
+  background: rgba(9, 93, 209, 0.1);
+  color: $kx-primary-deep;
+
+  &.none {
+    background: #eef1f6;
+    color: #55617a;
+  }
+}
+
+.action-cell {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+// Small round icon buttons
+.icon-btn {
+  border: none;
+  background: #f1f4f9;
+  color: $kx-muted;
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background: #e6ebf3;
+    color: $kx-ink;
+  }
+
+  &.danger:hover {
+    background: rgba(220, 38, 38, 0.12);
+    color: #dc2626;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+}
+
+// ── Shared form field styles ────────────────────────────────────────────
+.field {
+  min-width: 0;
+}
+
+.field-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: $kx-muted;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+
+  .req {
+    color: #dc2626;
+  }
+}
+
+.input-wrap {
+  position: relative;
+
+  .input-icon {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9aa6b8;
+    font-size: 15px;
+    pointer-events: none;
   }
 
   .form-control {
-    border-radius: 10px !important;
+    height: 50px;
+    border: 1.5px solid #e3e9f2;
+    border-radius: 12px;
+    background: #f7f9fc;
+    padding: 0 16px 0 42px;
+    font-size: 14px;
+    color: $kx-ink;
+    width: 100%;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+
+    &::placeholder {
+      color: #9aa6b8;
+    }
+
+    &:focus {
+      outline: none;
+      background: #fff;
+      border-color: $kx-primary;
+      box-shadow: 0 0 0 4px rgba(18, 165, 244, 0.15);
+    }
+
+    &.error {
+      border-color: #dc2626;
+      background: #fff5f5;
+    }
   }
-}
 
-.message {
-  padding: 10px 20px;
-  border-radius: 10px;
-  margin-top: 20px;
-  font-size: 15px;
-
-  &.success {
-    background: #0080001f;
-    border: 1px solid #00800080;
-  }
-
-  &.failed {
-    background: rgb(255 22 0 / 24%);
-    border: 1px solid rgba(128, 23, 0, 0.5);
-  }
-
-  p {
-    display: flex;
-    align-items: center;
-
-    i {
-      font-size: 20px;
-      padding-right: 5px;
+  &.select-wrap {
+    .form-control {
+      appearance: none;
+      -webkit-appearance: none;
+      cursor: pointer;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%236b7a90' d='M6 8 0 2l1.4-1.4L6 5.2 10.6.6 12 2z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 16px center;
+      padding-right: 40px;
     }
   }
 }
 
-@media (min-width: 992px) and (max-width: 1599px) {
-  .input-label-text {
-    font-size: 11px;
-    line-height: 13px;
+.field-error {
+  display: block;
+  margin-top: 6px;
+  color: #dc2626;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+// ── Add SMTP modal ──────────────────────────────────────────────────────
+.kx-modal {
+  padding: 4px;
+
+  .kx-modal-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 22px;
+    border-bottom: 1px solid $kx-line;
+
+    .kx-modal-title {
+      margin: 0;
+      font-size: 17px;
+      font-weight: 800;
+      color: $kx-ink;
+    }
+
+    .kx-modal-close {
+      border: none;
+      background: #f1f4f9;
+      color: $kx-muted;
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+
+      &:hover {
+        background: #e6ebf3;
+        color: $kx-ink;
+      }
+    }
   }
-  input {
-    font-size: 13px;
-    padding: 8px 10px;
+
+  .kx-modal-body {
+    padding: 22px;
+
+    .kx-modal-note {
+      margin: 0 0 20px;
+      color: $kx-muted;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+  }
+
+  .kx-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 0 22px 22px;
+  }
+}
+
+.field-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+.security-field {
+  margin-top: 18px;
+}
+
+.security-options {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+
+  .radio-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border: 1.5px solid #e3e9f2;
+    border-radius: 12px;
+    background: #f7f9fc;
+    font-size: 14px;
+    font-weight: 600;
+    color: $kx-ink;
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    input {
+      accent-color: $kx-primary;
+      cursor: pointer;
+    }
+
+    &.checked {
+      border-color: $kx-primary;
+      background: rgba(18, 165, 244, 0.08);
+      color: $kx-primary-deep;
+    }
+  }
+}
+
+// ── Buttons (shared) ────────────────────────────────────────────────────
+.btn-primary,
+.btn-ghost {
+  border: none;
+  border-radius: 11px;
+  padding: 11px 22px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: transform 0.12s ease, box-shadow 0.15s ease, background 0.15s ease;
+
+  &:active {
+    transform: translateY(1px);
+  }
+
+  &:disabled {
+    opacity: 0.65;
+    cursor: default;
+  }
+}
+
+.btn-primary {
+  color: #fff;
+  background: linear-gradient(135deg, $kx-primary, $kx-primary-deep);
+  box-shadow: 0 8px 18px -8px rgba(9, 93, 209, 0.7);
+
+  &:hover:not(:disabled) {
+    box-shadow: 0 10px 22px -8px rgba(9, 93, 209, 0.85);
+  }
+}
+
+.btn-ghost {
+  background: #f1f4f9;
+  color: $kx-muted;
+
+  &:hover:not(:disabled) {
+    background: #e6ebf3;
+    color: $kx-ink;
+  }
+}
+
+// ── Responsive ──────────────────────────────────────────────────────────
+@media (max-width: 767px) {
+  .field-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .surface-card {
+    padding: 18px;
+  }
+
+  .card-head {
+    flex-wrap: wrap;
+  }
+
+  .datatable thead th,
+  .datatable tbody td {
+    padding: 12px 14px;
   }
 }
