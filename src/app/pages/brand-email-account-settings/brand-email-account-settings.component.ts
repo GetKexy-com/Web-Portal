@@ -129,6 +129,18 @@ export class BrandEmailAccountSettingsComponent implements OnInit {
     this.addSmtpModalRef?.close();
   };
 
+  // Avatar initials from the SMTP "From name": first letter of the first + last
+  // word (e.g. "John Doe" -> "JD"). A single word uses its first two letters
+  // ("Support" -> "SU"). Falls back to the email/username if no From name.
+  getSmtpInitials = (smtp: any): string => {
+    const source = (smtp?.smtpFromName || smtp?.smtpFromEmail || smtp?.smtpUsername || '').trim();
+    if (!source) return '?';
+    const parts = source.split(/\s+/).filter(Boolean);
+    const initials =
+      parts.length >= 2 ? parts[0].charAt(0) + parts[1].charAt(0) : source.substring(0, 2);
+    return initials.toUpperCase();
+  };
+
   formValidationErrorCheck = (fieldName: string) => {
     const control = this.addSmtpForm.controls[fieldName];
     return control.invalid && (this.submitted || control.dirty);
@@ -167,7 +179,9 @@ export class BrandEmailAccountSettingsComponent implements OnInit {
   };
 
   deleteSmtp = async (item: any) => {
-    const label = item?.smtpFromEmail || item?.smtpUsername || 'this SMTP account';
+    const email = item?.smtpFromEmail || item?.smtpUsername || '';
+    const name = item?.smtpFromName || '';
+    const label = name && email ? `${name} <${email}>` : email || name || 'this SMTP account';
     const confirm = await Swal.fire({
       title: 'Remove SMTP account?',
       text: `${label} will no longer be available for sending.`,

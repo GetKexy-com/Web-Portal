@@ -71,9 +71,7 @@
           <tr *ngFor="let smtp of smtpList; let i = index">
             <td>
               <div class="account-cell">
-                <span class="account-avatar">
-                  {{ (smtp.smtpFromEmail || smtp.smtpUsername || '?').charAt(0) | uppercase }}
-                </span>
+                <span class="account-avatar">{{ getSmtpInitials(smtp) }}</span>
                 <div class="account-text">
                   <span class="account-name">{{ smtp.smtpFromName || '—' }}</span>
                   <span class="account-email">{{ smtp.smtpFromEmail || smtp.smtpUsername }}</span>
@@ -249,10 +247,10 @@
             (click)="closeAddSmtpModal()"
           ></app-kexy-button>
           <app-kexy-button
-            style="width: 120px"
+            style="min-width: 130px;"
             type="submit"
             [label]="isLoading ? 'Testing & saving…' : 'Test & Save'"
-            [iconLeft]="isLoading ? 'fa-refresh fa-spin' : ''"
+            [iconLeft]="isLoading ? 'fa-refresh fa-spin' : 'fa-save'"
             [disabled]="isLoading"
             bgColor="#12a5f4"
             textColor="white"
