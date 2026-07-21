@@ -80,6 +80,68 @@
         select.form-control {
           padding: 12px;
         }
+        // "?" help icon beside the Email Style dropdown, with a hover/focus tooltip.
+        .email-style-help {
+          position: relative;
+          flex: 0 0 auto;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 20px;
+          height: 20px;
+          margin: 0 0 10px 8px; // sit next to the dropdown button (row is align-items-end)
+          border-radius: 50%;
+          background: #12a5f4;
+          color: #fff;
+          cursor: help;
+          outline: none;
+          flex-shrink: 0;
+
+          i {
+            color: #fff;
+            font-size: 11px;
+          }
+
+          .email-style-tooltip {
+            position: absolute;
+            top: calc(100% + 8px);
+            right: 0;
+            z-index: 50;
+            width: 280px;
+            padding: 10px 12px;
+            border-radius: 6px;
+            background: #1f2937;
+            color: #fff;
+            font-size: 12px;
+            font-weight: 400;
+            line-height: 1.5;
+            text-transform: none;
+            letter-spacing: normal;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-4px);
+            transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s;
+            pointer-events: none;
+
+            &::before {
+              content: "";
+              position: absolute;
+              bottom: 100%;
+              right: 6px;
+              border: 6px solid transparent;
+              border-bottom-color: #1f2937;
+            }
+          }
+
+          &:hover .email-style-tooltip,
+          &:focus .email-style-tooltip,
+          &:focus-within .email-style-tooltip {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+          }
+        }
         // Let the editor size to its CONTENT (no fixed height) — a long email
         // grows the editor and the whole offcanvas (.canvas-content-wrap, which
         // is overflow:auto) scrolls. The editor does NOT scroll internally.

@@ -225,7 +225,7 @@ export const constants = {
   ],
   EMAIL_STYLES: [
     { key: 'plain_text', value: 'Plain Text Email' },
-    { key: 'html', value: 'Html Email' },
+    { key: 'html', value: 'HTML Email' },
   ],
   DRIP_CAMPAIGN_STATUS: [
     { key: 'all', value: 'All' },

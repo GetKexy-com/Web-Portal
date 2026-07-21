@@ -304,6 +304,16 @@ button.tool-btn .hash { font-weight: 700; font-size: 15px; color: #0b72b7; }
   background: #fff;
 }
 
+/* Any non-Design view (Preview or the HTML/Source textarea): every formatting
+   cluster is disabled — editing controls don't apply to a rendered preview or
+   the raw-source textarea. The Source (</>) toggle itself stays live so the
+   user can jump straight into Design/Source. */
+.toolbar-strip.tools-disabled .toolbar-scroll .tb-group:not([data-group="source"]),
+.toolbar-strip.tools-disabled .overflow-tool {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
 .toolbar-scroll {
   display: flex;
   /* NEVER wrap: the toolbar stays a single row at every width. Clusters that

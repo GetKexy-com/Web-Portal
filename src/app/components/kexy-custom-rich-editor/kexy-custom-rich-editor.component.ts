@@ -74,11 +74,11 @@ import { environment } from '../../../environments/environment';
               [class.active]="state.mode() === 'preview'"
               (click)="switchMode('preview')"
             >Preview</button>
-            <button type="button"
-              class="tab"
-              [class.active]="state.mode() === 'html'"
-              (click)="switchMode('html')"
-            >HTML</button>
+<!--            <button type="button"-->
+<!--              class="tab"-->
+<!--              [class.active]="state.mode() === 'html'"-->
+<!--              (click)="switchMode('html')"-->
+<!--            >HTML</button>-->
             <span class="status-pill">{{ state.status() }}</span>
           </div>
 

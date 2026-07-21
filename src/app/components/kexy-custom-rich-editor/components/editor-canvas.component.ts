@@ -691,11 +691,30 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
     this.applyInlineTextStyle({ 'font-family': family });
   }
 
+  /** Block-level elements that directly hold text and receive their OWN
+   *  font-size (etc.) from the email export (see inlineEmailStyles). */
+  private static readonly TEXT_BLOCK_SELECTOR =
+    'p,h1,h2,h3,h4,h5,h6,li,blockquote,pre,td,th,div:not(.media-block)';
+
   /**
-   * Wrap the current (non-collapsed) selection in a <span> carrying the given
-   * inline styles. Supports any px value; collapses redundant nested spans.
-   * Styles are written with `!important` so they survive host global resets
-   * (e.g. `* { font-family: "Lato" !important }`). Mirrors the approved build.
+   * Apply inline text styles (font-size / font-family / …) to the current
+   * (non-collapsed) selection. Styles are written with `!important` so they
+   * survive host global resets (e.g. `* { font-family: "Lato" !important }`)
+   * AND the per-block defaults the email export injects.
+   *
+   * Whole block elements inside the selection are styled DIRECTLY, not wrapped
+   * in one outer <span>, for two reasons:
+   *  - An inline <span> wrapping block elements is invalid and gets torn apart
+   *    when the HTML is re-parsed (preview iframe / reload) — with a media-block
+   *    (image) in the selection this broke the wrapper entirely, so a select-all
+   *    font-size change did nothing.
+   *  - The export writes `font-size:14px` STRAIGHT onto each <p>/<li> (see
+   *    EditorUtilsService.inlineEmailStyles). A size merely INHERITED from a
+   *    wrapper span loses to that; a size set on the block itself (with
+   *    `!important`) wins over the appended non-important default. Without this,
+   *    a select-all size change looked right in Design but reverted to 14px in
+   *    the preview and the recipient's inbox.
+   * Partial / inline-only runs keep the wrap-in-span behavior.
    * Keys must be CSS property names (kebab-case), e.g. 'font-family'.
    */
   applyInlineTextStyle(styleMap: Record<string, string>): void {
@@ -706,21 +725,149 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
     const range = selection.getRangeAt(0);
     if (range.collapsed || !this.canvas.contains(range.commonAncestorContainer)) return;
 
-    const span = document.createElement('span');
-    Object.entries(styleMap).forEach(([prop, value]) => {
-      span.style.setProperty(prop, value, 'important');
+    const props = Object.entries(styleMap);
+    const sel = EditorCanvasComponent.TEXT_BLOCK_SELECTOR;
+    const leafBlocks = this.leafBlocksInRange(range);
+
+    // The selection can mix three kinds of content, each styled differently so
+    // the chosen value actually wins in Design AND the exported email:
+    //  1. Whole leaf blocks (<p>/<li>/…) → set the prop on the block itself.
+    //  2. Partially-selected blocks → wrap the selected slice in a span.
+    //  3. Loose inline text (a greeting line NOT inside any block) → set the
+    //     prop on the outermost in-range wrapper span (avoids re-nesting spans).
+    // Everything is SNAPSHOTTED before mutating, because extractContents on one
+    // slice shifts the live range's boundary points.
+    const blocksToStyle: HTMLElement[] = [];
+    const partialRanges: Range[] = [];
+    leafBlocks.forEach((block) => {
+      const blockRange = document.createRange();
+      blockRange.selectNodeContents(block);
+      const fullyCovered =
+        range.compareBoundaryPoints(Range.START_TO_START, blockRange) <= 0 &&
+        range.compareBoundaryPoints(Range.END_TO_END, blockRange) >= 0;
+      if (fullyCovered) { blocksToStyle.push(block); return; }
+      const clip = range.cloneRange();
+      if (clip.compareBoundaryPoints(Range.START_TO_START, blockRange) < 0) {
+        clip.setStart(blockRange.startContainer, blockRange.startOffset);
+      }
+      if (clip.compareBoundaryPoints(Range.END_TO_END, blockRange) > 0) {
+        clip.setEnd(blockRange.endContainer, blockRange.endOffset);
+      }
+      if (!clip.collapsed) partialRanges.push(clip);
     });
-    const fragment = range.extractContents();
-    span.appendChild(fragment);
-    range.insertNode(span);
+
+    // Loose inline text: text nodes in range that live OUTSIDE any block (the
+    // canvas itself is a <div> and matches the block selector, so it doesn't
+    // count as "a block"). Resolve each to the outermost fully-in-range wrapper
+    // span (set the prop there) or, if there's none, a slice range to wrap.
+    const spansToStyle = new Set<HTMLElement>();
+    const looseRanges: Range[] = [];
+    const walker = document.createTreeWalker(this.canvas, NodeFilter.SHOW_TEXT);
+    while (walker.nextNode()) {
+      const t = walker.currentNode as Text;
+      const parent = t.parentElement;
+      if (!parent || parent.closest('.media-block')) continue;
+      const block = parent.closest(sel);
+      if (block && block !== this.canvas) continue; // handled by the block passes
+      if (!range.intersectsNode(t)) continue;
+      const s = t === range.startContainer ? range.startOffset : 0;
+      const e = t === range.endContainer ? range.endOffset : t.length;
+      if (e <= s) continue;
+      const target = s === 0 && e === t.length ? this.outermostBlocklessSpan(t, range) : null;
+      if (target) { spansToStyle.add(target); continue; }
+      const clip = document.createRange();
+      clip.setStart(t, s);
+      clip.setEnd(t, e);
+      looseRanges.push(clip);
+    }
+
+    // If nothing resolved (e.g. an empty selection region), fall back to the
+    // simple whole-range wrap so behavior is never worse than before.
+    if (!blocksToStyle.length && !partialRanges.length && !spansToStyle.size && !looseRanges.length) {
+      looseRanges.push(range.cloneRange());
+    }
+
+    const applyDirect = (el: HTMLElement) => {
+      props.forEach(([prop, value]) => el.style.setProperty(prop, value, 'important'));
+      this.clearPropsOnDescendantSpans(el, styleMap);
+    };
+    const wrap = (r: Range) => {
+      if (r.collapsed) return;
+      const span = document.createElement('span');
+      props.forEach(([prop, value]) => span.style.setProperty(prop, value, 'important'));
+      span.appendChild(r.extractContents());
+      r.insertNode(span);
+      this.clearPropsOnDescendantSpans(span, styleMap);
+    };
+
+    // Direct styling first (no node movement), then the wraps.
+    blocksToStyle.forEach(applyDirect);
+    spansToStyle.forEach(applyDirect);
+    partialRanges.forEach(wrap);
+    looseRanges.forEach(wrap);
     this.normalizeStyledSpans();
 
-    const nextRange = document.createRange();
-    nextRange.selectNodeContents(span);
-    selection.removeAllRanges();
-    selection.addRange(nextRange);
-    this.savedRange = nextRange.cloneRange();
+    // Re-select roughly the same content so editing can continue.
+    const touched = [...blocksToStyle, ...spansToStyle].filter((el) => el.isConnected);
+    if (touched.length) {
+      touched.sort((a, b) =>
+        a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1);
+      const nextRange = document.createRange();
+      nextRange.setStartBefore(touched[0]);
+      nextRange.setEndAfter(touched[touched.length - 1]);
+      selection.removeAllRanges();
+      selection.addRange(nextRange);
+      this.savedRange = nextRange.cloneRange();
+    }
     this.refreshOutputs();
+  }
+
+  /** Innermost text-holding block elements that the range intersects. "Leaf"
+   *  = contains no nested text block (so <ul>/<td>-wrapping-a-<p> resolve to the
+   *  <li>/<p> that actually carries the text). Anything inside a media block is
+   *  skipped — media blocks carry no text style. */
+  private leafBlocksInRange(range: Range): HTMLElement[] {
+    const sel = EditorCanvasComponent.TEXT_BLOCK_SELECTOR;
+    return Array.from(this.canvas.querySelectorAll<HTMLElement>(sel)).filter(
+      (el) =>
+        !el.closest('.media-block') &&
+        !el.querySelector(sel) &&
+        range.intersectsNode(el),
+    );
+  }
+
+  /** Walking up from a loose text node, the OUTERMOST wrapper span that is a
+   *  plain span (not a chip), holds no block element, and is fully inside the
+   *  range — so setting the prop on it styles the whole run without adding yet
+   *  another nested span (which is what caused the size to keep stacking). Null
+   *  when the text isn't wrapped in such a span (then the caller wraps a slice). */
+  private outermostBlocklessSpan(node: Text, range: Range): HTMLElement | null {
+    const sel = EditorCanvasComponent.TEXT_BLOCK_SELECTOR;
+    let best: HTMLElement | null = null;
+    let cur = node.parentElement;
+    while (cur && cur !== this.canvas && this.canvas.contains(cur)) {
+      if (cur.tagName !== 'SPAN' || cur.classList.contains('merge-tag-chip')) break;
+      if (cur.querySelector(sel) || cur.closest('.media-block')) break;
+      const cr = document.createRange();
+      cr.selectNodeContents(cur);
+      const fully =
+        range.compareBoundaryPoints(Range.START_TO_START, cr) <= 0 &&
+        range.compareBoundaryPoints(Range.END_TO_END, cr) >= 0;
+      if (!fully) break;
+      best = cur;
+      cur = cur.parentElement;
+    }
+    return best;
+  }
+
+  /** Remove the given style props from descendant spans so a block/wrapper's
+   *  own value isn't overridden by an inner span's earlier `!important`. Leaves
+   *  merge-tag chips untouched. */
+  private clearPropsOnDescendantSpans(root: HTMLElement, styleMap: Record<string, string>): void {
+    root.querySelectorAll('span').forEach((s) => {
+      if (s.classList.contains('merge-tag-chip')) return;
+      Object.keys(styleMap).forEach((prop) => s.style.removeProperty(prop));
+    });
   }
 
   /** Collapse a span that wraps exactly one child span, merging their styles. */
