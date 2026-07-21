@@ -79,6 +79,12 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
   unEnrollList;
   enrollmentLabelOptions = [];
   unenrollmentLabelOptions = [];
+  // SMTP account for this campaign (single select).
+  smtpOptions = [];
+  selectedSmtpId: any = '';
+  selectedSmtpOption: any = null;
+  smtpAccountSettingId;
+  smtpLoading = false;
   prospectUnenrollIfReply: boolean = false;
   prospectUnenrollIfReplyId;
   allowReenrollId;
@@ -106,6 +112,9 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
     // this.setLabelsSubscription();
     await this.getAndSetDripCampaignTitleSubscription();
     this.getDripCampaignsApiCall();
+    // Load SMTP accounts BEFORE setPreviousData so the saved selection resolves
+    // to a dropdown option object.
+    await this.getAndSetSmtps();
 
     this.setPreviousData();
     this.isWaitingFlag = false;
@@ -170,6 +179,18 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
         let analyticsReceiverData = this.settings[analyticsReceiverIndex];
         this.analyticsReceiverId = analyticsReceiverData.id;
         this.analyticsReceiverArray = analyticsReceiverData.settingsValue;
+      }
+
+      const smtpAccountIndex = this.settings.findIndex(r => r.settingsType === 'smtp_account');
+      if (smtpAccountIndex > -1) {
+        let smtpAccountData = this.settings[smtpAccountIndex];
+        this.smtpAccountSettingId = smtpAccountData.id;
+        let value = smtpAccountData.settingsValue;
+        if (typeof value === 'string') value = JSON.parse(value);
+        if (Array.isArray(value) && value.length) {
+          this.selectedSmtpId = value[0].smtpId ?? value[0].value ?? '';
+          this.syncSelectedSmtpOption();
+        }
       }
 
       const runTimeIndex = this.settings.findIndex(r => r.settingsType === 'run_time');
@@ -593,6 +614,51 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
   };
 
 
+  // Load this company's SMTP accounts and build single-select dropdown options.
+  getAndSetSmtps = async () => {
+    this.smtpLoading = true;
+    try {
+      const data: any = await this.dripCampaignService.getSmtpList({
+        companyId: this.userData.supplier_id,
+        page: 1,
+        limit: 100,
+      });
+      const list = Array.isArray(data)
+        ? data
+        : Array.isArray(data?.smtps)
+          ? data.smtps
+          : data?.smtp
+            ? [data.smtp]
+            : [];
+      this.smtpOptions = list.map((smtp) => {
+        const email = smtp.smtpFromEmail || smtp.smtpUsername || '';
+        const name = smtp.smtpFromName || '';
+        return {
+          key: smtp.id,
+          value: name && email ? `${name} <${email}>` : email || name || `SMTP #${smtp.id}`,
+          id: smtp.id,
+        };
+      });
+    } catch (e) {
+      this.smtpOptions = [];
+    } finally {
+      this.smtpLoading = false;
+      this.syncSelectedSmtpOption();
+    }
+  };
+
+  // Reflect the saved/selected SMTP id as the dropdown's displayed option.
+  syncSelectedSmtpOption = () => {
+    this.selectedSmtpOption =
+      this.smtpOptions.find((o) => o.id === this.selectedSmtpId) || null;
+  };
+
+  onSmtpSelect = (selectedValue) => {
+    // Clearing passes { value:'', id:'', key:'' }; a pick passes the option.
+    this.selectedSmtpId = selectedValue?.id || '';
+    this.selectedSmtpOption = this.selectedSmtpId ? selectedValue : null;
+  };
+
   isEmptyEnrollList = false;
   handleSubmitEnrollmentTriggers = async () => {
     this.submitted = true;
@@ -634,6 +700,13 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
           companyId: this.userData.supplier_id,
           settingsType: 'analytics_receiver',
           settingsValue: this.analyticsReceiverArray,
+        },
+        {
+          ...(this.smtpAccountSettingId && { id: this.smtpAccountSettingId }),
+          dripCampaignId: this.dripCampaignId,
+          companyId: this.userData.supplier_id,
+          settingsType: 'smtp_account',
+          settingsValue: [{ smtpId: this.selectedSmtpId || null }],
         },
       ],
     };
