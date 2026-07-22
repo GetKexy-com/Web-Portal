@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { constants } from 'src/app/helpers/constants';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import Swal from 'sweetalert2';
@@ -33,8 +33,18 @@ export class BrandEmailAccountSettingsComponent implements OnInit {
   smtpList: any[] = [];
   totalSmtp: number = 0;
   deletingId: number | string | null = null;
+  // null = add mode; set to an SMTP id when editing an existing account.
+  editingSmtpId: number | string | null = null;
   googleAuthCode: string;
+  // Delete-gating: when the SMTP being removed is still attached to drip
+  // campaigns, we hold them here and force the user to detach each one first.
+  smtpPendingDelete: any = null;
+  connectedDrips: any[] = [];
+  removingDripId: number | string | null = null;
+  isDeletingSmtp: boolean = false;
   private addSmtpModalRef: NgbModalRef;
+  private connectedDripsModalRef: NgbModalRef;
+  @ViewChild('connectedDripsModal') connectedDripsModal: TemplateRef<any>;
 
   constructor(
     private route: ActivatedRoute,
@@ -116,7 +126,35 @@ export class BrandEmailAccountSettingsComponent implements OnInit {
   };
 
   openAddSmtpModal = (content) => {
+    this.editingSmtpId = null;
     this.buildAddSmtpForm();
+    this.addSmtpModalRef = this.modal.open(content, {
+      size: 'lg',
+      backdrop: 'static',
+      keyboard: false,
+      centered: true,
+    });
+  };
+
+  // Reuses the same modal/form as Add. In edit mode the password field is
+  // OPTIONAL — leaving it blank keeps the stored credentials (the backend
+  // decodes the existing token). We prefill every other field from the row.
+  openEditSmtpModal = (content, smtp: any) => {
+    this.editingSmtpId = smtp?.id ?? null;
+    this.buildAddSmtpForm();
+    // Password is never returned by the list API, so it's optional on edit.
+    const passwordCtrl = this.addSmtpForm.get('smtpPassword');
+    passwordCtrl.clearValidators();
+    passwordCtrl.updateValueAndValidity();
+    this.addSmtpForm.patchValue({
+      smtpFromName: smtp?.smtpFromName ?? '',
+      smtpFromEmail: smtp?.smtpFromEmail ?? '',
+      smtpUsername: smtp?.smtpUsername ?? '',
+      smtpPassword: '',
+      smtpHost: smtp?.smtpHost ?? '',
+      smtpPort: smtp?.smtpPort != null ? String(smtp.smtpPort) : '',
+      smtpSecurityType: smtp?.smtpSecurityType || 'tls',
+    });
     this.addSmtpModalRef = this.modal.open(content, {
       size: 'lg',
       backdrop: 'static',
@@ -127,6 +165,7 @@ export class BrandEmailAccountSettingsComponent implements OnInit {
 
   closeAddSmtpModal = () => {
     this.addSmtpModalRef?.close();
+    this.editingSmtpId = null;
   };
 
   // Avatar initials from the SMTP "From name": first letter of the first + last
@@ -154,19 +193,38 @@ export class BrandEmailAccountSettingsComponent implements OnInit {
     }
 
     const formValue = this.addSmtpForm.getRawValue();
-    const postData = {
-      companyId: this.userData.supplier_id,
-      ...formValue,
-      // API expects a numeric port; the <select> yields a string.
-      smtpPort: formValue.smtpPort ? Number(formValue.smtpPort) : formValue.smtpPort,
-    };
+    // API expects a numeric port; the <select> yields a string.
+    const smtpPort = formValue.smtpPort ? Number(formValue.smtpPort) : formValue.smtpPort;
 
     this.isLoading = true;
     try {
-      await this.dripCampaignService.testSmtpConnection(postData);
-      this.closeAddSmtpModal();
-      await this.loadSmtpList();
-      await Swal.fire('Success', 'SMTP account has been added', 'success');
+      if (this.editingSmtpId != null) {
+        // Edit: PATCH only the provided fields. Omit an empty password so the
+        // backend keeps the stored credentials. companyId is ignored server-side.
+        const patchData: any = {
+          smtpFromName: formValue.smtpFromName,
+          smtpFromEmail: formValue.smtpFromEmail,
+          smtpUsername: formValue.smtpUsername,
+          smtpHost: formValue.smtpHost,
+          smtpPort,
+          smtpSecurityType: formValue.smtpSecurityType,
+        };
+        if (formValue.smtpPassword) patchData.smtpPassword = formValue.smtpPassword;
+        await this.dripCampaignService.updateSmtp(this.editingSmtpId, patchData);
+        this.closeAddSmtpModal();
+        await this.loadSmtpList();
+        await Swal.fire('Success', 'SMTP account has been updated', 'success');
+      } else {
+        const postData = {
+          companyId: this.userData.supplier_id,
+          ...formValue,
+          smtpPort,
+        };
+        await this.dripCampaignService.testSmtpConnection(postData);
+        this.closeAddSmtpModal();
+        await this.loadSmtpList();
+        await Swal.fire('Success', 'SMTP account has been added', 'success');
+      }
     } catch (error) {
       await Swal.fire(
         'Error',
@@ -178,13 +236,43 @@ export class BrandEmailAccountSettingsComponent implements OnInit {
     }
   };
 
-  deleteSmtp = async (item: any) => {
+  smtpLabel = (item: any): string => {
     const email = item?.smtpFromEmail || item?.smtpUsername || '';
     const name = item?.smtpFromName || '';
-    const label = name && email ? `${name} <${email}>` : email || name || 'this SMTP account';
+    return name && email ? `${name} <${email}>` : email || name || 'this SMTP account';
+  };
+
+  // Deleting an SMTP is gated on it not being attached to any drip campaign.
+  // We first ask the backend for connected campaigns: if none, delete after a
+  // confirm; if some, open a modal that forces the user to detach each drip
+  // before the delete becomes available.
+  deleteSmtp = async (item: any) => {
+    this.deletingId = item?.id ?? null;
+    let connected: any;
+    try {
+      connected = await this.dripCampaignService.getSmtpConnectedDripCampaigns(item?.id);
+    } catch (e) {
+      this.deletingId = null;
+      Swal.fire('Error', e?.['message'] || e?.['error'] || 'Failed to check SMTP usage', 'error');
+      return;
+    }
+    this.deletingId = null;
+
+    const drips = Array.isArray(connected?.dripCampaigns) ? connected.dripCampaigns : [];
+    if (connected?.connected && drips.length) {
+      this.smtpPendingDelete = item;
+      this.connectedDrips = drips;
+      this.openConnectedDripsModal();
+      return;
+    }
+
+    await this.confirmAndDeleteSmtp(item);
+  };
+
+  private confirmAndDeleteSmtp = async (item: any) => {
     const confirm = await Swal.fire({
       title: 'Remove SMTP account?',
-      text: `${label} will no longer be available for sending.`,
+      text: `${this.smtpLabel(item)} will no longer be available for sending.`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonText: 'Yes, remove it',
@@ -202,6 +290,77 @@ export class BrandEmailAccountSettingsComponent implements OnInit {
       Swal.fire('Error', e?.message || 'Failed to remove SMTP account', 'error');
     } finally {
       this.deletingId = null;
+    }
+  };
+
+  openConnectedDripsModal = () => {
+    this.connectedDripsModalRef = this.modal.open(this.connectedDripsModal, {
+      size: 'lg',
+      backdrop: 'static',
+      keyboard: false,
+      centered: true,
+    });
+  };
+
+  closeConnectedDripsModal = () => {
+    this.connectedDripsModalRef?.close();
+    this.smtpPendingDelete = null;
+    this.connectedDrips = [];
+    this.removingDripId = null;
+  };
+
+  // Campaign title for display; falls back to an id-based label.
+  getDripName = (drip: any): string =>
+    drip?.details?.title?.title || drip?.name || `Campaign #${drip?.id}`;
+
+  // The drip's `smtp_account` setting id, needed to PATCH it back to null.
+  private getSmtpSettingId = (drip: any) => {
+    const setting = (drip?.settings || []).find((s: any) => s?.settingsType === 'smtp_account');
+    return setting?.id ?? null;
+  };
+
+  // Detach this SMTP from one drip by nulling its `smtp_account` setting.
+  removeSmtpFromDrip = async (drip: any) => {
+    this.removingDripId = drip?.id ?? null;
+    const smtpSettingId = this.getSmtpSettingId(drip);
+    const postData = {
+      drip_campaign_id: drip?.id,
+      companyId: this.userData.supplier_id,
+      settings: [
+        {
+          ...(smtpSettingId && { id: smtpSettingId }),
+          dripCampaignId: drip?.id,
+          companyId: this.userData.supplier_id,
+          settingsType: 'smtp_account',
+          settingsValue: [{ smtpId: null }],
+        },
+      ],
+    };
+    try {
+      await this.dripCampaignService.updateSettings(postData);
+      // Drop it from the list; when empty the delete button unlocks.
+      this.connectedDrips = this.connectedDrips.filter((d) => d.id !== drip.id);
+    } catch (e) {
+      Swal.fire('Error', e?.['message'] || e?.['error'] || 'Failed to remove SMTP from campaign', 'error');
+    } finally {
+      this.removingDripId = null;
+    }
+  };
+
+  // Enabled only once every connected campaign has been detached.
+  deleteSmtpAfterDetach = async () => {
+    if (this.connectedDrips.length) return;
+    const item = this.smtpPendingDelete;
+    this.isDeletingSmtp = true;
+    try {
+      await this.dripCampaignService.deleteSmtp({ id: item?.id });
+      this.closeConnectedDripsModal();
+      await this.loadSmtpList();
+      Swal.fire('Removed', 'SMTP account has been removed', 'success');
+    } catch (e) {
+      Swal.fire('Error', e?.['message'] || e?.['error'] || 'Failed to remove SMTP account', 'error');
+    } finally {
+      this.isDeletingSmtp = false;
     }
   };
 

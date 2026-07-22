@@ -282,6 +282,11 @@ $kx-shadow: 0 10px 30px -18px rgba(9, 93, 209, 0.35), 0 2px 8px rgba(31, 42, 68,
     color: $kx-ink;
   }
 
+  &.edit:hover {
+    background: rgba(18, 165, 244, 0.12);
+    color: #12a5f4;
+  }
+
   &.danger:hover {
     background: rgba(220, 38, 38, 0.12);
     color: #dc2626;
@@ -531,5 +536,129 @@ $kx-shadow: 0 10px 30px -18px rgba(9, 93, 209, 0.35), 0 2px 8px rgba(31, 42, 68,
   .datatable thead th,
   .datatable tbody td {
     padding: 12px 14px;
+  }
+}
+
+// ── SMTP in-use (connected drip campaigns) modal ────────────────────────
+.connected-drips-modal {
+  .in-use-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 14px;
+    margin-bottom: 16px;
+    background: rgba(245, 158, 11, 0.1);
+    border: 1px solid rgba(245, 158, 11, 0.35);
+    border-radius: 10px;
+
+    i {
+      color: #d97706;
+      font-size: 15px;
+      margin-top: 2px;
+    }
+
+    p {
+      margin: 0;
+      color: $kx-ink;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+  }
+
+  .drip-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-height: 340px;
+    overflow-y: auto;
+  }
+
+  .drip-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 14px;
+    border: 1px solid $kx-line;
+    border-radius: 12px;
+    background: #fafbfe;
+
+    .drip-text {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 0;
+    }
+
+    .drip-name {
+      font-weight: 600;
+      color: $kx-ink;
+      font-size: 14px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .drip-status {
+      display: inline-block;
+      width: fit-content;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: capitalize;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: #eef1f6;
+      color: $kx-muted;
+
+      &.active {
+        background: rgba(22, 163, 74, 0.12);
+        color: #16a34a;
+      }
+    }
+  }
+
+  .detach-btn {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    border: 1px solid rgba(220, 38, 38, 0.35);
+    background: rgba(220, 38, 38, 0.06);
+    color: #dc2626;
+    font-size: 12.5px;
+    font-weight: 600;
+    padding: 8px 12px;
+    border-radius: 9px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    &:hover:not(:disabled) {
+      background: rgba(220, 38, 38, 0.12);
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: default;
+    }
+  }
+
+  .all-detached {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px;
+    border-radius: 12px;
+    background: rgba(22, 163, 74, 0.08);
+    border: 1px solid rgba(22, 163, 74, 0.3);
+    color: #15803d;
+    font-size: 13px;
+    font-weight: 500;
+
+    i {
+      font-size: 16px;
+    }
   }
 }

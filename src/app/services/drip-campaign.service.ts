@@ -712,6 +712,36 @@ export class DripCampaignService {
     });
   };
 
+  // Edit an existing account: PATCH /smtp/:id. All body fields are optional —
+  // send only what changed. Omit smtpPassword to keep the existing one. The
+  // backend re-verifies by sending a test email and only persists when a
+  // messageId comes back; a bad update returns 400 and leaves the row unchanged.
+  // `companyId` in the body is ignored server-side (an SMTP can't be reparented).
+  updateSmtp = async (id, postData) => {
+    return new Promise(async (resolve, reject) => {
+      const url = `smtp/${id}`;
+      this.httpService.patch(url, postData).subscribe({
+        next: (res) => resolve(res.data),
+        error: (err) => reject(err.error ? err.error : err),
+      });
+    });
+  };
+
+  // Whether an SMTP is the send-from account of any non-deleted drip campaign.
+  // GET /smtp/:id/drip-campaigns → res.data = { connected: boolean,
+  // dripCampaigns: DripCampaign[] } (each drip = same shape as GET
+  // /drip-campaigns/:id). Used to gate SMTP deletion — a connected SMTP must be
+  // removed from every campaign first.
+  getSmtpConnectedDripCampaigns = async (id) => {
+    return new Promise(async (resolve, reject) => {
+      const url = `smtp/${id}/drip-campaigns`;
+      this.httpService.get(url).subscribe({
+        next: (res) => resolve(res.data),
+        error: (err) => reject(err.error ? err.error : err),
+      });
+    });
+  };
+
   deleteSmtp = async (postData) => {
     return new Promise(async (resolve, reject) => {
       const url = `smtp/${postData.id}`;

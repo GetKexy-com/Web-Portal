@@ -89,6 +89,15 @@
               <div class="action-cell">
                 <button
                   type="button"
+                  class="icon-btn edit"
+                  title="Edit SMTP account"
+                  [disabled]="deletingId === smtp.id"
+                  (click)="openEditSmtpModal(addSmtpModal, smtp)"
+                >
+                  <i class="fa fa-pencil" aria-hidden="true"></i>
+                </button>
+                <button
+                  type="button"
                   class="icon-btn danger"
                   title="Remove SMTP account"
                   [disabled]="deletingId === smtp.id"
@@ -115,7 +124,7 @@
   <ng-template #addSmtpModal let-c="close" let-d="dismiss">
     <div class="kx-modal add-smtp-modal">
       <div class="kx-modal-head">
-        <h3 class="kx-modal-title">Add SMTP Account</h3>
+        <h3 class="kx-modal-title">{{ editingSmtpId != null ? 'Edit SMTP Account' : 'Add SMTP Account' }}</h3>
         <button type="button" class="kx-modal-close" (click)="closeAddSmtpModal()" aria-label="Close">
           <i class="fa fa-times" aria-hidden="true"></i>
         </button>
@@ -175,13 +184,15 @@
             </div>
 
             <div class="field">
-              <label class="field-label">Password <span class="req">*</span></label>
+              <label class="field-label">
+                Password <span class="req" *ngIf="editingSmtpId == null">*</span>
+              </label>
               <div class="input-wrap">
                 <i class="fa fa-lock input-icon" aria-hidden="true"></i>
                 <input
                   type="password"
                   class="form-control"
-                  placeholder="Enter password"
+                  [placeholder]="editingSmtpId != null ? 'Leave blank to keep current password' : 'Enter password'"
                   formControlName="smtpPassword"
                   [class.error]="formValidationErrorCheck('smtpPassword')"
                 />
@@ -249,7 +260,7 @@
           <app-kexy-button
             style="min-width: 130px;"
             type="submit"
-            [label]="isLoading ? 'Testing & saving…' : 'Test & Save'"
+            [label]="isLoading ? 'Testing & saving…' : (editingSmtpId != null ? 'Test & Update' : 'Test & Save')"
             [iconLeft]="isLoading ? 'fa-refresh fa-spin' : 'fa-save'"
             [disabled]="isLoading"
             bgColor="#12a5f4"
@@ -257,6 +268,82 @@
           ></app-kexy-button>
         </div>
       </form>
+    </div>
+  </ng-template>
+
+  <!-- SMTP in-use (connected to drip campaigns) modal -->
+  <ng-template #connectedDripsModal let-c="close" let-d="dismiss">
+    <div class="kx-modal connected-drips-modal">
+      <div class="kx-modal-head">
+        <h3 class="kx-modal-title">SMTP account is in use</h3>
+        <button type="button" class="kx-modal-close" (click)="closeConnectedDripsModal()" aria-label="Close">
+          <i class="fa fa-times" aria-hidden="true"></i>
+        </button>
+      </div>
+
+      <div class="kx-modal-body">
+        <div class="in-use-note">
+          <i class="fa fa-exclamation-triangle" aria-hidden="true"></i>
+          <p>
+            <strong>{{ smtpLabel(smtpPendingDelete) }}</strong> is still used to send
+            <strong>{{ connectedDrips.length }}</strong>
+            campaign{{ connectedDrips.length === 1 ? '' : 's' }}. Remove it from
+            {{ connectedDrips.length === 1 ? 'this campaign' : 'each campaign' }} before deleting.
+          </p>
+        </div>
+
+        <ul class="drip-list" *ngIf="connectedDrips.length; else allDetached">
+          <li class="drip-item" *ngFor="let drip of connectedDrips">
+            <div class="drip-text">
+              <span class="drip-name">{{ getDripName(drip) }}</span>
+              <span class="drip-status" [class.active]="drip.status === 'active'">{{ drip.status | titlecase }}</span>
+            </div>
+            <button
+              type="button"
+              class="detach-btn"
+              [disabled]="removingDripId === drip.id"
+              (click)="removeSmtpFromDrip(drip)"
+            >
+              <i
+                class="fa"
+                [class.fa-unlink]="removingDripId !== drip.id"
+                [class.fa-spinner]="removingDripId === drip.id"
+                [class.fa-spin]="removingDripId === drip.id"
+                aria-hidden="true"
+              ></i>
+              {{ removingDripId === drip.id ? 'Removing…' : 'Remove from campaign' }}
+            </button>
+          </li>
+        </ul>
+
+        <ng-template #allDetached>
+          <div class="all-detached">
+            <i class="fa fa-check-circle" aria-hidden="true"></i>
+            <span>Removed from all campaigns. You can delete this SMTP account now.</span>
+          </div>
+        </ng-template>
+      </div>
+
+      <div class="kx-modal-footer">
+        <app-kexy-button
+          type="button"
+          label="Cancel"
+          bgColor="#f1f4f9"
+          textColor="#6b7a90"
+          [disabled]="isDeletingSmtp"
+          (click)="closeConnectedDripsModal()"
+        ></app-kexy-button>
+        <app-kexy-button
+          style="min-width: 150px;"
+          type="button"
+          [label]="isDeletingSmtp ? 'Deleting…' : 'Delete SMTP Account'"
+          [iconLeft]="isDeletingSmtp ? 'fa-refresh fa-spin' : 'fa-trash'"
+          [disabled]="connectedDrips.length > 0 || isDeletingSmtp"
+          bgColor="#dc2626"
+          textColor="white"
+          (click)="deleteSmtpAfterDetach()"
+        ></app-kexy-button>
+      </div>
     </div>
   </ng-template>
 

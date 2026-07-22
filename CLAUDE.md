@@ -465,6 +465,53 @@ component SCSS with a small token block at the top (`$kx-primary` `#12a5f4` →
   `-body`/`-footer` structure replaced the old inline-styled buttons + `close.png`
   image. Modal logic (role change, transfer-then-delete) is unchanged.
 
+---
+
+## SMTP accounts page (`brand-email-account-settings`)
+
+Manages the company's sending accounts (list + add/edit/delete). A company can
+have **multiple** SMTP accounts. All SMTP calls live in `drip-campaign.service.ts`
+(`smtp*` methods) and go under `res.data` (global response wrapper).
+
+- **List:** `getSmtpList({ companyId, page, limit })` → `GET /smtp?...` returns
+  `{ smtps, total, smtpOAuth }` (passwords blanked). `normalizeSmtpList` tolerates
+  the array shape, `smtpList`, and the legacy single-object `{ smtp, smtpPort }`.
+- **Add vs. edit share ONE modal + form** (`addSmtpForm`), switched by
+  `editingSmtpId` (null = add). `openEditSmtpModal(content, smtp)` prefills every
+  field and **clears the `smtpPassword` validator** — the list API never returns
+  the password, so on edit it's optional (blank = keep the stored credentials).
+  Template copy (title, submit label `Test & Update`/`Test & Save`, password
+  placeholder + required `*`) all key off `editingSmtpId`.
+  - **Create:** `testSmtpConnection(postData)` → `POST /smtp` (tests then saves).
+    Sends `companyId` + all fields; `smtpPort` coerced to a number.
+  - **Edit:** `updateSmtp(id, patchData)` → `PATCH /smtp/:id`. Send **only the
+    provided fields**; omit `smtpPassword` when blank so the backend keeps the
+    stored token. `companyId` is ignored server-side (an SMTP can't be reparented).
+    The backend re-verifies by sending a test email and only persists when a
+    `messageId` comes back — a bad update returns 400 and leaves the row unchanged.
+
+### Delete is gated on drip-campaign usage
+
+`deleteSmtp(item)` first calls `getSmtpConnectedDripCampaigns(id)` →
+`GET /smtp/:id/drip-campaigns` (`{ connected, dripCampaigns[] }`, each drip = same
+shape as `GET /drip-campaigns/:id`). Two paths:
+
+- **Not connected** → the original Swal confirm + `deleteSmtp` service call
+  (`confirmAndDeleteSmtp`).
+- **Connected** → opens the `#connectedDripsModal` (a `@ViewChild` template) listing
+  each campaign (name from `details.title.title`, status badge). Each row's "Remove
+  from campaign" (`removeSmtpFromDrip`) detaches the SMTP by PATCHing that drip's
+  `smtp_account` setting to `{ smtpId: null }` via `updateSettings` (reusing the
+  exact settings payload shape from `email-time-settings-content`, preserving the
+  setting `id`), then drops the row. The red **Delete SMTP Account** button
+  (`deleteSmtpAfterDetach`) is **disabled until `connectedDrips` is empty** — so the
+  SMTP can only be deleted once removed from every campaign. Detaching leaves those
+  campaigns with no send-from account (`smtpId: null`); reassignment is not offered.
+
+The per-drip SMTP selection itself is set on the drip settings screen
+(`email-time-settings-content`) as the `smtp_account` setting
+(`settingsValue: [{ smtpId }]`, single-select).
+
 ## Conventions
 
 - **Standalone components** (no NgModules), Angular signals, `@if`/`@for` control
