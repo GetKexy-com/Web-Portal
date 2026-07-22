@@ -162,6 +162,8 @@ interface ToolbarGroup {
     <ng-template #tplFontFamily>
       <select class="tool-select font-select" [style.font-family]="fontFamily()"
         (mousedown)="canvas?.captureMergeSelection()" (change)="onFontName($event)">
+        <!-- Placeholder shown when the selection mixes multiple families. -->
+        <option value="" hidden [selected]="!fontFamily()">Font</option>
         @for (font of fontFamilies; track font.value) {
           <option [value]="font.value" [style.font-family]="font.value"
             [selected]="font.value === fontFamily()">{{ font.label }}</option>
@@ -172,6 +174,8 @@ interface ToolbarGroup {
     <ng-template #tplFontSize>
       <select class="tool-select mini-select"
         (mousedown)="canvas?.captureMergeSelection()" (change)="onFontSize($event)">
+        <!-- Placeholder shown when the selection mixes multiple sizes. -->
+        <option value="" hidden [selected]="!fontSize()">Size</option>
         @for (size of fontSizes; track size) {
           <option [value]="size + 'px'" [selected]="(size + 'px') === fontSize()">{{ size }}</option>
         }
@@ -542,19 +546,27 @@ export class EditorToolbarComponent implements AfterViewInit, OnDestroy {
     if (!opening) this.menuOpen.set(false);
   }
 
-  /** Point the font/size dropdowns at the current selection's font. */
+  /** Point the font/size dropdowns at the current selection's font. A `null`
+   *  from the canvas means the selection MIXES multiple fonts/sizes (the caller,
+   *  `syncFormatState`, already guarantees the caret is inside the body) — blank
+   *  the control so no single value is implied. */
   private syncFontControls(): void {
     const family = this.canvas?.getSelectionFontFamily();
     if (family) {
       const first = this.normalizeFamily(family);
       const match = this.fontFamilies.find(f => this.normalizeFamily(f.value) === first);
+      // Leave truthy-but-unlisted families as-is (can't represent them).
       if (match) this.fontFamily.set(match.value);
+    } else {
+      this.fontFamily.set('');
     }
     const size = this.canvas?.getSelectionFontSize();
     if (size) {
       const px = parseInt(size, 10);
       const closest = this.fontSizes.reduce((a, b) => Math.abs(b - px) < Math.abs(a - px) ? b : a);
       this.fontSize.set(closest + 'px');
+    } else {
+      this.fontSize.set('');
     }
   }
 

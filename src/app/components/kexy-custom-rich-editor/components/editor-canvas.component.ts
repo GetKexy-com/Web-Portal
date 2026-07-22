@@ -500,28 +500,72 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  /** The element holding the current selection/caret inside the body (or null). */
-  private selectionAnchorEl(): HTMLElement | null {
+  /** The active selection range if it's inside the body canvas, else the saved
+   *  range, else null. */
+  private currentBodyRange(): Range | null {
     const sel = window.getSelection();
     const range = (sel && sel.rangeCount && this.canvas.contains(sel.getRangeAt(0).commonAncestorContainer))
       ? sel.getRangeAt(0)
       : this.savedRange;
-    if (!range || !this.canvas.contains(range.commonAncestorContainer)) return null;
+    return range && this.canvas.contains(range.commonAncestorContainer) ? range : null;
+  }
+
+  /** The element holding the current selection/caret inside the body (or null). */
+  private selectionAnchorEl(): HTMLElement | null {
+    const range = this.currentBodyRange();
+    if (!range) return null;
     const node = range.commonAncestorContainer;
     return node.nodeType === Node.TEXT_NODE ? node.parentElement : (node as HTMLElement);
   }
 
-  /** Computed font-family of the current selection (for toolbar sync), or null. */
-  getSelectionFontFamily(): string | null {
-    const el = this.selectionAnchorEl();
-    return el ? getComputedStyle(el).fontFamily : null;
+  /** Elements that actually hold selected text — the parents of every non-blank
+   *  text node the range intersects (media blocks excluded). Used so a font query
+   *  reflects the SELECTED CONTENT rather than the selection's commonAncestor,
+   *  which for a multi-block / select-all selection is the canvas root and only
+   *  reports the base font. Empty when the selection carries no text. */
+  private selectionTextEls(range: Range): HTMLElement[] {
+    const els = new Set<HTMLElement>();
+    const walker = document.createTreeWalker(this.canvas, NodeFilter.SHOW_TEXT);
+    while (walker.nextNode()) {
+      const t = walker.currentNode as Text;
+      if (!t.textContent || !t.textContent.trim()) continue;
+      const parent = t.parentElement;
+      if (!parent || parent.closest('.media-block')) continue;
+      if (!range.intersectsNode(t)) continue;
+      els.add(parent);
+    }
+    return Array.from(els);
   }
 
-  /** Computed font-size in px of the current selection (for toolbar sync), or null. */
-  getSelectionFontSize(): string | null {
+  /** Resolve a per-selection value across all text the range covers: returns the
+   *  shared value when every text element agrees (so a whole-email single font
+   *  shows in the toolbar), else null (mixed). Falls back to the anchor element
+   *  for a collapsed caret or a text-free selection. */
+  private resolveSelectionValue(read: (el: HTMLElement) => string): string | null {
+    const range = this.currentBodyRange();
+    if (range && !range.collapsed) {
+      const els = this.selectionTextEls(range);
+      if (els.length) {
+        const values = new Set(els.map(read));
+        return values.size === 1 ? [...values][0] : null;
+      }
+    }
     const el = this.selectionAnchorEl();
-    if (!el) return null;
-    return `${Math.round(parseFloat(getComputedStyle(el).fontSize || '14'))}px`;
+    return el ? read(el) : null;
+  }
+
+  /** Computed font-family of the current selection (for toolbar sync), or null
+   *  when the selection mixes multiple families. */
+  getSelectionFontFamily(): string | null {
+    return this.resolveSelectionValue((el) => getComputedStyle(el).fontFamily);
+  }
+
+  /** Computed font-size in px of the current selection (for toolbar sync), or
+   *  null when the selection mixes multiple sizes. */
+  getSelectionFontSize(): string | null {
+    return this.resolveSelectionValue(
+      (el) => `${Math.round(parseFloat(getComputedStyle(el).fontSize || '14'))}px`,
+    );
   }
 
   /** Effective text color of the current selection as a #rrggbb hex (for the
