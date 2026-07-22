@@ -129,6 +129,33 @@ app-editor-canvas {
   /* Content height (grows with canvas content) */
 }
 
+/* ── Fill-height mode (opt-in via [fillHeight]) ─────────────────────────────
+   Instead of the default content-height model (editor grows, outer container
+   scrolls), the editor STRETCHES to fill the bounded height its host gives it
+   and the active view (Design canvas / Source / HTML / Preview) scrolls
+   INTERNALLY. The toolbar + subject stay pinned; only the canvas scrolls. The
+   host must supply a bounded flex context (see the send-email offcanvas). */
+kexy-custom-rich-editor.fill-height { flex: 1 1 auto; min-height: 0; }
+kexy-custom-rich-editor.fill-height .page-shell,
+kexy-custom-rich-editor.fill-height .editor-modal,
+kexy-custom-rich-editor.fill-height .editor-modal > section,
+kexy-custom-rich-editor.fill-height app-editor-canvas,
+kexy-custom-rich-editor.fill-height .mode-panel.active { flex: 1 1 auto; min-height: 0; }
+kexy-custom-rich-editor.fill-height .editor-canvas {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+/* Source/HTML textareas + preview iframe fill the bounded area (override the
+   default 60vh fixed height so they match the Design canvas). */
+kexy-custom-rich-editor.fill-height .source-editor,
+kexy-custom-rich-editor.fill-height .html-output,
+kexy-custom-rich-editor.fill-height .preview-stage iframe {
+  flex: 1 1 auto;
+  min-height: 0;
+  height: auto;
+}
+
 .modal-header {
   display: flex;
   justify-content: space-between;
@@ -889,7 +916,11 @@ kexy-custom-rich-editor .editor-canvas a [style*="underline"] {
   align-items: center;
   background: #2ea3f2;
   color: #fff;
-  font-size: 13px;
+  /* Inherit the surrounding font-size so an applied size reflects on the chip in
+     Design AND stays consistent after a reload (when the exported raw tag is
+     re-rendered inside a size-carrying span — see MergeTagService.stripChipsToRaw).
+     A per-selection size set on the chip itself uses inline !important and wins. */
+  font-size: inherit;
   font-weight: 600;
   font-family: Arial, Helvetica, sans-serif;
   padding: 2px 10px;

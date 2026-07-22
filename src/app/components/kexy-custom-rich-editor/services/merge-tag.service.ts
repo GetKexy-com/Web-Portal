@@ -3,6 +3,7 @@ import { Injectable, signal } from '@angular/core';
 export interface MergeTag {
   key: string;           // e.g. "receiver_first_name"
   label: string;         // e.g. "First Name"
+  noFallback?: boolean;  // link-type tags (unsubscribe) take no fallback value
 }
 
 @Injectable({ providedIn: 'root' })
@@ -19,6 +20,7 @@ export class MergeTagService {
     { key: 'receiver_phone_number', label: 'Phone Number' },
     { key: 'receiver_email_address', label: 'E-Mail Address' },
     { key: 'receiver_website', label: 'Website' },
+    { key: 'unsubscribe_link', label: 'Unsubscribe Link', noFallback: true },
   ]);
 
   getAll(): MergeTag[] {
@@ -27,6 +29,12 @@ export class MergeTagService {
 
   getTag(key: string): MergeTag | undefined {
     return this.tags().find(t => t.key === key);
+  }
+
+  /** Whether a tag key accepts a fallback value. Link-type tags (e.g. the
+   *  unsubscribe link) don't — clicking their chip must NOT open the popover. */
+  allowsFallback(key: string): boolean {
+    return !this.getTag(key)?.noFallback;
   }
 
   /** Human label for a key, falling back to a Title-Cased version of the key. */
@@ -136,7 +144,26 @@ export class MergeTagService {
       const key = el.dataset['mergeKey'] || '';
       const fallback = (el.dataset['mergeFallback'] ?? '').trim();
       const raw = MergeTagService.buildRawTag(key, fallback);
-      chip.replaceWith(document.createTextNode(raw));
+      // A chip is dropped to a bare text node on export — but a user-applied
+      // font size/family lives on the chip element (see EditorCanvasComponent
+      // .applyInlineTextStyle) and would be lost, so the resolved tag text would
+      // revert to the base size in the email. Carry those props onto a wrapper
+      // span so the sent/preview text keeps the chosen size/family.
+      const fontSize = el.style.getPropertyValue('font-size');
+      const fontFamily = el.style.getPropertyValue('font-family');
+      if (fontSize || fontFamily) {
+        const span = document.createElement('span');
+        if (fontSize) {
+          span.style.setProperty('font-size', fontSize, el.style.getPropertyPriority('font-size'));
+        }
+        if (fontFamily) {
+          span.style.setProperty('font-family', fontFamily, el.style.getPropertyPriority('font-family'));
+        }
+        span.textContent = raw;
+        chip.replaceWith(span);
+      } else {
+        chip.replaceWith(document.createTextNode(raw));
+      }
     });
   }
 

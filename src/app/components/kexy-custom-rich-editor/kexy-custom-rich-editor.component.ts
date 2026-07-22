@@ -1,6 +1,6 @@
 import {
   Component, ViewChild, AfterViewInit, Input, ViewEncapsulation, inject,
-  ElementRef, output
+  ElementRef, output, HostBinding
 } from '@angular/core';
 import { EditorStateService } from './services/editor-state.service';
 import { EditorUtilsService } from './services/editor-utils.service';
@@ -106,6 +106,14 @@ export class KexyCustomRichEditorComponent implements AfterViewInit {
 
   /** Initial subject line (plain text with optional [tokens]). */
   @Input() subject?: string;
+
+  /** Opt-in: fill the height the host gives the editor (the DESIGN canvas then
+   *  scrolls INTERNALLY) instead of the default content-height model where the
+   *  editor grows with the email and the outer container scrolls. The host must
+   *  place the editor in a bounded flex context (e.g. a flex column with a
+   *  definite height). Adds the `fill-height` host class (see the component CSS). */
+  @HostBinding('class.fill-height')
+  @Input() fillHeight = false;
 
   /** When true, export/preview emit the body in a bare document WITHOUT our
    *  email-table shell (used for "Plain Text" style emails). Reactive: toggling

@@ -410,11 +410,14 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
     // Clicking in the body makes the body the merge-tag insertion target
     this.mergeTagTarget = 'editor';
 
-    // A merge-tag chip opens the fallback popover anchored beneath it
+    // A merge-tag chip opens the fallback popover anchored beneath it — but only
+    // for tags that accept a fallback (link-type tags like unsubscribe don't).
     const chip = target.closest('.merge-tag-chip') as HTMLElement | null;
     if (chip) {
       const key = chip.dataset['mergeKey'] || '';
-      this.fallbackPopoverRef.show(chip, key, chip.getBoundingClientRect());
+      if (this.mergeTags.allowsFallback(key)) {
+        this.fallbackPopoverRef.show(chip, key, chip.getBoundingClientRect());
+      }
       return;
     }
 
@@ -772,6 +775,15 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
     const props = Object.entries(styleMap);
     const sel = EditorCanvasComponent.TEXT_BLOCK_SELECTOR;
     const leafBlocks = this.leafBlocksInRange(range);
+    // Merge-tag chips are contenteditable=false and hold no text node the passes
+    // below can style, and for a loose (non-block) selection the chip can fall
+    // OUTSIDE every wrapper span — so the size/family never reaches it. Style the
+    // chips in range directly (snapshot now, before wraps move nodes); export
+    // (`stripChipsToRaw`) carries these props onto the resolved raw tag text so
+    // Design and the sent/preview email match.
+    const chipsInRange = Array.from(
+      this.canvas.querySelectorAll<HTMLElement>('.merge-tag-chip'),
+    ).filter((chip) => range.intersectsNode(chip));
 
     // The selection can mix three kinds of content, each styled differently so
     // the chosen value actually wins in Design AND the exported email:
@@ -847,6 +859,12 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
     // Direct styling first (no node movement), then the wraps.
     blocksToStyle.forEach(applyDirect);
     spansToStyle.forEach(applyDirect);
+    // Chips: set the props on the chip element itself (no descendant-span clear —
+    // a chip's only child spans are its fallback marker). `!important` beats the
+    // chip's base CSS so the pill reflects the size in Design too.
+    chipsInRange.forEach((chip) =>
+      props.forEach(([prop, value]) => chip.style.setProperty(prop, value, 'important')),
+    );
     partialRanges.forEach(wrap);
     looseRanges.forEach(wrap);
     this.normalizeStyledSpans();
@@ -1099,7 +1117,9 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
     const chip = (event.target as HTMLElement).closest('.merge-tag-chip') as HTMLElement | null;
     if (chip) {
       const tagKey = chip.dataset['mergeKey'] || '';
-      this.fallbackPopoverRef.show(chip, tagKey, chip.getBoundingClientRect());
+      if (this.mergeTags.allowsFallback(tagKey)) {
+        this.fallbackPopoverRef.show(chip, tagKey, chip.getBoundingClientRect());
+      }
     }
   }
 

@@ -40,12 +40,18 @@
     }
 
     .input-wrap {
-      // The one scroll region: header above and Save/Cancel below stay pinned.
+      // Flex column: the tone/length/style row stays its size and the editor
+      // block grows to fill the rest (the editor is [fillHeight] so its Design
+      // canvas scrolls internally). overflow-y:auto is only a small-screen
+      // fallback for when even the min editor + row don't fit.
       flex: 1 1 auto;
       min-height: 0;
       overflow-y: auto;
       margin-top: 5px;
+      display: flex;
+      flex-direction: column;
       .label-and-input {
+        flex: 0 0 auto;
         padding: 10px 25px 10px 25px;
         .personalized-tags {
           padding-top: 10px;
@@ -142,12 +148,24 @@
             transform: translateY(0);
           }
         }
-        // Let the editor size to its CONTENT (no fixed height) — a long email
-        // grows the editor and the whole offcanvas (.canvas-content-wrap, which
-        // is overflow:auto) scrolls. The editor does NOT scroll internally.
-        .ckeditor-wrap kexy-custom-rich-editor {
-          display: block;
-          min-height: 360px;
+      }
+      // The editor block grows to fill the space below the tone/length/style
+      // row; the editor ([fillHeight]) then stretches into it and scrolls its
+      // Design canvas internally.
+      .label-and-input.editor-block {
+        flex: 1 1 auto;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        .ckeditor-wrap {
+          flex: 1 1 auto;
+          min-height: 0;
+          display: flex;
+          flex-direction: column;
+          kexy-custom-rich-editor {
+            flex: 1 1 auto;
+            min-height: 0;
+          }
         }
       }
     }
