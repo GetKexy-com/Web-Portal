@@ -197,7 +197,7 @@
               class="n-header-name"
               [style.background-color]="tableHeaderBg"
               [style.color]="tableHeaderColor"
-              [style.width]="column.width ? column.width+'px' : ''"
+              [style.width]="column.flex ? '100%' : (column.width ? column.width+'px' : '')"
             >
               <!--Showing column name-->
               <span

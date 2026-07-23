@@ -249,6 +249,10 @@ $st-amber-bg: #fef3d9;
       .n-table {
         outline: 0;
         border-collapse: collapse;
+        // Auto layout (never overlaps — columns grow to fit). The `flex` column
+        // (Name) is set to width:100% so it absorbs ALL the leftover width,
+        // keeping the checkbox + other columns at their natural widths (no
+        // ballooning, no load-time flicker).
 
         .n-product {
           background: #fff;
@@ -564,6 +568,11 @@ $st-amber-bg: #fef3d9;
   .n-header-name:first-child {
     padding-left: 28px;
     padding-right: 4px;
+    // min-width (not width) enforces the column size: the Name column is
+    // width:100% and greedily eats spare width, so a plain `width` on this
+    // column is ignored — min-width is honored regardless. (border-box globally,
+    // so this is the full column width.)
+    min-width: 58px;
     position: sticky;
     left: 0;
     border-right: 1px solid $kx-border;

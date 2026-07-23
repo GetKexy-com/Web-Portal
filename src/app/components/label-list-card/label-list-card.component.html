@@ -41,7 +41,7 @@
       [class.scrolled-x]="scrolledX"
       (scroll)="onTableScroll($event)"
     >
-      <table *ngIf="columnList" [style.width]="tableWidth + 'px'" class="n-table">
+      <table *ngIf="columnList" class="n-table">
         <!-- header - start -->
         <thead>
         <tr class="n-header">
@@ -50,7 +50,7 @@
               class="n-header-name"
               [style.background-color]="tableHeaderBg"
               [style.color]="tableHeaderColor"
-              [style.width]="column.width ? column.width+'px' : ''"
+              [style.width]="column.width"
             >
               <span *ngIf="column.name"
                     [className]="column.key === 'list_size' ? 'w-100 d-inline-block text-center' : '' ">
@@ -70,7 +70,7 @@
             <ng-container *ngFor="let column of columnList">
               <td
                 [className]="'n-cell ' + getCellClasses(column)"
-                [style.width]="column.width ? column.width+'px' : ''"
+                [style.width]="column.width"
               >
                 <span *ngIf="column.key === 'date_created'">{{ row.createdAt | date : "medium" }}</span>
 

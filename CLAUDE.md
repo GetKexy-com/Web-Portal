@@ -383,6 +383,17 @@ loses on specificity → every header cell stays at `z-index 3` and, on horizont
 scroll, the later cells paint OVER the select-all cell. (Body has no competing
 z-index, which is why only the header was affected.)
 
+**Column widths (contacts).** `table-layout: auto` (never overlaps — columns grow
+to fit content), and the **Name column is `flex: true` → rendered `width: 100%`**,
+the one-greedy-column trick: it soaks up ALL leftover width so the checkbox + other
+columns keep their natural widths (no ballooning, no load-time flicker). Do NOT use
+`table-layout: fixed` here — with long emails/company names it clips/overlaps.
+`calcWidth` sums the exact column widths (no buffer), else the extra inflates the
+flex column. The checkbox column width is enforced with **`min-width`** on the
+first cell (a plain `width` is ignored — the greedy `width:100%` column overrides
+it). Contacts has enough columns that the table exceeds the viewport and scrolls,
+so the flex column rarely grows.
+
 **Pagination** (both header + footer pagers, identical markup). First / Prev /
 `Page X of Y` / Next / Last as `.pager-btn` icon buttons, disabled at the bounds
 via `isFirstPage()`/`isLastPage()`; `goToFirstPage()`/`goToLastPage()` call
@@ -422,6 +433,17 @@ is a `.used-in-chip`. `manage-list.component.scss` **dropped `overflow-x: scroll
 `.content-area` so the card's `.list-wrapper` owns horizontal scroll (needed for the
 sticky/frozen behavior). Pagination here is prev/next only — the page provides no
 `navigateSpecificPage` and its paging logic is fragile, so no first/last/jump.
+
+**Column widths (lists) differ from contacts.** The Lists table has few columns, so
+the contacts' single-flex-column model made one column absurdly wide. Instead it
+uses **`table-layout: fixed; width: 100%; min-width: 700px`** with **percentage
+column widths** (checkbox a fixed `58px`, the rest `%` summing to 100) so the columns
+**proportionally fill** the width; `min-width` lets it scroll on narrow screens.
+`columnList` widths are **unit strings** here (`'58px'`, `'26%'`, …) bound straight
+to `[style.width]`, and `calcWidth` only computes `browserWidthForTable` (the table
+is `width:100%`, not a px sum). Non-checkbox cells get `overflow:hidden;
+text-overflow:ellipsis`. NOTE: the checkbox column is `58px` on Lists but `87px` on
+Contacts — intentional per the user's edits, not yet unified.
 
 ---
 

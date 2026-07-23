@@ -139,8 +139,10 @@ export class ContactListCardComponent implements OnInit, OnChanges, OnDestroy, A
   getListViewData = () => {
     let columnList: any;
     columnList = [
-      { name: '', key: 'action', width: 58 },
-      { name: 'Name', key: 'name', width: 220 },
+      { name: '', key: 'action', width: 87 },
+      // `flex` = this column absorbs any leftover table width (table-layout:fixed)
+      // so the other columns — the checkbox column especially — keep exact widths.
+      { name: 'Name', key: 'name', width: 220, flex: true },
       { name: 'Linkedin', key: 'linkedinUrl', width: 80 },
       { name: 'Email Address', key: 'email', width: 180 },
       { name: 'Email Status', key: 'email_status', width: 120 },
@@ -161,7 +163,9 @@ export class ContactListCardComponent implements OnInit, OnChanges, OnDestroy, A
   calcWidth = () => {
     const sidebarWidth = document.getElementById('main-sidebar')?.clientWidth;
     const pageMargin = 48;
-    let sum = 300;
+    // Exact sum of column widths (no buffer): with table-layout:fixed the flex
+    // column absorbs any leftover, so a buffer here would just make it too wide.
+    let sum = 0;
     let map = {};
     this.columnList.forEach((column) => {
       sum += column.width;

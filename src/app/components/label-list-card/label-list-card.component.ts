@@ -90,12 +90,15 @@ export class LabelListCardComponent implements OnInit, OnDestroy, AfterViewInit 
   getListViewData = () => {
     let columnList: any;
     columnList = [
-      { name: '', key: 'action', width: 50 },
-      { name: 'Name', key: 'label', width: 200 },
-      { name: 'List Size', key: 'list_size', width: 80 },
-      { name: 'Creator', key: 'creator', width: 120 },
-      { name: 'Used In', key: 'used_in', width: 140 },
-      { name: 'Date Created', key: 'date_created', width: 180 },
+      // Widths are unit strings. The checkbox is a fixed px column; the rest are
+      // percentages so, with table-layout:fixed + width:100%, the columns
+      // proportionally FILL the available width (checkbox stays fixed).
+      { name: '', key: 'action', width: '58px' },
+      { name: 'Name', key: 'label', width: '26%' },
+      { name: 'List Size', key: 'list_size', width: '10%' },
+      { name: 'Creator', key: 'creator', width: '18%' },
+      { name: 'Used In', key: 'used_in', width: '22%' },
+      { name: 'Date Created', key: 'date_created', width: '24%' },
       // { name: "", key: "edit", width: 50 },
     ];
     this.columnList = columnList;
@@ -103,24 +106,12 @@ export class LabelListCardComponent implements OnInit, OnDestroy, AfterViewInit 
 
   browserWidthForTable;
   calcWidth = () => {
-    let sum = 300;
-    this.columnList.forEach((column) => {
-      sum += column.width;
-    });
-
-    // Prefer the table wrapper's OWN width — it's already laid out in the space
-    // beside the sidebar, so the table fills the available width on the first
-    // render. The previous `window.innerWidth - sidebarWidth` math depended on
-    // #main-sidebar, which isn't measurable for the first 1-2s (it renders after
-    // this card) → clientWidth was undefined → NaN → tableWidth fell back to the
-    // narrow column sum, then snapped to full width once the sidebar appeared.
+    // The table is width:100% (percentage columns fill it via table-layout:fixed),
+    // so we only need the visible width for the centered empty/loading state.
     const wrapper = this.host?.nativeElement?.querySelector('.new-table-wrapper') as HTMLElement | null;
     const sidebarWidth = document.getElementById('main-sidebar')?.clientWidth || 0;
     const pageMargin = 48;
-    const available = wrapper?.clientWidth || (window.innerWidth - sidebarWidth - pageMargin);
-
-    this.browserWidthForTable = available;
-    this.tableWidth = available > sum ? available : sum;
+    this.browserWidthForTable = wrapper?.clientWidth || (window.innerWidth - sidebarWidth - pageMargin);
   };
 
   // Keep *ngFor stable so toggling a checkbox doesn't rebuild every row.

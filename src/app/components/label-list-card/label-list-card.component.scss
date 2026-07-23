@@ -91,6 +91,12 @@ $kx-header-bg: #f8fafc;
       .n-table {
         outline: 0;
         border-collapse: collapse;
+        // Fill the available width with proportional (percentage) columns; the
+        // checkbox is a fixed px column. min-width keeps it usable on narrow
+        // screens (the wrapper scrolls instead of cramping).
+        table-layout: fixed;
+        width: 100%;
+        min-width: 700px;
 
         .n-product {
           background: #fff;
@@ -249,12 +255,24 @@ $kx-header-bg: #f8fafc;
 }
 .n-product:hover .checkbox-icon:not(.selected) { color: #5f6368; }
 
+// Fixed layout can spill long values into the next column — clip + ellipsis on
+// every cell except the checkbox column (its ::after shadow must stay visible).
+.kexy-table-card .n-table td.n-cell:not(:first-child),
+.kexy-table-card .n-table .n-header-name:not(:first-child) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 // First column: FROZEN while scrolling horizontally + tidy checkbox spacing.
 .kexy-table-card .n-table {
   td.n-cell:first-child,
   .n-header-name:first-child {
-    padding-left: 20px;
-    padding-right: 8px;
+    // Match contact-list-card's checkbox column spacing.
+    padding-left: 28px;
+    padding-right: 4px;
+    // min-width enforces the column size (the Name column is width:100% and eats
+    // spare width, so a plain `width` on this column is ignored).
+    min-width: 58px;
     position: sticky;
     left: 0;
     border-right: 1px solid $kx-border;
