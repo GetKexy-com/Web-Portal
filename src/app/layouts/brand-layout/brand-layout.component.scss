@@ -356,31 +356,24 @@ app-org-info {
     border-top: 1px solid rgba(255, 255, 255, 0.16);
   }
 
-  /* Compact brand header: small logo + truncated org name, no person name.
-     Keep the same top spacing above the logo as the expanded sidebar (24px). */
+  /* Rail is too narrow for the side-by-side header — stack the logo over a tiny
+     truncated org name, centred. */
   .sidebar-top {
-    padding: 24px 6px 12px !important;
-    margin-bottom: 8px;
+    flex-direction: column;
+    gap: 6px;
+    padding: 16px 6px 12px !important;
 
     img {
-      width: 48px !important;
-      height: 48px !important;
-      padding: 5px !important;
+      width: 46px !important;
+      height: 46px !important;
+      padding: 4px !important;
       border-radius: 12px !important;
     }
     .username {
-      margin-top: 8px !important;
       max-width: 64px;
-      margin-left: auto;
-      margin-right: auto;
+      text-align: center !important;
       font-size: 10.5px !important;
       line-height: 1.25;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .c-name {
-      display: none !important;
     }
   }
 
@@ -413,7 +406,9 @@ app-org-info {
   [data-label]:hover::after {
     content: attr(data-label);
     position: absolute;
-    left: calc(100% + 12px);
+    /* Clear the 76px blue rail edge (icon right ≈ 60px) with a gap so the
+       bubble doesn't hug the sidebar background. */
+    left: calc(100% + 26px);
     top: 50%;
     transform: translateY(-50%);
     padding: 9px 14px;
@@ -427,18 +422,6 @@ app-org-info {
     white-space: nowrap;
     box-shadow: 0 12px 28px rgba(0, 0, 0, 0.32);
     z-index: 1200;
-    pointer-events: none;
-  }
-  /* caret: base flush to the tooltip's left edge, tip pointing at the icon */
-  [data-label]:hover::before {
-    content: "";
-    position: absolute;
-    left: calc(100% - 4px);
-    top: 50%;
-    transform: translateY(-50%);
-    border: 8px solid transparent;
-    border-right-color: #0f172a;
-    z-index: 1201;
     pointer-events: none;
   }
 }

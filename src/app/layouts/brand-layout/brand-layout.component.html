@@ -32,13 +32,13 @@
     <nav-item-dropdown icon="fa-users" [label]="constants.CONTACTS" [expand]="expandContactsDropdown" [collapsed]="railCollapsed">
       <nav-item
         [isDropDown]="true"
-        icon="fa-list"
+        icon="fa-table"
         [navigateTo]="brand.MANAGE_LIST"
         label="Manage Lists"
       ></nav-item>
       <nav-item
         [isDropDown]="true"
-        icon="fa-bars"
+        icon="fa-address-book-o"
         [navigateTo]="brand.MANAGE_CONTACTS"
         label="Manage Contacts"
       ></nav-item>
@@ -61,7 +61,7 @@
                        [expand]="expandDripCampaignDropdown" [collapsed]="railCollapsed">
       <nav-item
         [isDropDown]="true"
-        icon="fa-plus"
+        icon="fa-bullhorn"
         [navigateTo]="brand.CREATE_DRIP_CAMPAIGN"
         label="Create Campaign"
       ></nav-item>
@@ -73,7 +73,7 @@
 <!--      ></nav-item>-->
       <nav-item
         [isDropDown]="true"
-        icon="fa-bars"
+        icon="fa-tasks"
         [navigateTo]="brand.LIST_DRIP_CAMPAIGN"
         label="Manage Campaigns"
       ></nav-item>
@@ -125,7 +125,7 @@
         label="SMTP Settings"
       ></nav-item>
       <nav-item
-        icon="fa-list"
+        icon="fa-user-times"
         [isDropDown]="true"
         [navigateTo]="brand.SUPPRESSION_LIST"
         label="Suppression List"
