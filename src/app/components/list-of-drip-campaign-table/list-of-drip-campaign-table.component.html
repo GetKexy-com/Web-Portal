@@ -62,7 +62,7 @@
         </div>
 
         <form class="pager-jump" (ngSubmit)="handleNavigate()">
-          <label>Go to</label>
+          <label>Go to page</label>
           <input class="jump-input" type="number" min="1" [max]="totalPage" placeholder="#"
                  [(ngModel)]="navigatePageNumber" [ngModelOptions]="{standalone: true}" />
           <button type="submit" class="jump-go" title="Go" aria-label="Go to page">
@@ -257,7 +257,7 @@
       </div>
 
       <form class="pager-jump" (ngSubmit)="handleNavigate()">
-        <label>Go to</label>
+        <label>Go to page</label>
         <input class="jump-input" type="number" min="1" [max]="totalPage" placeholder="#"
                [(ngModel)]="navigatePageNumber" [ngModelOptions]="{standalone: true}" />
         <button type="submit" class="jump-go" title="Go" aria-label="Go to page">
