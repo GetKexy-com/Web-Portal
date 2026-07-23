@@ -2,13 +2,15 @@
   <section class="card-header">
     <div class="d-flex align-items-center">
       <span class="card-title">Drip Campaigns</span>
-      <span *ngIf="totalRecordsCount" class="count-chip">{{ totalRecordsCount | number }}</span>
       <span class="d-none"> {{ getSelectedItemCount() }} </span>
+      <!-- Hidden for now: total-count chip + live "X of N selected" indicator.
+      <span *ngIf="totalRecordsCount" class="count-chip">{{ totalRecordsCount | number }}</span>
       <span *ngIf="selectedItemCount > 0 || selectedAllDripCampaigns" class="selection-info">
         <i class="fa fa-check-circle" aria-hidden="true"></i>
         <strong>{{ selectedAllDripCampaigns ? totalRecordsCount : selectedItemCount }}</strong>
         of {{ totalRecordsCount | number }} selected
       </span>
+      -->
     </div>
 
     <div class="d-flex align-items-center header-controls">

@@ -32,14 +32,15 @@
         <i class="fa fa-angle-left me-2" style="font-size: 20px" aria-hidden="true"></i> Back
       </a>
       <span *ngIf="showTitle" class="card-title">Contacts</span>
-      <span *ngIf="showTitle && totalContactsCount" class="count-chip">{{ totalContactsCount | number }}</span>
       <span class="d-none"> {{ getSelectedItemCount() }} </span>
-      <!-- Live selection count (Gmail/Airtable style) -->
+      <!-- Hidden for now: total-count chip + live "X of N selected" indicator.
+      <span *ngIf="showTitle && totalContactsCount" class="count-chip">{{ totalContactsCount | number }}</span>
       <span *ngIf="selectedItemCount > 0 || selectAllContacts" class="selection-info">
         <i class="fa fa-check-circle" aria-hidden="true"></i>
         <strong>{{ selectAllContacts ? totalContactsCount : selectedItemCount }}</strong>
         of {{ totalContactsCount | number }} selected
       </span>
+      -->
     </p>
 
     <div class="d-flex flex-wrap">

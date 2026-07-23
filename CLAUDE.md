@@ -476,6 +476,32 @@ which was upgraded to the contacts-style pager: First/Prev/`Page X of Y`/Next/La
 `:host` is `inline-flex` (NOT `width:100%`) — a full-width host squeezed the card
 title onto two lines in the flex header.
 
+### `list-of-drip-campaign-table` — same redesign
+
+The Drip Campaigns table (`brand-list-of-drip-campaigns`) got the full contacts
+treatment: light header (parent passes `#f8fafc`/`#64748b`), 54px rows, sticky
+header, **frozen checkbox column + scroll shadow** (`scrolledX`/`onTableScroll`;
+here the scroll container is **`.new-table-wrapper`**, so the shadow keys off
+`.new-table-wrapper.scrolled-x`), Gmail-style checkboxes (`getCheckboxIcon()`
+returns `checkbox-icon selected` for checked/indeterminate), **status pills**
+(`.status-pill` — Active=green, Pause=amber, Draft=muted), label tag + "+N more",
+`.table-state` empty/loading, the **flex fill-width model** (Title column
+`flex:true` → `width:100%`, checkbox `min-width:58px`, no `+300` buffer; removed
+the empty trailing `edit` column), and the **cross-page select-all banner** under
+the header. The full contacts-style pager (First/Prev/Next/Last + "Go to [#]",
+in BOTH header and footer) uses new table `@Input()`s
+`paginationFirstClick`/`paginationLastClick`/`navigateSpecificPage`, wired to page
+handlers of the same name. (This is the change committed as "Fix".)
+
+### Header count + selected indicators are currently HIDDEN
+
+The `.count-chip` (total) and `.selection-info` ("X of N selected") in the card
+headers are **commented out for now** in `contact-list-card`,
+`list-of-drip-campaign-table`, and `lead-magnets` (per user request — felt like too
+much). The markup is left in place (commented) to restore easily. Keep the hidden
+`getSelectedItemCount()` refresher span — the cross-page **select-all banner** still
+depends on `selectedItemCount`.
+
 ---
 
 ## Auth pages (login / onboarding wizard)
