@@ -1,125 +1,380 @@
+// ── Tokens (brand blue, matching invite-people / auth screens) ──────────────
+$kx-primary: #12a5f4;
+$kx-primary-deep: #095dd1;
+$kx-ink: #0f172a;
+$kx-muted: #64748b;
+$kx-border: #e2e8f0;
+$kx-field-bg: #f7f9fc;
+
+// Status palette
+$kx-green: #16a34a;
+$kx-green-bg: #e7f7ee;
+$kx-red: #dc2626;
+$kx-red-bg: #fdeaea;
+$kx-amber: #b45309;
+$kx-amber-bg: #fef3d9;
+
+// Modern slide-over layout: header / scrollable body / footer as flex-column
+// siblings (Tailwind UI / Headless UI drawer pattern) — the footer never
+// scrolls out of view and needs no sticky/margin hacks.
 .canvas-content-wrap {
   position: relative;
-  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   height: 100vh;
+  background: #f4f6fb;
+
+  .canvas-form {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+  }
+
+  // ── Header ────────────────────────────────────────────────────────────
   .head-area {
+    flex-shrink: 0;
     display: flex;
+    align-items: flex-start;
     justify-content: space-between;
-    padding: 24px;
-    border-bottom: 1px solid #e8e8e8;
-    p {
-      margin-bottom: 0;
-      font-weight: 600;
+    gap: 16px;
+    padding: 22px 28px;
+    background: #ffffff;
+    border-bottom: 1px solid $kx-border;
+
+    .head-title {
+      margin: 0;
+      font-weight: 700;
       font-size: 20px;
-      line-height: 20px;
-      color: #181818;
+      line-height: 1.2;
+      color: $kx-ink;
     }
-    img {
-      align-self: center;
+
+    .head-subtitle {
+      display: block;
+      margin-top: 4px;
+      font-size: 13px;
+      color: $kx-muted;
+    }
+
+    .close-btn {
+      flex-shrink: 0;
+      width: 36px;
+      height: 36px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid $kx-border;
+      border-radius: 10px;
+      background: #fff;
+      color: $kx-muted;
+      font-size: 16px;
       cursor: pointer;
+      transition: all 0.15s ease;
+
+      &:hover {
+        background: $kx-red-bg;
+        border-color: $kx-red;
+        color: $kx-red;
+      }
     }
   }
-  .add-delete-rep-button-area {
-    display: flex;
-    justify-content: space-between;
-    border-bottom: 1px solid #e8e8e8;
-    padding: 10px;
-  }
+
+  // ── Body (the only scroll region) ──────────────────────────────────────
   .canvas-body {
-    padding: 10px 20px;
-    .input-wrap {
-      margin-top: 20px;
-      .label-and-input {
-        textarea {
-          height: 60px;
-          overflow-y: auto;
-        }
-        .form-control {
-          font-size: 14px;
-          padding: 8px;
-        }
-        p {
-          margin-bottom: 10px;
-          font-weight: 700;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 22px 28px 28px;
+
+    .form-section {
+      background: #ffffff;
+      border: 1px solid $kx-border;
+      border-radius: 14px;
+      padding: 20px 22px;
+      margin-bottom: 18px;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+
+      .section-head {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        margin-bottom: 18px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid #f1f5f9;
+
+        .section-icon {
+          width: 28px;
+          height: 28px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 8px;
+          background: linear-gradient(135deg, $kx-primary, $kx-primary-deep);
+          color: #fff;
           font-size: 13px;
-          line-height: 15px;
-          letter-spacing: -0.01em;
-          text-transform: uppercase;
-          color: #202020;
         }
-        select.form-control {
-          padding: 12px;
+
+        .section-title {
+          font-weight: 700;
+          font-size: 14px;
+          letter-spacing: 0.01em;
+          color: $kx-ink;
         }
       }
     }
-    .canvas-headline {
-      color: #274acb;
-      font-size: 24px;
-      font-weight: bold;
-      margin-bottom: 20px;
+
+    // Responsive 2-col grid; panel is 800px so 2 columns fit comfortably.
+    .fields-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px 18px;
+
+      .field.full {
+        grid-column: 1 / -1;
+      }
     }
-    .establishment-type {
-      overflow: hidden;
-      clear: both;
-      margin-bottom: 10px;
-    }
-    .buttons {
+
+    .field {
       display: flex;
-      button {
-        border-radius: 15px;
-        padding: 10px 0;
+      flex-direction: column;
+
+      .field-label,
+      .field-label-row .field-label {
+        margin-bottom: 7px;
+        font-weight: 600;
+        font-size: 12px;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+        color: $kx-muted;
       }
-      .blue-border-white-bg-button {
-        border: 2px solid #d9d9d9;
-        color: #010101;
+
+      .field-label-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+
+        .field-label {
+          margin-bottom: 0;
+        }
+      }
+
+      // Modern soft-filled inputs
+      .form-control {
+        width: 100%;
+        background: $kx-field-bg;
+        border: 1.5px solid $kx-border;
+        border-radius: 10px;
+        padding: 11px 13px;
+        font-size: 14px;
+        color: $kx-ink;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+
+        &::placeholder {
+          color: #9aa6b6;
+        }
+
+        &:focus {
+          outline: none;
+          background: #fff;
+          border-color: $kx-primary;
+          box-shadow: 0 0 0 3px rgba(18, 165, 244, 0.15);
+        }
+      }
+
+      textarea.form-control {
+        min-height: 84px;
+        resize: vertical;
+        line-height: 1.5;
       }
     }
-    .colors-wrap {
+
+    // ── Email field + verification status ──────────────────────────────
+    .email-field {
+      .field-label-row {
+        margin-bottom: 7px;
+      }
+
+      .input-with-affix {
+        position: relative;
+
+        .form-control {
+          padding-right: 40px;
+        }
+
+        .affix-icon {
+          position: absolute;
+          top: 50%;
+          right: 13px;
+          transform: translateY(-50%);
+          font-size: 15px;
+          pointer-events: none;
+        }
+      }
+
+      .email-hint {
+        margin-top: 6px;
+        font-size: 12px;
+        color: $kx-muted;
+      }
+
+      // Status-tinted input border + affix icon + hint
+      &.is-valid {
+        .form-control { border-color: rgba($kx-green, 0.55); }
+        .affix-icon, .email-hint { color: $kx-green; }
+      }
+      &.is-invalid {
+        .form-control { border-color: rgba($kx-red, 0.55); }
+        .affix-icon, .email-hint { color: $kx-red; }
+      }
+      &.is-caution {
+        .form-control { border-color: rgba($kx-amber, 0.55); }
+        .affix-icon, .email-hint { color: $kx-amber; }
+      }
+    }
+
+    // Status pill beside the label
+    .email-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      text-transform: uppercase;
+      line-height: 1;
+
+      i {
+        font-size: 11px;
+      }
+
+      &.is-valid {
+        background: $kx-green-bg;
+        color: $kx-green;
+      }
+      &.is-invalid {
+        background: $kx-red-bg;
+        color: $kx-red;
+      }
+      &.is-caution {
+        background: $kx-amber-bg;
+        color: $kx-amber;
+      }
+    }
+
+    // ── Drip campaigns ─────────────────────────────────────────────────
+    .campaign-list {
       display: flex;
       flex-wrap: wrap;
-      gap: 15px;
-      .color-item {
-        width: 109px;
-        height: 50px;
-        display: flex;
-        justify-content: center;
+      gap: 10px;
+
+      .campaign-chip {
+        display: inline-flex;
         align-items: center;
+        gap: 8px;
+        padding: 7px 12px;
+        border: 1px solid $kx-border;
         border-radius: 10px;
+        background: $kx-field-bg;
+        font-size: 13px;
         cursor: pointer;
+        transition: all 0.15s ease;
+
         i {
-          color: white;
+          color: $kx-primary;
         }
+
+        .link-text {
+          font-weight: 600;
+          color: $kx-primary-deep;
+        }
+
+        .campaign-status {
+          padding: 2px 8px;
+          border-radius: 999px;
+          background: #eef2ff;
+          color: #4338ca;
+          font-size: 11px;
+          font-weight: 600;
+        }
+
+        &:hover {
+          border-color: $kx-primary;
+          box-shadow: 0 0 0 3px rgba(18, 165, 244, 0.12);
+        }
+      }
+
+      .campaign-empty {
+        font-size: 13px;
+        color: $kx-muted;
+      }
+    }
+
+  }
+
+  // ── Footer action bar (flex sibling of the scroll body — always visible) ──
+  .buttons {
+    flex-shrink: 0;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 16px 28px;
+    background: #ffffff;
+    border-top: 1px solid $kx-border;
+    box-shadow: 0 -6px 16px rgba(15, 23, 42, 0.06);
+
+    button {
+      min-width: 120px;
+      border-radius: 12px;
+      padding: 12px 22px;
+      font-weight: 600;
+      font-size: 14px;
+      border: none;
+      cursor: pointer;
+      transition: filter 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .blue-button {
+      color: #fff;
+      background: linear-gradient(135deg, $kx-primary, $kx-primary-deep);
+      box-shadow: 0 6px 16px rgba(9, 93, 209, 0.25);
+
+      &:hover:not(:disabled) {
+        filter: brightness(1.05);
+      }
+
+      &:disabled {
+        opacity: 0.65;
+        cursor: not-allowed;
+      }
+    }
+
+    .blue-border-white-bg-button {
+      background: #fff;
+      border: 1.5px solid $kx-border;
+      color: $kx-ink;
+
+      &:hover {
+        border-color: $kx-muted;
       }
     }
   }
 }
 
-.drip-campaign-title {
-  font-size: 14px;
-  display: block;
-}
-
-@media (min-width: 992px) and (max-width: 1599px) {
+@media (max-width: 640px) {
   .canvas-content-wrap {
-    .canvas-body {
-      //padding: 15px 0 15px 20px;
-      .canvas-headline {
-        font-size: 20px;
-        margin-bottom: 8px;
-      }
-      .establishment-type {
-        label {
-          font-size: 12px;
-        }
-      }
-      .input-wrap {
-        .label-and-input {
-          p {
-            font-size: 11px;
-            line-height: 13px;
-          }
-        }
-      }
+    .head-area,
+    .canvas-body,
+    .buttons {
+      padding-left: 18px;
+      padding-right: 18px;
+    }
+    .canvas-body .fields-grid {
+      grid-template-columns: 1fr;
     }
   }
 }

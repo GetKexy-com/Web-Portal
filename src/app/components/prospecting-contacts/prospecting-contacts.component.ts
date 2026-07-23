@@ -66,6 +66,16 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
   contactLabelsSubscription: Subscription;
   dripCampaignTitlesSubscription: Subscription;
 
+  // Email-verification status shown beside the Email field. Computed (not a
+  // template getter) so change detection stays cheap; refreshed in
+  // setPrimaryForm and on every email edit. Null hides the badge.
+  emailStatusInfo: {
+    label: string;
+    cls: string;
+    icon: string;
+    hint: string;
+  } | null = null;
+
   constructor(
     public activeCanvas: NgbActiveOffcanvas,
     private router: Router,
@@ -303,7 +313,56 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
       lists: new FormControl([]),
       notes: new FormControl(contactDetails?.notes ? contactDetails.notes : ''),
     });
+
+    this.computeEmailStatus();
   };
+
+  // Map the contact's stored verification result to a display badge. We only
+  // show it while the typed email still matches the saved one — editing the
+  // address invalidates the old result, so the badge hides until re-verified.
+  private computeEmailStatus = () => {
+    const saved = (this.contact?.details?.email || this.contact?.email || '')
+      .trim()
+      .toLowerCase();
+    const current = (this.primaryForm?.get('email')?.value || '').trim().toLowerCase();
+    if (!saved || saved !== current) {
+      this.emailStatusInfo = null;
+      return;
+    }
+    const status = (this.contact?.emailStatus || this.contact?.details?.emailStatus || '')
+      .toString()
+      .toLowerCase();
+    const map: { [key: string]: { label: string; cls: string; icon: string; hint: string } } = {
+      verified: {
+        label: 'Valid',
+        cls: 'is-valid',
+        icon: 'fa-check-circle',
+        hint: 'This email address passed verification.',
+      },
+      invalid: {
+        label: 'Invalid',
+        cls: 'is-invalid',
+        icon: 'fa-times-circle',
+        hint: 'This email failed verification and is likely to bounce.',
+      },
+      'catch-all': {
+        label: 'Catch-all',
+        cls: 'is-caution',
+        icon: 'fa-question-circle',
+        hint: 'The domain accepts all mail, so deliverability is uncertain.',
+      },
+      unverified: {
+        label: 'Unverified',
+        cls: 'is-caution',
+        icon: 'fa-clock-o',
+        hint: 'This email has not been verified yet.',
+      },
+    };
+    this.emailStatusInfo = map[status] || null;
+  };
+
+  // Re-evaluate the badge as the user edits the email field.
+  onEmailInput = () => this.computeEmailStatus();
 
   formValidationErrorCheck = (fieldName: string) => {
     return (

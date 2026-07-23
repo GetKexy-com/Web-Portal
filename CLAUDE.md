@@ -253,6 +253,44 @@ which means *every contact across all pages*, not just the loaded ones.
 
 ---
 
+## Contact add/edit offcanvas (`prospecting-contacts`)
+
+The slide-over form for creating/editing a contact (opened from `brand-contacts`
+and `brand-list-contacts` with `panelClass: 'contact-slide-content …'`, 800px wide
+per `styles.scss`). Handles three modes off the same `primaryForm`: **create**,
+**edit single**, **edit multiple** (`isMultipleContactsSelected` — only the
+Classification section shows; per-contact fields are hidden).
+
+- **Modern drawer layout (Tailwind-UI/Headless-UI pattern):**
+  `.canvas-content-wrap` is a **flex column** (`height:100vh; overflow:hidden`)
+  holding `.head-area` (`flex-shrink:0`), a `<form class="canvas-form">`
+  (`flex:1; min-height:0`), and inside it `.canvas-body` (`flex:1; min-height:0;
+  overflow-y:auto` — **the only scroll region**) plus a `.buttons` footer
+  (`flex-shrink:0`). The footer stays docked at the bottom (no sticky/negative-
+  margin hacks) so Save/Cancel are always reachable. **The footer is a sibling of
+  `.canvas-body` but still inside the `<form>`** so `type="submit"` works — don't
+  move it out of the form. Actions are right-aligned, **Cancel then Save**
+  (primary on the right).
+- **Fields** are grouped into `.form-section` cards (Classification / Contact
+  details / Location / Drip Campaigns / Notes), each with a gradient icon chip +
+  title, laid out in a 2-col `.fields-grid` (`.field.full` spans both; collapses
+  to 1 col < 640px). Soft-filled inputs + brand-blue focus ring; SCSS has a token
+  block at the top (`$kx-primary #12a5f4` → `$kx-primary-deep #095dd1`). The
+  `kexy-select-dropdown`s (Marketing Status, Lists, Country, State) render their
+  OWN labels — don't add a `.field-label` for those.
+- **Email verification badge:** the Email field surfaces the contact's stored
+  verification result (`contact.emailStatus` / `contact.details.emailStatus`,
+  values `verified`/`invalid`/`catch-all`/`unverified`, same as
+  `EMAIL_STATUS_OPTIONS`) as a pill beside the label + an affix icon inside the
+  input + a status-tinted border + a hint line. Computed by `computeEmailStatus()`
+  into the **`emailStatusInfo` field** (NOT a template getter — keeps CD cheap),
+  refreshed in `setPrimaryForm` and on `(input)="onEmailInput()"`. It **only shows
+  while the typed email still matches the saved one** (editing the address hides
+  the badge, since the old result no longer applies). Green = valid, red =
+  invalid, amber = catch-all/unverified.
+
+---
+
 ## Table cards
 
 The list/table cards — `label-list-card`, `contact-list-card`,

@@ -1,246 +1,256 @@
 <div class="canvas-content-wrap">
   <div class="head-area">
-    <p>{{ canvasTitle }} Contact<span *ngIf="isMultipleContactsSelected">(s)</span></p>
-    <img src="/assets/images/close-icon.png" alt="Close" (click)="activeCanvas.dismiss('Cross click')" />
+    <div class="head-text">
+      <p class="head-title">{{ canvasTitle }} Contact<span *ngIf="isMultipleContactsSelected">(s)</span></p>
+      <span class="head-subtitle" *ngIf="isMultipleContactsSelected">Updating {{ selectedContacts.length }} contacts at once</span>
+      <span class="head-subtitle" *ngIf="!isMultipleContactsSelected">Manage this contact's details and lists</span>
+    </div>
+    <button type="button" class="close-btn" aria-label="Close" (click)="activeCanvas.dismiss('Cross click')">
+      <i class="fa fa-times" aria-hidden="true"></i>
+    </button>
   </div>
 
-  <div class="canvas-body">
-    <form [formGroup]="primaryForm" (ngSubmit)="handleSubmit()">
-      <div class="mb-4">
-        <div class="row">
-          <div class="col-12">
-            <div class="input-wrap">
-              <kexy-select-dropdown
-                label="Marketing Status"
-                shortNoteBesideLabel=""
-                [selectAllBtn]="false"
-                [required]="false"
-                [options]="marketingStatusOptions"
-                [addNewBtn]="false"
-                [onAddNewClick]=""
-                [selectedOption]="selectedMarketingStatus"
-                [onSelectSingleItem]="onMarketingStatusSelect"
-                [rowIndex]="1"
-                [editIcon]="false"
-                [deleteIcon]="false"
-                [onDeleteClick]=""
-                [onEditClick]=""
-                [isSearchAble]="false"
-                optionStyle="button"
-                backgroundColor="white"
-                placeholder="Please Select"
-              ></kexy-select-dropdown>
-              <div *ngIf="formValidationErrorCheck('marketingStatus')">
-                <error-message-card message="Field is required!"></error-message-card>
-              </div>
-            </div>
-          </div>
-          <div class="col-12" *ngIf="!labelIdFromListContactPage">
-            <div class="input-wrap">
-              <kexy-select-dropdown
-                label="Lists"
-                shortNoteBesideLabel=""
-                [selectAllBtn]="false"
-                [required]="false"
-                [options]="labelOptions"
-                [addNewBtn]="true"
-                [onAddNewClick]="openContactLabelCanvas"
-                [selectedOption]=""
-                [onSelectSingleItem]="onLabelSelect"
-                [rowIndex]="1"
-                [editIcon]="true"
-                [onEditClick]="handleEditContactLabel"
-                [deleteIcon]="true"
-                [onDeleteClick]="handleDeleteLabel"
-                [isSearchAble]="false"
-                [isClearable]="true"
-                optionStyle="checkbox"
-                backgroundColor="white"
-                placeholder="Please Select"
-              ></kexy-select-dropdown>
-              <!--              <div *ngIf="formValidationErrorCheck('label')">-->
-              <!--                <error-message-card message="Field is required!"></error-message-card>-->
-              <!--              </div>-->
-            </div>
-          </div>
-          <div class="col-12 col-md-6">
-            <div *ngIf="!isMultipleContactsSelected" class="input-wrap">
-              <div class="label-and-input">
-                <p>First Name</p>
-                <input class="form-control" formControlName="firstName" type="text" placeholder="First Name" />
-                <div *ngIf="formValidationErrorCheck('firstName')">
-                  <error-message-card message="Field is required!"></error-message-card>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="col-12 col-md-6">
-            <div *ngIf="!isMultipleContactsSelected" class="input-wrap">
-              <div class="label-and-input">
-                <p>Last Name</p>
-                <input class="form-control" formControlName="lastName" type="text" placeholder="Last Name" />
-                <div *ngIf="formValidationErrorCheck('lastName')">
-                  <error-message-card message="Field is required!"></error-message-card>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="col-12 col-md-6">
-            <div *ngIf="!isMultipleContactsSelected" class="input-wrap">
-              <div class="label-and-input">
-                <p>LinkedIn</p>
-                <input class="form-control" formControlName="linkedinUrl" type="text" placeholder="LinkedIn" />
-              </div>
-            </div>
-          </div>
-          <div class="col-12 col-md-6">
-            <div *ngIf="!isMultipleContactsSelected" class="input-wrap">
-              <div class="label-and-input">
-                <p>Email Address</p>
-                <input class="form-control" formControlName="email" type="text" placeholder="Email Address" />
-                <div *ngIf="formValidationErrorCheck('email')">
-                  <error-message-card message="Field is required!"></error-message-card>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="col-12 col-md-6">
-            <div *ngIf="!isMultipleContactsSelected" class="input-wrap">
-              <div class="label-and-input">
-                <p>Job Title</p>
-                <input class="form-control" formControlName="title" type="text" placeholder="Job Title" />
-              </div>
-            </div>
-          </div>
-          <div class="col-12 col-md-6">
-            <div *ngIf="!isMultipleContactsSelected" class="input-wrap">
-              <div class="label-and-input">
-                <p>Company Name</p>
-                <input class="form-control" formControlName="organizationName" type="text" placeholder="Company Name" />
-              </div>
-            </div>
-          </div>
-          <div class="col-12 col-md-6">
-            <div *ngIf="!isMultipleContactsSelected" class="input-wrap">
-              <div class="label-and-input">
-                <p>Phone Number</p>
-                <div class="d-flex form-control">
-                  <!--                  <span class="me-2">+1</span>-->
-                  <input style="border: none; flex: 1" formControlName="organizationPhone" type="text" appPhoneNumberMask
-                         placeholder="+1 (123) 123-1231" />
-                </div>
-              </div>
-              <div *ngIf="(submitted || primaryForm.controls['organizationPhone'].dirty) && primaryForm.controls['organizationPhone'].errors?.['wrongNumber']">
-                <error-message-card [message]="primaryForm.controls['organizationPhone'].errors?.['wrongNumber'].message"></error-message-card>
-              </div>
-            </div>
-          </div>
-          <div class="col-12 col-md-6">
-            <div *ngIf="!isMultipleContactsSelected" class="input-wrap">
-              <div class="label-and-input">
-                <kexy-select-dropdown
-                  label="Country"
-                  [selectAllBtn]="false"
-                  [editIcon]="false"
-                  [deleteIcon]="false"
-                  [required]="false"
-                  [options]="countries"
-                  [addNewBtn]="false"
-                  [onOpenDropdown]=""
-                  [selectedOption]="selectedCountry"
-                  [onSelectSingleItem]="onCountrySelect"
-                  optionStyle="button"
-                  backgroundColor="white"
-                  placeholder="Please Select"
-                ></kexy-select-dropdown>
-              </div>
-            </div>
-          </div>
-          <div class="col-12 col-md-6">
-            <div *ngIf="!isMultipleContactsSelected" class="input-wrap">
-              <div class="label-and-input">
-                <p>City</p>
-                <input class="form-control" formControlName="city" type="text" placeholder="City" />
-              </div>
-            </div>
-          </div>
-          <div class="col-12 col-md-6">
-            <div *ngIf="!isMultipleContactsSelected" class="input-wrap">
-              <div class="label-and-input">
-                <kexy-select-dropdown
-                  label="State"
-                  [selectAllBtn]="false"
-                  [editIcon]="false"
-                  [deleteIcon]="false"
-                  [required]="false"
-                  [options]="statesOptions"
-                  [addNewBtn]="false"
-                  [onOpenDropdown]=""
-                  [selectedOption]="selectedState"
-                  [onSelectSingleItem]="onStateSelect"
-                  optionStyle="button"
-                  backgroundColor="white"
-                  placeholder="Please Select"
-                ></kexy-select-dropdown>
-              </div>
-            </div>
-          </div>
-          <div class="col-12 col-md-6">
-            <div *ngIf="!isMultipleContactsSelected" class="input-wrap">
-              <div class="label-and-input">
-                <p>Website</p>
-                <input class="form-control" formControlName="websiteUrl" type="text" placeholder="www.website.com" />
-              </div>
+  <form class="canvas-form" [formGroup]="primaryForm" (ngSubmit)="handleSubmit()">
+    <div class="canvas-body">
+
+      <!-- Classification: always visible (single + multi edit) -->
+      <div class="form-section">
+        <div class="section-head">
+          <i class="fa fa-tags section-icon" aria-hidden="true"></i>
+          <span class="section-title">Classification</span>
+        </div>
+        <div class="fields-grid">
+          <div class="field full">
+            <kexy-select-dropdown
+              label="Marketing Status"
+              shortNoteBesideLabel=""
+              [selectAllBtn]="false"
+              [required]="false"
+              [options]="marketingStatusOptions"
+              [addNewBtn]="false"
+              [onAddNewClick]=""
+              [selectedOption]="selectedMarketingStatus"
+              [onSelectSingleItem]="onMarketingStatusSelect"
+              [rowIndex]="1"
+              [editIcon]="false"
+              [deleteIcon]="false"
+              [onDeleteClick]=""
+              [onEditClick]=""
+              [isSearchAble]="false"
+              optionStyle="button"
+              backgroundColor="white"
+              placeholder="Please Select"
+            ></kexy-select-dropdown>
+            <div *ngIf="formValidationErrorCheck('marketingStatus')">
+              <error-message-card message="Field is required!"></error-message-card>
             </div>
           </div>
 
-          <div class="col-12">
-            <div *ngIf="!isMultipleContactsSelected" class="input-wrap">
-              <div class="label-and-input">
-                <p>Drip Campaigns:</p>
-                <div>
-                  <ng-container *ngIf="contactDripCampaigns.length > 0 && !initialLoading">
-                    <span
-                      class="ms-2 mb-1 drip-campaign-title"
-                      *ngFor="let campaign of contactDripCampaigns; let i = index"
-                      (click)="redirectToEditPage(campaign.dripCampaign)">
-                      <span>{{ i + 1 }}. </span>
-                      <span class="link-text">{{ campaign.dripCampaign.details.title.title }}</span>
-<!--                      <span class="ms-2 link-text border-0" (click)="removeContactFromDripCampaign(campaign)">-->
-<!--                        <i class="fa fa-trash-o me-1" aria-hidden="true"></i>Delete-->
-<!--                      </span>-->
-                      <span class="ms-2 border-0 text-capitalize">
-                        - {{campaign.dripCampaign.status}}
-                      </span>
-                    </span>
-                  </ng-container>
-                  <span *ngIf="contactDripCampaigns.length === 0 && !initialLoading" class="ms-2">None</span>
-                  <span *ngIf="initialLoading" style="color: black">
-                    <i class="fa fa-refresh fa-spin ms-2" aria-hidden="true"></i>
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="col-12">
-            <div *ngIf="!isMultipleContactsSelected" class="input-wrap">
-              <div class="label-and-input">
-                <p>Notes</p>
-                <textarea class="form-control" formControlName="notes" type="text" placeholder="Notes"></textarea>
-              </div>
-            </div>
+          <div class="field full" *ngIf="!labelIdFromListContactPage">
+            <kexy-select-dropdown
+              label="Lists"
+              shortNoteBesideLabel=""
+              [selectAllBtn]="false"
+              [required]="false"
+              [options]="labelOptions"
+              [addNewBtn]="true"
+              [onAddNewClick]="openContactLabelCanvas"
+              [selectedOption]=""
+              [onSelectSingleItem]="onLabelSelect"
+              [rowIndex]="1"
+              [editIcon]="true"
+              [onEditClick]="handleEditContactLabel"
+              [deleteIcon]="true"
+              [onDeleteClick]="handleDeleteLabel"
+              [isSearchAble]="false"
+              [isClearable]="true"
+              optionStyle="checkbox"
+              backgroundColor="white"
+              placeholder="Please Select"
+            ></kexy-select-dropdown>
           </div>
         </div>
       </div>
 
-      <div class="buttons">
-        <button class="blue-button me-3" type="submit" [disabled]="isLoading">
-          Save<i *ngIf="isLoading" class="fa fa-spinner fa-spin ms-2" aria-hidden="true" style="color: white"></i>
-        </button>
-        <button class="blue-border-white-bg-button" type="button" (click)="activeCanvas.dismiss('Cross click')">
-          Cancel
-        </button>
+      <!-- Contact details: single contact only -->
+      <div class="form-section" *ngIf="!isMultipleContactsSelected">
+        <div class="section-head">
+          <i class="fa fa-user section-icon" aria-hidden="true"></i>
+          <span class="section-title">Contact details</span>
+        </div>
+        <div class="fields-grid">
+          <div class="field">
+            <label class="field-label">First Name</label>
+            <input class="form-control" formControlName="firstName" type="text" placeholder="First Name" />
+            <div *ngIf="formValidationErrorCheck('firstName')">
+              <error-message-card message="Field is required!"></error-message-card>
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="field-label">Last Name</label>
+            <input class="form-control" formControlName="lastName" type="text" placeholder="Last Name" />
+            <div *ngIf="formValidationErrorCheck('lastName')">
+              <error-message-card message="Field is required!"></error-message-card>
+            </div>
+          </div>
+
+          <div class="field full" [ngClass]="emailStatusInfo ? 'email-field ' + emailStatusInfo.cls : ''">
+            <div class="field-label-row">
+              <label class="field-label">Email Address</label>
+              <span class="email-badge" *ngIf="emailStatusInfo" [ngClass]="emailStatusInfo.cls">
+                <i class="fa" [ngClass]="emailStatusInfo.icon" aria-hidden="true"></i>
+                {{ emailStatusInfo.label }}
+              </span>
+            </div>
+            <div class="input-with-affix">
+              <input
+                class="form-control"
+                formControlName="email"
+                type="text"
+                placeholder="name@example.com"
+                (input)="onEmailInput()"
+              />
+              <i class="fa affix-icon" *ngIf="emailStatusInfo" [ngClass]="emailStatusInfo.icon" aria-hidden="true"></i>
+            </div>
+            <span class="email-hint" *ngIf="emailStatusInfo">{{ emailStatusInfo.hint }}</span>
+            <div *ngIf="formValidationErrorCheck('email')">
+              <error-message-card message="Field is required!"></error-message-card>
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="field-label">Job Title</label>
+            <input class="form-control" formControlName="title" type="text" placeholder="Job Title" />
+          </div>
+
+          <div class="field">
+            <label class="field-label">Phone Number</label>
+            <input
+              class="form-control"
+              formControlName="organizationPhone"
+              type="text"
+              appPhoneNumberMask
+              placeholder="+1 (123) 123-1231"
+            />
+            <div *ngIf="(submitted || primaryForm.controls['organizationPhone'].dirty) && primaryForm.controls['organizationPhone'].errors?.['wrongNumber']">
+              <error-message-card [message]="primaryForm.controls['organizationPhone'].errors?.['wrongNumber'].message"></error-message-card>
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="field-label">LinkedIn</label>
+            <input class="form-control" formControlName="linkedinUrl" type="text" placeholder="LinkedIn" />
+          </div>
+
+          <div class="field">
+            <label class="field-label">Website</label>
+            <input class="form-control" formControlName="websiteUrl" type="text" placeholder="www.website.com" />
+          </div>
+
+          <div class="field full">
+            <label class="field-label">Company Name</label>
+            <input class="form-control" formControlName="organizationName" type="text" placeholder="Company Name" />
+          </div>
+        </div>
       </div>
-    </form>
-  </div>
+
+      <!-- Location: single contact only -->
+      <div class="form-section" *ngIf="!isMultipleContactsSelected">
+        <div class="section-head">
+          <i class="fa fa-map-marker section-icon" aria-hidden="true"></i>
+          <span class="section-title">Location</span>
+        </div>
+        <div class="fields-grid">
+          <div class="field">
+            <kexy-select-dropdown
+              label="Country"
+              [selectAllBtn]="false"
+              [editIcon]="false"
+              [deleteIcon]="false"
+              [required]="false"
+              [options]="countries"
+              [addNewBtn]="false"
+              [onOpenDropdown]=""
+              [selectedOption]="selectedCountry"
+              [onSelectSingleItem]="onCountrySelect"
+              optionStyle="button"
+              backgroundColor="white"
+              placeholder="Please Select"
+            ></kexy-select-dropdown>
+          </div>
+
+          <div class="field">
+            <kexy-select-dropdown
+              label="State"
+              [selectAllBtn]="false"
+              [editIcon]="false"
+              [deleteIcon]="false"
+              [required]="false"
+              [options]="statesOptions"
+              [addNewBtn]="false"
+              [onOpenDropdown]=""
+              [selectedOption]="selectedState"
+              [onSelectSingleItem]="onStateSelect"
+              optionStyle="button"
+              backgroundColor="white"
+              placeholder="Please Select"
+            ></kexy-select-dropdown>
+          </div>
+
+          <div class="field">
+            <label class="field-label">City</label>
+            <input class="form-control" formControlName="city" type="text" placeholder="City" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Drip campaigns: single contact only -->
+      <div class="form-section" *ngIf="!isMultipleContactsSelected">
+        <div class="section-head">
+          <i class="fa fa-bullhorn section-icon" aria-hidden="true"></i>
+          <span class="section-title">Drip Campaigns</span>
+        </div>
+        <div class="campaign-list">
+          <ng-container *ngIf="contactDripCampaigns.length > 0 && !initialLoading">
+            <span
+              class="campaign-chip"
+              *ngFor="let campaign of contactDripCampaigns"
+              (click)="redirectToEditPage(campaign.dripCampaign)">
+              <i class="fa fa-paper-plane-o" aria-hidden="true"></i>
+              <span class="link-text">{{ campaign.dripCampaign.details.title.title }}</span>
+              <span class="campaign-status text-capitalize">{{ campaign.dripCampaign.status }}</span>
+            </span>
+          </ng-container>
+          <span *ngIf="contactDripCampaigns.length === 0 && !initialLoading" class="campaign-empty">
+            Not enrolled in any campaign
+          </span>
+          <span *ngIf="initialLoading" class="campaign-empty">
+            <i class="fa fa-refresh fa-spin" aria-hidden="true"></i> Loading…
+          </span>
+        </div>
+      </div>
+
+      <!-- Notes: single contact only -->
+      <div class="form-section" *ngIf="!isMultipleContactsSelected">
+        <div class="section-head">
+          <i class="fa fa-sticky-note-o section-icon" aria-hidden="true"></i>
+          <span class="section-title">Notes</span>
+        </div>
+        <div class="field full">
+          <textarea class="form-control" formControlName="notes" placeholder="Add a note about this contact…"></textarea>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="buttons">
+      <button class="blue-border-white-bg-button" type="button" (click)="activeCanvas.dismiss('Cross click')">
+        Cancel
+      </button>
+      <button class="blue-button" type="submit" [disabled]="isLoading">
+        <i *ngIf="isLoading" class="fa fa-spinner fa-spin me-2" aria-hidden="true"></i>Save
+      </button>
+    </div>
+  </form>
 </div>
