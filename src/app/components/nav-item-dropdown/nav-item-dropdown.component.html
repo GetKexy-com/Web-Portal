@@ -1,27 +1,10 @@
-<ul class="nav-dropdown" [class.has-flyout]="collapsed">
-  <button
-    class="accordion-nav-item"
-    [class.section-active]="expand"
-    (click)="toggleNavDropdown()"
-    [attr.data-label]="label"
-    [attr.title]="label"
-  >
-    <i class="fa {{ icon }}" aria-hidden="true"></i>
-    <span class="me-3">{{ label }}</span>
-    <i class="fa fa-angle-down chevron" [class.rotated]="isOpen()" aria-hidden="true"></i>
-  </button>
-  <div
-    class="sub-nav-item-wrap"
-    [class.flyout]="collapsed"
-    [class.flyout-open]="flyoutOpen()"
-    [class.open]="isOpen()"
-    [class.animate]="animate()"
-  >
-    @if (collapsed) {
-      <div class="flyout-title">{{ label }}</div>
-    }
-    <div class="sub-nav-inner">
-      <ng-content></ng-content>
-    </div>
-  </div>
-</ul>
+<!-- Static section group (screenshot style): a small uppercase header label
+     with its nav items always visible and uniformly aligned beneath it. In the
+     collapsed rail the label becomes a short divider and items show as centred
+     icons with hover tooltips (see brand-layout collapsed styles). -->
+<li class="nav-section">
+  <div class="nav-section-label" [attr.title]="label" [attr.data-section]="label">{{ label }}</div>
+  <ul class="nav-section-items">
+    <ng-content></ng-content>
+  </ul>
+</li>

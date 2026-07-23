@@ -1,117 +1,26 @@
-.nav-dropdown {
+/* Static section group: a small uppercase header label + a flat, uniformly
+   aligned list of nav items (no accordion, no chevron). */
+.nav-section {
+  list-style: none;
+}
+
+.nav-section-label {
+  padding: 0 26px;
+  margin: 14px 0 2px;
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  color: rgba(255, 255, 255, 0.45);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nav-section-items {
   list-style: none;
   padding: 0;
   margin: 0;
-}
-
-.accordion-nav-item {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  width: calc(100% - 24px);
-  margin: 2px 12px;
-  padding: 10px 14px;
-  border-radius: 10px;
-  font-size: 14px;
-  font-weight: 600;
-  letter-spacing: 0.2px;
-  line-height: 1.2;
-  text-align: left;
-  color: var(--kx-nav-fg, rgba(255, 255, 255, 0.75));
-  background: transparent;
-  border: none;
-  outline: none;
-  cursor: pointer;
-  transition: background-color 0.18s ease, color 0.18s ease;
-
-  i {
-    font-size: 17px;
-    width: 20px;
-    text-align: center;
-    flex-shrink: 0;
-  }
-
-  span {
-    flex: 1;
-    margin: 0 !important;
-    white-space: nowrap;
-  }
-
-  /* chevron sits at the far right and rotates when open */
-  .chevron {
-    width: auto;
-    font-size: 13px;
-    opacity: 0.7;
-    transition: transform 0.25s ease, opacity 0.18s ease;
-
-    &.rotated {
-      transform: rotate(180deg);
-    }
-  }
-
-  &:hover {
-    color: #ffffff;
-    background: var(--kx-nav-hover-bg, rgba(255, 255, 255, 0.09));
-
-    .chevron {
-      opacity: 1;
-    }
-  }
-}
-
-/* Animated accordion: 0fr → 1fr smoothly grows/collapses the sub-items.
-   Always in the DOM so the transition can run (open state toggles the rows). */
-.sub-nav-item-wrap {
-  display: grid;
-  grid-template-rows: 0fr;
-  opacity: 0;
-
-  /* Only animate once the component has painted (see `animate` signal) — a
-     section that loads already-open renders instantly instead of replaying the
-     grow animation on every navigation. */
-  &.animate {
-    transition: grid-template-rows 0.28s ease, opacity 0.2s ease, margin 0.28s ease;
-  }
-
-  &.open:not(.flyout) {
-    grid-template-rows: 1fr;
-    opacity: 1;
-    margin: 4px 0 10px;
-  }
-
-  .sub-nav-inner {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    min-height: 0;
-    overflow: hidden;
-  }
-}
-
-/*
-####################################################
-M E D I A  Q U E R I E S
-####################################################
-*/
-
-@media (min-width: 992px) {
-  .accordion-nav-item {
-    padding: 9px 14px;
-    font-size: 13.5px;
-
-    i {
-      font-size: 16px;
-    }
-  }
-}
-
-@media (min-width: 1400px) {
-  .accordion-nav-item {
-    padding: 11px 14px;
-    font-size: 14px;
-
-    i {
-      font-size: 17px;
-    }
-  }
+  flex-direction: column;
 }

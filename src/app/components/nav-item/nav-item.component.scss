@@ -5,9 +5,9 @@ li.nav-item {
 li.nav-item a {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin: 2px 12px;
-  padding: 10px 14px;
+  gap: 10px;
+  margin: 1px 12px;
+  padding: 8px 14px;
   border-radius: 10px;
   font-size: 14px;
   font-weight: 600;
@@ -31,16 +31,10 @@ li.nav-item a:hover {
   background: var(--kx-nav-hover-bg, rgba(255, 255, 255, 0.09));
 }
 
-/* Sub-items inside a dropdown: indented + lighter to show hierarchy */
+/* Items inside a section group align identically to standalone items — the
+   small section header (not indentation) conveys the grouping now. */
 li.nav-item a.nav-dropdown {
-  margin: 3px 12px 3px 26px;
-  padding: 9px 14px;
-  font-weight: 500;
-  color: var(--kx-nav-sub-fg, rgba(255, 255, 255, 0.62));
-
-  i {
-    font-size: 15px;
-  }
+  margin: 2px 12px;
 }
 
 /* Active state: soft pill + left accent bar (replaces the old circle.png bullet) */
@@ -59,7 +53,7 @@ M E D I A  Q U E R I E S
 /* Compact spacing on shorter / mid-size screens */
 @media (min-width: 992px) {
   li.nav-item a {
-    padding: 9px 14px;
+    padding: 8px 14px;
     font-size: 13.5px;
   }
 }
@@ -67,7 +61,7 @@ M E D I A  Q U E R I E S
 /* Extra extra large devices — a touch more breathing room */
 @media (min-width: 1400px) {
   li.nav-item a {
-    padding: 11px 14px;
+    padding: 9px 14px;
     font-size: 14px;
   }
 }

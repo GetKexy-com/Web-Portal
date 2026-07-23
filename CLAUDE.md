@@ -587,50 +587,68 @@ for the pricing grid. The normal panel is `flex 0 0 38%` / `max-width: 480px`.
 
 `src/app/layouts/brand-layout` is the shell for logged-in brand pages: a gradient
 `#main-sidebar` (built from `nav-item` + `nav-item-dropdown` components, with
-`app-org-info` at the top) beside `#content-wrapper`. The top-left arrow
-(`.hideSidebarArrow`) toggles it.
+`app-org-info` at the top) beside `#content-wrapper`.
 
-### Desktop = collapsible icon rail (not hide)
+### The toggle lives in the header (not a floating arrow)
 
-The arrow toggles `sidebarCollapsed` (persisted in `localStorage['kxSidebarCollapsed']`),
-NOT full-hide. A single `<ul id="main-sidebar">` always renders (all screen sizes) and
-gets `[class.collapsed]`. Collapsed = a **76px icon rail** (`--kx-sidebar-collapsed-w`):
+`.hideSidebarArrow` is now an in-flow icon button at the **far left of `#main-header`**
+(the white top bar), before the back-button/headline — the modern app placement, not
+a floating arrow over the sidebar. It renders an inline **SVG panel-left glyph**
+(rounded square + offset vertical divider; FA 4.7 has no equivalent icon) that stays
+static — it does NOT flip direction. Dark slate on white (`#475569`, hover `#0f172a`
+on a `#f1f5f9` wash). Its click still calls `toggleSidebar()` → flips
+`sidebarCollapsed` (persisted in `localStorage['kxSidebarCollapsed']`), NOT full-hide.
+(The header's left col is `align-items: center` so the icon, back-button, and headline
+line up.)
 
-- Labels/chevrons hidden; each item is a fixed **48×48 square centred with
-  `margin: auto`** (so active/inactive icons sit identically dead-centre — active is
-  a centred pill fill, NOT the expanded-mode `inset 3px 0 0` left accent bar).
-- `app-org-info` becomes a compact header: small logo + tiny truncated org name
-  (person name hidden).
-- **Leaf items** show a CSS hover **tooltip** from `[attr.data-label]` (also `title`),
-  with a `::before` caret whose base is flush to the tooltip and tip points at the icon.
-- **Dropdown sections** open a **flyout submenu to the right** — on hover, or
-  click-pinned via `flyoutOpen` (closed on outside `document:click`). The submenu
-  (`.sub-nav-item-wrap.flyout`) has a `.flyout-title` header + full-label child rows,
-  a `::before` caret protruding from the panel edge pointing at the icon (same idea as
-  the tooltip — keep the caret OUTSIDE the panel, not inset), and an invisible
-  `::after` hover-bridge across the gap. The section's own tooltip is suppressed.
-- Sub-item label text uses `--kx-nav-sub-fg` (near-white, `rgba(255,255,255,0.9)`) in
-  both the expanded accordion and the flyout (they share `nav-item` styling).
-- The rail sets `overflow: visible` + `z-index: 20` (and the arrow `z-index: 30`) so
-  tooltips/flyouts paint above `#content-wrapper` (`z-index: 0`) and the arrow stays
-  on top. Cross-component bits (org-info, nav items) are styled via `::ng-deep
-  #main-sidebar.collapsed …`.
-- `nav-item-dropdown` takes `[collapsed]="railCollapsed"` (a getter returning
-  `sidebarCollapsed`); when collapsed its click toggles the flyout. The submenu is
-  ALWAYS in the DOM (no `@if`) so both the flyout and the expanded-mode animation
-  can run. In collapsed, the active section's parent icon gets the same pill via
-  `.section-active` (bound to the dropdown's `expand` flag, which the layout already
-  sets from the URL) so you can tell which section you're in.
+### Nav = static section groups (NOT accordions)
 
-### Expanded accordion (both modes)
+`nav-item-dropdown` is a **static section**, not a collapsible accordion: a small
+uppercase `.nav-section-label` header (translucent-white) with its `nav-item`s always
+visible and uniformly aligned beneath it (`ng-content`). No chevron, no toggle, no
+flyout, no open/close animation. The component keeps `label`/`icon`/`expand`/
+`collapsed` `@Input()`s only for **binding compatibility** — `expand` (still set from
+the URL by `showHideDropdowns()` in the layout) and `icon` are now inert; the section
+header shows no icon. All items align identically: `nav-item`'s `.nav-dropdown`
+variant no longer indents/dims sub-items (the section header conveys grouping). Row
+spacing is deliberately tight — item `padding: 8px 14px` + `margin: 1px 12px`, and
+`.nav-section-items` has **no flex `gap`** (item margins alone space them; adding a gap
+double-stacked the spacing).
 
-The submenu (`.sub-nav-item-wrap`) animates open/closed with the CSS
-`grid-template-rows: 0fr → 1fr` trick + opacity fade (inner `.sub-nav-inner` has
-`overflow: hidden; min-height: 0`); the `.open` class (= `isOpen()`) toggles it. The
-chevron is a single `.chevron` icon that rotates 180° via `.rotated`. The collapsed
-flyout cancels this grid (`display: block; grid-template-rows: none`) since it's a
-static panel, and the animation is gated with `.open:not(.flyout)` so an active
-section's `isOpen` can't reveal the flyout without hover/click.
+### Desktop collapsed = icon rail (`--kx-sidebar-collapsed-w` = 76px)
+
+A single `<ul id="main-sidebar">` always renders (all sizes) and gets
+`[class.collapsed]`. Collapsed:
+
+- Item labels (`.nav-label`) hidden; each item is a fixed **44×44 square centred with
+  `margin: 1px auto`** (tight vertical gap), active = a centred pill fill (no left
+  accent bar).
+- **Every item** (including those inside section groups) shows a CSS hover **tooltip**
+  from `[attr.data-label]` (also `title`), with a `::before` caret pointing at the
+  icon. There are no flyouts anymore — the whole nav is a flat scroll of icons.
+- **Section headers collapse to a short centred divider** (`.nav-section-label` →
+  `height: 0; font-size: 0; border-top` + `width: 28px`) between icon groups.
+- `app-org-info` becomes a compact header: small logo + tiny truncated org name.
+- The rail sets `overflow: visible` + `z-index: 20` so tooltips paint above
+  `#content-wrapper` (`z-index: 0`). Cross-component bits (org-info, nav items) are
+  styled via `::ng-deep #main-sidebar.collapsed …`.
+
+### `app-org-info` (brand header)
+
+Shows the company logo + **company name only** (`orgName`; the person name `.c-name`
+was removed). Logo is small (44px expanded / 48px collapsed). `.sidebar-top` is
+`position: sticky; top: 0` with an opaque `#1a5be0` background (the sidebar's top
+gradient stop) so the brand header **stays pinned while the nav list scrolls** on
+short viewports — mirroring the sticky `.sidebar-footer`. For sticky to engage, the
+host is neutralised with `app-org-info { display: contents }` (set in the layout
+SCSS) so `.sidebar-top` becomes a direct flex child of the scrolling sidebar.
+
+### Footer
+
+`.sidebar-footer` is `position: sticky; bottom: 0` (opaque `#0b389f`, the bottom
+gradient stop) — pinned like the header. It's a single **"Help & support"** button
+(`.kx-support-nav`, `fa-headphones` → `support()`); collapsed shows just the icon with
+a "Help & support" tooltip (`data-label`).
 
 ### Icons
 
@@ -643,10 +661,10 @@ There is now ONE sidebar for all sizes (the old duplicate `.navbar-nav-mobile-la
 drawer + `#menu-toggle` hamburger were removed). Small screens **default to the
 collapsed icon rail** (`ngOnInit`/`onWindowResize` force `sidebarCollapsed = true`
 below `mobileScreenSize` = 992). The rail stays **in-flow** (beside the content);
-tapping the arrow **expands it as a fixed overlay** (`#main-sidebar:not(.collapsed)`)
-with a `.sidebar-backdrop` (shown via `*ngIf="isMobileScreen && !sidebarCollapsed"`,
-click closes). `railCollapsed` just returns `sidebarCollapsed` now, so flyouts work at
-every size. `showSidebar` was removed.
+tapping the header toggle **expands it as a fixed overlay**
+(`#main-sidebar:not(.collapsed)`) with a `.sidebar-backdrop` (shown via
+`*ngIf="isMobileScreen && !sidebarCollapsed"`, click closes). `railCollapsed` just
+returns `sidebarCollapsed`. `showSidebar` was removed.
 
 ---
 

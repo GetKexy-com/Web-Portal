@@ -318,11 +318,17 @@ a {
   }
 }
 
+/* Let the org-info host dissolve so its .sidebar-top becomes a direct flex child
+   of the scrolling sidebar — required for its `position: sticky` to engage. */
+app-org-info {
+  display: contents;
+}
+
 /* =============================================================
-   Collapsed icon rail (desktop). The top arrow toggles this;
-   labels/chevrons/org-info hide, icons centre, and each item
-   shows its label in a hover tooltip. Dropdowns still expand
-   inline (child icons + their own tooltips).
+   Collapsed icon rail (desktop). The header toggle collapses this;
+   item labels + org-info text hide and icons centre. Every item
+   (including those inside section groups) shows its label in a hover
+   tooltip, and section headers shrink to a short centred divider.
    ::ng-deep is needed because the nav items are child components.
    ============================================================= */
 #main-sidebar.collapsed {
@@ -334,12 +340,20 @@ a {
 }
 
 ::ng-deep #main-sidebar.collapsed {
-  /* Only top-level icons show in the rail: hide labels + chevrons. Dropdown
-     sub-items live in a flyout submenu (see below), not inline. */
-  .nav-label,
-  .accordion-nav-item span,
-  .accordion-nav-item .chevron {
+  /* Only icons show in the rail: hide the item labels. */
+  .nav-label {
     display: none !important;
+  }
+
+  /* Section headers collapse to a short centred divider between icon groups. */
+  .nav-section-label {
+    padding: 0 !important;
+    margin: 5px auto 3px !important;
+    width: 28px;
+    height: 0;
+    font-size: 0 !important;
+    overflow: hidden;
+    border-top: 1px solid rgba(255, 255, 255, 0.16);
   }
 
   /* Compact brand header: small logo + truncated org name, no person name.
@@ -372,24 +386,21 @@ a {
 
   /* A fixed square centred with auto margins — identical whether active or
      not, so the icon always sits dead-centre in the rail. */
-  li.nav-item a,
-  .accordion-nav-item {
+  li.nav-item a {
     justify-content: center;
     gap: 0;
-    width: 48px;
-    height: 48px;
-    margin: 4px auto;
+    width: 44px;
+    height: 44px;
+    margin: 1px auto;
     padding: 0;
     border-radius: 12px;
   }
-  li.nav-item a i,
-  .accordion-nav-item i {
+  li.nav-item a i {
     width: auto;
   }
 
-  /* Active leaf / active section (parent): centred pill fill, no left accent */
-  li.nav-item a.active,
-  .accordion-nav-item.section-active {
+  /* Active item: centred pill fill, no left accent */
+  li.nav-item a.active {
     box-shadow: none !important;
     color: #ffffff;
     background: var(--kx-nav-active-bg, rgba(255, 255, 255, 0.16));
@@ -429,108 +440,6 @@ a {
     border-right-color: #0f172a;
     z-index: 1201;
     pointer-events: none;
-  }
-
-  /* Section (dropdown) icons open a flyout submenu instead — suppress their
-     own tooltip, and any tooltip on the items inside the flyout. */
-  .accordion-nav-item[data-label]:hover::after,
-  .accordion-nav-item[data-label]:hover::before,
-  .sub-nav-item-wrap.flyout [data-label]:hover::after,
-  .sub-nav-item-wrap.flyout [data-label]:hover::before {
-    content: none !important;
-    display: none !important;
-  }
-
-  /* =========================================================
-     Flyout submenu (collapsed dropdowns) — shown on hover or
-     when click-pinned (.flyout-open)
-     ========================================================= */
-  .nav-dropdown.has-flyout {
-    position: relative;
-  }
-
-  .sub-nav-item-wrap.flyout {
-    /* Cancel the accordion grid animation — the flyout is a static panel */
-    display: block !important;
-    grid-template-rows: none !important;
-    position: absolute;
-    left: calc(100% + 14px);
-    top: -6px;
-    min-width: 214px;
-    margin: 0;
-    padding: 8px;
-    background: #0f3fb0;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 12px;
-    box-shadow: 0 18px 44px rgba(0, 0, 0, 0.35);
-    opacity: 0;
-    visibility: hidden;
-    transform: translateX(-6px);
-    /* Hide INSTANTLY (no transition on the resting/hidden state). Otherwise,
-       collapsing the sidebar while its active section's accordion is open
-       flips the sub-menu into an absolutely-positioned flyout that fades its
-       opacity 1 → 0 — the "shows then disappears" flash. The reveal transition
-       lives on the hover/pinned state below. */
-    transition: none;
-    z-index: 1300;
-
-    /* arrow: base flush to the panel's left edge, tip pointing at the icon */
-    &::before {
-      content: "";
-      position: absolute;
-      left: -12px;
-      top: 18px;
-      border: 6px solid transparent;
-      border-right-color: #0f3fb0;
-    }
-    /* invisible bridge across the gap so hover doesn't drop en route */
-    &::after {
-      content: "";
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      left: -16px;
-      width: 16px;
-    }
-
-    .flyout-title {
-      padding: 4px 12px 8px;
-      margin-bottom: 6px;
-      font-size: 11.5px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.4px;
-      color: rgba(255, 255, 255, 0.55);
-      white-space: nowrap;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-    }
-
-    /* Child links: real labels, left-aligned inside the panel */
-    li.nav-item a {
-      justify-content: flex-start !important;
-      gap: 10px !important;
-      width: auto !important;
-      margin: 2px 0 !important;
-      padding: 9px 12px !important;
-      border-radius: 8px;
-      white-space: nowrap;
-    }
-    .nav-label {
-      display: inline !important;
-    }
-    li.nav-item a i {
-      width: 18px;
-      text-align: center;
-    }
-  }
-
-  .nav-dropdown.has-flyout:hover .sub-nav-item-wrap.flyout,
-  .sub-nav-item-wrap.flyout.flyout-open {
-    opacity: 1;
-    visibility: visible;
-    transform: translateX(0);
-    /* Animate only the reveal, so hover/pin fades in smoothly. */
-    transition: opacity 0.15s ease, transform 0.15s ease;
   }
 }
 

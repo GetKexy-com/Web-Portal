@@ -4,30 +4,32 @@
   text-align: center;
   border-bottom: 1px solid rgba(255, 255, 255, 0.3);
 
+  /* Pin the brand header at the top while the nav list scrolls (matters on
+     short viewports; mirrors the sticky "Help & support" footer). The opaque
+     background matches the sidebar's top gradient stop so scrolled-under nav
+     items don't show through. */
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: #1a5be0;
+
   img {
-    width: 88px;
-    height: 88px;
+    width: 44px;
+    height: 44px;
     object-fit: contain;
-    padding: 4px;
+    padding: 3px;
     background: #ffffff;
     border: 1px solid rgba(255, 255, 255, 0.6);
-    border-radius: 12px;
+    border-radius: 10px;
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
   }
 
   .username {
-    margin-top: 16px;
+    margin-top: 10px;
     font-size: 15px;
     font-weight: 700;
     color: #ffffff;
     letter-spacing: 0.3px;
-  }
-
-  .c-name {
-    margin-top: 4px;
-    font-size: 12.5px;
-    color: rgba(255, 255, 255, 0.62);
-    letter-spacing: 0.2px;
   }
 }
 
@@ -43,12 +45,12 @@ M E D I A  Q U E R I E S
     margin-bottom: 10px;
 
     img {
-      width: 80px;
-      height: 80px;
+      width: 40px;
+      height: 40px;
     }
 
     .username {
-      margin-top: 14px;
+      margin-top: 9px;
       font-size: 14.5px;
     }
   }
@@ -59,8 +61,8 @@ M E D I A  Q U E R I E S
     padding: 26px 18px 20px;
 
     img {
-      width: 92px;
-      height: 92px;
+      width: 46px;
+      height: 46px;
     }
   }
 }
