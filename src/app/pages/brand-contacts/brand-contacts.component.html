@@ -194,20 +194,23 @@
     </div>
 
     <div class="content-area">
-      <p class="d-flex">
-        <span *ngIf="activeFilterCount" class="filter-info ms-2" (click)="handleSearchBtnClick()">
-        <span style="display: inline-block; width: 10px; height: 10px; border-radius: 5px; background: yellow"></span>
-          {{ activeFilterCount }} Filter(s) applied
-      </span>
-        <ng-container *ngIf="activeFilterCount">
-          <span class="link-text ms-2" (click)="resetSearchData()"><u>Clear Filter</u></span>
-        </ng-container>
-      </p>
+      <div class="active-filters" *ngIf="activeFilterCount">
+        <span class="af-label"><i class="fa fa-filter" aria-hidden="true"></i> Filters</span>
+        <span class="filter-chip" *ngFor="let chip of getActiveFilterChips()">
+          <span class="chip-key">{{ chip.label }}:</span>
+          <span class="chip-val">{{ chip.value }}</span>
+          <button type="button" class="chip-remove" (click)="removeFilter(chip.key)"
+                  [attr.aria-label]="'Remove ' + chip.label + ' filter'">
+            <i class="fa fa-times" aria-hidden="true"></i>
+          </button>
+        </span>
+        <button type="button" class="clear-filter" (click)="resetSearchData()">Clear all</button>
+      </div>
 
       <contact-list-card
         #contactCard
-        tableHeaderBg="#0047CC"
-        tableHeaderColor="#FFFFFF"
+        tableHeaderBg="#f8fafc"
+        tableHeaderColor="#64748b"
         [searchLabels]="searchLabels"
         [searchContactName]="searchContactName"
         [searchContactCity]="searchContactCity"

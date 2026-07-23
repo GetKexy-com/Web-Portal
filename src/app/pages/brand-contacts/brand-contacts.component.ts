@@ -403,41 +403,33 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
 
   handleContactSelect = (selectedRow, isSelectAll) => {
     if (isSelectAll) {
-      if (this.contactList.some((i) => i.isSelected)) {
-        this.contactList.map((i) => {
-          i.isSelected = false;
-          const index = this.selectedContacts.findIndex((j) => j.id === i.id);
-          if (index > -1) {
-            this.selectedContacts.splice(index, 1);
-          }
-        });
+      // Toggle the whole page. Use a Set for membership so this stays O(n)
+      // instead of O(n²) (findIndex/splice inside a loop lagged on big pages).
+      const anySelected = this.contactList.some((i) => i.isSelected);
+      if (anySelected) {
+        const pageIds = new Set(this.contactList.map((i) => i.id));
+        this.contactList.forEach((i) => (i.isSelected = false));
+        this.selectedContacts = this.selectedContacts.filter((j) => !pageIds.has(j.id));
       } else {
-        this.contactList.map((i) => {
+        const existingIds = new Set(this.selectedContacts.map((j) => j.id));
+        this.contactList.forEach((i) => {
           i.isSelected = true;
-          const index = this.selectedContacts.findIndex((j) => j.id === i.id);
-          if (index === -1) {
+          if (!existingIds.has(i.id)) {
             this.selectedContacts.push(i);
+            existingIds.add(i.id);
           }
         });
       }
     } else {
-      const rowIndex = this.contactList.findIndex((i) => i.id === selectedRow.id);
-      this.contactList[rowIndex].isSelected = !this.contactList[rowIndex].isSelected;
-
-      if (this.contactList[rowIndex].isSelected) {
-        const index = this.selectedContacts.findIndex(
-          (j) => j.id === this.contactList[rowIndex].id,
-        );
-        if (index === -1) {
-          this.selectedContacts.push(this.contactList[rowIndex]);
+      const row = this.contactList.find((i) => i.id === selectedRow.id);
+      if (!row) return;
+      row.isSelected = !row.isSelected;
+      if (row.isSelected) {
+        if (!this.selectedContacts.some((j) => j.id === row.id)) {
+          this.selectedContacts.push(row);
         }
       } else {
-        const index = this.selectedContacts.findIndex(
-          (j) => j.id === this.contactList[rowIndex].id,
-        );
-        if (index > -1) {
-          this.selectedContacts.splice(index, 1);
-        }
+        this.selectedContacts = this.selectedContacts.filter((j) => j.id !== row.id);
       }
     }
 
@@ -460,6 +452,78 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
     if (searchData.state) this.activeFilterCount++;
     if (searchData.emailStatus) this.activeFilterCount++;
     if (searchData.marketingStatus) this.activeFilterCount++;
+  };
+
+  // Build one removable chip per active filter (LinkedIn/Airtable-style tokens).
+  private readonly emailStatusLabels = {
+    verified: 'Valid',
+    invalid: 'Invalid',
+    'catch-all': 'Catch-all',
+    unverified: 'Unverified',
+  };
+  getActiveFilterChips = () => {
+    const d: any = this.prospectingService.searchContactFilterData;
+    if (!d) return [];
+    const cap = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
+    const chips: { key: string; label: string; value: string }[] = [];
+    if (d.name) chips.push({ key: 'name', label: 'Name', value: d.name });
+    if (d.email) chips.push({ key: 'email', label: 'Email', value: d.email });
+    if (d.companyName) chips.push({ key: 'companyName', label: 'Company', value: d.companyName });
+    if (d.country) chips.push({ key: 'country', label: 'Country', value: d.country });
+    if (d.state) chips.push({ key: 'state', label: 'State', value: d.state });
+    if (d.city) chips.push({ key: 'city', label: 'City', value: d.city });
+    if (d.emailStatus)
+      chips.push({
+        key: 'emailStatus',
+        label: 'Email status',
+        value: this.emailStatusLabels[d.emailStatus] || d.emailStatus,
+      });
+    if (d.marketingStatus)
+      chips.push({ key: 'marketingStatus', label: 'Marketing', value: cap(d.marketingStatus) });
+    if (d.labels && d.labels.length)
+      chips.push({
+        key: 'labels',
+        label: 'Lists',
+        value: d.labels.map((l) => l.label || l.value).join(', '),
+      });
+    return chips;
+  };
+
+  // Remove a single filter and re-run the search (or clear everything if it was
+  // the last one).
+  removeFilter = async (key: string) => {
+    const data: any = { ...(this.prospectingService.searchContactFilterData || {}) };
+    if (key === 'labels') data.labels = [];
+    else delete data[key];
+
+    this.setActiveFilterCount(data);
+    if (this.activeFilterCount === 0) {
+      await this.resetSearchData();
+      return;
+    }
+
+    // Re-apply the reduced filter set to the bound search fields.
+    this.searchLabelIds = [];
+    this.searchLabels = data.labels || [];
+    (data.labels || []).forEach((l) => this.searchLabelIds.push(l.id));
+    this.searchContactName = data.name || '';
+    this.searchContactCompanyName = data.companyName || '';
+    this.searchContactEmail = data.email || '';
+    this.searchContactCity = data.city || '';
+    this.searchContactState = data.state || '';
+    this.searchContactCountry = data.country || '';
+    this.searchContactMarketingStatus = data.marketingStatus || '';
+    this.searchContactEmailStatus = data.emailStatus || '';
+    this.prospectingService.searchContactFilterData = data;
+    this.prospectingService.searchContactActiveFilterCount = this.activeFilterCount;
+
+    this.page = 1;
+    this.selectAllContacts = false;
+    this.prospectingService.selectedAllContacts = false;
+
+    this.isWaitingFlag = true;
+    await this.getContacts(true);
+    this.isWaitingFlag = false;
   };
 
   searchContactClickHandle = async (searchData) => {

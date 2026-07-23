@@ -320,9 +320,87 @@ cells stay aligned.
   `.list-wrapper` (bounded height set inline in the template, `overflow: scroll`)
   while `.new-table-wrapper` owns the horizontal scroll — sticky pins relative to
   whichever ancestor scrolls vertically. On `contact-list-card` the header cells
-  also carry an inline `[style.background-color]="tableHeaderBg"` (`#0047CC`) that
-  overrides the fallback background. To roll this out to the other cards, apply the
-  same sticky-cell rule and give the body a bounded, scrollable container.
+  also carry an inline `[style.background-color]="tableHeaderBg"` /
+  `[style.color]="tableHeaderColor"` that override the SCSS fallback — the parents
+  now pass the **light** header palette (`#f8fafc` bg / `#64748b` muted text, part
+  of the modern redesign below), not the old solid-blue `#0047CC`/white. To roll
+  the sticky behaviour out to the other cards, apply the same sticky-cell rule and
+  give the body a bounded, scrollable container.
+
+### `contact-list-card` modern redesign
+
+The contacts data-table (`brand-contacts` + `brand-list-contacts`) was restyled
+toward a Linear/Stripe/Airtable look. Behavior/bindings/`@Input()`s and the
+`#contactCard` methods are unchanged unless noted; most of this is presentation.
+
+- **Light header** (see above), comfortable 54px rows, subtle `#f1f5f9` row
+  separators, `#f8fafc` hover, and a selected-row tint (`#eff6ff`) with a brand
+  **left-accent bar** (`box-shadow: inset 3px 0 0`). Rows use `white-space: nowrap`
+  so **every row is the same height** (long values overflow into horizontal scroll
+  instead of wrapping). No CSS transitions on row bg / checkbox — a select-all
+  flips many at once and animating them together stutters.
+- **Gradient initial avatars** on the Name cell — `getContactInitials()` (2 letters)
+  + `getAvatarClass()` (stable `av-0..av-5`). Both **memoized on the contact**
+  (`__initials`/`__avatarClass`) because they run per-row on every CD pass. Name
+  column widened to 220px in `getListViewData()`; **Company Name + Job Title were
+  reordered to sit next to Marketing Status**.
+- **Status pills with a leading dot**: Email Status (`.email-status`
+  green/red/amber + `.status-muted` "Not checked" when `emailStatus` empty) and
+  Marketing Status (`.ms-green/-red/-amber`, `pending` → amber).
+- **Checkboxes are Font Awesome icons, Gmail-styled** (`.checkbox-icon`):
+  `fa-square-o` (empty) / `fa-check-square-o` (checked) / `fa-minus-square-o`
+  (header indeterminate). Grey outline `#80868b`, **dark-grey `#3c4043` mark when
+  checked — NOT blue** (matches Gmail; the user explicitly rejected a blue fill).
+  First column has doubled left padding (`padding-left: 28px; padding-right: 4px`)
+  and is widened to 58px.
+- **LinkedIn** = rounded icon button; **list label** = rounded tag +
+  `.see-more-label-text`; proper **empty / loading states** (`.table-state`).
+- Card uses `overflow: hidden` for clean corners — safe because `app-kexy-button`
+  tooltips are `ngbTooltip` (body-level portal, not clipped).
+
+**Selection UX (Gmail model).** Header shows a live **`.selection-info`**
+("`X of N selected`", reflects `selectAllContacts`). When the whole visible page is
+checked AND `totalPage > 1` (or `selectAllContacts`), a **`.selection-banner`** is
+rendered as a full-width row **inside the table, directly under the sticky column
+header** (a `<tbody>` with a `colspan` cell) so showing/hiding it never jumps the
+header. The banner is `position: sticky; left: 0` and its inner width is pinned to
+`browserWidthForTable` so the message stays **centered in the visible area** even
+when the wide table is scrolled horizontally. It escalates to / clears
+`toggleSelectAllContactSelection()`. The parents' `handleContactSelect` was
+rewritten from **O(n²) → O(n)** (Set-based membership) so select-all is instant on
+big pages.
+
+**Frozen checkbox column.** The first column (header + body) is
+`position: sticky; left: 0` with opaque backgrounds that track row hover/selection,
+a 1px right divider, and a **scroll-aware right shadow**: `(scroll)` on
+`.list-wrapper` sets `scrolledX` (only flips on the 0↔scrolled boundary), and
+`.list-wrapper.scrolled-x` fades in a pseudo-element shadow on the frozen cells.
+z-index: header corner `4`, body first cell `2`, sticky header cells `3`.
+
+**Pagination** (both header + footer pagers, identical markup). First / Prev /
+`Page X of Y` / Next / Last as `.pager-btn` icon buttons, disabled at the bounds
+via `isFirstPage()`/`isLastPage()`; `goToFirstPage()`/`goToLastPage()` call
+`navigateSpecificPage(1 | totalPage)`. The old "Jump to Page" toggle is now an
+always-visible clean **`Go to [ # ] →`** (`.pager-jump`). On submit,
+`handleNavigate()` sets **`jumping`** → the Go button shows a spinner + disables
+(and the input disables); `ngOnChanges` clears `jumping` when `isLoading` falls, so
+the feedback is on the button rather than the far-off page counter.
+
+**Perf (important).** `getCellValue` used to `JSON.parse(row.details)` per cell on
+every CD pass — a single checkbox click re-parsed hundreds of times and lagged.
+`getRowDetails` now **caches the parsed object** on the row (re-parses only if the
+source string changes). Combined with the memoized avatar helpers and
+`trackBy: trackByContact`, per-click work is minimal.
+
+### `brand-contacts` active-filter chips
+
+The old single "N filters applied" pill is now **individual removable filter
+tokens** (LinkedIn/Airtable style) in `.active-filters`. `getActiveFilterChips()`
+builds one `{ key, label, value }` per active field from
+`prospectingService.searchContactFilterData` (email-status/marketing values
+prettified); each chip's ✕ calls `removeFilter(key)` which drops that field, re-runs
+the search, and fully resets when it was the last one. A **Clear all** button calls
+`resetSearchData()`.
 
 ---
 

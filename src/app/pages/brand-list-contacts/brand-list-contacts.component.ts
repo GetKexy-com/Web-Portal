@@ -262,37 +262,33 @@ export class BrandListContactsComponent implements OnInit, OnDestroy {
 
   handleContactSelect = (selectedRow, isSelectAll) => {
     if (isSelectAll) {
-      if (this.contactList.some((i) => i.isSelected)) {
-        this.contactList.map((i) => {
-          i.isSelected = false;
-          const index = this.selectedContacts.findIndex((j) => j.id === i.id);
-          if (index > -1) {
-            this.selectedContacts.splice(index, 1);
-          }
-        });
+      // Toggle the whole page. Use a Set for membership so this stays O(n)
+      // instead of O(n²) (findIndex/splice inside a loop lagged on big pages).
+      const anySelected = this.contactList.some((i) => i.isSelected);
+      if (anySelected) {
+        const pageIds = new Set(this.contactList.map((i) => i.id));
+        this.contactList.forEach((i) => (i.isSelected = false));
+        this.selectedContacts = this.selectedContacts.filter((j) => !pageIds.has(j.id));
       } else {
-        this.contactList.map((i) => {
+        const existingIds = new Set(this.selectedContacts.map((j) => j.id));
+        this.contactList.forEach((i) => {
           i.isSelected = true;
-          const index = this.selectedContacts.findIndex((j) => j.id === i.id);
-          if (index === -1) {
+          if (!existingIds.has(i.id)) {
             this.selectedContacts.push(i);
+            existingIds.add(i.id);
           }
         });
       }
     } else {
-      const rowIndex = this.contactList.findIndex((i) => i.id === selectedRow.id);
-      this.contactList[rowIndex].isSelected = !this.contactList[rowIndex].isSelected;
-
-      if (this.contactList[rowIndex].isSelected) {
-        const index = this.selectedContacts.findIndex((j) => j.id === this.contactList[rowIndex].id);
-        if (index === -1) {
-          this.selectedContacts.push(this.contactList[rowIndex]);
+      const row = this.contactList.find((i) => i.id === selectedRow.id);
+      if (!row) return;
+      row.isSelected = !row.isSelected;
+      if (row.isSelected) {
+        if (!this.selectedContacts.some((j) => j.id === row.id)) {
+          this.selectedContacts.push(row);
         }
       } else {
-        const index = this.selectedContacts.findIndex((j) => j.id === this.contactList[rowIndex].id);
-        if (index > -1) {
-          this.selectedContacts.splice(index, 1);
-        }
+        this.selectedContacts = this.selectedContacts.filter((j) => j.id !== row.id);
       }
     }
 

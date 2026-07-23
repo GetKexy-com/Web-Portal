@@ -17,25 +17,90 @@
     height: calc(100vh - 129px);
     background: #e7f6fe;
 
-    .filter-info {
-      text-decoration: none !important;
-      padding: 4px 15px 4px 10px;
-      border-radius: 15px;
-      font-size: 14px;
-      background: #5879d9;
-      color: white !important;
+    // Active-filter tokens (LinkedIn / Airtable style): one removable chip per
+    // filter, each showing its value + an ✕, with a Clear all at the end.
+    .active-filters {
       display: flex;
-      justify-content: center;
       align-items: center;
-      cursor: pointer;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 14px;
 
-      span {
-        display: inline-block;
-        width: 8px;
-        height: 8px;
-        border-radius: 5px;
-        background: #ffff00;
-        margin-right: 5px;
+      .af-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 13px;
+        font-weight: 700;
+        color: #475569;
+
+        i { font-size: 12px; color: #64748b; }
+      }
+
+      .filter-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 6px 5px 12px;
+        border-radius: 999px;
+        background: #ffffff;
+        border: 1px solid #d7def0;
+        font-size: 13px;
+        line-height: 1;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+
+        .chip-key {
+          color: #64748b;
+          font-weight: 600;
+        }
+
+        .chip-val {
+          color: #0f172a;
+          font-weight: 700;
+          max-width: 220px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        // Round ✕ button — subtle, reddens on hover.
+        .chip-remove {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 18px;
+          height: 18px;
+          border: none;
+          border-radius: 50%;
+          background: #f1f5f9;
+          color: #64748b;
+          font-size: 11px;
+          cursor: pointer;
+          transition: background 0.15s ease, color 0.15s ease;
+
+          &:hover {
+            background: #fdecec;
+            color: #dc2626;
+          }
+        }
+      }
+
+      // Clear-all — subtle text button that turns red on hover.
+      .clear-filter {
+        padding: 5px 10px;
+        border: none;
+        background: transparent;
+        border-radius: 999px;
+        color: #64748b;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: background 0.15s ease, color 0.15s ease;
+
+        &:hover {
+          background: #fdecec;
+          color: #dc2626;
+        }
       }
     }
   }

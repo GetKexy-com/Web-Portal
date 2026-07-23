@@ -86,10 +86,16 @@ export class ContactListCardComponent implements OnInit, OnChanges, OnDestroy, A
   @Output() importCompleted: EventEmitter<any> = new EventEmitter();
 
   public tableWidth = 500;
+  // True once the table is scrolled horizontally — drives the frozen column's
+  // right-edge shadow. Only flipped on the 0↔scrolled boundary to avoid churn.
+  public scrolledX = false;
   public columnList: any[];
   public userData;
   public showNavigationInput: boolean = false;
   public navigatePageNumber;
+  // True from the moment a "Go to page" jump is submitted until loading ends —
+  // drives the spinner + disabled state on the Go button.
+  public jumping: boolean = false;
   public loadingSubscription: Subscription;
 
   constructor(private _authService: AuthService, private modal: NgbModal, private prospectingService: ProspectingService, private pageUiService: PageUiService, private host: ElementRef) {
@@ -107,6 +113,8 @@ export class ContactListCardComponent implements OnInit, OnChanges, OnDestroy, A
   // Start/stop polling whenever the bound list changes (e.g. a list that's
   // already mid-verification when the card loads).
   ngOnChanges(changes: SimpleChanges): void {
+    // Clear the "Go to page" spinner once the parent finishes loading.
+    if (changes['isLoading'] && !this.isLoading) this.jumping = false;
     if (changes['listInfo']) {
       // Seed the card-local status from the bound list (e.g. a list already
       // mid-verification when the card loads). On pages without a listInfo
@@ -131,18 +139,18 @@ export class ContactListCardComponent implements OnInit, OnChanges, OnDestroy, A
   getListViewData = () => {
     let columnList: any;
     columnList = [
-      { name: '', key: 'action', width: 40 },
-      { name: 'Name', key: 'name', width: 120 },
-      { name: 'Linkedin', key: 'linkedinUrl', width: 70 },
+      { name: '', key: 'action', width: 58 },
+      { name: 'Name', key: 'name', width: 220 },
+      { name: 'Linkedin', key: 'linkedinUrl', width: 80 },
       { name: 'Email Address', key: 'email', width: 180 },
       { name: 'Email Status', key: 'email_status', width: 120 },
-      { name: 'Job Title', key: 'title', width: 170 },
-      { name: 'Company Name', key: 'company_name', width: 160 },
       { name: 'Phone Number', key: 'phone_number', width: 120 },
       { name: 'City', key: 'city', width: 100 },
       { name: 'State/Province', key: 'state', width: 100 },
       { name: 'Country', key: 'country', width: 120 },
       { name: 'Lists', key: 'label', width: 130 },
+      { name: 'Company Name', key: 'company_name', width: 160 },
+      { name: 'Job Title', key: 'title', width: 170 },
       { name: 'Marketing Status', key: 'marketing_status', width: 120 },
       { name: 'Created', key: 'created', width: 160 },
     ];
@@ -439,8 +447,21 @@ export class ContactListCardComponent implements OnInit, OnChanges, OnDestroy, A
 
   getCellValueToDisplay = (row, column) => this.getCellValue(row, column);
 
+  // Parse the row's `details` ONCE and cache it on the row. This runs per-cell on
+  // EVERY change-detection pass (a single checkbox click triggers a full CD tick),
+  // so parsing here made large tables lag badly. Re-parse only if the source
+  // string actually changed (e.g. after an edit/reload).
+  private getRowDetails = (row: any) => {
+    if (typeof row.details !== 'string') return row.details;
+    if (row.__details === undefined || row.__detailsSrc !== row.details) {
+      row.__details = JSON.parse(row.details);
+      row.__detailsSrc = row.details;
+    }
+    return row.__details;
+  };
+
   getCellValue = (row, column) => {
-    const details = typeof row.details === 'string' ? JSON.parse(row.details) : row.details;
+    const details = this.getRowDetails(row);
 
     if (details[column.key]) {
       return details[column.key];
@@ -453,10 +474,51 @@ export class ContactListCardComponent implements OnInit, OnChanges, OnDestroy, A
     }
   };
 
+  // trackBy so toggling a checkbox doesn't make Angular re-create every <tr>
+  // (name/email don't change within a load), keeping big lists snappy.
+  trackByContact = (_: number, contact: any) => contact?.id ?? _;
+
+  // Two-letter initials for the row avatar. Uses top-level fields (no JSON
+  // parse) — contactName first, then the parsed details name, then email.
+  // Memoized on the contact: this runs per-row on EVERY change-detection pass
+  // (e.g. every checkbox click), so recomputing would make a 1000-row table lag.
+  getContactInitials = (contact: any): string => {
+    if (contact && contact.__initials != null) return contact.__initials;
+    const name = (contact?.contactName || contact?.details?.name || '').toString().trim();
+    let initials: string;
+    if (name) {
+      const parts = name.split(/\s+/).filter(Boolean);
+      initials = (parts.length >= 2 ? parts[0][0] + parts[1][0] : name.substring(0, 2)).toUpperCase();
+    } else {
+      const email = (contact?.email || '').toString().trim();
+      initials = email ? email.substring(0, 2).toUpperCase() : '?';
+    }
+    if (contact) contact.__initials = initials;
+    return initials;
+  };
+
+  // Stable avatar color (one of 6 gradients, av-0..av-5) derived from a cheap
+  // char-code sum. Memoized for the same per-CD-cost reason as the initials.
+  getAvatarClass = (contact: any): string => {
+    if (contact && contact.__avatarClass != null) return contact.__avatarClass;
+    const s = (contact?.contactName || contact?.email || '?').toString();
+    let h = 0;
+    for (let i = 0; i < s.length; i++) h = (h + s.charCodeAt(i)) % 6;
+    const cls = 'av-' + h;
+    if (contact) contact.__avatarClass = cls;
+    return cls;
+  };
+
   selectedItemCount;
   getSelectedItemCount = () => {
     this.selectedItemCount = this.contacts.filter((i) => i.isSelected).length;
     return this.selectedItemCount;
+  };
+
+  // Toggle the frozen-column shadow when the table scrolls horizontally.
+  onTableScroll = (event: Event) => {
+    const scrolled = (event.target as HTMLElement).scrollLeft > 0;
+    if (scrolled !== this.scrolledX) this.scrolledX = scrolled;
   };
 
   stopPropagation = (event: Event) => {
@@ -497,10 +559,23 @@ export class ContactListCardComponent implements OnInit, OnChanges, OnDestroy, A
   };
 
   handleNavigate = () => {
+    if (!this.navigatePageNumber || this.jumping) return;
     if (this.navigatePageNumber < 1) this.navigatePageNumber = 1;
     if (this.navigatePageNumber > this.totalPage) this.navigatePageNumber = parseInt(this.totalPage);
+    this.jumping = true;
     this.navigateSpecificPage(this.navigatePageNumber);
+    this.navigatePageNumber = null;
     this.showNavigationInput = false;
+  };
+
+  // First/last page jumps + boundary checks for disabling the arrows.
+  isFirstPage = () => Number(this.currentPage) <= 1;
+  isLastPage = () => Number(this.currentPage) >= Number(this.totalPage);
+  goToFirstPage = () => {
+    if (!this.isFirstPage()) this.navigateSpecificPage(1);
+  };
+  goToLastPage = () => {
+    if (!this.isLastPage()) this.navigateSpecificPage(Number(this.totalPage));
   };
 
   isValidLinkedinUrl(url: string): boolean {
