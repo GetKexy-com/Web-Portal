@@ -1,14 +1,4 @@
 <div id="page-container">
-  <!-- Sidebar toggle -->
-  <a (click)="toggleSidebar()" class="hideSidebarArrow" [class.rail]="sidebarCollapsed">
-    <i
-      class="fa"
-      [class.fa-arrow-right]="sidebarCollapsed"
-      [class.fa-arrow-left]="!sidebarCollapsed"
-      aria-hidden="true"
-    ></i>
-  </a>
-
   <!-- Backdrop: only when the rail is expanded as an overlay on small screens -->
   <div
     *ngIf="isMobileScreen && !sidebarCollapsed"
@@ -195,7 +185,32 @@
 
     <header id="main-header" [class]="headerBgWhite ? 'main-warp white-bg' : 'main-warp'">
       <div class="row justify-content-between">
-        <div class="col d-flex align-items-baseline">
+        <div class="col d-flex align-items-center">
+          <!-- Sidebar toggle (panel-left glyph, like modern apps) -->
+          <a
+            (click)="toggleSidebar()"
+            class="hideSidebarArrow"
+            role="button"
+            [attr.aria-label]="sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'"
+            [attr.aria-expanded]="!sidebarCollapsed"
+            [attr.title]="sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'"
+          >
+            <svg
+              class="panel-toggle-icon"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <rect x="3" y="3" width="18" height="18" rx="2" />
+              <path d="M9 3v18" />
+            </svg>
+          </a>
           <app-back-button *ngIf="showBackButton"></app-back-button>
           <span style="font-size: 14px; font-weight: bold">{{ headline }}</span>
         </div>
