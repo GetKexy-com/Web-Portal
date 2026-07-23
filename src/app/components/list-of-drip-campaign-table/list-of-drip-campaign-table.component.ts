@@ -11,7 +11,6 @@ import {
   ContactLabelsModalContentComponent,
 } from '../contact-labels-modal-content/contact-labels-modal-content.component';
 import { DripCampaign } from '../../models/DripCampaign';
-import { KexySelectDropdownComponent } from '../kexy-select-dropdown/kexy-select-dropdown.component';
 
 @Component({
   selector: 'list-of-drip-campaign-table',
@@ -21,7 +20,6 @@ import { KexySelectDropdownComponent } from '../kexy-select-dropdown/kexy-select
     NgClass,
     DecimalPipe,
     CommonModule,
-    KexySelectDropdownComponent,
   ],
   templateUrl: './list-of-drip-campaign-table.component.html',
   styleUrl: './list-of-drip-campaign-table.component.scss',
@@ -37,6 +35,9 @@ export class ListOfDripCampaignTableComponent implements OnInit, AfterViewChecke
   @Input() checkboxClicked;
   @Input() paginationLeftArrowClick;
   @Input() paginationRightArrowClick;
+  @Input() paginationFirstClick;
+  @Input() paginationLastClick;
+  @Input() navigateSpecificPage;
   @Input() totalPage = 1;
   @Input() currentPage;
   @Input() limit;
@@ -47,6 +48,9 @@ export class ListOfDripCampaignTableComponent implements OnInit, AfterViewChecke
   @Output() selectedStatus: EventEmitter<any> = new EventEmitter();
 
   public tableWidth = 500;
+  // True once the table is scrolled horizontally — drives the frozen column shadow.
+  public scrolledX = false;
+  public navigatePageNumber: number | null = null;
   public columnList: any[];
   public labelOptions: any[] = [];
   public list;
@@ -86,14 +90,14 @@ export class ListOfDripCampaignTableComponent implements OnInit, AfterViewChecke
   getListViewData = () => {
     let columnList: any;
     columnList = [
-      { name: '', key: 'action', width: 50 },
-      { name: 'Drip Campaign Title', key: 'drip_campaign_title', width: 200 },
+      { name: '', key: 'action', width: 58 },
+      // `flex` (width:100%) absorbs leftover width so other columns keep natural widths.
+      { name: 'Drip Campaign Title', key: 'drip_campaign_title', width: 220, flex: true },
       { name: 'Number Of Emails', key: 'number_of_emails', width: 142 },
       { name: 'Email Tone', key: 'email_tone', width: 120 },
-      { name: 'Status', key: 'status', width: 100 },
+      { name: 'Status', key: 'status', width: 110 },
       { name: 'Lists', key: 'label', width: 130 },
       { name: 'Date Created', key: 'date_created', width: 180 },
-      { name: '', key: 'edit', width: 50 },
     ];
     this.columnList = columnList;
   };
@@ -102,18 +106,35 @@ export class ListOfDripCampaignTableComponent implements OnInit, AfterViewChecke
   calcWidth = () => {
     const sidebarWidth = document.getElementById('main-sidebar')?.clientWidth || 0;
     const pageMargin = 48;
-    let sum = 300;
-    let map = {};
-    this.columnList.forEach((column) => {
-      sum += column.width;
-      map[column.key] = column.width;
-    });
-    // Prefer the table wrapper's own width so the table fills the available space
-    // on first render, instead of depending on #main-sidebar (not measurable for
-    // ~1-2s after load → table snapped from the narrow column-sum to full width).
+    // Exact sum (no buffer): the flex column absorbs any leftover width.
+    let sum = 0;
+    this.columnList.forEach((column) => { sum += column.width; });
     const wrapper = this.host?.nativeElement?.querySelector('.new-table-wrapper') as HTMLElement | null;
     this.browserWidthForTable = wrapper?.clientWidth || (window.innerWidth - sidebarWidth - pageMargin);
     this.tableWidth = this.browserWidthForTable > sum ? this.browserWidthForTable : sum;
+  };
+
+  // Keep *ngFor stable when toggling a checkbox.
+  trackByRow = (_: number, row: any) => row?.id ?? _;
+
+  // Toggle the frozen-column shadow on horizontal scroll.
+  onTableScroll = (event: Event) => {
+    const scrolled = (event.target as HTMLElement).scrollLeft > 0;
+    if (scrolled !== this.scrolledX) this.scrolledX = scrolled;
+  };
+
+  // Pagination bounds + first/last/jump.
+  isFirstPage = () => Number(this.currentPage) <= 1;
+  isLastPage = () => Number(this.currentPage) >= Number(this.totalPage);
+  goToFirstPage = () => { if (!this.isFirstPage() && this.paginationFirstClick) this.paginationFirstClick(); };
+  goToLastPage = () => { if (!this.isLastPage() && this.paginationLastClick) this.paginationLastClick(); };
+  handleNavigate = () => {
+    if (!this.navigatePageNumber || !this.navigateSpecificPage) return;
+    let n = this.navigatePageNumber;
+    if (n < 1) n = 1;
+    if (n > this.totalPage) n = this.totalPage;
+    this.navigateSpecificPage(n);
+    this.navigatePageNumber = null;
   };
 
   onShowEntriesSelect = ($event) => {
@@ -174,8 +195,8 @@ export class ListOfDripCampaignTableComponent implements OnInit, AfterViewChecke
 
   getCheckboxIcon(): string {
     if (this.selectedItemCount === 0) return 'fa fa-square-o checkbox-icon';
-    if (this.selectedItemCount > 0 && this.selectedItemCount < this.cardData.length) return 'fa fa-minus-square-o';
-    return 'fa fa-check-square-o';
+    if (this.selectedItemCount > 0 && this.selectedItemCount < this.cardData.length) return 'fa fa-minus-square-o checkbox-icon selected';
+    return 'fa fa-check-square-o checkbox-icon selected';
   }
 
   protected readonly constants = constants;

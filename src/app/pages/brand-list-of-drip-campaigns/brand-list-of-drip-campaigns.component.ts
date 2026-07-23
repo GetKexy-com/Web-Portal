@@ -271,6 +271,30 @@ export class BrandListOfDripCampaignsComponent implements OnInit {
     this.isLoading.set(false);
   };
 
+  paginationFirstClick = async () => {
+    if (this.page() === 1) return;
+    this.isLoading.set(true);
+    this.page.set(1);
+    await this.getListOfDripCampaigns();
+    this.isLoading.set(false);
+  };
+
+  paginationLastClick = async () => {
+    if (this.page() === this.totalPageCounts()) return;
+    this.isLoading.set(true);
+    this.page.set(this.totalPageCounts());
+    await this.getListOfDripCampaigns();
+    this.isLoading.set(false);
+  };
+
+  navigateToPage = async (pageNum: number) => {
+    if (!pageNum || pageNum === this.page()) return;
+    this.isLoading.set(true);
+    this.page.set(pageNum);
+    await this.getListOfDripCampaigns();
+    this.isLoading.set(false);
+  };
+
   handleContactSelect = (selectedRow: any, isSelectAll: boolean) => {
     if (isSelectAll) {
       const hasSelected = this.dripCampaignList().some(i => i.isSelected);

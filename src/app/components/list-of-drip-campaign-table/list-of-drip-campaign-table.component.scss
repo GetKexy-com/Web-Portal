@@ -1,216 +1,416 @@
+// ── Tokens (shared with contact-list-card redesign) ─────────────────────────
+$kx-primary: #2847cc;
+$kx-primary-soft: #eef2ff;
+$kx-ink: #0f172a;
+$kx-text: #334155;
+$kx-muted: #64748b;
+$kx-faint: #94a3b8;
+$kx-border: #e5e9f0;
+$kx-row-border: #f1f5f9;
+$kx-hover: #f8fafc;
+$kx-selected: #eff6ff;
+$kx-header-bg: #f8fafc;
+
+$st-green: #16a34a;
+$st-green-bg: #e7f7ee;
+$st-amber: #b45309;
+$st-amber-bg: #fef3d9;
+
 .kexy-table-card {
-  background: white;
+  background: #ffffff;
   margin-bottom: 20px;
-  border-radius: 12px;
-  box-shadow: 0 1px 5px 0 #d6d6d6;
+  border: 1px solid $kx-border;
+  border-radius: 14px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+  overflow: hidden;
 
   .card-header, .card-footer {
-    padding: 15px;
+    padding: 14px 18px;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 12px;
+    min-height: 62px;
+  }
 
-    p {
-      margin-bottom: 0;
-      font-weight: 600;
-      font-size: 14px;
-      line-height: 16px;
+  .card-footer {
+    justify-content: flex-end;
+    border-top: 1px solid $kx-border;
+    background: #fff;
+  }
 
-      span {
-        font-size: 12px;
+  .card-title {
+    font-weight: 700;
+    font-size: 16px;
+    color: $kx-ink;
+  }
+
+  .count-chip {
+    margin-left: 8px;
+    padding: 2px 9px;
+    border-radius: 999px;
+    background: $kx-primary-soft;
+    color: $kx-primary;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.6;
+  }
+
+  .selection-info {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: 12px;
+    padding: 4px 12px;
+    border-radius: 999px;
+    background: $kx-primary-soft;
+    color: $kx-primary;
+    font-size: 13px;
+    font-weight: 600;
+
+    i { font-size: 13px; }
+    strong { font-weight: 800; }
+  }
+
+  .header-controls {
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  // ── Pager ─────────────────────────────────────────────────────────────
+  .pagination-section {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+
+    .pager {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+
+      .pager-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border: 1px solid $kx-border;
+        border-radius: 9px;
+        background: #fff;
+        color: $kx-text;
+        font-size: 14px;
+        cursor: pointer;
+        transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+
+        &:hover:not(.disabled) {
+          background: $kx-primary-soft;
+          border-color: $kx-primary;
+          color: $kx-primary;
+        }
+        &.disabled { opacity: 0.4; pointer-events: none; }
+      }
+
+      .pager-status {
+        margin: 0 8px;
+        font-size: 13px;
+        color: $kx-muted;
+        white-space: nowrap;
+        strong { color: $kx-ink; font-weight: 700; }
       }
     }
 
-    .pagination-section {
-      .btn-wrap {
-        width: fit-content;
+    .pager-jump {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin: 0;
+
+      label { margin: 0; font-size: 13px; font-weight: 600; color: $kx-muted; }
+
+      .jump-input {
+        width: 54px;
+        height: 32px;
+        padding: 4px 8px;
+        border: 1px solid $kx-border;
+        border-radius: 8px;
+        font-size: 13px;
+        text-align: center;
+        color: $kx-ink;
+        -moz-appearance: textfield;
+        appearance: textfield;
+
+        &::-webkit-outer-spin-button,
+        &::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+        &:focus {
+          outline: none;
+          border-color: $kx-primary;
+          box-shadow: 0 0 0 3px rgba(40, 71, 204, 0.12);
+        }
       }
 
-      .conv-pagination-wrap {
-        padding-left: 20px;
-        border-radius: 10px;
+      .jump-go {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border: none;
+        border-radius: 8px;
+        background: linear-gradient(135deg, #12a5f4, #095dd1);
+        color: #fff;
+        font-size: 13px;
+        cursor: pointer;
+        transition: filter 0.15s ease;
 
-        .conv-pagination {
-          display: flex;
-          //justify-content: flex-end;
-          align-items: center;
-          //min-width: 200px;
-          p {
-            color: #5e5e5e;
-            font-size: 14px;
-            margin-bottom: 0;
-          }
-
-          .pagination-arrow {
-            font-size: 20px;
-            width: 30px;
-            cursor: pointer;
-            border-radius: 50%;
-            height: 30px;
-            display: inline-block;
-            text-align: center;
-            background: #e7f6fe;
-
-            &:hover {
-              background: lightgray;
-            }
-          }
-
-          .disabled {
-            color: grey;
-            pointer-events: none;
-            cursor: crosshair;
-          }
-        }
+        &:hover { filter: brightness(1.05); }
       }
     }
   }
 
+  // ── Table ─────────────────────────────────────────────────────────────
   .new-table-wrapper {
-    // Bounded height + scroll so the table body scrolls vertically while the
-    // header row (sticky cells below) stays pinned to the top. Horizontal scroll
-    // is preserved for wide tables. Tune the max-height to taste.
     max-height: calc(100vh - 320px);
     overflow: auto;
 
     .list-wrapper {
-      background: #e7f6fe;
-      border-radius: 10px;
-
       .n-table {
         outline: 0;
+        border-collapse: collapse;
 
         .n-product {
-          background: white;
-          border-bottom: 1px solid #a2deff;
+          background: #fff;
+          border-bottom: 1px solid $kx-row-border;
 
-          &:hover {
-            background: #edeeff;
-          }
+          &:hover { background: $kx-hover; }
 
           &.selected {
-            background: #e2f9fe;
+            background: $kx-selected;
+            box-shadow: inset 3px 0 0 0 $kx-primary;
           }
+
+          &.state-row:hover { background: #fff; }
         }
 
         tr.n-header {
           text-transform: uppercase;
-          color: #0047cc;
           position: relative;
           z-index: 1000;
-          font-weight: bold;
 
-          // Keep the header pinned to the top of the scroll container while the
-          // body scrolls. Sticky must be on the cells (not the <tr>) to work in a
-          // table. The opaque background stops body rows showing through; the
-          // inline [tableHeaderBg] overrides it when a header color is provided.
           td {
             position: sticky;
             top: 0;
             z-index: 3;
-            background: #e7f6fe;
+            background: $kx-header-bg;
+            border-bottom: 1px solid $kx-border;
+            box-shadow: 0 1px 0 $kx-border;
+          }
+
+          // Frozen top-left corner: above the other headers on horizontal scroll.
+          td:first-child {
+            left: 0;
+            z-index: 6;
           }
         }
 
-        .n-header-product {
-          width: 20px;
-          padding: 10px;
-          font-size: 12px;
-        }
-
-        .n-header-name,
-        .n-header-title {
-          font-size: 12px;
-          color: #0047cc;
-          padding: 10px 20px;
-
-          .select-all-header-icons {
-            cursor: pointer;
-
-            i {
-              font-size: 18px;
-              width: 15px;
-            }
-          }
+        .n-header-name {
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 0.04em;
+          color: $kx-muted;
+          padding: 12px 20px;
+          white-space: nowrap;
         }
 
         td.n-cell {
-          height: 48px;
-          padding: 0 20px;
-
-          &.col-zip {
-          }
+          height: 54px;
+          padding: 8px 20px;
+          color: $kx-text;
+          vertical-align: middle;
+          white-space: nowrap;
 
           span {
-            font-size: 14px;
+            font-size: 13.5px;
             display: inline-block;
-            line-height: 16px;
-            color: black;
+            line-height: 1.4;
+            color: $kx-text;
             font-weight: normal;
           }
 
-          .col-actions {
-            width: 100%;
-            display: inline-block;
-            text-align: center;
-
-            i {
-              font-size: 16px;
-              padding: 10px;
-            }
+          .text-link {
+            cursor: pointer;
+            &:hover { color: $kx-primary; text-decoration: underline; }
           }
 
-          &.title-of-campaign-column-width {
-            width: 170px;
-            padding-left: 10px;
+          // Status pill
+          .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 11px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 600;
+            line-height: 1;
+            text-transform: capitalize;
+            background: #f1f5f9;
+            color: $kx-muted;
+
+            .dot { width: 6px; height: 6px; border-radius: 50%; background: $kx-faint; }
+
+            &.st-green { background: $st-green-bg; color: $st-green; .dot { background: $st-green; } }
+            &.st-amber { background: $st-amber-bg; color: $st-amber; .dot { background: $st-amber; } }
+          }
+
+          .label-tag {
+            display: inline-block;
+            padding: 3px 11px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 600;
+            line-height: 1.4;
+          }
+          .see-more-label-text {
+            margin-left: 6px;
+            padding: 3px 8px;
+            border-radius: 999px;
+            background: #f1f5f9;
+            color: $kx-muted;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            &:hover { background: $kx-primary-soft; color: $kx-primary; }
+          }
+
+          // Empty / loading state
+          .table-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            padding: 54px 20px;
+            text-align: center;
+            white-space: normal;
+
+            .state-icon { font-size: 32px; color: $kx-faint; margin-bottom: 8px; }
+            .state-title { margin: 0; font-size: 15px; font-weight: 700; color: $kx-text; }
+            .state-desc { margin: 0; font-size: 13px; color: $kx-muted; }
           }
         }
       }
     }
   }
 
-  .pagination {
-    text-align: right;
-    padding: 10px;
+  // ── Cross-page select-all banner ──────────────────────────────────────
+  .selection-banner-row td {
+    padding: 0;
+    border-bottom: 1px solid $kx-border;
+  }
+  .selection-banner {
+    position: sticky;
+    left: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 6px 10px;
+    padding: 10px 16px;
+    background: $kx-primary-soft;
+    font-size: 13px;
+    color: $kx-text;
+
+    strong { color: $kx-ink; font-weight: 800; }
+
+    .banner-action {
+      border: none;
+      background: transparent;
+      padding: 4px 8px;
+      border-radius: 7px;
+      color: $kx-primary;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      &:hover { background: rgba(40, 71, 204, 0.1); }
+    }
   }
 }
 
 .kexy-table-entry-count {
   display: flex;
   align-items: center;
-  color: #5e5e5e;
-  font-size: 14px;
+  color: $kx-muted;
+  font-size: 13px;
   font-weight: 600;
 
   select {
     margin: 0 10px;
     width: auto;
-    padding: 3px;
-    font-size: 14px;
+    padding: 6px 10px;
+    font-size: 13px;
+    border: 1px solid $kx-border;
+    border-radius: 8px;
+    background: #fff;
+    color: $kx-text;
+    cursor: pointer;
+
+    &:focus {
+      outline: none;
+      border-color: $kx-primary;
+      box-shadow: 0 0 0 3px rgba(40, 71, 204, 0.12);
+    }
   }
 }
 
+// Gmail-style checkbox icons.
 .checkbox-icon {
-  font-size: 18px;
-  color: #b8b6b6;
-  width: 18px;
-  &.selected {
-    color: #2646c5;
-  }
-}
-
-.delete-icon {
   font-size: 20px;
+  color: #80868b;
+  cursor: pointer;
+  &.selected { color: #3c4043; }
+}
+.n-product:hover .checkbox-icon:not(.selected) { color: #5f6368; }
+.select-all-header-icons { cursor: pointer; }
 
-  &:hover {
-    color: red;
+// First column: FROZEN while scrolling horizontally + tidy checkbox spacing.
+.kexy-table-card .n-table {
+  td.n-cell:first-child,
+  .n-header-name:first-child {
+    padding-left: 28px;
+    padding-right: 4px;
+    min-width: 58px;
+    position: sticky;
+    left: 0;
+    border-right: 1px solid $kx-border;
+  }
+
+  td.n-cell:first-child {
+    z-index: 2;
+    background: #fff;
   }
 }
+.kexy-table-card .n-product:hover td.n-cell:first-child { background: $kx-hover; }
+.kexy-table-card .n-product.selected td.n-cell:first-child {
+  background: $kx-selected;
+  box-shadow: inset 3px 0 0 0 $kx-primary;
+}
 
-.text-link {
-  cursor: pointer;
-  &:hover {
-    text-decoration: underline;
-    color: rgb(40, 71, 204) !important;
-  }
+// Scroll-aware right shadow on the frozen column (scroll container = new-table-wrapper).
+.kexy-table-card .n-table td.n-cell:first-child::after,
+.kexy-table-card .n-table .n-header-name:first-child::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  width: 6px;
+  transform: translateX(100%);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  background: linear-gradient(to right, rgba(15, 23, 42, 0.18), rgba(15, 23, 42, 0));
+}
+.new-table-wrapper.scrolled-x .n-table td.n-cell:first-child::after,
+.new-table-wrapper.scrolled-x .n-table .n-header-name:first-child::after {
+  opacity: 1;
 }

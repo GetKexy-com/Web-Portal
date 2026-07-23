@@ -1,13 +1,12 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { NgIf, NgClass } from '@angular/common';
+import { NgIf } from '@angular/common';
 
 @Component({
   selector: 'app-pagination',
   imports: [
     FormsModule,
     NgIf,
-    NgClass,
   ],
   templateUrl: './pagination.component.html',
   styleUrls: ['./pagination.component.scss'],
