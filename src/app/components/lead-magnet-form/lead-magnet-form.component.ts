@@ -21,7 +21,6 @@ import { KexyButtonComponent } from '../kexy-button/kexy-button.component';
   imports: [
     ErrorMessageCardComponent,
     ReactiveFormsModule,
-    KexyButtonComponent,
   ],
   templateUrl: './lead-magnet-form.component.html',
   styleUrl: './lead-magnet-form.component.scss',

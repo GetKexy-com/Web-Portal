@@ -1,71 +1,63 @@
 <div class="canvas-content-wrap">
   <div class="head-area">
-    <p>{{ canvasTitle }} Lead Magnet</p>
-    <img src="/assets/images/close-icon.png" alt="Close" (click)="activeCanvas.dismiss('Cross click')" />
+    <div class="head-text">
+      <p class="head-title">{{ canvasTitle }} Lead Magnet</p>
+      <span class="head-subtitle">A resource you offer to capture and nurture leads</span>
+    </div>
+    <button type="button" class="close-btn" aria-label="Close" (click)="activeCanvas.dismiss('Cross click')">
+      <i class="fa fa-times" aria-hidden="true"></i>
+    </button>
   </div>
 
-  <div class="canvas-body">
-    <form [formGroup]="primaryForm" (ngSubmit)="handleSubmit()">
-      <div class="mb-4">
-        <div class="row">
-          <div class="col-12">
-            <div class="input-wrap">
-              <div class="label-and-input">
-                <p>Title</p>
-                <input class="form-control" formControlName="title" type="text" />
-                @if (formValidationErrorCheck('title')) {
-                  <error-message-card message="Title is missing or invalid!"></error-message-card>
-                }
-              </div>
-            </div>
-          </div>
-          <div class="col-12">
-            <div class="input-wrap">
-              <div class="label-and-input">
-                <p>Lead Magnet URL</p>
-                <input class="form-control" formControlName="leadMagnetUrl" type="text" />
-                @if (formValidationErrorCheck('leadMagnetUrl') || invalidWebsite) {
-                  <error-message-card message="Url is missing or invalid!"></error-message-card>
-                }
-              </div>
-            </div>
+  <form class="canvas-form" [formGroup]="primaryForm" (ngSubmit)="handleSubmit()">
+    <div class="canvas-body">
+      <div class="form-section">
+        <div class="section-head">
+          <i class="fa fa-magnet section-icon" aria-hidden="true"></i>
+          <span class="section-title">Lead magnet details</span>
+        </div>
+
+        <div class="fields-grid">
+          <div class="field full">
+            <label class="field-label">Title</label>
+            <input class="form-control" formControlName="title" type="text"
+                   placeholder="e.g. Ultimate Marketing Guide" />
+            @if (formValidationErrorCheck('title')) {
+              <error-message-card message="Title is missing or invalid!"></error-message-card>
+            }
           </div>
 
-          <div class="col-12">
-            <div class="input-wrap">
-              <div class="label-and-input">
-                <p>Summary</p>
-                <textarea class="form-control" style="height: 120px" formControlName="summary" type="text"></textarea>
-                @if (formValidationErrorCheck('summary')) {
-                  <error-message-card message="Summary is missing or invalid!"></error-message-card>
-                }
-              </div>
-            </div>
+          <div class="field full">
+            <label class="field-label">Lead Magnet URL</label>
+            <input class="form-control" formControlName="leadMagnetUrl" type="text"
+                   placeholder="www.example.com/guide" />
+            @if (formValidationErrorCheck('leadMagnetUrl') || invalidWebsite) {
+              <error-message-card message="Url is missing or invalid!"></error-message-card>
+            }
+          </div>
+
+          <div class="field full">
+            <label class="field-label">Summary</label>
+            <textarea class="form-control" formControlName="summary"
+                      placeholder="Briefly describe what this lead magnet offers…"></textarea>
+            @if (formValidationErrorCheck('summary')) {
+              <error-message-card message="Summary is missing or invalid!"></error-message-card>
+            }
           </div>
         </div>
       </div>
+    </div>
 
-      <div class="buttons justify-content-between">
-        <app-kexy-button
-          [disabled]="isLoading"
-          style="margin-right: 10px; width: 100%"
-          label="Save"
-          [label]="isLoading ? 'Please wait...' : 'Save' "
-          [iconLeft]="isLoading ? 'fa-refresh fa-spin' : 'fa-plus'"
-          radius="8px"
-          type="submit"
-        ></app-kexy-button>
-        <app-kexy-button
-          style="margin-right: 10px; width: 100%"
-          label="Cancel"
-          radius="8px"
-          bgColor="#e7f6fe"
-          textColor="#2847cc"
-          borderColor="#2847cc"
-          (click)="activeCanvas.dismiss('Cross click')"
-        ></app-kexy-button>
-
-      </div>
-    </form>
-  </div>
+    <div class="buttons">
+      <button class="blue-border-white-bg-button" type="button" (click)="activeCanvas.dismiss('Cross click')">
+        Cancel
+      </button>
+      <button class="blue-button" type="submit" [disabled]="isLoading">
+        @if (isLoading) {
+          <i class="fa fa-spinner fa-spin me-2" aria-hidden="true"></i>
+        }
+        Save
+      </button>
+    </div>
+  </form>
 </div>

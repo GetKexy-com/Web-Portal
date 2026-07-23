@@ -289,6 +289,18 @@ Classification section shows; per-contact fields are hidden).
   the badge, since the old result no longer applies). Green = valid, red =
   invalid, amber = catch-all/unverified.
 
+### Shared drawer look: `lead-magnet-form`
+
+`lead-magnet-form` (the add/edit Lead Magnet offcanvas, opened from `lead-magnets`
+at the same 800px `contact-slide-content` width) reuses this exact drawer design —
+flex-column `.canvas-content-wrap` (header / scrollable `.canvas-body` / docked
+`.buttons` footer, with `.canvas-form` wrapping body+footer so the footer stays
+pinned), the round `.close-btn`, a `.form-section` card (gradient `.section-icon` +
+title), soft-filled `.field`/`.form-control` inputs, and plain `.blue-button` /
+`.blue-border-white-bg-button` footer buttons (Cancel then Save, Save shows an
+inline spinner). Its SCSS duplicates the tokens/layout locally. If you restyle the
+drawer, update both this and `prospecting-contacts`.
+
 ---
 
 ## Table cards
