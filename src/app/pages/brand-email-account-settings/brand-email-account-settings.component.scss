@@ -379,6 +379,27 @@ $kx-shadow: 0 10px 30px -18px rgba(9, 93, 209, 0.35), 0 2px 8px rgba(31, 42, 68,
   font-weight: 600;
 }
 
+// Informational note shown when we auto-clean the host value.
+.field-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin-top: 6px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1d4ed8;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+
+  i {
+    margin-top: 1px;
+    flex-shrink: 0;
+  }
+}
+
 // ── Add SMTP modal ──────────────────────────────────────────────────────
 .kx-modal {
   padding: 4px;

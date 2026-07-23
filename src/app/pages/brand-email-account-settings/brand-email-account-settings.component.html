@@ -209,10 +209,15 @@
                   class="form-control"
                   placeholder="smtp.example.com"
                   formControlName="smtpHost"
+                  (blur)="onSmtpHostBlur()"
+                  (input)="onSmtpHostInput()"
                   [class.error]="formValidationErrorCheck('smtpHost')"
                 />
               </div>
               <span class="field-error" *ngIf="formValidationErrorCheck('smtpHost')">Field is required</span>
+              <span class="field-note" *ngIf="smtpHostNotice">
+                <i class="fa fa-info-circle" aria-hidden="true"></i> {{ smtpHostNotice }}
+              </span>
             </div>
 
             <div class="field">

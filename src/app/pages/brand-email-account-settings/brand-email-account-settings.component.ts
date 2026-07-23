@@ -111,6 +111,7 @@ export class BrandEmailAccountSettingsComponent implements OnInit {
 
   buildAddSmtpForm = () => {
     this.submitted = false;
+    this.smtpHostNotice = null;
     this.addSmtpForm = new FormGroup({
       smtpFromName: new FormControl('', Validators.compose([Validators.required])),
       smtpFromEmail: new FormControl(
@@ -185,6 +186,45 @@ export class BrandEmailAccountSettingsComponent implements OnInit {
     return control.invalid && (this.submitted || control.dirty);
   };
 
+  // A SMTP host is a bare hostname (e.g. "smtp.gmail.com"), NOT a URL. Users
+  // often paste "https://smtp.gmail.com/" or add a trailing slash/path, which
+  // the backend can't connect to. Strip any scheme, path, query, port suffix
+  // and surrounding whitespace so only the host remains.
+  private sanitizeSmtpHost = (value: string): string => {
+    if (!value) return '';
+    return value
+      .trim()
+      .replace(/^[a-z][a-z0-9+.-]*:\/\//i, '') // http:// https:// smtp:// etc.
+      .replace(/\/.*$/, '') // any path
+      .replace(/[?#].*$/, '') // query/fragment
+      .replace(/:\d+$/, '') // trailing :port (port has its own field)
+      .trim();
+  };
+
+  // An inline note shown under the Host field when we auto-cleaned the value,
+  // so the user sees WHAT we changed and WHY (rather than a silent fix).
+  smtpHostNotice: string | null = null;
+
+  // Normalise the host in place on blur so the user sees the cleaned value,
+  // and surface an explanatory note describing the change.
+  onSmtpHostBlur = () => {
+    const control = this.addSmtpForm.get('smtpHost');
+    if (!control) return;
+    const original = control.value;
+    const cleaned = this.sanitizeSmtpHost(original);
+    if (cleaned !== original) {
+      control.setValue(cleaned);
+      this.smtpHostNotice = `Cleaned up to “${cleaned}”. An SMTP host must be a bare hostname (like smtp.gmail.com), so we removed the URL prefix/path from what you entered.`;
+    } else {
+      this.smtpHostNotice = null;
+    }
+  };
+
+  // Clear the note as soon as the user edits the host again.
+  onSmtpHostInput = () => {
+    this.smtpHostNotice = null;
+  };
+
   handleSubmit = async () => {
     this.submitted = true;
     if (!this.addSmtpForm.valid) {
@@ -193,6 +233,9 @@ export class BrandEmailAccountSettingsComponent implements OnInit {
     }
 
     const formValue = this.addSmtpForm.getRawValue();
+    // Safety net in case the value wasn't cleaned on blur (e.g. paste + submit):
+    // strip any scheme/path so the backend gets a bare hostname.
+    formValue.smtpHost = this.sanitizeSmtpHost(formValue.smtpHost);
     // API expects a numeric port; the <select> yields a string.
     const smtpPort = formValue.smtpPort ? Number(formValue.smtpPort) : formValue.smtpPort;
 
