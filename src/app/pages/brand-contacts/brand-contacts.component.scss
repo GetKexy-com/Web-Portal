@@ -13,13 +13,18 @@
 
   .content-area {
     padding: 24px;
-    //overflow-x: scroll;
+    // Bounded flex column so the contacts card fills the remaining height and
+    // its footer pager stays visible (only the table body scrolls).
     height: calc(100vh - 129px);
-    background: #e7f6fe;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    background: #f4f6fb;
 
     // Active-filter tokens (LinkedIn / Airtable style): one removable chip per
     // filter, each showing its value + an ✕, with a Clear all at the end.
     .active-filters {
+      flex-shrink: 0;
       display: flex;
       align-items: center;
       flex-wrap: wrap;

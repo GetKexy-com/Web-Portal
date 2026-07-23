@@ -1,9 +1,23 @@
 .brand-list-contacts-page {
-  background: #e7f6fe;
+  background: #f4f6fb;
   padding: 18px 24px;
-  min-height: calc(100vh - 70px);
+  // Bounded flex column: info card on top, the contacts card fills the rest and
+  // scrolls internally so its footer pager stays visible on screen.
+  height: calc(100vh - 70px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 
   .card-area-wrap {
     padding-bottom: 20px;
+    flex-shrink: 0;
+  }
+
+  // The section wrapping <contact-list-card> takes the remaining height.
+  section:not(.card-area-wrap) {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
   }
 }

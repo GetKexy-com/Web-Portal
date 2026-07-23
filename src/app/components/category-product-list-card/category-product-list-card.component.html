@@ -1,115 +1,124 @@
 <div class="product-card">
-  <div class="card-header">
-    <div class="card-add-new">
-      <app-kexy-button
-        label="ADD PRODUCT/SERVICE"
-        iconLeft="fa-plus"
-        bgColor="white"
-        textColor="#0047cc"
-        fontSize="12px !important"
-        iconSize="small"
-        (click)="addNewBtnClick($event)"
-      />
+  <div class="pc-header">
+    <div class="pc-header-info">
+      <h3 class="pc-title">Products &amp; Services</h3>
+      @if (products().length) {
+        <span class="pc-count">{{ products().length }}</span>
+      }
     </div>
+    <app-kexy-button
+      label="Add Product/Service"
+      iconLeft="fa-plus"
+      bgColor="#12a5f4"
+      textColor="#ffffff"
+      fontSize="13px !important"
+      iconSize="small"
+      (click)="addNewBtnClick($event)"
+    />
   </div>
-  <div class="list-table">
-    <div class="head-area">
-      <p class="number-cell">No</p>
-      <p class="product-name-cell">Product/Service Name</p>
-      <p class="icons-cell"></p>
-    </div>
-    <div class="body-area">
-      @if (products().length > 0) {
-        @for (product of products(); track product.id; let i = $index) {
-          <div class="table-row-wrap">
-            <div class="table-row">
-              <div class="d-flex" style="width: 70%">
-                <p class="number">{{ i + 1 }}</p>
-                @if (!product.isEditClicked) {
-                  <p class="product-name category-product-name-typography">
-                    {{ product.name }}
-                  </p>
-                }
-                @if (product.isEditClicked) {
-                  <div class="product-name">
-                    <input class="form-control" [(ngModel)]="product.name" [value]="product.name" />
-                  </div>
-                }
+
+  <div class="pc-list">
+    @if (products().length > 0) {
+      @for (product of products(); track product.id; let i = $index) {
+        <div class="pc-row" [class.open]="product.isOpened">
+          <div class="pc-row-main" (click)="handleRowClick(i)">
+            <span class="pc-index">{{ i + 1 }}</span>
+
+            @if (!product.isEditClicked) {
+              <p class="pc-name">{{ product.name || 'Untitled product/service' }}</p>
+            } @else {
+              <div class="pc-name-edit" (click)="$event.stopPropagation()">
+                <input
+                  class="pc-input"
+                  [(ngModel)]="product.name"
+                  [value]="product.name"
+                  placeholder="Product / service name"
+                />
               </div>
-              <div class="icons-wrap">
-                <div class="edit-delete-icon-wrap">
-                  <i (click)="handleEditClick(i)" class="fa fa-pencil" aria-hidden="true"></i>
-                  <i (click)="deleteProduct(product)" class="fa fa-trash-o" aria-hidden="true"></i>
-                </div>
-                @if (!product.isOpened) {
-                  <div class="toggle-icon-wrap" (click)="handleRowClick(i)">
-                    <i class="fa fa-angle-down" aria-hidden="true"></i>
-                  </div>
-                }
-                @if (product.isOpened) {
-                  <div class="toggle-icon-wrap active" (click)="handleRowClick(i)">
-                    <i class="fa fa-angle-up" aria-hidden="true"></i>
-                  </div>
-                }
-              </div>
+            }
+
+            <div class="pc-actions" (click)="$event.stopPropagation()">
+              <button type="button" class="pc-icon-btn" title="Edit" (click)="handleEditClick(i)">
+                <i class="fa fa-pencil" aria-hidden="true"></i>
+              </button>
+              <button type="button" class="pc-icon-btn danger" title="Delete" (click)="deleteProduct(product)">
+                <i class="fa fa-trash-o" aria-hidden="true"></i>
+              </button>
+              <button
+                type="button"
+                class="pc-chevron"
+                [class.active]="product.isOpened"
+                title="Show descriptions"
+                (click)="handleRowClick(i)"
+              >
+                <i class="fa" [class.fa-angle-down]="!product.isOpened" [class.fa-angle-up]="product.isOpened" aria-hidden="true"></i>
+              </button>
             </div>
-            @if (product.isOpened) {
-              <div class="product-desc">
-                <div class="d-flex flex-row align-items-center justify-content-between">
-                  <p></p>
-                  <app-kexy-button
-                    label="ADD NEW DESCRIPTION"
-                    iconLeft="fa-plus"
-                    bgColor="white"
-                    textColor="#0047cc"
-                    fontSize="12px !important"
-                    iconSize="small"
-                    (click)="addNewDescription($event, product)"
-                  />
-                </div>
-                @for (description of product.descriptions; track description; let j = $index) {
-                  <div [ngClass]="{ 'mt-2': j === 0, 'mt-4': j !== 0 }">
-                    <p class="input-label-text description-label">Product/Service Description {{ j + 1 }}</p>
-                    <div class="d-flex">
-                      <textarea
-                        (blur)="syncProductDescription($event, product, j)"
-                        [value]="description"
-                        class="form-control mt-2"
-                      ></textarea>
-                      <app-kexy-button
-                        label=""
-                        iconLeft="fa-trash"
-                        bgColor="white"
-                        textColor="#0047cc"
-                        fontSize="12px !important"
-                        iconSize="small"
-                        (click)="deleteProductDescription(product, j)"
-                      />
-                    </div>
-                  </div>
-                }
+          </div>
+
+          @if (product.isOpened) {
+            <div class="pc-panel">
+              <div class="pc-panel-head">
+                <span class="pc-panel-title">
+                  Descriptions
+                  <span class="pc-panel-count">{{ product.descriptions.length }}</span>
+                </span>
+                <app-kexy-button
+                  label="Add Description"
+                  iconLeft="fa-plus"
+                  bgColor="#ffffff"
+                  textColor="#0b72b7"
+                  fontSize="12px !important"
+                  iconSize="small"
+                  (click)="addNewDescription($event, product)"
+                />
               </div>
-              @if (product.isEditClicked) {
-                <div class="bottom-btn-wrap">
-                  <app-kexy-button
-                    (click)="createOrUpdateProduct(product)"
-                    label="Save changes"
-                  />
+
+              @for (description of product.descriptions; track $index; let j = $index) {
+                <div class="pc-desc">
+                  <div class="pc-desc-head">
+                    <span class="pc-desc-label">Description {{ j + 1 }}</span>
+                    <button
+                      type="button"
+                      class="pc-icon-btn danger sm"
+                      title="Delete description"
+                      (click)="deleteProductDescription(product, j)"
+                    >
+                      <i class="fa fa-trash-o" aria-hidden="true"></i>
+                    </button>
+                  </div>
+                  <textarea
+                    class="pc-textarea"
+                    [value]="description"
+                    placeholder="Describe this product or service — the more accurate the detail, the better the emails."
+                    (blur)="syncProductDescription($event, product, j)"
+                  ></textarea>
                 </div>
               }
-            }
-          </div>
-        }
+
+              @if (product.isEditClicked) {
+                <div class="pc-save">
+                  <app-kexy-button (click)="createOrUpdateProduct(product)" label="Save changes" />
+                </div>
+              }
+            </div>
+          }
+        </div>
       }
-      @if (products().length === 0 && !isLoading()) {
-        <p class="p-3 text-center">Sorry! No data found.</p>
-      }
-    </div>
+    }
+
+    @if (products().length === 0 && !isLoading()) {
+      <div class="pc-empty">
+        <span class="pc-empty-icon"><i class="fa fa-cube" aria-hidden="true"></i></span>
+        <p class="pc-empty-title">No products or services yet</p>
+        <p class="pc-empty-sub">Add your first product/service so KEXY can write better cold emails.</p>
+      </div>
+    }
 
     @if (isLoading()) {
-      <p class="load-more-text mt-3 mb-3 pb-3 text-center">
-        <i class="fa fa-spinner fa-spin" aria-hidden="true" style="color: black"></i>
-      </p>
+      <div class="pc-loading">
+        <i class="fa fa-spinner fa-spin" aria-hidden="true"></i>
+      </div>
     }
   </div>
 </div>

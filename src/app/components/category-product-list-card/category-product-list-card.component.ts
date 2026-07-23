@@ -1,7 +1,6 @@
 import { Component, Input, inject, signal, DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { NgClass } from '@angular/common';
 import Swal from 'sweetalert2';
 import { ProspectingService } from 'src/app/services/prospecting.service';
 import { AuthService } from 'src/app/services/auth.service';
@@ -12,9 +11,7 @@ import {KexyButtonComponent} from '../kexy-button/kexy-button.component';
   standalone: true,
   imports: [
     KexyButtonComponent,
-    FormsModule,
-    NgClass,
-    KexyButtonComponent
+    FormsModule
   ],
   templateUrl: './category-product-list-card.component.html',
   styleUrl: './category-product-list-card.component.scss'

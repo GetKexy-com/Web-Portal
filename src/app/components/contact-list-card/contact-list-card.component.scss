@@ -19,15 +19,28 @@ $st-red-bg: #fdecec;
 $st-amber: #b45309;
 $st-amber-bg: #fef3d9;
 
+// The host fills the remaining height its (flex-column) page parent gives it, so
+// the card's header + footer pager stay pinned and only the body scrolls.
+:host {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
 .kexy-table-card {
   background: #ffffff;
-  margin-bottom: 20px;
   border: 1px solid $kx-border;
   border-radius: 14px;
   box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
 
   .card-header, .card-footer {
+    flex-shrink: 0;
     padding: 14px 18px;
     display: flex;
     justify-content: space-between;
@@ -240,10 +253,13 @@ $st-amber-bg: #fef3d9;
   }
 
   .new-table-wrapper {
+    flex: 1;
+    min-height: 0;
     overflow-y: hidden;
     overflow-x: auto;
 
     .list-wrapper {
+      height: 100%;
       overflow: auto;
 
       .n-table {

@@ -1,7 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ErrorMessageCardComponent } from '../error-message-card/error-message-card.component';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { KexyButtonComponent } from '../kexy-button/kexy-button.component';
 import { KexyRichEditorComponent } from '../kexy-rich-editor/kexy-rich-editor.component';
 import { KexySelectDropdownComponent } from '../kexy-select-dropdown/kexy-select-dropdown.component';
 import { ModalComponent } from '../modal/modal.component';
@@ -24,7 +23,6 @@ import { AddOrDeleteContactLabelComponent } from '../add-or-delete-contact-label
     ReactiveFormsModule,
     CommonModule,
     ErrorMessageCardComponent,
-    KexyButtonComponent,
   ],
   templateUrl: './company-description-canvas.component.html',
   styleUrl: './company-description-canvas.component.scss',

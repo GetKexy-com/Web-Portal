@@ -1,9 +1,11 @@
 .suppression-list-page {
   .content-area {
     padding: 24px;
-    overflow-x: scroll;
+    // The card fills this bounded area (flex column) and scrolls internally, so
+    // the footer pager stays pinned in view. Don't scroll here.
     height: calc(100vh - 129px);
-    background: #e7f6fe;
+    overflow: hidden;
+    background: #f4f6fb;
   }
 }
 

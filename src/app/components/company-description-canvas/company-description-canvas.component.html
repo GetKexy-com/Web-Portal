@@ -1,66 +1,53 @@
 <div class="canvas-content-wrap">
   <div class="head-area">
-    <p>{{ canvasTitle }} Company Description</p>
-    <img src="/assets/images/close-icon.png" alt="Close" (click)="activeCanvas.dismiss('Cross click')" />
+    <div class="head-text">
+      <p class="head-title">{{ canvasTitle }} Company Description</p>
+      <span class="head-subtitle">Details KEXY uses to write your cold emails</span>
+    </div>
+    <button type="button" class="close-btn" aria-label="Close" (click)="activeCanvas.dismiss('Cross click')">
+      <i class="fa fa-times" aria-hidden="true"></i>
+    </button>
   </div>
 
-  <div class="canvas-body">
-    <form [formGroup]="primaryForm" (ngSubmit)="handleSubmit()">
-      <div class="mb-4">
-        <div class="row">
-          <div class="col-12">
-            <div class="input-wrap">
-              <div class="label-and-input">
-                <p>Company Name</p>
-                <input class="form-control" formControlName="companyName" type="text" placeholder="Name" />
-                <div *ngIf="formValidationErrorCheck('companyName')">
-                  <error-message-card message="Field is required!"></error-message-card>
-                </div>
-              </div>
+  <form class="canvas-form" [formGroup]="primaryForm" (ngSubmit)="handleSubmit()">
+    <div class="canvas-body">
+      <div class="form-section">
+        <div class="section-head">
+          <i class="fa fa-building-o section-icon" aria-hidden="true"></i>
+          <span class="section-title">Company details</span>
+        </div>
 
-            </div>
+        <div class="fields-grid">
+          <div class="field full">
+            <label class="field-label">Company Name</label>
+            <input class="form-control" formControlName="companyName" type="text" placeholder="e.g. Acme Inc." />
+            @if (formValidationErrorCheck('companyName')) {
+              <error-message-card message="Field is required!"></error-message-card>
+            }
           </div>
-          <div class="col-12">
-            <div class="input-wrap">
-              <div class="label-and-input">
-                <p>Company Description</p>
-                <textarea class="form-control" formControlName="description" type="text" placeholder="Description"></textarea>
-                <div *ngIf="formValidationErrorCheck('description')">
-                  <error-message-card message="Field is required!"></error-message-card>
-                </div>
-              </div>
-            </div>
+
+          <div class="field full">
+            <label class="field-label">Company Description</label>
+            <textarea class="form-control" formControlName="description"
+                      placeholder="Describe your company — what it does, who it serves, and what makes it stand out…"></textarea>
+            @if (formValidationErrorCheck('description')) {
+              <error-message-card message="Field is required!"></error-message-card>
+            }
           </div>
         </div>
       </div>
+    </div>
 
-      <div class="d-flex gap-3">
-        <app-kexy-button
-          type="submit"
-          class="flex-grow-1"
-          [disabled]="isLoading"
-          label="Save changes"
-        />
-        <app-kexy-button
-          type="button"
-          class="flex-grow-1"
-          [bgColor]="'transparent'"
-          textColor="black"
-          [borderColor]="'#8c8c8c'"
-          (click)="activeCanvas.dismiss('Cross click')"
-          label="Cancel"
-        />
-      </div>
-
-
-<!--      <div class="buttons">-->
-<!--        <button class="blue-button me-3" type="submit" [disabled]="isLoading">-->
-<!--          Save<i *ngIf="isLoading" class="fa fa-spinner fa-spin ms-2" aria-hidden="true" style="color: white"></i>-->
-<!--        </button>-->
-<!--        <button class="blue-border-white-bg-button" type="button" (click)="activeCanvas.dismiss('Cross click')">-->
-<!--          Cancel-->
-<!--        </button>-->
-<!--      </div>-->
-    </form>
-  </div>
+    <div class="buttons">
+      <button class="blue-border-white-bg-button" type="button" (click)="activeCanvas.dismiss('Cross click')">
+        Cancel
+      </button>
+      <button class="blue-button" type="submit" [disabled]="isLoading">
+        @if (isLoading) {
+          <i class="fa fa-spinner fa-spin me-2" aria-hidden="true"></i>
+        }
+        Save
+      </button>
+    </div>
+  </form>
 </div>

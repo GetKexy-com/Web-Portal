@@ -54,7 +54,7 @@ export class BrandLayoutComponent implements OnInit {
   @Input() layoutPaddingNone;
   @Input() fullPageScroll = true;
   @Input() headerBgWhite;
-  @Input() mainBgColor = "#f6f8fb";
+  @Input() mainBgColor = "#f4f6fb";
   @Input() showBackButton = false;
   @Input() headline = "";
   brand = routeConstants.BRAND;

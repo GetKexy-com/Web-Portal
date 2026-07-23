@@ -1,204 +1,301 @@
-.kexy-table-card {
-  background: white;
-  margin-bottom: 20px;
-  border-radius: 12px;
-  box-shadow: 0 1px 5px 0 #d6d6d6;
+// ── Tokens (shared with contact-list-card / label-list-card redesign) ───────
+$kx-primary: #2847cc;
+$kx-primary-soft: #eef2ff;
+$kx-ink: #0f172a;
+$kx-text: #334155;
+$kx-muted: #64748b;
+$kx-faint: #94a3b8;
+$kx-border: #e5e9f0;
+$kx-row-border: #f1f5f9;
+$kx-hover: #f8fafc;
+$kx-selected: #eff6ff;
+$kx-header-bg: #f8fafc;
 
-  .card-header, .card-footer {
-    padding: 15px;
+:host {
+  display: block;
+  height: 100%;
+}
+
+.kexy-table-card {
+  background: #ffffff;
+  border: 1px solid $kx-border;
+  border-radius: 14px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+  overflow: hidden;
+  // Fill the (bounded-height) content area as a flex column so the header and
+  // footer pager stay pinned in view and only the table body scrolls.
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-height: 100%;
+
+  .card-header,
+  .card-footer {
+    flex-shrink: 0;
+    padding: 14px 18px;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 12px;
+    min-height: 62px;
+  }
 
-    p {
-      margin-bottom: 0;
-      font-weight: 600;
-      font-size: 14px;
-      line-height: 16px;
+  .card-footer {
+    border-top: 1px solid $kx-row-border;
+    justify-content: flex-end;
+  }
 
-      span {
-        font-size: 12px;
-      }
+  .card-header-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+
+    .card-title {
+      font-weight: 700;
+      font-size: 16px;
+      color: $kx-ink;
     }
 
-    .pagination-section {
-      .btn-wrap {
-        width: fit-content;
+    .link-text {
+      font-size: 13px;
+      font-weight: 600;
+      color: $kx-primary;
+      cursor: pointer;
+      white-space: nowrap;
+
+      &:hover { text-decoration: underline; }
+    }
+  }
+
+  .pagination-section {
+    display: flex;
+    align-items: center;
+
+    .pager {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding-left: 14px;
+
+      .pager-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border: 1px solid $kx-border;
+        border-radius: 9px;
+        background: #fff;
+        color: $kx-text;
+        font-size: 14px;
+        cursor: pointer;
+        transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+
+        &:hover:not(.disabled) {
+          background: $kx-primary-soft;
+          border-color: $kx-primary;
+          color: $kx-primary;
+        }
+
+        &.disabled {
+          opacity: 0.4;
+          pointer-events: none;
+        }
       }
 
-      .conv-pagination-wrap {
-        padding-left: 20px;
-        border-radius: 10px;
+      .pager-status {
+        margin: 0 8px;
+        font-size: 13px;
+        color: $kx-muted;
+        white-space: nowrap;
 
-        .conv-pagination {
-          display: flex;
-          //justify-content: flex-end;
-          align-items: center;
-          //min-width: 200px;
-          p {
-            color: #5e5e5e;
-            font-size: 14px;
-            margin-bottom: 0;
-          }
-
-          .pagination-arrow {
-            font-size: 20px;
-            width: 30px;
-            cursor: pointer;
-            border-radius: 50%;
-            height: 30px;
-            display: inline-block;
-            text-align: center;
-            background: #e7f6fe;
-
-            &:hover {
-              background: lightgray;
-            }
-          }
-
-          .disabled {
-            color: grey;
-            pointer-events: none;
-            cursor: crosshair;
-          }
-        }
+        strong { color: $kx-ink; font-weight: 700; }
       }
     }
   }
 
   .new-table-wrapper {
+    flex: 1;
+    min-height: 0;
     overflow-y: hidden;
-    overflow-x: scroll;
+    overflow-x: auto;
 
     .list-wrapper {
-      background: #e7f6fe;
-      border-radius: 10px;
+      height: 100%;
+      overflow: auto;
 
       .n-table {
         outline: 0;
+        border-collapse: collapse;
+        table-layout: fixed;
+        width: 100%;
+        min-width: 560px;
 
         .n-product {
-          background: white;
-          border-bottom: 1px solid #a2deff;
+          background: #fff;
+          border-bottom: 1px solid $kx-row-border;
 
-          &:hover {
-            background: #edeeff;
-          }
+          &:hover { background: $kx-hover; }
 
           &.selected {
-            background: #e2f9fe;
+            background: $kx-selected;
+            box-shadow: inset 3px 0 0 0 $kx-primary;
           }
+
+          &.state-row:hover { background: #fff; }
         }
 
         tr.n-header {
           text-transform: uppercase;
-          color: #0047cc;
           position: relative;
           z-index: 1000;
-          font-weight: bold;
-        }
 
-        .n-header-product {
-          width: 20px;
-          padding: 10px;
-          font-size: 12px;
-        }
-
-        .n-header-name,
-        .n-header-title {
-          font-size: 12px;
-          color: #0047cc;
-          padding: 10px 20px;
-
-          .select-all-header-icons {
-            cursor: pointer;
-
-            i {
-              font-size: 18px;
-              width: 15px;
-            }
+          td {
+            position: sticky;
+            top: 0;
+            z-index: 3;
+            background: $kx-header-bg;
+            border-bottom: 1px solid $kx-border;
+            box-shadow: 0 1px 0 $kx-border;
           }
+
+          // Frozen top-left corner (checkbox header) stays above the others on
+          // horizontal scroll.
+          td:first-child {
+            left: 0;
+            z-index: 6;
+          }
+        }
+
+        .n-header-name {
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 0.04em;
+          color: $kx-muted;
+          padding: 12px 20px;
+          white-space: nowrap;
         }
 
         td.n-cell {
-          height: 48px;
-          padding: 0 20px;
-
-          &.col-zip {
-          }
+          height: 56px;
+          padding: 8px 20px;
+          color: $kx-text;
+          vertical-align: middle;
+          white-space: nowrap;
 
           span {
-            font-size: 14px;
+            font-size: 13.5px;
             display: inline-block;
-            line-height: 16px;
-            color: black;
+            line-height: 1.4;
+            color: $kx-text;
             font-weight: normal;
           }
 
-          .col-actions {
-            width: 100%;
-            display: inline-block;
+          // Empty / loading state
+          .table-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            padding: 54px 20px;
             text-align: center;
+            white-space: normal;
 
-            i {
-              font-size: 16px;
-              padding: 10px;
-            }
-          }
-
-          &.title-of-campaign-column-width {
-            width: 170px;
-            padding-left: 10px;
+            .state-icon { font-size: 32px; color: $kx-faint; margin-bottom: 8px; }
+            .state-title { margin: 0; font-size: 15px; font-weight: 700; color: $kx-text; }
+            .state-desc { margin: 0; font-size: 13px; color: $kx-muted; }
           }
         }
       }
     }
-  }
-
-  .pagination {
-    text-align: right;
-    padding: 10px;
   }
 }
 
 .kexy-table-entry-count {
   display: flex;
   align-items: center;
-  color: #5e5e5e;
-  font-size: 14px;
+  color: $kx-muted;
+  font-size: 13px;
   font-weight: 600;
 
   select {
     margin: 0 10px;
     width: auto;
-    padding: 3px;
-    font-size: 14px;
+    padding: 6px 10px;
+    font-size: 13px;
+    border: 1px solid $kx-border;
+    border-radius: 8px;
+    background: #fff;
+    color: $kx-text;
+    cursor: pointer;
+
+    &:focus {
+      outline: none;
+      border-color: $kx-primary;
+      box-shadow: 0 0 0 3px rgba(40, 71, 204, 0.12);
+    }
   }
 }
 
+// Gmail-style checkbox icons — grey outline, dark-grey mark (no blue).
 .checkbox-icon {
-  font-size: 18px;
-  color: #b8b6b6;
-  width: 18px;
-
-  &.selected {
-    color: #2646c5;
-  }
-}
-
-.delete-icon {
   font-size: 20px;
-
-  &:hover {
-    color: red;
-  }
-}
-
-.text-link {
+  color: #80868b;
   cursor: pointer;
 
-  &:hover {
-    text-decoration: underline;
-    color: rgb(40, 71, 204) !important;
+  &.selected { color: #3c4043; }
+}
+.n-product:hover .checkbox-icon:not(.selected) { color: #5f6368; }
+
+// Fixed layout can spill long values into the next column — clip + ellipsis on
+// every cell except the checkbox column (its ::after shadow must stay visible).
+.kexy-table-card .n-table td.n-cell:not(:first-child),
+.kexy-table-card .n-table .n-header-name:not(:first-child) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// First column: FROZEN while scrolling horizontally + tidy checkbox spacing.
+.kexy-table-card .n-table {
+  td.n-cell:first-child,
+  .n-header-name:first-child {
+    padding-left: 20px;
+    padding-right: 4px;
+    min-width: 58px;
+    position: sticky;
+    left: 0;
+    border-right: 1px solid $kx-border;
   }
+
+  td.n-cell:first-child {
+    z-index: 2;
+    background: #fff;
+  }
+}
+.kexy-table-card .n-product:hover td.n-cell:first-child { background: $kx-hover; }
+.kexy-table-card .n-product.selected td.n-cell:first-child {
+  background: $kx-selected;
+  box-shadow: inset 3px 0 0 0 $kx-primary;
+}
+
+// Scroll-aware right shadow on the frozen column.
+.kexy-table-card .n-table td.n-cell:first-child::after,
+.kexy-table-card .n-table .n-header-name:first-child::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  width: 6px;
+  transform: translateX(100%);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  background: linear-gradient(to right, rgba(15, 23, 42, 0.18), rgba(15, 23, 42, 0));
+}
+.list-wrapper.scrolled-x .n-table td.n-cell:first-child::after,
+.list-wrapper.scrolled-x .n-table .n-header-name:first-child::after {
+  opacity: 1;
 }

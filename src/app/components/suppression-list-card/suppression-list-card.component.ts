@@ -31,8 +31,9 @@ export class SuppressionListCardComponent implements OnInit, OnDestroy {
   @Input() toggleSelectAllSelection;
   @Output() selectedLimit: EventEmitter<any> = new EventEmitter();
 
-  public tableWidth = 500;
   public columnList: any[];
+  /** Horizontal-scroll flag → drives the frozen checkbox column's right shadow. */
+  scrolledX = false;
   public labelOptions: any[] = [];
   public list;
   public contactLabelsSubscription: Subscription;
@@ -59,33 +60,35 @@ export class SuppressionListCardComponent implements OnInit, OnDestroy {
   }
 
   getListViewData = () => {
-    let columnList: any;
-    columnList = [
-      { name: "", key: "action", width: 50 },
-      { name: "First Name", key: "contactFirstName", width: 120 },
-      { name: "Last Name", key: "contactLastName", width: 120 },
-      { name: "Email", key: "contactEmail", width: 120 },
+    // Percentage widths fill the card (checkbox is a fixed px column), matching
+    // label-list-card. `table-layout: fixed; width: 100%` in the SCSS drives it.
+    this.columnList = [
+      { name: "", key: "action", width: "58px" },
+      { name: "First Name", key: "contactFirstName", width: "22%" },
+      { name: "Last Name", key: "contactLastName", width: "22%" },
+      { name: "Email", key: "contactEmail", width: "56%" },
     ];
-    this.columnList = columnList;
   };
 
   browserWidthForTable;
   calcWidth = () => {
+    // The table is width:100% now, so we only need the wrapper's own width for the
+    // empty/loading state span (fall back to viewport − sidebar before layout).
     const sidebarWidth = document.getElementById("main-sidebar")?.clientWidth || 0;
-    const pageMargin = 48;
-    let sum = 300;
-    let map = {};
-    this.columnList.forEach((column) => {
-      sum += column.width;
-      map[column.key] = column.width;
-    });
-    // Prefer the table wrapper's own width so the table fills the available space
-    // on first render, instead of depending on #main-sidebar (not measurable for
-    // ~1-2s after load → table snapped from the narrow column-sum to full width).
     const wrapper = this.host?.nativeElement?.querySelector(".new-table-wrapper") as HTMLElement | null;
-    this.browserWidthForTable = wrapper?.clientWidth || (window.innerWidth - sidebarWidth - pageMargin);
-    this.tableWidth = this.browserWidthForTable > sum ? this.browserWidthForTable : sum;
+    this.browserWidthForTable = wrapper?.clientWidth || (window.innerWidth - sidebarWidth - 48);
   };
+
+  /** Toggle the frozen-column shadow only on the 0 ↔ scrolled boundary. */
+  onTableScroll = (event: Event) => {
+    const scrolled = (event.target as HTMLElement).scrollLeft > 0;
+    if (scrolled !== this.scrolledX) this.scrolledX = scrolled;
+  };
+
+  isFirstPage = () => this.currentPage <= 1;
+  isLastPage = () => this.currentPage >= this.totalPage;
+
+  trackByRow = (_: number, row: any) => row?.id;
 
   onShowEntriesSelect = ($event) => {
     this.selectedLimit.emit(this.limit);
