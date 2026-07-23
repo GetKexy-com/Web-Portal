@@ -1,79 +1,157 @@
+$kx-primary: #2847cc;
+$kx-primary-soft: #eef2ff;
+$kx-ink: #0f172a;
+$kx-text: #334155;
+$kx-muted: #64748b;
+$kx-border: #e5e9f0;
+
 :host {
-  display: flex;
+  // Auto width (not 100%) so, in a flex card-header, it doesn't squeeze the
+  // title beside it. It still right-aligns via the parent's justify-content.
+  display: inline-flex;
   justify-content: flex-end;
   align-items: center;
-  width: 100%;
 }
 
-/* LEFT: Per page */
+.pager-bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* Per page */
 .kexy-table-entry-count {
   display: flex;
   align-items: center;
-  color: #5e5e5e;
-  font-size: 14px;
+  color: $kx-muted;
+  font-size: 13px;
   font-weight: 600;
 
   select {
     margin: 0 10px;
     width: auto;
-    padding: 3px;
-    font-size: 14px;
+    padding: 6px 10px;
+    font-size: 13px;
+    border: 1px solid $kx-border;
+    border-radius: 8px;
+    background: #fff;
+    color: $kx-text;
+    cursor: pointer;
+
+    &:focus {
+      outline: none;
+      border-color: $kx-primary;
+      box-shadow: 0 0 0 3px rgba(40, 71, 204, 0.12);
+    }
   }
 }
 
-/* RIGHT: Pagination */
 .pagination-section {
   display: flex;
   align-items: center;
+  gap: 16px;
 
-  .conv-pagination-wrap {
-    padding-left: 20px;
+  .pager {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
 
-    .conv-pagination {
-      display: flex;
+    .pager-btn {
+      display: inline-flex;
       align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border: 1px solid $kx-border;
+      border-radius: 9px;
+      background: #fff;
+      color: $kx-text;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 
-      p {
-        color: #5e5e5e;
-        font-size: 14px;
+      &:hover:not(.disabled) {
+        background: $kx-primary-soft;
+        border-color: $kx-primary;
+        color: $kx-primary;
+      }
+
+      &.disabled {
+        opacity: 0.4;
+        pointer-events: none;
+      }
+    }
+
+    .pager-status {
+      margin: 0 8px;
+      font-size: 13px;
+      color: $kx-muted;
+      white-space: nowrap;
+
+      strong { color: $kx-ink; font-weight: 700; }
+    }
+  }
+
+  .pager-jump {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+
+    label {
+      margin: 0;
+      font-size: 13px;
+      font-weight: 600;
+      color: $kx-muted;
+    }
+
+    .jump-input {
+      width: 54px;
+      height: 32px;
+      padding: 4px 8px;
+      border: 1px solid $kx-border;
+      border-radius: 8px;
+      font-size: 13px;
+      text-align: center;
+      color: $kx-ink;
+      -moz-appearance: textfield;
+      appearance: textfield;
+
+      &::-webkit-outer-spin-button,
+      &::-webkit-inner-spin-button {
+        -webkit-appearance: none;
         margin: 0;
-        font-weight: 600;
       }
 
-      .pagination-arrow {
-        width: 30px;
-        height: 30px;
-        border-radius: 50%;
-        background: #e7f6fe;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-
-        i {
-          font-size: 16px;
-        }
-
-        &:hover {
-          background: #d6eefd;
-        }
-
-        &.disabled {
-          opacity: 0.5;
-          pointer-events: none;
-        }
+      &:focus {
+        outline: none;
+        border-color: $kx-primary;
+        box-shadow: 0 0 0 3px rgba(40, 71, 204, 0.12);
       }
+    }
 
-      .pagination-arrow + .pagination-arrow {
-        margin-left: 6px;
-      }
+    .jump-go {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border: none;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #12a5f4, #095dd1);
+      color: #fff;
+      font-size: 13px;
+      cursor: pointer;
+      transition: filter 0.15s ease;
+
+      &:hover { filter: brightness(1.05); }
     }
   }
 }
 
 /* MOBILE */
 @media (max-width: 575px) {
-  :host {
+  .pager-bar {
     flex-direction: column;
     align-items: flex-start;
     gap: 8px;
@@ -81,19 +159,7 @@
 
   .pagination-section {
     width: 100%;
-    justify-content: space-between;
-
-    .conv-pagination-wrap {
-      padding-left: 0;
-    }
-
-    .pagination-arrow {
-      width: 26px;
-      height: 26px;
-
-      i {
-        font-size: 14px;
-      }
-    }
+    flex-wrap: wrap;
+    gap: 10px;
   }
 }

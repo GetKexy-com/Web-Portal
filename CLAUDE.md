@@ -445,6 +445,25 @@ is `width:100%`, not a px sum). Non-checkbox cells get `overflow:hidden;
 text-overflow:ellipsis`. NOTE: the checkbox column is `58px` on Lists but `87px` on
 Contacts — intentional per the user's edits, not yet unified.
 
+### `lead-magnets` page — same redesign
+
+The Lead Magnets table (`app-lead-magnets`, its own inline table — not a shared
+card) got the full contacts treatment: light header (`#f8fafc`/`#64748b`) with a
+**"Lead Magnets" title + count chip**, 54px rows, sticky header, **frozen checkbox
+column + scroll shadow** (`scrolledX`/`onTableScroll`), Gmail-style FA checkboxes,
+`.table-state` empty/loading, and the **percentage fill-width model** (checkbox
+`58px`, URL/Title/Summary `28/22/50%`, `table-layout:fixed; width:100%;
+min-width:640px`). All the table CSS lives in `lead-magnets.component.scss` (tokens
+duplicated locally).
+
+**Pagination** here uses the shared **`app-pagination`** component (top + footer) —
+which was upgraded to the contacts-style pager: First/Prev/`Page X of Y`/Next/Last
+(disabled at bounds) + a "Go to [#]" jump, via new `@Output()`s `first`/`last`/
+`navigate` (page handlers `paginationFirstClick`/`paginationLastClick`/
+`navigateToPage`). `app-pagination` is only used by lead-magnets. **Gotcha:** its
+`:host` is `inline-flex` (NOT `width:100%`) — a full-width host squeezed the card
+title onto two lines in the flex header.
+
 ---
 
 ## Auth pages (login / onboarding wizard)

@@ -86,23 +86,33 @@
 
       <div class="kexy-table-card">
         <section class="card-header">
-            <app-pagination
-              *ngIf="totalPage"
-              [page]="page"
-              [totalPage]="totalPage"
-              [isLoading]="isLoading"
-              [limit]="limit"
-              (left)="paginationLeftArrowClick()"
-              (right)="paginationRightArrowClick()"
-              (limitChange)="onShowEntriesSelect($event)">
-            </app-pagination>
+          <div class="d-flex align-items-center">
+            <span class="card-title">Lead Magnets</span>
+            <span *ngIf="totalContactsCount" class="count-chip">{{ totalContactsCount }}</span>
+          </div>
+          <app-pagination
+            *ngIf="totalPage"
+            [page]="page"
+            [totalPage]="totalPage"
+            [isLoading]="isLoading"
+            [limit]="limit"
+            (first)="paginationFirstClick()"
+            (last)="paginationLastClick()"
+            (navigate)="navigateToPage($event)"
+            (left)="paginationLeftArrowClick()"
+            (right)="paginationRightArrowClick()"
+            (limitChange)="onShowEntriesSelect($event)">
+          </app-pagination>
         </section>
 
         <section class="new-table-wrapper">
           <div
-            [style.height]="!isWaitingFlag && leadMagnets.length ? 'calc(100vh - 330px)' : 'auto'" class="list-wrapper"
+            [style.height]="!isWaitingFlag && leadMagnets.length ? 'calc(100vh - 330px)' : 'auto'"
+            class="list-wrapper"
+            [class.scrolled-x]="scrolledX"
+            (scroll)="onTableScroll($event)"
           >
-            <table *ngIf="columnList" [style.width]="tableWidth + 'px'" class="n-table">
+            <table *ngIf="columnList" class="n-table">
               <!-- header - start -->
               <thead>
               <tr class="n-header">
@@ -111,7 +121,7 @@
                     class="n-header-name"
                     [style.background-color]="tableHeaderBg"
                     [style.color]="tableHeaderColor"
-                    [style.width]="column.width ? column.width+'px' : ''"
+                    [style.width]="column.width"
                   >
                     <!--Showing column name-->
                     <span *ngIf="column.name">
@@ -127,7 +137,7 @@
               <ng-container *ngIf="!isWaitingFlag && leadMagnets.length > 0">
                 <tbody>
                 <tr class="n-product" [class.selected]="lead.isSelected"
-                    *ngFor="let lead of leadMagnets; let i = index"
+                    *ngFor="let lead of leadMagnets; trackBy: trackByLead"
                     (click)="editContact(lead)">
                   <ng-container *ngFor="let column of columnList">
                     <td
@@ -151,7 +161,7 @@
                         <i
                           *ngIf="lead.isSelected"
                           aria-hidden="true"
-                          class="fa fa-check-square checkbox-icon selected">
+                          class="fa fa-check-square-o checkbox-icon selected">
                         </i>
                     </span>
 
@@ -161,18 +171,23 @@
                 </tbody>
               </ng-container>
               <ng-container *ngIf="!isWaitingFlag && leadMagnets.length === 0">
-                <tr class="n-product">
+                <tr class="n-product state-row">
                   <td [colSpan]="columnList.length" class="n-cell">
-              <span class="text-center d-inline-block"
-                    [style.width]="browserWidthForTable + 'px'">Sorry, no data found.</span>
+                    <div class="table-state" [style.width]="browserWidthForTable + 'px'">
+                      <i class="fa fa-magnet state-icon" aria-hidden="true"></i>
+                      <p class="state-title">No lead magnets yet</p>
+                      <p class="state-desc">Add a lead magnet to get started.</p>
+                    </div>
                   </td>
                 </tr>
               </ng-container>
               <ng-container *ngIf="isWaitingFlag">
-                <tr class="n-product">
+                <tr class="n-product state-row">
                   <td [colSpan]="columnList.length" class="n-cell">
-              <span class="text-center d-inline-block" [style.width]="browserWidthForTable + 'px'"><i
-                class="fa fa-refresh fa-spin"></i></span>
+                    <div class="table-state" [style.width]="browserWidthForTable + 'px'">
+                      <i class="fa fa-spinner fa-spin state-icon" aria-hidden="true"></i>
+                      <p class="state-title">Loading lead magnets…</p>
+                    </div>
                   </td>
                 </tr>
               </ng-container>
@@ -189,6 +204,9 @@
             [totalPage]="totalPage"
             [isLoading]="isLoading"
             [limit]="limit"
+            (first)="paginationFirstClick()"
+            (last)="paginationLastClick()"
+            (navigate)="navigateToPage($event)"
             (left)="paginationLeftArrowClick()"
             (right)="paginationRightArrowClick()"
             (limitChange)="onShowEntriesSelect($event)">

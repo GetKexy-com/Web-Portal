@@ -1,9 +1,7 @@
-<div class="d-flex">
-  <div class="kexy-table-entry-count d-flex align-items-center">
+<div class="pager-bar">
+  <div class="kexy-table-entry-count">
     Per Page:
-    <select class="form-control" style="width: auto"
-            [(ngModel)]="limit"
-            (change)="onLimitChange($event)">
+    <select class="form-control" [(ngModel)]="limit" (change)="onLimitChange($event)">
       <option value="25">25</option>
       <option value="50">50</option>
       <option value="100">100</option>
@@ -11,26 +9,40 @@
   </div>
 
   <div class="pagination-section">
-    <div class="conv-pagination-wrap">
-      <div class="conv-pagination d-flex">
-        <p>
-          Page
-          <ng-container *ngIf="!isLoading">{{ page }}</ng-container>
-          <span *ngIf="isLoading">
-          <i class="fa fa-spinner fa-spin"></i>
-        </span>
-          of {{ totalPage }}
-        </p>
+    <div class="pager">
+      <button type="button" class="pager-btn" [class.disabled]="isFirstPage()"
+              (click)="goFirst()" title="First page" aria-label="First page">
+        <i class="fa fa-angle-double-left" aria-hidden="true"></i>
+      </button>
+      <button type="button" class="pager-btn" [class.disabled]="isFirstPage()"
+              (click)="left.emit()" title="Previous page" aria-label="Previous page">
+        <i class="fa fa-angle-left" aria-hidden="true"></i>
+      </button>
 
-        <div class="ms-2">
-        <span class="pagination-arrow" (click)="left.emit()">
-          <i class="fa fa-angle-left"></i>
-        </span>
-          <span class="pagination-arrow ms-1" (click)="right.emit()">
-          <i class="fa fa-angle-right"></i>
-        </span>
-        </div>
-      </div>
+      <span class="pager-status">
+        Page
+        <ng-container *ngIf="!isLoading"><strong>{{ page }}</strong></ng-container>
+        <i *ngIf="isLoading" class="fa fa-spinner fa-spin" aria-hidden="true"></i>
+        of <strong>{{ totalPage }}</strong>
+      </span>
+
+      <button type="button" class="pager-btn" [class.disabled]="isLastPage()"
+              (click)="right.emit()" title="Next page" aria-label="Next page">
+        <i class="fa fa-angle-right" aria-hidden="true"></i>
+      </button>
+      <button type="button" class="pager-btn" [class.disabled]="isLastPage()"
+              (click)="goLast()" title="Last page" aria-label="Last page">
+        <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+      </button>
     </div>
+
+    <form class="pager-jump" (ngSubmit)="handleNavigate()">
+      <label>Go to</label>
+      <input class="jump-input" type="number" min="1" [max]="totalPage" placeholder="#"
+             [(ngModel)]="navigatePageNumber" [ngModelOptions]="{standalone: true}" />
+      <button type="submit" class="jump-go" title="Go" aria-label="Go to page">
+        <i class="fa fa-arrow-right" aria-hidden="true"></i>
+      </button>
+    </form>
   </div>
 </div>

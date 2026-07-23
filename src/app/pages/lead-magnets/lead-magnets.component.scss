@@ -1,3 +1,16 @@
+// ── Tokens (shared with contact-list-card redesign) ─────────────────────────
+$kx-primary: #2847cc;
+$kx-primary-soft: #eef2ff;
+$kx-ink: #0f172a;
+$kx-text: #334155;
+$kx-muted: #64748b;
+$kx-faint: #94a3b8;
+$kx-border: #e5e9f0;
+$kx-row-border: #f1f5f9;
+$kx-hover: #f8fafc;
+$kx-selected: #eff6ff;
+$kx-header-bg: #f8fafc;
+
 .brand-contacts-page {
   .top-btns {
     min-height: 60px;
@@ -13,168 +26,212 @@
 
   .content-area {
     padding: 24px;
-    //overflow-x: scroll;
+    // The card owns its own horizontal scroll (sticky header + frozen column).
     height: calc(100vh - 129px);
     background: #e7f6fe;
-
-    .filter-info {
-      text-decoration: none !important;
-      padding: 4px 15px 4px 10px;
-      border-radius: 15px;
-      font-size: 14px;
-      background: #5879d9;
-      color: white !important;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      cursor: pointer;
-
-      span {
-        display: inline-block;
-        width: 8px;
-        height: 8px;
-        border-radius: 5px;
-        background: #ffff00;
-        margin-right: 5px;
-      }
-    }
   }
 
+  // ── Table card (matches contact-list-card) ────────────────────────────────
   .kexy-table-card {
-    background: white;
+    background: #ffffff;
     margin-bottom: 20px;
-    border-radius: 12px;
-    box-shadow: 0 1px 5px 0 #d6d6d6;
+    border: 1px solid $kx-border;
+    border-radius: 14px;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+    overflow: hidden;
 
     .card-header, .card-footer {
-      padding: 15px;
+      padding: 14px 18px;
       display: flex;
-      justify-content: flex-end;
+      justify-content: space-between;
       align-items: center;
-      height: 60px;
+      gap: 12px;
+      min-height: 62px;
+    }
+
+    .card-footer {
+      justify-content: flex-end;
+      border-top: 1px solid $kx-border;
+      background: #fff;
+    }
+
+    .card-title {
+      font-weight: 700;
+      font-size: 16px;
+      color: $kx-ink;
+      white-space: nowrap;
+    }
+
+    .count-chip {
+      margin-left: 8px;
+      padding: 2px 9px;
+      border-radius: 999px;
+      background: $kx-primary-soft;
+      color: $kx-primary;
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1.6;
     }
 
     .new-table-wrapper {
       overflow-y: hidden;
-      overflow-x: scroll;
+      overflow-x: auto;
 
       .list-wrapper {
-        //background: #e7f6fe;
-        //border-radius: 10px;
-        //height: calc(100vh - 280px);
-        overflow: scroll;
+        overflow: auto;
 
         .n-table {
           outline: 0;
+          border-collapse: collapse;
+          // Fill the width with proportional (percentage) columns; the checkbox
+          // is a fixed px column. min-width keeps it usable on narrow screens.
+          table-layout: fixed;
+          width: 100%;
+          min-width: 640px;
 
           .n-product {
-            background: white;
+            background: #fff;
             cursor: pointer;
-            border-bottom: 1px solid #a2deff;
+            border-bottom: 1px solid $kx-row-border;
 
-            &:hover {
-              background: #edeeff;
-            }
+            &:hover { background: $kx-hover; }
 
             &.selected {
-              background: #e2f9fe;
+              background: $kx-selected;
+              box-shadow: inset 3px 0 0 0 $kx-primary;
             }
+
+            &.state-row:hover { background: #fff; }
           }
 
           tr.n-header {
             text-transform: uppercase;
-            color: #0047cc;
             position: relative;
             z-index: 1000;
-            font-weight: bold;
-          }
 
-          .n-header-product {
-            width: 20px;
-            padding: 10px;
-            font-size: 12px;
-          }
-
-          .n-header-name,
-          .n-header-title {
-            font-size: 12px;
-            color: #0047cc;
-            padding: 10px 0;
-
-            .select-all-header-icons {
-              display: inline-block;
-              width: 100%;
-              text-align: center;
-              cursor: pointer;
-
-              i {
-                font-size: 18px;
-                width: 15px;
-              }
+            td {
+              position: sticky;
+              top: 0;
+              z-index: 3;
+              background: $kx-header-bg;
+              border-bottom: 1px solid $kx-border;
+              box-shadow: 0 1px 0 $kx-border;
             }
+
+            // Frozen top-left corner: above the other headers on horizontal scroll.
+            td:first-child {
+              left: 0;
+              z-index: 6;
+            }
+          }
+
+          .n-header-name {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            color: $kx-muted;
+            padding: 12px 20px;
+            white-space: nowrap;
           }
 
           td.n-cell {
-            height: 48px;
-
-            &.col-zip {
-            }
-
+            height: 54px;
+            padding: 8px 20px;
+            color: $kx-text;
+            vertical-align: middle;
+            white-space: nowrap;
 
             span {
-              font-size: 14px;
+              font-size: 13.5px;
               display: inline-block;
-              line-height: 16px;
-              color: black;
+              line-height: 1.4;
+              color: $kx-text;
               font-weight: normal;
             }
 
-            .col-actions {
-              width: 100%;
-              display: inline-block;
-              text-align: center;
-
-              i {
-                font-size: 16px;
-                padding: 10px;
-              }
+            .first-letter-cap {
+              &::first-letter { text-transform: uppercase; }
             }
 
-            &.title-of-campaign-column-width {
-              width: 170px;
-              padding-left: 10px;
+            // Empty / loading state
+            .table-state {
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+              gap: 4px;
+              padding: 54px 20px;
+              text-align: center;
+              white-space: normal;
+
+              .state-icon { font-size: 32px; color: $kx-faint; margin-bottom: 8px; }
+              .state-title { margin: 0; font-size: 15px; font-weight: 700; color: $kx-text; }
+              .state-desc { margin: 0; font-size: 13px; color: $kx-muted; }
             }
           }
         }
       }
     }
-
   }
 
-
+  // Gmail-style checkbox icons — grey outline, dark-grey mark (no blue).
   .checkbox-icon {
-    font-size: 18px;
-    color: #b8b6b6;
-
-    &.selected {
-      color: #2646c5;
-    }
-  }
-
-  .delete-icon {
     font-size: 20px;
+    color: #80868b;
+    cursor: pointer;
 
-    &:hover {
-      color: red;
+    &.selected { color: #3c4043; }
+  }
+  .n-product:hover .checkbox-icon:not(.selected) { color: #5f6368; }
+
+  // First column: FROZEN while scrolling horizontally + tidy checkbox spacing.
+  .n-table {
+    td.n-cell:first-child,
+    .n-header-name:first-child {
+      padding-left: 28px;
+      padding-right: 4px;
+      min-width: 58px;
+      position: sticky;
+      left: 0;
+      border-right: 1px solid $kx-border;
+    }
+
+    td.n-cell:first-child {
+      z-index: 2;
+      background: #fff;
     }
   }
+  .n-product:hover td.n-cell:first-child { background: $kx-hover; }
+  .n-product.selected td.n-cell:first-child {
+    background: $kx-selected;
+    box-shadow: inset 3px 0 0 0 $kx-primary;
+  }
 
-  .linkedin-icon-wrap {
-    margin-left: 20px;
+  // Non-checkbox cells clip + ellipsis (fixed layout can spill long values).
+  .n-table td.n-cell:not(:first-child),
+  .n-table .n-header-name:not(:first-child) {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 
-    a {
-      font-size: 18px;
-    }
+  // Scroll-aware right shadow on the frozen column.
+  .n-table td.n-cell:first-child::after,
+  .n-table .n-header-name:first-child::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    width: 6px;
+    transform: translateX(100%);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    background: linear-gradient(to right, rgba(15, 23, 42, 0.18), rgba(15, 23, 42, 0));
+  }
+  .list-wrapper.scrolled-x .n-table td.n-cell:first-child::after,
+  .list-wrapper.scrolled-x .n-table .n-header-name:first-child::after {
+    opacity: 1;
   }
 
   .action-btns-wrap {
@@ -183,22 +240,14 @@
     gap: 15px;
   }
 
-  .navigation-input {
-    width: 50px;
-    padding: 5px;
-    font-size: 14px;
-  }
-
   .buttons-for-large-screen {
     display: flex;
-    gap: 15px;
+    gap: 12px;
   }
 
   .buttons-for-small-screen {
     display: none;
   }
-
-
 }
 
 @media (min-width: 320px) and (max-width: 575px) {
@@ -209,39 +258,7 @@
     display: flex !important;
     gap: 15px;
   }
-
-  .kexy-table-card {
-    .card-header, .card-footer {
-      height: unset;
-      display: block;
-
-      p {
-        margin-bottom: 8px;
-      }
-
-      .pagination-section {
-        .conv-pagination-wrap {
-          padding-left: 0;
-
-          .conv-pagination {
-            .pagination-arrow {
-              font-size: 16px;
-              width: 26px;
-              height: 26px;
-            }
-          }
-        }
-      }
-    }
-  }
-  .kexy-table-entry-count {
-    margin-bottom: 8px;
-  }
-  .link-text {
-    font-size: 13px;
-  }
 }
-
 
 @media (min-width: 992px) and (max-width: 1199px) {
   .buttons-for-large-screen {
@@ -272,18 +289,6 @@
       display: flex !important;
       flex-wrap: wrap;
       gap: 10px;
-    }
-  }
-}
-
-@media (min-width: 992px) and (max-width: 1199px) {
-  .brand-contacts-page {
-    .buttons-for-large-screen {
-      display: none !important;
-    }
-
-    .buttons-for-small-screen {
-      display: flex !important;
     }
   }
 }

@@ -48,8 +48,10 @@ export class LeadMagnetsComponent implements OnInit, OnDestroy, AfterViewChecked
   public navigatePageNumber;
   public loadingSubscription: Subscription;
 
-  tableHeaderBg = '#0047CC';
-  tableHeaderColor = '#FFFFFF';
+  tableHeaderBg = '#f8fafc';
+  tableHeaderColor = '#64748b';
+  // Drives the frozen checkbox column's scroll-aware right shadow.
+  public scrolledX = false;
 
 
   constructor(
@@ -70,11 +72,13 @@ export class LeadMagnetsComponent implements OnInit, OnDestroy, AfterViewChecked
     this.userData = this._authService.userTokenValue;
     this.supplierId = this.userData.supplier_id;
 
+    // Unit-string widths: checkbox fixed px, the rest percentages so columns
+    // proportionally FILL the width (table-layout:fixed + width:100%).
     this.columnList = [
-      { name: '', key: 'action', width: 40 },
-      { name: 'Lead Magnet Url', key: 'leadMagnetUrl', width: 150 },
-      { name: 'Title', key: 'title', width: 150 },
-      { name: 'Summary', key: 'summary', width: 300 },
+      { name: '', key: 'action', width: '58px' },
+      { name: 'Lead Magnet Url', key: 'leadMagnetUrl', width: '28%' },
+      { name: 'Title', key: 'title', width: '22%' },
+      { name: 'Summary', key: 'summary', width: '50%' },
     ];
 
 
@@ -154,6 +158,15 @@ export class LeadMagnetsComponent implements OnInit, OnDestroy, AfterViewChecked
       position: 'end',
       scroll: false,
     });
+  };
+
+  // Keep *ngFor stable when toggling a checkbox.
+  trackByLead = (_: number, lead: any) => lead?.id ?? _;
+
+  // Toggle the frozen-column shadow on horizontal scroll.
+  onTableScroll = (event: Event) => {
+    const scrolled = (event.target as HTMLElement).scrollLeft > 0;
+    if (scrolled !== this.scrolledX) this.scrolledX = scrolled;
   };
 
   getCellClasses = (column) => {
@@ -313,6 +326,24 @@ export class LeadMagnetsComponent implements OnInit, OnDestroy, AfterViewChecked
     await this.getLeadMagnets();
   };
 
+  paginationFirstClick = async () => {
+    if (this.page === 1) return;
+    this.page = 1;
+    await this.getLeadMagnets();
+  };
+
+  paginationLastClick = async () => {
+    if (this.page === this.totalPage) return;
+    this.page = this.totalPage;
+    await this.getLeadMagnets();
+  };
+
+  navigateToPage = async (pageNum: number) => {
+    if (!pageNum || pageNum === this.page) return;
+    this.page = pageNum;
+    await this.getLeadMagnets();
+  };
+
 
   ngAfterViewChecked() {
     this.calcWidth();
@@ -320,28 +351,12 @@ export class LeadMagnetsComponent implements OnInit, OnDestroy, AfterViewChecked
 
   browserWidthForTable;
   calcWidth = () => {
-    const sidebarWidth = document.getElementById('main-sidebar')?.clientWidth;
-    const pageMargin = 48;
-    let sum = 300;
-    let map = {};
-    this.columnList.forEach((column) => {
-      sum += column.width;
-      map[column.key] = column.width;
-    });
-
-    // Prefer the table wrapper's own width so the table fills the available space
-    // on first render, instead of depending on #main-sidebar (not measurable for
-    // ~1-2s after load → table snapped from the narrow column-sum to full width).
+    // The table is width:100% (percentage columns fill it), so we only need the
+    // visible width for the centered empty/loading state.
     const wrapper = this.host?.nativeElement?.querySelector('.new-table-wrapper') as HTMLElement | null;
-    if (wrapper?.clientWidth) {
-      this.browserWidthForTable = wrapper.clientWidth;
-    } else if (sidebarWidth) {
-      // In smaller devices there is no fixed sidebar
-      this.browserWidthForTable = window.innerWidth - sidebarWidth - pageMargin;
-    } else {
-      this.browserWidthForTable = window.innerWidth - pageMargin;
-    }
-    this.tableWidth = this.browserWidthForTable > sum ? this.browserWidthForTable : sum;
+    const sidebarWidth = document.getElementById('main-sidebar')?.clientWidth || 0;
+    const pageMargin = 48;
+    this.browserWidthForTable = wrapper?.clientWidth || (window.innerWidth - sidebarWidth - pageMargin);
   };
 
 
