@@ -305,7 +305,6 @@ a {
     linear-gradient(180deg, #1a5be0 0%, #0e40b8 58%, #0b389f 100%);
   overflow-y: auto;
   overflow-x: hidden;
-  transition: width 0.2s ease;
 
   /* width */
   &::-webkit-scrollbar {
@@ -316,6 +315,13 @@ a {
   &::-webkit-scrollbar-thumb {
     background: transparent;
   }
+}
+
+/* Animate the collapse/expand only once the layout has painted (see the
+   `sidebarAnimate` gate) — never on (re)mount, so navigating pages doesn't
+   replay the width animation. */
+.sidebar.animate-width {
+  transition: width 0.2s ease;
 }
 
 /* Let the org-info host dissolve so its .sidebar-top becomes a direct flex child

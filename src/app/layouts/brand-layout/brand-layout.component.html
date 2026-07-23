@@ -11,6 +11,7 @@
     class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion"
     id="main-sidebar"
     [class.collapsed]="sidebarCollapsed"
+    [class.animate-width]="sidebarAnimate"
   >
     <app-org-info></app-org-info>
 
@@ -23,7 +24,7 @@
       ></nav-item>
       <nav-item
         [isDropDown]="true"
-        icon="fa-search"
+        icon="fa-cube"
         [navigateTo]="brand.PROMOTION_PRODUCT_DESC"
         label="Product/Service Desc."
       ></nav-item>

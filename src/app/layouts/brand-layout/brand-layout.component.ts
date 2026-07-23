@@ -70,6 +70,14 @@ export class BrandLayoutComponent implements OnInit {
   todayDate: number = Date.now();
   /** Sidebar icon-rail state (persisted; forced on for small screens). */
   sidebarCollapsed = localStorage.getItem("kxSidebarCollapsed") === "true";
+  /**
+   * Gates the sidebar width transition. The layout is re-created on every
+   * navigation, so on (re)mount the rail must render at its final width
+   * INSTANTLY — otherwise the `width` transition replays each page change
+   * (rail flashes open then snaps back to the collapsed icon rail). Enabled only
+   * after the first paint (`ngAfterViewInit`), so user toggles still animate.
+   */
+  sidebarAnimate = false;
   externalAssets = "";
   showHeaderTabs = true;
   isAdmin: boolean = false;
@@ -175,6 +183,13 @@ export class BrandLayoutComponent implements OnInit {
     }
     this.externalAssets = environment.externalAssetUrl + constants.SAMPLE_INVENTORY_SHEET;
     this.pageUiService.updateGleapIcon(false);
+  }
+
+  ngAfterViewInit() {
+    // Enable the width transition only AFTER the initial render so the rail
+    // renders at its final (collapsed/expanded) width instantly on mount — no
+    // open-then-collapse flash when navigating between pages.
+    setTimeout(() => (this.sidebarAnimate = true));
   }
 
   @HostListener("window:resize")
