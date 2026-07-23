@@ -375,7 +375,13 @@ big pages.
 a 1px right divider, and a **scroll-aware right shadow**: `(scroll)` on
 `.list-wrapper` sets `scrolledX` (only flips on the 0↔scrolled boundary), and
 `.list-wrapper.scrolled-x` fades in a pseudo-element shadow on the frozen cells.
-z-index: header corner `4`, body first cell `2`, sticky header cells `3`.
+z-index: body first cell `2`, sticky header cells `3`, frozen header corner `6`.
+**Specificity gotcha:** the header corner's `z-index` MUST be declared inside the
+`tr.n-header` block (as `td:first-child`) so it out-specifies the sibling
+`tr.n-header td { z-index: 3 }` rule. A separate `.n-header-name:first-child` rule
+loses on specificity → every header cell stays at `z-index 3` and, on horizontal
+scroll, the later cells paint OVER the select-all cell. (Body has no competing
+z-index, which is why only the header was affected.)
 
 **Pagination** (both header + footer pagers, identical markup). First / Prev /
 `Page X of Y` / Next / Last as `.pager-btn` icon buttons, disabled at the bounds

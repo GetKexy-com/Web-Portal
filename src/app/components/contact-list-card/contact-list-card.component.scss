@@ -287,6 +287,15 @@ $st-amber-bg: #fef3d9;
             border-bottom: 1px solid $kx-border;
             box-shadow: 0 1px 0 $kx-border;
           }
+
+          // Select-all (checkbox) cell = frozen top-left corner. Its z-index MUST
+          // live here (same specificity as the sibling `td` rule above) so it
+          // wins — otherwise every header cell stays at z-index 3 and, on
+          // horizontal scroll, the later cells paint over this first one.
+          td:first-child {
+            left: 0;
+            z-index: 6;
+          }
         }
 
         .n-header-product {
@@ -566,11 +575,8 @@ $st-amber-bg: #fef3d9;
     z-index: 2;
     background: #fff;
   }
-
-  // Header first cell = top-left corner: sticky in BOTH axes, above everything.
-  .n-header-name:first-child {
-    z-index: 4;
-  }
+  // (The header first cell's z-index is set in the `tr.n-header` block above so
+  // it out-specifies the sibling header-cell rule — see the note there.)
 }
 
 // Keep the frozen cell's background in sync with row hover/selection so it stays
