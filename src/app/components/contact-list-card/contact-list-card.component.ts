@@ -140,9 +140,10 @@ export class ContactListCardComponent implements OnInit, OnChanges, OnDestroy, A
     let columnList: any;
     columnList = [
       { name: '', key: 'action', width: 87 },
-      // `flex` = this column absorbs any leftover table width (table-layout:fixed)
-      // so the other columns — the checkbox column especially — keep exact widths.
-      { name: 'Name', key: 'name', width: 220, flex: true },
+      // No flex column: contacts has many columns (sum > viewport), so the table
+      // scrolls horizontally at natural widths. A greedy width:100% flex column
+      // ballooned while loading (empty siblings collapse, flex grabs everything).
+      { name: 'Name', key: 'name', width: 220 },
       { name: 'Linkedin', key: 'linkedinUrl', width: 80 },
       { name: 'Email Address', key: 'email', width: 180 },
       { name: 'Email Status', key: 'email_status', width: 120 },

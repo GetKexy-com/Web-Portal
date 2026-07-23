@@ -177,6 +177,12 @@ $st-amber-bg: #fef3d9;
       .n-table {
         outline: 0;
         border-collapse: collapse;
+        // Fill the width with proportional (percentage) columns; the checkbox is
+        // a fixed px column. Fixed layout = consistent widths regardless of
+        // content (no load-time balloon). min-width scrolls on narrow screens.
+        table-layout: fixed;
+        width: 100%;
+        min-width: 900px;
 
         .n-product {
           background: #fff;
@@ -371,6 +377,14 @@ $st-amber-bg: #fef3d9;
 }
 .n-product:hover .checkbox-icon:not(.selected) { color: #5f6368; }
 .select-all-header-icons { cursor: pointer; }
+
+// Fixed layout can spill long values into the next column — clip + ellipsis on
+// every cell except the checkbox column (its ::after shadow must stay visible).
+.kexy-table-card .n-table td.n-cell:not(:first-child),
+.kexy-table-card .n-table .n-header-name:not(:first-child) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
 // First column: FROZEN while scrolling horizontally + tidy checkbox spacing.
 .kexy-table-card .n-table {

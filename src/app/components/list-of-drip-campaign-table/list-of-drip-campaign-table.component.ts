@@ -90,28 +90,28 @@ export class ListOfDripCampaignTableComponent implements OnInit, AfterViewChecke
   getListViewData = () => {
     let columnList: any;
     columnList = [
-      { name: '', key: 'action', width: 58 },
-      // `flex` (width:100%) absorbs leftover width so other columns keep natural widths.
-      { name: 'Drip Campaign Title', key: 'drip_campaign_title', width: 220, flex: true },
-      { name: 'Number Of Emails', key: 'number_of_emails', width: 142 },
-      { name: 'Email Tone', key: 'email_tone', width: 120 },
-      { name: 'Status', key: 'status', width: 110 },
-      { name: 'Lists', key: 'label', width: 130 },
-      { name: 'Date Created', key: 'date_created', width: 180 },
+      // Unit-string widths: checkbox fixed px, the rest percentages so columns
+      // proportionally FILL the width (table-layout:fixed + width:100%). No flex
+      // column (a greedy width:100% ballooned while loading).
+      { name: '', key: 'action', width: '58px' },
+      { name: 'Drip Campaign Title', key: 'drip_campaign_title', width: '26%' },
+      { name: 'Number Of Emails', key: 'number_of_emails', width: '14%' },
+      { name: 'Email Tone', key: 'email_tone', width: '13%' },
+      { name: 'Status', key: 'status', width: '13%' },
+      { name: 'Lists', key: 'label', width: '16%' },
+      { name: 'Date Created', key: 'date_created', width: '18%' },
     ];
     this.columnList = columnList;
   };
 
   browserWidthForTable;
   calcWidth = () => {
+    // Table is width:100% (percentage columns fill it via table-layout:fixed);
+    // only need the visible width for the centered empty/loading state.
     const sidebarWidth = document.getElementById('main-sidebar')?.clientWidth || 0;
     const pageMargin = 48;
-    // Exact sum (no buffer): the flex column absorbs any leftover width.
-    let sum = 0;
-    this.columnList.forEach((column) => { sum += column.width; });
     const wrapper = this.host?.nativeElement?.querySelector('.new-table-wrapper') as HTMLElement | null;
     this.browserWidthForTable = wrapper?.clientWidth || (window.innerWidth - sidebarWidth - pageMargin);
-    this.tableWidth = this.browserWidthForTable > sum ? this.browserWidthForTable : sum;
   };
 
   // Keep *ngFor stable when toggling a checkbox.

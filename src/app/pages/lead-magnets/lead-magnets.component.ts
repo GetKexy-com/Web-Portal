@@ -48,8 +48,8 @@ export class LeadMagnetsComponent implements OnInit, OnDestroy, AfterViewChecked
   public navigatePageNumber;
   public loadingSubscription: Subscription;
 
-  tableHeaderBg = '#f8fafc';
-  tableHeaderColor = '#64748b';
+  tableHeaderBg = '#f1f5f9';
+  tableHeaderColor = '#475569';
   // Drives the frozen checkbox column's scroll-aware right shadow.
   public scrolledX = false;
 
