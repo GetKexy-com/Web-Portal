@@ -301,6 +301,15 @@ title), soft-filled `.field`/`.form-control` inputs, and plain `.blue-button` /
 inline spinner). Its SCSS duplicates the tokens/layout locally. If you restyle the
 drawer, update both this and `prospecting-contacts`.
 
+**`company-description-canvas`** (add/edit Company Description, 900px
+`email-time-settings-slider` panel) and **`add-suppression`** (add users to the
+suppression list, wide `email-content` panel) now reuse the SAME drawer design,
+each duplicating the tokens/layout locally. `add-suppression` is a **repeatable-row**
+variant: each user is a `.user-row` grid (First / Last / Email + a bordered
+`.row-remove` icon button, disabled at one row), labels shown only on row 0, plus a
+dashed **`.add-row-btn`** ghost button; it collapses to a single column under 720px.
+So there are now four copies of this drawer — restyle them together.
+
 ---
 
 ## Table cards
@@ -493,6 +502,35 @@ in BOTH header and footer) uses new table `@Input()`s
 `paginationFirstClick`/`paginationLastClick`/`navigateSpecificPage`, wired to page
 handlers of the same name. (This is the change committed as "Fix".)
 
+### `suppression-list-card` — same redesign
+
+The Suppression List table got the full treatment (mirrored from `label-list-card`,
+its closest analog — few columns, prev/next-only pager): light sticky header (page
+now passes `#f8fafc`/`#64748b`, was solid `#0047CC`/white), **frozen checkbox column
++ scroll shadow** (`scrolledX`/`onTableScroll`, `.scrolled-x`), Gmail-style FA
+checkboxes, `.table-state` empty (`fa-ban`)/loading, the **percentage fill-width
+model** (`table-layout: fixed; width: 100%`; checkbox `58px`, First/Last/Email
+`22/22/56%`), and the contacts-style `.pager` (First/Prev/`Page X of Y`/Next/Last is
+prev/next only here — `isFirstPage()`/`isLastPage()` added — in BOTH header and
+footer). Kept the select-all header checkbox + "Select all N records" link. The page
+dropped `overflow-x: scroll` on `.content-area` so the card's `.list-wrapper` owns
+horizontal scroll.
+
+### Footer pager stays on screen — cards flex-fill a bounded area
+
+`contact-list-card` and `suppression-list-card` no longer set a fixed
+`calc(100vh - Npx)` scroll height (that pushed the footer pager below the fold on
+some pages). Instead the card **flex-fills** its page's bounded content area:
+`:host` + `.kexy-table-card` are flex columns (`flex: 1; min-height: 0`), header +
+footer are `flex-shrink: 0` (pinned), and `.new-table-wrapper` is `flex: 1;
+min-height: 0` so only the table body scrolls. The host pages make this work by being
+bounded flex columns with `overflow: hidden`: `brand-list-contacts` (`height: calc(100vh
+- 70px)`, the info card `flex-shrink: 0`, the card `<section>` `flex: 1`);
+`brand-contacts` (`.content-area` flex column, `.active-filters` pinned);
+`suppression-list` (`.content-area` flex column). Use `flex: 1` (not `height: 100%`)
+on the host so the card fills *remaining* space when a page has siblings above it
+(e.g. `brand-contacts`' filter chips).
+
 ### Header count + selected indicators are currently HIDDEN
 
 The `.count-chip` (total) and `.selection-info` ("X of N selected") in the card
@@ -501,6 +539,36 @@ headers are **commented out for now** in `contact-list-card`,
 much). The markup is left in place (commented) to restore easily. Keep the hidden
 `getSelectedItemCount()` refresher span — the cross-page **select-all banner** still
 depends on `selectedItemCount`.
+
+---
+
+## Company / Product description screens
+
+The two Company Details screens were modernized to a shared card language (own token
+block per file: primary `#12a5f4`, slate text `#1e293b`/`#64748b`, borders
+`#e8ecf3`/`#eef1f6`, surface `#f8fafc`; rounded 16px cards, light headers, rounded
+icon buttons, `.pc-empty`/`.pc-loading` states). They do NOT use the shared `.n-table`
+cards — they're their own `.pc-*` markup.
+
+- **`category-product-list-card`** (Product/Service Desc.) — accordion list: each
+  product is a `.pc-row` (index badge + name + edit/delete `.pc-icon-btn`s + a
+  circular `.pc-chevron` toggle) that expands to a `.pc-panel` of **multiple
+  descriptions** (each a `.pc-desc`: label + textarea + delete), an "Add Description"
+  button, and a "Save changes" button while editing. Behavior unchanged, but the
+  descriptions `@for` now uses **`track $index`** (the old `track description`
+  crashed on two empty descriptions — trivial to hit when adding several).
+- **`prospecting-company-description`** (Company Desc.) — a flat CSS-grid table
+  (`.pc-thead`/`.pc-row`, columns `56px 220px 1fr 108px`): index badge, company name,
+  truncated description, and edit/delete icon buttons; edit opens
+  `company-description-canvas`.
+
+## Page background
+
+App page background is unified to **`#f4f6fb`**: it's the `brand-layout`
+`@Input() mainBgColor` default, and the old `#e7f6fe` page-shell / `.content-area`
+backgrounds (and explicit `mainBgColor="#e7f6fe"` overrides) were replaced with it.
+NOT changed: component `bgColor="…"` inputs (table-card header props etc.), the
+public-facing `public-landing-page`, and small inner accents (the CSV drag-drop zone).
 
 ---
 
@@ -601,6 +669,14 @@ on a `#f1f5f9` wash). Its click still calls `toggleSidebar()` → flips
 (The header's left col is `align-items: center` so the icon, back-button, and headline
 line up.)
 
+**Width-transition gate (avoid the navigation flash).** `brand-layout` is re-created
+on every navigation, so the `.sidebar` `transition: width` used to replay on each page
+load (rail flashed open then snapped collapsed). The transition now lives on
+`.sidebar.animate-width`, and `[class.animate-width]="sidebarAnimate"` is only enabled
+in `ngAfterViewInit` (`setTimeout`) — so the rail renders at its final width instantly
+on mount, and only user toggles animate. Same "gate the transition after first paint"
+trick the nav dropdowns use.
+
 ### Nav = static section groups (NOT accordions)
 
 `nav-item-dropdown` is a **static section**, not a collapsible accordion: a small
@@ -624,8 +700,10 @@ A single `<ul id="main-sidebar">` always renders (all sizes) and gets
   `margin: 1px auto`** (tight vertical gap), active = a centred pill fill (no left
   accent bar).
 - **Every item** (including those inside section groups) shows a CSS hover **tooltip**
-  from `[attr.data-label]` (also `title`), with a `::before` caret pointing at the
-  icon. There are no flyouts anymore — the whole nav is a flat scroll of icons.
+  from `[attr.data-label]` (also `title`) — a plain dark bubble, **no caret arrow**
+  (it looked off), offset far enough (`left: calc(100% + 26px)`) to clear the blue rail
+  edge instead of hugging it. There are no flyouts anymore — the whole nav is a flat
+  scroll of icons.
 - **Section headers collapse to a short centred divider** (`.nav-section-label` →
   `height: 0; font-size: 0; border-top` + `width: 28px`) between icon groups.
 - `app-org-info` becomes a compact header: small logo + tiny truncated org name.
@@ -635,13 +713,16 @@ A single `<ul id="main-sidebar">` always renders (all sizes) and gets
 
 ### `app-org-info` (brand header)
 
-Shows the company logo + **company name only** (`orgName`; the person name `.c-name`
-was removed). Logo is small (44px expanded / 48px collapsed). `.sidebar-top` is
+A **compact horizontal row**: a small (40px) rounded white **logo chip on the left**
++ the **company name only** beside it (`orgName`, left-aligned, single line,
+ellipsis; the person name `.c-name` was removed). `.sidebar-top` is
 `position: sticky; top: 0` with an opaque `#1a5be0` background (the sidebar's top
 gradient stop) so the brand header **stays pinned while the nav list scrolls** on
 short viewports — mirroring the sticky `.sidebar-footer`. For sticky to engage, the
 host is neutralised with `app-org-info { display: contents }` (set in the layout
-SCSS) so `.sidebar-top` becomes a direct flex child of the scrolling sidebar.
+SCSS) so `.sidebar-top` becomes a direct flex child of the scrolling sidebar. In the
+**collapsed rail** the row stacks back to a centred logo (46px) over a tiny truncated
+name (`flex-direction: column`, via the `::ng-deep #main-sidebar.collapsed` override).
 
 ### Footer
 
@@ -652,8 +733,19 @@ a "Help & support" tooltip (`data-label`).
 
 ### Icons
 
-Section icons: Messages = `fa-envelope-o`(open), Drip Campaign = `fa-bullhorn`
-(the paper-plane is reserved for the Messages → Sent sub-item).
+Section headers are text-only now (no icon), so the icons that matter are the
+**leaf `nav-item` icons**, chosen to be distinct + name-matching (the old set had
+several list-lookalikes):
+
+- Company Desc. `fa-building-o` · Product/Service Desc. `fa-cube`
+- Manage Lists `fa-table` (an Excel-like table of contacts) · Manage Contacts
+  `fa-address-book-o` · Find Leads `fa-search` · Lead Magnets `fa-magnet`
+- Create Campaign `fa-bullhorn` (same "megaphone" as the manage-list "used in N
+  campaigns" chip) · Manage Campaigns `fa-tasks`
+- Messages → Inbox `fa-inbox`, Sent `fa-paper-plane-o`
+- Settings → Invite `fa-briefcase`, Slack `fa-slack`, SMTP `fa-envelope-o`,
+  Suppression List `fa-user-times` (`fa-ban` is taken by Negative Prompts) ·
+  Tutorials `fa-leanpub`
 
 ### Small screens (`< 992px`)
 
