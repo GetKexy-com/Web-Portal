@@ -408,6 +408,21 @@ prettified); each chip's ✕ calls `removeFilter(key)` which drops that field, r
 the search, and fully resets when it was the last one. A **Clear all** button calls
 `resetSearchData()`.
 
+### `label-list-card` (manage-list "Lists" table) — same redesign
+
+The Lists table on `manage-list` got the same treatment as `contact-list-card`:
+light header (parent passes `#f8fafc`/`#64748b`), 56px rows, sticky header, **frozen
+first (checkbox) column with the scroll-aware right shadow** (`scrolledX` +
+`.scrolled-x`, same z-index/specificity fix — header corner `z-index: 6` inside the
+`tr.n-header` block), Gmail-style FA checkboxes (`.checkbox-icon`), empty/loading
+`.table-state`, and restyled pagination. List-specific bits: the Name cell keeps
+its **fixed colored `.label-tag`** (each list's `bgColor`/`textColor` — do NOT
+swap this for an avatar/other style), List Size is a `.size-badge`, and "Used In"
+is a `.used-in-chip`. `manage-list.component.scss` **dropped `overflow-x: scroll`** on
+`.content-area` so the card's `.list-wrapper` owns horizontal scroll (needed for the
+sticky/frozen behavior). Pagination here is prev/next only — the page provides no
+`navigateSpecificPage` and its paging logic is fragile, so no first/last/jump.
+
 ---
 
 ## Auth pages (login / onboarding wizard)

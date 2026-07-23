@@ -1,7 +1,9 @@
 .manage-list-page {
   .content-area {
     padding: 24px;
-    overflow-x: scroll;
+    // The card owns its own horizontal scroll now (sticky header + frozen
+    // column rely on .list-wrapper being the scroll container), so don't
+    // scroll-x here too.
     height: calc(100vh - 129px);
     background: #e7f6fe;
   }

@@ -57,6 +57,9 @@ export class LabelListCardComponent implements OnInit, OnDestroy, AfterViewInit 
   @Output() selectedLimit: EventEmitter<any> = new EventEmitter();
 
   public tableWidth = 500;
+  // True once the table is scrolled horizontally — drives the frozen column's
+  // right-edge shadow. Only flipped on the 0↔scrolled boundary.
+  public scrolledX = false;
   public columnList: any[];
   public userData;
   public loadingSubscription: Subscription;
@@ -118,6 +121,20 @@ export class LabelListCardComponent implements OnInit, OnDestroy, AfterViewInit 
 
     this.browserWidthForTable = available;
     this.tableWidth = available > sum ? available : sum;
+  };
+
+  // Keep *ngFor stable so toggling a checkbox doesn't rebuild every row.
+  trackByRow = (_: number, row: any) => row?.id ?? _;
+
+  // Boundary checks for disabling the pager arrows (display only; the handlers
+  // guard themselves).
+  isFirstPage = () => Number(this.currentPage) <= 1;
+  isLastPage = () => Number(this.currentPage) >= Number(this.totalPage);
+
+  // Toggle the frozen-column shadow when the table scrolls horizontally.
+  onTableScroll = (event: Event) => {
+    const scrolled = (event.target as HTMLElement).scrollLeft > 0;
+    if (scrolled !== this.scrolledX) this.scrolledX = scrolled;
   };
 
   getCellClasses = (column) => {

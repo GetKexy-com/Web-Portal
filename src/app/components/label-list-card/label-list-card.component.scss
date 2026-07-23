@@ -1,69 +1,81 @@
+// ── Tokens (shared with contact-list-card redesign) ─────────────────────────
+$kx-primary: #2847cc;
+$kx-primary-soft: #eef2ff;
+$kx-ink: #0f172a;
+$kx-text: #334155;
+$kx-muted: #64748b;
+$kx-faint: #94a3b8;
+$kx-border: #e5e9f0;
+$kx-row-border: #f1f5f9;
+$kx-hover: #f8fafc;
+$kx-selected: #eff6ff;
+$kx-header-bg: #f8fafc;
+
 .kexy-table-card {
-  background: white;
+  background: #ffffff;
   margin-bottom: 20px;
-  border-radius: 12px;
-  box-shadow: 0 1px 5px 0 #d6d6d6;
+  border: 1px solid $kx-border;
+  border-radius: 14px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+  overflow: hidden;
 
   .card-header {
-    padding: 15px;
+    padding: 14px 18px;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 12px;
+    min-height: 62px;
 
-    p {
-      margin-bottom: 0;
-      font-weight: 600;
-      font-size: 14px;
-      line-height: 16px;
-
-      span {
-        font-size: 12px;
-      }
+    .card-title {
+      font-weight: 700;
+      font-size: 16px;
+      color: $kx-ink;
     }
 
     .pagination-section {
       display: flex;
       align-items: center;
 
-      .btn-wrap {
-        width: fit-content;
-      }
+      .pager {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding-left: 14px;
 
-      .conv-pagination-wrap {
-        padding-left: 20px;
-        border-radius: 10px;
-
-        .conv-pagination {
-          display: flex;
-          //justify-content: flex-end;
+        .pager-btn {
+          display: inline-flex;
           align-items: center;
-          //min-width: 200px;
-          p {
-            color: #5e5e5e;
-            font-size: 14px;
-            margin-bottom: 0;
+          justify-content: center;
+          width: 32px;
+          height: 32px;
+          border: 1px solid $kx-border;
+          border-radius: 9px;
+          background: #fff;
+          color: $kx-text;
+          font-size: 14px;
+          cursor: pointer;
+          transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+
+          &:hover:not(.disabled) {
+            background: $kx-primary-soft;
+            border-color: $kx-primary;
+            color: $kx-primary;
           }
 
-          .pagination-arrow {
-            font-size: 20px;
-            width: 30px;
-            cursor: pointer;
-            border-radius: 50%;
-            height: 30px;
-            display: inline-block;
-            text-align: center;
-            background: #e7f6fe;
-
-            &:hover {
-              background: lightgray;
-            }
-          }
-
-          .disabled {
-            color: grey;
+          &.disabled {
+            opacity: 0.4;
             pointer-events: none;
-            cursor: crosshair;
           }
+        }
+
+        .pager-status {
+          margin: 0 8px;
+          font-size: 13px;
+          color: $kx-muted;
+          white-space: nowrap;
+
+          strong { color: $kx-ink; font-weight: 700; }
         }
       }
     }
@@ -71,200 +83,210 @@
 
   .new-table-wrapper {
     overflow-y: hidden;
-    overflow-x: scroll;
+    overflow-x: auto;
 
     .list-wrapper {
-      background: #e7f6fe;
-      border-radius: 10px;
+      overflow: auto;
 
       .n-table {
         outline: 0;
+        border-collapse: collapse;
 
         .n-product {
-          background: white;
-          border-bottom: 1px solid #a2deff;
+          background: #fff;
+          border-bottom: 1px solid $kx-row-border;
 
-          &:hover {
-            background: #edeeff;
-          }
+          &:hover { background: $kx-hover; }
 
           &.selected {
-            background: #e2f9fe;
+            background: $kx-selected;
+            box-shadow: inset 3px 0 0 0 $kx-primary;
           }
+
+          &.state-row:hover { background: #fff; }
         }
 
         tr.n-header {
           text-transform: uppercase;
-          color: #0047cc;
           position: relative;
           z-index: 1000;
-          font-weight: bold;
-        }
 
-        .n-header-product {
-          width: 20px;
-          padding: 10px;
-          font-size: 12px;
-        }
-
-        .n-header-name,
-        .n-header-title {
-          font-size: 12px;
-          color: #0047cc;
-          padding: 10px 20px;
-
-          .select-all-header-icons {
-            //display: inline-block;
-            //width: 100%;
-            //text-align: center;
-            cursor: pointer;
-
-            i {
-              font-size: 18px;
-              width: 15px;
-            }
+          td {
+            position: sticky;
+            top: 0;
+            z-index: 3;
+            background: $kx-header-bg;
+            border-bottom: 1px solid $kx-border;
+            box-shadow: 0 1px 0 $kx-border;
           }
+
+          // Frozen top-left corner (checkbox header) must out-specify the sibling
+          // td rule so it stays above the other headers on horizontal scroll.
+          td:first-child {
+            left: 0;
+            z-index: 6;
+          }
+        }
+
+        .n-header-name {
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 0.04em;
+          color: $kx-muted;
+          padding: 12px 20px;
+          white-space: nowrap;
         }
 
         td.n-cell {
-          height: 48px;
-          padding: 0 20px;
-
-          &.col-zip {
-          }
-
-          .marketing-status {
-            text-transform: capitalize;
-
-            .ms-green {
-              background-color: #20ff031f;
-              padding: 2px 14px;
-              border-radius: 15px;
-              border: 1px solid lightgray;
-              font-size: 14px;
-            }
-
-            .ms-red {
-              background-color: #ff00003b;
-              padding: 3px 14px;
-              border-radius: 15px;
-              border: 1px solid lightgray;
-              font-size: 13px;
-            }
-          }
-
-          .email-status {
-            padding: 2px 14px;
-            border-radius: 15px;
-            font-size: 14px;
-            text-transform: capitalize;
-            &.status-red {
-              background-color: #c91b00;
-              color: white;
-            }
-            &.status-yellow {
-              background-color: #ffea99;
-              color: black;
-            }
-            &.status-green {
-              background-color: #68ba7f;
-              color: white;
-            }
-
-          }
-
-          .copied {
-            text-transform: lowercase;
-            text-decoration-line: underline;
-            text-decoration-style: dotted;
-          }
+          height: 56px;
+          padding: 8px 20px;
+          color: $kx-text;
+          vertical-align: middle;
+          white-space: nowrap;
 
           span {
-            font-size: 14px;
+            font-size: 13.5px;
             display: inline-block;
-            line-height: 16px;
-            color: black;
+            line-height: 1.4;
+            color: $kx-text;
             font-weight: normal;
           }
 
-          .col-actions {
-            width: 100%;
-            display: inline-block;
-            text-align: center;
-
-            i {
-              font-size: 16px;
-              padding: 10px;
-            }
+          // List name keeps its fixed colored tag (bgColor/textColor per list).
+          .label-tag {
+            text-transform: uppercase !important;
+            font-size: 11px !important;
+            font-weight: bold !important;
+            border-radius: 16px !important;
+            padding: 2px 10px !important;
+            white-space: nowrap !important;
           }
 
-          &.title-of-campaign-column-width {
-            width: 170px;
-            padding-left: 10px;
+          // List-size count badge
+          .size-badge {
+            min-width: 28px;
+            padding: 2px 10px;
+            border-radius: 999px;
+            background: $kx-primary-soft;
+            color: $kx-primary;
+            font-size: 12px;
+            font-weight: 700;
+            text-align: center;
+            cursor: pointer;
+          }
+
+          // "Used in" drip-campaigns chip
+          .used-in-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 11px;
+            border-radius: 999px;
+            background: #f1f5f9;
+            color: $kx-text;
+            font-size: 12px;
+            font-weight: 600;
+
+            i { font-size: 11px; color: $kx-muted; }
+
+            &:hover { background: $kx-primary-soft; color: $kx-primary; i { color: $kx-primary; } }
+          }
+
+          // Empty / loading state
+          .table-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            padding: 54px 20px;
+            text-align: center;
+            white-space: normal;
+
+            .state-icon { font-size: 32px; color: $kx-faint; margin-bottom: 8px; }
+            .state-title { margin: 0; font-size: 15px; font-weight: 700; color: $kx-text; }
+            .state-desc { margin: 0; font-size: 13px; color: $kx-muted; }
           }
         }
       }
     }
-  }
-
-  .pagination {
-    text-align: right;
-    padding: 10px;
   }
 }
 
 .kexy-table-entry-count {
   display: flex;
   align-items: center;
-  color: #5e5e5e;
-  font-size: 14px;
+  color: $kx-muted;
+  font-size: 13px;
   font-weight: 600;
 
   select {
     margin: 0 10px;
     width: auto;
-    padding: 3px;
-    font-size: 14px;
+    padding: 6px 10px;
+    font-size: 13px;
+    border: 1px solid $kx-border;
+    border-radius: 8px;
+    background: #fff;
+    color: $kx-text;
+    cursor: pointer;
+
+    &:focus {
+      outline: none;
+      border-color: $kx-primary;
+      box-shadow: 0 0 0 3px rgba(40, 71, 204, 0.12);
+    }
   }
 }
 
+// Gmail-style checkbox icons — grey outline, dark-grey mark (no blue).
 .checkbox-icon {
-  font-size: 18px;
-  color: #b8b6b6;
-
-  &.selected {
-    color: #2646c5;
-  }
-}
-
-.delete-icon {
   font-size: 20px;
+  color: #80868b;
+  cursor: pointer;
 
-  &:hover {
-    color: red;
+  &.selected { color: #3c4043; }
+}
+.n-product:hover .checkbox-icon:not(.selected) { color: #5f6368; }
+
+// First column: FROZEN while scrolling horizontally + tidy checkbox spacing.
+.kexy-table-card .n-table {
+  td.n-cell:first-child,
+  .n-header-name:first-child {
+    padding-left: 20px;
+    padding-right: 8px;
+    position: sticky;
+    left: 0;
+    border-right: 1px solid $kx-border;
+  }
+
+  td.n-cell:first-child {
+    z-index: 2;
+    background: #fff;
   }
 }
-
-.linkedin-icon-wrap {
-  margin-left: 20px;
-
-  a {
-    font-size: 18px;
-  }
+.kexy-table-card .n-product:hover td.n-cell:first-child { background: $kx-hover; }
+.kexy-table-card .n-product.selected td.n-cell:first-child {
+  background: $kx-selected;
+  box-shadow: inset 3px 0 0 0 $kx-primary;
 }
 
-.label-tag {
-  text-transform: uppercase !important;
-  font-size: 11px !important;
-  font-weight: bold !important;
-  border-radius: 16px !important;
-  padding: 2px 10px !important;
-  white-space: nowrap !important;
+// Scroll-aware right shadow on the frozen column.
+.kexy-table-card .n-table td.n-cell:first-child::after,
+.kexy-table-card .n-table .n-header-name:first-child::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  width: 6px;
+  transform: translateX(100%);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  background: linear-gradient(to right, rgba(15, 23, 42, 0.18), rgba(15, 23, 42, 0));
 }
-
-.see-more-label-text {
-  margin-left: 5px;
-  font-size: 13px;
-  text-decoration: underline;
-  color: rgb(40, 71, 204) !important;
+.list-wrapper.scrolled-x .n-table td.n-cell:first-child::after,
+.list-wrapper.scrolled-x .n-table .n-header-name:first-child::after {
+  opacity: 1;
 }

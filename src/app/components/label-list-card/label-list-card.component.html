@@ -1,8 +1,8 @@
 <div class="kexy-table-card">
   <section class="card-header">
-    <p>Lists</p>
+    <span class="card-title">Lists</span>
 
-    <div *ngIf="totalPage" class="d-flex">
+    <div *ngIf="totalPage" class="d-flex align-items-center">
       <div class="kexy-table-entry-count">
         Per Page:
         <select class="form-control" style="width: auto" [(ngModel)]="limit" (change)="onShowEntriesSelect($event)">
@@ -14,33 +14,36 @@
         </select>
       </div>
       <div class="pagination-section">
-        <div class="conv-pagination-wrap">
-          <div class="conv-pagination">
-            <p>
-              Page
-              <ng-container *ngIf="!isLoading">{{ currentPage }}</ng-container>
-              <span *ngIf="isLoading"><i aria-hidden="true" class="fa fa-spinner fa-spin"></i></span>
-              of {{ totalPage }}
-            </p>
-            <div class="ms-2">
-              <span class="pagination-arrow" (click)="paginationLeftArrowClick()">
-                <i aria-hidden="true" class="fa fa-angle-left"></i>
-              </span>
-              <span class="pagination-arrow ms-1" (click)="paginationRightArrowClick()">
-                <i aria-hidden="true" class="fa fa-angle-right"></i>
-              </span>
-            </div>
-          </div>
+        <div class="pager">
+          <button type="button" class="pager-btn" [class.disabled]="isFirstPage()"
+                  (click)="paginationLeftArrowClick()" title="Previous page" aria-label="Previous page">
+            <i class="fa fa-angle-left" aria-hidden="true"></i>
+          </button>
+          <span class="pager-status">
+            Page
+            <ng-container *ngIf="!isLoading"><strong>{{ currentPage }}</strong></ng-container>
+            <i *ngIf="isLoading" class="fa fa-spinner fa-spin" aria-hidden="true"></i>
+            of <strong>{{ totalPage }}</strong>
+          </span>
+          <button type="button" class="pager-btn" [class.disabled]="isLastPage()"
+                  (click)="paginationRightArrowClick()" title="Next page" aria-label="Next page">
+            <i class="fa fa-angle-right" aria-hidden="true"></i>
+          </button>
         </div>
       </div>
     </div>
-
   </section>
 
   <section class="new-table-wrapper">
-    <div [style.width]="tableWidth + 'px'" class="list-wrapper">
+    <div
+      [style.height]="!isWaitingFlag && cardData.length ? 'calc(100vh - 260px)' : 'auto'"
+      class="list-wrapper"
+      [class.scrolled-x]="scrolledX"
+      (scroll)="onTableScroll($event)"
+    >
       <table *ngIf="columnList" [style.width]="tableWidth + 'px'" class="n-table">
         <!-- header - start -->
+        <thead>
         <tr class="n-header">
           <ng-container *ngFor="let column of columnList">
             <td
@@ -49,39 +52,38 @@
               [style.color]="tableHeaderColor"
               [style.width]="column.width ? column.width+'px' : ''"
             >
-              <!--Showing column name-->
-              <span *ngIf="column.name" [className]="column.key === 'list_size' ? 'w-100 d-inline-block text-center' : '' ">{{ column.name }}</span>
-
-              <!--Showing select all icon-->
-              <!-- <span *ngIf="!column.name && column.key === 'action'" class="select-all-header-icons"
-                    (click)="checkboxClicked(null, true)">
-                <i *ngIf="isNoItemSelected()" aria-hidden="true" class="fa fa-square-o checkbox-icon"></i>
-                <i *ngIf="selectedItemCount > 0 && selectedItemCount < cardData.length" aria-hidden="true"
-                   class="fa fa-minus-square-o"></i>
-                <i *ngIf="cardData.length && selectedItemCount === cardData.length" aria-hidden="true"
-                   class="fa fa-check-square-o"></i>
-              </span> -->
-
+              <span *ngIf="column.name"
+                    [className]="column.key === 'list_size' ? 'w-100 d-inline-block text-center' : '' ">
+                {{ column.name }}
+              </span>
             </td>
           </ng-container>
         </tr>
+        </thead>
         <!-- header - end -->
 
         <!-- body - start -->
         <ng-container *ngIf="!isWaitingFlag && cardData.length > 0">
-          <tr class="n-product" [class.selected]="row.isSelected" *ngFor="let row of cardData; let i = index">
+          <tbody>
+          <tr class="n-product" [class.selected]="row.isSelected"
+              *ngFor="let row of cardData; trackBy: trackByRow">
             <ng-container *ngFor="let column of columnList">
               <td
                 [className]="'n-cell ' + getCellClasses(column)"
                 [style.width]="column.width ? column.width+'px' : ''"
               >
-                <span *ngIf="column.key === 'date_created'">{{row.createdAt | date : "medium"}}</span>
+                <span *ngIf="column.key === 'date_created'">{{ row.createdAt | date : "medium" }}</span>
 
-                <span *ngIf="column.key === 'list_size'" class="w-100 d-inline-block text-center link-text" (click)="redirectListContactsPage(row)">{{row.contactListCount}}</span>
+                <span *ngIf="column.key === 'list_size'" class="w-100 d-inline-block text-center"
+                      (click)="redirectListContactsPage(row)">
+                  <span class="size-badge">{{ row.contactListCount }}</span>
+                </span>
 
-                <span *ngIf="column.key === 'creator'">{{userData.firstName}} {{userData.lastName}}</span>
+                <span *ngIf="column.key === 'creator'">{{ userData.firstName }} {{ userData.lastName }}</span>
 
-                <span *ngIf="column.key === 'label'" style="cursor: pointer" (click)="redirectListContactsPage(row)">
+                <!-- List name keeps its fixed colored tag style. -->
+                <span *ngIf="column.key === 'label'" style="cursor: pointer"
+                      (click)="redirectListContactsPage(row)">
                   <span
                     [style.background-color]="row.bgColor"
                     [style.color]="row.textColor"
@@ -91,37 +93,47 @@
                   </span>
                 </span>
 
-                <span
-                  *ngIf="column.key === 'used_in'"
-                  class="see-more-label-text"
-                  style="cursor: pointer"
-                  (click)="openShowAllLabelModal($event, row.dripCampaignList)"
-                >
-                  {{row.dripCampaignList.length}} - Drip Campaign(s)
+                <span *ngIf="column.key === 'used_in'">
+                  <span
+                    class="used-in-chip"
+                    style="cursor: pointer"
+                    (click)="openShowAllLabelModal($event, row.dripCampaignList)"
+                  >
+                    <i class="fa fa-bullhorn" aria-hidden="true"></i>
+                    {{ row.dripCampaignList.length }} campaign{{ row.dripCampaignList.length === 1 ? '' : 's' }}
+                  </span>
                 </span>
 
-                <span *ngIf="column.key === 'action'" style="cursor: pointer" (click)="checkboxClicked(row)">
+                <span *ngIf="column.key === 'action'" class="text-center d-inline-block w-100"
+                      style="cursor: pointer" (click)="checkboxClicked(row)">
                   <i *ngIf="!row.isSelected" aria-hidden="true" class="fa fa-square-o checkbox-icon"></i>
-                  <i *ngIf="row.isSelected" aria-hidden="true" class="fa fa-check-square checkbox-icon selected"></i>
+                  <i *ngIf="row.isSelected" aria-hidden="true" class="fa fa-check-square-o checkbox-icon selected"></i>
                 </span>
-
               </td>
             </ng-container>
           </tr>
+          </tbody>
         </ng-container>
+
         <ng-container *ngIf="!isWaitingFlag && cardData.length === 0">
-          <tr class="n-product">
+          <tr class="n-product state-row">
             <td [colSpan]="columnList.length" class="n-cell">
-              <span class="text-center d-inline-block"
-                    [style.width]="browserWidthForTable + 'px'">Sorry, no data found.</span>
+              <div class="table-state" [style.width]="browserWidthForTable + 'px'">
+                <i class="fa fa-list-ul state-icon" aria-hidden="true"></i>
+                <p class="state-title">No lists yet</p>
+                <p class="state-desc">Create a list to start organizing your contacts.</p>
+              </div>
             </td>
           </tr>
         </ng-container>
+
         <ng-container *ngIf="isWaitingFlag">
-          <tr class="n-product">
+          <tr class="n-product state-row">
             <td [colSpan]="columnList.length" class="n-cell">
-              <span class="text-center d-inline-block" [style.width]="browserWidthForTable + 'px'"><i
-                class="fa fa-refresh fa-spin"></i></span>
+              <div class="table-state" [style.width]="browserWidthForTable + 'px'">
+                <i class="fa fa-spinner fa-spin state-icon" aria-hidden="true"></i>
+                <p class="state-title">Loading lists…</p>
+              </div>
             </td>
           </tr>
         </ng-container>
