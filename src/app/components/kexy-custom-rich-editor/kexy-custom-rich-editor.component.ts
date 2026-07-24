@@ -1,6 +1,6 @@
 import {
-  Component, ViewChild, AfterViewInit, Input, ViewEncapsulation, inject,
-  ElementRef, output, HostBinding
+  Component, ViewChild, AfterViewInit, OnDestroy, Input, ViewEncapsulation, inject,
+  ElementRef, output, HostBinding, NgZone
 } from '@angular/core';
 import { EditorStateService } from './services/editor-state.service';
 import { EditorUtilsService } from './services/editor-utils.service';
@@ -35,6 +35,20 @@ import { environment } from '../../../environments/environment';
   ],
   template: `
     <div class="page-shell">
+
+      <!-- Floating exit button — only rendered in full-screen mode. Mirrors the
+           toolbar toggle (and the Esc key) as an obvious way back to normal. -->
+      @if (state.fullscreen()) {
+        <button type="button"
+          class="fullscreen-exit"
+          title="Exit full screen (Esc)"
+          aria-label="Exit full screen"
+          (click)="state.setFullscreen(false)"
+        >
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5l10 10M15 5 5 15"/></svg>
+        </button>
+      }
+
       <div class="editor-modal">
 
         <!-- Subject line — sits ABOVE and visually separate from the bordered
@@ -95,7 +109,7 @@ import { environment } from '../../../environments/environment';
     </div>
   `
 })
-export class KexyCustomRichEditorComponent implements AfterViewInit {
+export class KexyCustomRichEditorComponent implements AfterViewInit, OnDestroy {
   @ViewChild('toolbar') toolbarRef!: EditorToolbarComponent;
   @ViewChild('editorCanvas') editorCanvasRef!: EditorCanvasComponent;
   @ViewChild('inspector') inspectorRef!: MediaInspectorComponent;
@@ -114,6 +128,31 @@ export class KexyCustomRichEditorComponent implements AfterViewInit {
    *  definite height). Adds the `fill-height` host class (see the component CSS). */
   @HostBinding('class.fill-height')
   @Input() fillHeight = false;
+
+  /** Reflects the shared fullscreen state onto the host as a `fullscreen` class,
+   *  so the editor can expand to cover the whole screen (see the component CSS).
+   *  Toggled from the toolbar's fullscreen button and exited via the Esc key. */
+  @HostBinding('class.fullscreen')
+  get isFullscreen(): boolean {
+    return this.state.fullscreen();
+  }
+
+  /**
+   * Esc leaves fullscreen (mirrors the toolbar toggle / the corner X). We listen
+   * in the CAPTURE phase on `document` — NOT a bubbling `@HostListener` — so we
+   * run BEFORE the ng-bootstrap offcanvas's own Escape handler (registered first,
+   * on document, when the drawer opened). While fullscreen we `stopPropagation`
+   * so the offcanvas never sees the key and stays open; we only exit fullscreen.
+   * When NOT fullscreen we do nothing and let Esc bubble on to close the drawer.
+   */
+  private readonly onEscapeCapture = (event: KeyboardEvent): void => {
+    if (event.key !== 'Escape' && event.key !== 'Esc') return;
+    if (!this.state.fullscreen()) return;
+    event.preventDefault();
+    event.stopPropagation();
+    event.stopImmediatePropagation();
+    this.zone.run(() => this.state.setFullscreen(false));
+  };
 
   /** When true, export/preview emit the body in a bare document WITHOUT our
    *  email-table shell (used for "Plain Text" style emails). Reactive: toggling
@@ -135,9 +174,17 @@ export class KexyCustomRichEditorComponent implements AfterViewInit {
 
   readonly state = inject(EditorStateService);
   private readonly utils = inject(EditorUtilsService);
+  private readonly zone = inject(NgZone);
   private apiUrl: string = environment.baseUrl + `landing-pages/save-image`;
 
   ngAfterViewInit(): void {
+    // Capture-phase Esc handler (see onEscapeCapture) — registered outside the
+    // Angular zone so it doesn't trigger change detection on every keypress; it
+    // re-enters the zone itself only when it actually exits fullscreen.
+    this.zone.runOutsideAngular(() => {
+      document.addEventListener('keydown', this.onEscapeCapture, true);
+    });
+
     // Wire canvas reference to toolbar and inspector
     this.toolbarRef.canvas = this.editorCanvasRef;
     this.inspectorRef.canvas = this.editorCanvasRef;
@@ -166,6 +213,13 @@ export class KexyCustomRichEditorComponent implements AfterViewInit {
     } else {
       this.loadSample();
     }
+  }
+
+  ngOnDestroy(): void {
+    document.removeEventListener('keydown', this.onEscapeCapture, true);
+    // EditorStateService is a root singleton, so a lingering `true` here would
+    // reopen the next editor instance in fullscreen. Reset on teardown.
+    this.state.setFullscreen(false);
   }
 
   /** Public API: push email HTML into the editor (e.g. from a parent component). */

@@ -5,6 +5,8 @@ import { EditorMode } from '../models/editor.models';
 export class EditorStateService {
   readonly mode = signal<EditorMode>('design');
   readonly sourceMode = signal(false);
+  /** Whether the editor is expanded to cover the whole screen. */
+  readonly fullscreen = signal(false);
   readonly selectedBlock = signal<HTMLElement | null>(null);
   readonly status = signal('Ready');
   readonly htmlOutput = signal('');
@@ -20,6 +22,14 @@ export class EditorStateService {
 
   toggleSourceMode(): void {
     this.sourceMode.update(v => !v);
+  }
+
+  setFullscreen(value: boolean): void {
+    this.fullscreen.set(value);
+  }
+
+  toggleFullscreen(): void {
+    this.fullscreen.update(v => !v);
   }
 
   setSelectedBlock(block: HTMLElement | null): void {

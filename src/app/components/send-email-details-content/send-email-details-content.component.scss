@@ -164,7 +164,15 @@
           flex-direction: column;
           kexy-custom-rich-editor {
             flex: 1 1 auto;
-            min-height: 0;
+            // ─── EMAIL EDITOR MINIMUM HEIGHT (tweak this) ───────────────────
+            // On a TALL viewport flex-grow makes the editor fill the available
+            // space (this floor is irrelevant). On a SHORT viewport the editor
+            // stops shrinking at this height and the `.input-wrap` above scrolls
+            // instead — so the user sees a usable editor and scrolls the drawer.
+            // Raise/lower this value to taste. This rule WINS over the editor's
+            // own `kexy-custom-rich-editor.fill-height { min-height }` default
+            // (it's more specific), so change the number HERE.
+            min-height: 660px;
           }
         }
       }

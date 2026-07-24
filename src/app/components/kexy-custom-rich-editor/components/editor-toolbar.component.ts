@@ -269,6 +269,22 @@ interface ToolbarGroup {
       </div>
     </ng-template>
 
+    <ng-template #tplFullscreen>
+      <button type="button"
+        class="tool-btn"
+        [class.active]="state.fullscreen()"
+        [title]="state.fullscreen() ? 'Exit full screen' : 'Full screen'"
+        [attr.aria-label]="state.fullscreen() ? 'Exit full screen' : 'Full screen'"
+        (click)="state.toggleFullscreen()"
+      >
+        @if (state.fullscreen()) {
+          <svg class="tool-ic" viewBox="0 0 20 20" fill="currentColor"><path d="M8 3.75a.75.75 0 0 0-1.5 0V6.5H3.75a.75.75 0 0 0 0 1.5H7.25A.75.75 0 0 0 8 7.25V3.75zM12 3.75a.75.75 0 0 1 1.5 0V6.5h2.75a.75.75 0 0 1 0 1.5H12.75A.75.75 0 0 1 12 7.25V3.75zM8 16.25a.75.75 0 0 1-1.5 0V13.5H3.75a.75.75 0 0 1 0-1.5H7.25a.75.75 0 0 1 .75.75v3.5zM12 16.25a.75.75 0 0 0 1.5 0V13.5h2.75a.75.75 0 0 0 0-1.5H12.75a.75.75 0 0 0-.75.75v3.5z"/></svg>
+        } @else {
+          <svg class="tool-ic" viewBox="0 0 20 20" fill="currentColor"><path d="M3.75 7.25a.75.75 0 0 0 1.5 0V4.5H8a.75.75 0 0 0 0-1.5H4.5a.75.75 0 0 0-.75.75v3.5zM16.25 7.25a.75.75 0 0 1-1.5 0V4.5H12a.75.75 0 0 1 0-1.5h3.5a.75.75 0 0 1 .75.75v3.5zM3.75 12.75a.75.75 0 0 1 1.5 0v2.75H8a.75.75 0 0 1 0 1.5H4.5a.75.75 0 0 1-.75-.75v-3.5zM16.25 12.75a.75.75 0 0 0-1.5 0v2.75H12a.75.75 0 0 0 0 1.5h3.5a.75.75 0 0 0 .75-.75v-3.5z"/></svg>
+        }
+      </button>
+    </ng-template>
+
     <input #imageFileInput type="file" accept="image/*" hidden (change)="onImageFile($event)" />
     <input #videoFileInput type="file" accept="video/*" hidden (change)="onVideoFile($event)" />
   `
@@ -307,6 +323,7 @@ export class EditorToolbarComponent implements AfterViewInit, OnDestroy {
   @ViewChild('tplColor') tplColor!: TemplateRef<unknown>;
   @ViewChild('tplVideo') tplVideo!: TemplateRef<unknown>;
   @ViewChild('tplMerge') tplMerge!: TemplateRef<unknown>;
+  @ViewChild('tplFullscreen') tplFullscreen!: TemplateRef<unknown>;
 
   /** id → TemplateRef, assembled in ngAfterViewInit (used by both render slots). */
   templates: Record<string, TemplateRef<unknown>> = {};
@@ -330,6 +347,9 @@ export class EditorToolbarComponent implements AfterViewInit, OnDestroy {
     { id: 'color',      priority: 20 },
     { id: 'video',      priority: 15 },
     { id: 'mergeTag',   priority: 10 },
+    // Highest priority → last cluster to collapse into the ⋮ menu, so the
+    // full-screen toggle stays reachable at essentially every toolbar width.
+    { id: 'fullscreen', priority: 100 },
   ];
 
   /** ids currently collapsed into the ⋮ menu. */
@@ -436,6 +456,7 @@ export class EditorToolbarComponent implements AfterViewInit, OnDestroy {
       color: this.tplColor,
       video: this.tplVideo,
       mergeTag: this.tplMerge,
+      fullscreen: this.tplFullscreen,
     };
     // `templates` is a plain prop, so force ONE render (fresh Set reference
     // notifies even though the overflow set is unchanged) — that makes the

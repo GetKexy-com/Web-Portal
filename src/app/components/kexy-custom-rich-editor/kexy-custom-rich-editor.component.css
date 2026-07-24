@@ -135,7 +135,12 @@ app-editor-canvas {
    and the active view (Design canvas / Source / HTML / Preview) scrolls
    INTERNALLY. The toolbar + subject stay pinned; only the canvas scrolls. The
    host must supply a bounded flex context (see the send-email offcanvas). */
-kexy-custom-rich-editor.fill-height { flex: 1 1 auto; min-height: 0; }
+/* min-height (NOT 0): on a short viewport the editor keeps a usable minimum
+   height instead of collapsing to the sliver of available space — the host's
+   scroll container (e.g. send-email's `.input-wrap`, overflow-y:auto) then
+   scrolls to reveal it. On a tall viewport flex-grow still fills the space
+   (min-height only floors it), so the canvas keeps scrolling internally. */
+kexy-custom-rich-editor.fill-height { flex: 1 1 auto; min-height: 420px; }
 kexy-custom-rich-editor.fill-height .page-shell,
 kexy-custom-rich-editor.fill-height .editor-modal,
 kexy-custom-rich-editor.fill-height .editor-modal > section,
@@ -155,6 +160,71 @@ kexy-custom-rich-editor.fill-height .preview-stage iframe {
   min-height: 0;
   height: auto;
 }
+
+/* ── Full-screen mode (toggled from the toolbar button; Esc exits) ──────────
+   The host element is lifted OUT of its normal flow and pinned to the whole
+   viewport. Nothing about the editor's structure changes — same toolbar,
+   subject, canvas, inspector — so everything keeps working exactly as before;
+   it just fills the screen. We force the fill-height flex model here (whatever
+   the [fillHeight] input is) so the toolbar/subject stay pinned and only the
+   active view scrolls internally, and the whole editor fits the viewport. */
+kexy-custom-rich-editor.fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+  height: 100vh;
+  min-height: 0;
+  margin: 0;
+  padding: 16px;
+  background: #f4f6fb;
+  overflow: hidden;
+}
+kexy-custom-rich-editor.fullscreen .page-shell,
+kexy-custom-rich-editor.fullscreen .editor-modal,
+kexy-custom-rich-editor.fullscreen .editor-modal > section,
+kexy-custom-rich-editor.fullscreen app-editor-canvas,
+kexy-custom-rich-editor.fullscreen .mode-panel.active { flex: 1 1 auto; min-height: 0; }
+kexy-custom-rich-editor.fullscreen .editor-canvas {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+kexy-custom-rich-editor.fullscreen .source-editor,
+kexy-custom-rich-editor.fullscreen .html-output,
+kexy-custom-rich-editor.fullscreen .preview-stage iframe {
+  flex: 1 1 auto;
+  min-height: 0;
+  height: auto;
+}
+/* Keep the subject text clear of the floating exit button in the corner. */
+kexy-custom-rich-editor.fullscreen .email-meta .subject-input { padding-right: 48px; }
+
+/* Floating exit-fullscreen (X) button — top-right corner of the fullscreen host.
+   Hidden by default; only shown while the host carries `.fullscreen`. */
+.fullscreen-exit {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 5;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: #fff;
+  color: var(--muted);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.12);
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+.fullscreen-exit:hover {
+  color: var(--danger);
+  border-color: var(--danger);
+  background: #fff5f5;
+}
+.fullscreen-exit svg { width: 18px; height: 18px; }
 
 .modal-header {
   display: flex;
@@ -335,7 +405,7 @@ button.tool-btn .hash { font-weight: 700; font-size: 15px; color: #0b72b7; }
    cluster is disabled — editing controls don't apply to a rendered preview or
    the raw-source textarea. The Source (</>) toggle itself stays live so the
    user can jump straight into Design/Source. */
-.toolbar-strip.tools-disabled .toolbar-scroll .tb-group:not([data-group="source"]),
+.toolbar-strip.tools-disabled .toolbar-scroll .tb-group:not([data-group="source"]):not([data-group="fullscreen"]),
 .toolbar-strip.tools-disabled .overflow-tool {
   opacity: 0.4;
   pointer-events: none;
