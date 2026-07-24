@@ -190,12 +190,22 @@
               <div class="input-wrap">
                 <i class="fa fa-lock input-icon" aria-hidden="true"></i>
                 <input
-                  type="password"
-                  class="form-control"
+                  [type]="showSmtpPassword ? 'text' : 'password'"
+                  class="form-control has-toggle"
                   [placeholder]="editingSmtpId != null ? 'Leave blank to keep current password' : 'Enter password'"
                   formControlName="smtpPassword"
                   [class.error]="formValidationErrorCheck('smtpPassword')"
                 />
+                <button
+                  type="button"
+                  class="pw-toggle"
+                  (click)="showSmtpPassword = !showSmtpPassword"
+                  [attr.aria-label]="showSmtpPassword ? 'Hide password' : 'Show password'"
+                  [attr.aria-pressed]="showSmtpPassword"
+                  [title]="showSmtpPassword ? 'Hide password' : 'Show password'"
+                >
+                  <i class="fa" [class.fa-eye]="!showSmtpPassword" [class.fa-eye-slash]="showSmtpPassword" aria-hidden="true"></i>
+                </button>
               </div>
               <span class="field-error" *ngIf="formValidationErrorCheck('smtpPassword')">Field is required</span>
             </div>
@@ -253,6 +263,15 @@
           </div>
         </div>
 
+        <!-- Full-width blocker bar: free/consumer email providers aren't supported. -->
+        <div class="smtp-block-bar" *ngIf="freeEmailDomainDetected() as d" role="alert">
+          <i class="fa fa-exclamation-triangle" aria-hidden="true"></i>
+          <div class="smtp-block-text">
+            <strong>Free email providers can’t be used for sending</strong>
+            <span><strong>{{ d }}</strong> is a free/consumer email. Connect a business email on your own domain (e.g. you&#64;yourcompany.com) — Gmail, Yahoo, Proton, Outlook, iCloud, etc. aren’t supported.</span>
+          </div>
+        </div>
+
         <div class="kx-modal-footer">
           <app-kexy-button
             type="button"
@@ -267,7 +286,7 @@
             type="submit"
             [label]="isLoading ? 'Testing & saving…' : (editingSmtpId != null ? 'Test & Update' : 'Test & Save')"
             [iconLeft]="isLoading ? 'fa-refresh fa-spin' : 'fa-save'"
-            [disabled]="isLoading"
+            [disabled]="isLoading || hasFreeEmailAccount()"
             bgColor="#12a5f4"
             textColor="white"
           ></app-kexy-button>

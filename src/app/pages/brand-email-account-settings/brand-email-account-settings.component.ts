@@ -35,6 +35,8 @@ export class BrandEmailAccountSettingsComponent implements OnInit {
   deletingId: number | string | null = null;
   // null = add mode; set to an SMTP id when editing an existing account.
   editingSmtpId: number | string | null = null;
+  // Toggles the password field between masked and plain text (eye button).
+  showSmtpPassword = false;
   googleAuthCode: string;
   // Delete-gating: when the SMTP being removed is still attached to drip
   // campaigns, we hold them here and force the user to detach each one first.
@@ -128,6 +130,7 @@ export class BrandEmailAccountSettingsComponent implements OnInit {
 
   openAddSmtpModal = (content) => {
     this.editingSmtpId = null;
+    this.showSmtpPassword = false;
     this.buildAddSmtpForm();
     this.addSmtpModalRef = this.modal.open(content, {
       size: 'lg',
@@ -142,6 +145,7 @@ export class BrandEmailAccountSettingsComponent implements OnInit {
   // decodes the existing token). We prefill every other field from the row.
   openEditSmtpModal = (content, smtp: any) => {
     this.editingSmtpId = smtp?.id ?? null;
+    this.showSmtpPassword = false;
     this.buildAddSmtpForm();
     // Password is never returned by the list API, so it's optional on edit.
     const passwordCtrl = this.addSmtpForm.get('smtpPassword');
@@ -225,6 +229,71 @@ export class BrandEmailAccountSettingsComponent implements OnInit {
     this.smtpHostNotice = null;
   };
 
+  // Free / consumer email providers we do NOT support as sending accounts —
+  // outreach through them has poor deliverability and often violates the
+  // provider's ToS. We block by the FROM-email (and username, when it's an
+  // email) domain, which cleanly targets consumer accounts (someone@gmail.com)
+  // without blocking business setups on the same infrastructure (e.g. Google
+  // Workspace / Microsoft 365 on a custom domain).
+  private readonly FREE_EMAIL_DOMAINS: ReadonlySet<string> = new Set([
+    // Google
+    'gmail.com', 'googlemail.com',
+    // Yahoo
+    'yahoo.com', 'yahoo.co.uk', 'yahoo.co.in', 'yahoo.ca', 'yahoo.com.au',
+    'yahoo.fr', 'yahoo.de', 'yahoo.es', 'yahoo.it', 'ymail.com', 'rocketmail.com',
+    // Proton
+    'proton.me', 'protonmail.com', 'protonmail.ch', 'pm.me',
+    // Microsoft consumer
+    'outlook.com', 'hotmail.com', 'hotmail.co.uk', 'live.com', 'live.co.uk', 'msn.com',
+    // Apple
+    'icloud.com', 'me.com', 'mac.com',
+    // AOL
+    'aol.com',
+    // GMX / Mail.com / others
+    'gmx.com', 'gmx.net', 'gmx.de', 'mail.com',
+    // Yandex
+    'yandex.com', 'yandex.ru',
+    // Zoho consumer
+    'zohomail.com',
+    // Misc free
+    'inbox.com', 'hushmail.com', 'tutanota.com', 'tuta.io', 'fastmail.com',
+  ]);
+
+  /** The email domain (lower-cased) after the `@`, or '' when not an email. */
+  private emailDomain(value: string): string {
+    const at = (value || '').trim().toLowerCase().lastIndexOf('@');
+    return at === -1 ? '' : value.trim().toLowerCase().slice(at + 1);
+  }
+
+  /**
+   * If the SMTP's From email (or its username, when that's an email) uses a free
+   * consumer provider, return that domain; otherwise null. Used to block adding
+   * such accounts.
+   */
+  private blockedFreeEmailDomain(formValue: any): string | null {
+    const candidates = [this.emailDomain(formValue?.smtpFromEmail), this.emailDomain(formValue?.smtpUsername)];
+    return candidates.find((d) => d && this.FREE_EMAIL_DOMAINS.has(d)) || null;
+  }
+
+  /** The free-provider domain typed into a specific control, else null — drives
+   *  the inline warning shown under that field (reactive, per keystroke). */
+  freeEmailDomainFor(controlName: 'smtpFromEmail' | 'smtpUsername'): string | null {
+    const domain = this.emailDomain(this.addSmtpForm?.get(controlName)?.value);
+    return domain && this.FREE_EMAIL_DOMAINS.has(domain) ? domain : null;
+  }
+
+  /** The first free-provider domain found in the From email or username, else
+   *  null — drives the full-width blocker bar above the footer. */
+  freeEmailDomainDetected(): string | null {
+    return this.freeEmailDomainFor('smtpFromEmail') || this.freeEmailDomainFor('smtpUsername');
+  }
+
+  /** True when either the From email or the username is a free provider — used
+   *  to disable the submit button (the reason shows in the blocker bar). */
+  hasFreeEmailAccount(): boolean {
+    return !!this.freeEmailDomainDetected();
+  }
+
   handleSubmit = async () => {
     this.submitted = true;
     if (!this.addSmtpForm.valid) {
@@ -233,6 +302,12 @@ export class BrandEmailAccountSettingsComponent implements OnInit {
     }
 
     const formValue = this.addSmtpForm.getRawValue();
+
+    // Free / consumer email providers (gmail, yahoo, proton, …) aren't supported
+    // as sending accounts. The reason is shown INLINE under the field and the
+    // submit button is disabled; this is just a safety net (e.g. paste + Enter).
+    if (this.blockedFreeEmailDomain(formValue)) return;
+
     // Safety net in case the value wasn't cleaned on blur (e.g. paste + submit):
     // strip any scheme/path so the backend gets a bare hostname.
     formValue.smtpHost = this.sanitizeSmtpHost(formValue.smtpHost);
