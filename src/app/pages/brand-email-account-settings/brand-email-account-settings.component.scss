@@ -369,6 +369,40 @@ $kx-shadow: 0 10px 30px -18px rgba(9, 93, 209, 0.35), 0 2px 8px rgba(31, 42, 68,
       padding-right: 40px;
     }
   }
+
+  // Reserve room on the right for the reveal (eye) button.
+  .form-control.has-toggle {
+    padding-right: 44px;
+  }
+
+  // Password reveal toggle — matches the leading icon's muted color, brightens
+  // to the brand blue on hover/focus.
+  .pw-toggle {
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: #9aa6b8;
+    font-size: 15px;
+    cursor: pointer;
+    transition: color 0.15s ease, background 0.15s ease;
+
+    &:hover,
+    &:focus-visible {
+      color: $kx-primary;
+      background: rgba(18, 165, 244, 0.1);
+      outline: none;
+    }
+  }
 }
 
 .field-error {
@@ -377,6 +411,49 @@ $kx-shadow: 0 10px 30px -18px rgba(9, 93, 209, 0.35), 0 2px 8px rgba(31, 42, 68,
   color: #dc2626;
   font-size: 12px;
   font-weight: 600;
+}
+
+// Full-width blocker bar (above the footer) when a free/consumer email provider
+// is entered — a prominent notification strip, not a per-field hint.
+.smtp-block-bar {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin: 0 22px 16px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  color: #92400e;
+  line-height: 1.45;
+
+  > i {
+    margin-top: 2px;
+    flex-shrink: 0;
+    font-size: 18px;
+    color: #d97706;
+  }
+
+  .smtp-block-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+
+    > strong {
+      font-size: 13.5px;
+      font-weight: 800;
+      color: #78350f;
+    }
+
+    > span {
+      font-size: 12.5px;
+      font-weight: 500;
+    }
+
+    strong {
+      font-weight: 700;
+    }
+  }
 }
 
 // Informational note shown when we auto-clean the host value.

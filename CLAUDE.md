@@ -807,7 +807,26 @@ have **multiple** SMTP accounts. All SMTP calls live in `drip-campaign.service.t
   field and **clears the `smtpPassword` validator** — the list API never returns
   the password, so on edit it's optional (blank = keep the stored credentials).
   Template copy (title, submit label `Test & Update`/`Test & Save`, password
-  placeholder + required `*`) all key off `editingSmtpId`.
+  placeholder + required `*`) all key off `editingSmtpId`. The password field
+  has an **eye toggle** (`showSmtpPassword`, reset to `false` on every open) that
+  flips `type` between `password`/`text` (`.pw-toggle` button).
+- **Free/consumer email providers are blocked, shown INLINE (not a popup).** The
+  domain after `@` of the **From email** / **username** is matched against a
+  `FREE_EMAIL_DOMAINS` set (gmail/googlemail, yahoo + regional, proton/pm.me,
+  outlook/hotmail/live/msn, icloud/me/mac, aol, gmx, mail.com, yandex, zohomail,
+  a few others). `freeEmailDomainDetected()` (first offending domain from From
+  email / username) drives a reactive full-width amber **`.smtp-block-bar`**
+  notification strip pinned ABOVE the modal footer (per keystroke, only once a
+  full free domain is typed); `hasFreeEmailAccount()` disables the Test &
+  Save/Update button while either field is a free provider. `handleSubmit` still calls
+  `blockedFreeEmailDomain(formValue)` and returns early as a **safety net** (paste
+  + Enter) — but there is NO `Swal` popup; the inline message + disabled button
+  are the UX. Intentionally checks the EMAIL DOMAIN, not the SMTP host — so
+  `you@yourcompany.com` on Google Workspace / Microsoft 365 (host
+  `smtp.gmail.com`/`smtp.office365.com`) is still allowed; only consumer addresses
+  like `someone@gmail.com` are rejected. Extend the set to block more. (Template
+  gotcha: literal `@` in the message text must be `&#64;` — Angular parses a bare
+  `@` as a control-flow block.)
   - **Create:** `testSmtpConnection(postData)` → `POST /smtp` (tests then saves).
     Sends `companyId` + all fields; `smtpPort` coerced to a number.
   - **Edit:** `updateSmtp(id, patchData)` → `PATCH /smtp/:id`. Send **only the
