@@ -414,6 +414,20 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
     // for tags that accept a fallback (link-type tags like unsubscribe don't).
     const chip = target.closest('.merge-tag-chip') as HTMLElement | null;
     if (chip) {
+      // Explicitly SELECT the chip so a follow-up toolbar action (e.g. alignment)
+      // has a deterministic target. Clicking a `contenteditable="false"` node
+      // otherwise leaves an ambiguous/empty selection — especially a chip sitting
+      // bare in the root (an unsubscribe link inserted between paragraphs) — so
+      // the aligner couldn't locate its line. selectNode gives a clean range
+      // (root, i)→(root, i+1) that setAlignment's loose-wrap path resolves.
+      const sel = window.getSelection();
+      if (sel) {
+        const r = document.createRange();
+        r.selectNode(chip);
+        sel.removeAllRanges();
+        sel.addRange(r);
+        this.savedRange = r.cloneRange();
+      }
       const key = chip.dataset['mergeKey'] || '';
       if (this.mergeTags.allowsFallback(key)) {
         this.fallbackPopoverRef.show(chip, key, chip.getBoundingClientRect());
@@ -641,6 +655,149 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
     this.focusEditor();
     document.execCommand(cmd, false, value);
     this.refreshOutputs();
+  }
+
+  /**
+   * Align the block(s) intersecting the current selection, via the NATIVE
+   * `execCommand('justify*')` so it stays on the browser undo stack (Ctrl+Z).
+   *
+   * The catch that broke plain justify: clicking a merge-tag chip leaves the
+   * selection WRAPPING the chip's `contenteditable="false"` element, and the
+   * browser refuses to run a justify command whose selection boundary is a
+   * non-editable node — so aligning a line whose content was a merge tag
+   * silently no-oped. Fix: before running the command, RE-ANCHOR the selection
+   * to span the target block(s)' CONTENTS (`setStart(first,0)` →
+   * `setEnd(last, childNodes.length)`). Those boundaries sit inside editable
+   * blocks, so the command applies `text-align` to the block(s) (visual result
+   * is identical — alignment is block-level anyway) AND remains undoable. When
+   * the selection resolves no block at all (bare text + <br> in the root) we
+   * run the command on the existing selection and let the browser wrap it.
+   */
+  setAlignment(align: 'left' | 'center' | 'right' | 'justify'): void {
+    if (this.state.sourceMode()) return;
+    this.focusEditor();
+    const range = this.currentBodyRange();
+    if (!range) return;
+
+    let blocks = this.leafBlocksInRange(range);
+
+    // Loose inline content in the canvas ROOT has no block to carry text-align
+    // (AI-generated / streamed emails sometimes drop a greeting or a merge-tag
+    // chip straight in the root with no <p> wrapper). Wrap the top-level inline
+    // runs into paragraphs, then align the one that held the caret. We capture a
+    // concrete anchor NODE first because the wrap MOVES nodes, which invalidates
+    // the offset-based range.
+    if (!blocks.length) {
+      let anchorNode: Node | null = range.startContainer;
+      if (anchorNode === this.canvas) {
+        anchorNode =
+          this.canvas.childNodes[range.startOffset] ??
+          this.canvas.childNodes[Math.max(0, range.startOffset - 1)] ??
+          null;
+      }
+      this.wrapLooseTopLevelInlines();
+      const host =
+        anchorNode && anchorNode.nodeType === Node.TEXT_NODE
+          ? (anchorNode as Text).parentElement
+          : (anchorNode as HTMLElement | null);
+      const block = host?.closest(EditorCanvasComponent.TEXT_BLOCK_SELECTOR) as HTMLElement | null;
+      if (block && this.canvas.contains(block)) blocks = [block];
+    }
+
+    if (blocks.length) {
+      const sel = window.getSelection();
+      if (sel) {
+        const reanchored = document.createRange();
+        const first = blocks[0];
+        const last = blocks[blocks.length - 1];
+        reanchored.setStart(first, 0);
+        reanchored.setEnd(last, last.childNodes.length);
+        sel.removeAllRanges();
+        sel.addRange(reanchored);
+      }
+    }
+
+    const cmd = { left: 'justifyLeft', center: 'justifyCenter', right: 'justifyRight', justify: 'justifyFull' }[align];
+    document.execCommand('styleWithCSS', false, 'true');
+    document.execCommand(cmd, false, undefined);
+    this.saveSelection();
+    this.refreshOutputs();
+  }
+
+  /**
+   * The alignment of the block(s) in the current selection — `'left'`,
+   * `'center'`, `'right'` or `'justify'`, or `null` when the selection spans
+   * blocks with DIFFERENT alignments (mixed) or has no block. Read from the
+   * blocks' computed `text-align` (so it reflects our `setAlignment` result as
+   * well as inherited defaults). Used by the toolbar to show which alignment is
+   * active. `start`/`end` normalize to `left`/`right` (the editor is LTR).
+   */
+  getSelectionAlignment(): 'left' | 'center' | 'right' | 'justify' | null {
+    const range = this.currentBodyRange();
+    if (!range) return null;
+    let blocks = this.leafBlocksInRange(range);
+    if (!blocks.length) {
+      const anchor = this.selectionAnchorEl();
+      const b = anchor?.closest(EditorCanvasComponent.TEXT_BLOCK_SELECTOR) as HTMLElement | null;
+      if (b && this.canvas.contains(b)) blocks = [b];
+    }
+    if (!blocks.length) return null;
+
+    const norm = (v: string): 'left' | 'center' | 'right' | 'justify' => {
+      if (v === 'center' || v === 'right' || v === 'justify') return v;
+      if (v === 'end') return 'right';
+      return 'left'; // 'start', 'left', '' and anything else
+    };
+    let result: 'left' | 'center' | 'right' | 'justify' | null = null;
+    for (const b of blocks) {
+      const a = norm(getComputedStyle(b).textAlign);
+      if (result === null) result = a;
+      else if (result !== a) return null; // mixed
+    }
+    return result;
+  }
+
+  /**
+   * Wrap loose top-level INLINE content (bare text, spans, merge-tag chips,
+   * `<br>`, anchors, inline images) sitting directly in the canvas ROOT into
+   * `<p>` blocks. AI-generated / streamed emails sometimes drop a greeting or a
+   * merge tag straight in the root with no `<p>` wrapper — such content has no
+   * block to carry paragraph-level styling, so it can't be aligned (and
+   * per-block font sizing is fragile on it). A contiguous inline run (INCLUDING
+   * its `<br>` line breaks) becomes ONE `<p>` so line breaks are preserved;
+   * block-level siblings and media blocks act as separators and are left
+   * untouched. Idempotent (already-wrapped content is a no-op) and skipped in
+   * full-document passthrough mode (we keep the user's shell verbatim).
+   */
+  private wrapLooseTopLevelInlines(): void {
+    if (this.fullDocTemplate) return;
+    const root = this.canvas;
+    const isBlock = (n: Node): boolean => {
+      if (n.nodeType !== Node.ELEMENT_NODE) return false;
+      const el = n as HTMLElement;
+      if (el.classList.contains('media-block')) return true;
+      return /^(P|DIV|H[1-6]|UL|OL|LI|TABLE|THEAD|TBODY|TFOOT|TR|TD|TH|BLOCKQUOTE|PRE|HR|SECTION|ARTICLE|ASIDE|HEADER|FOOTER|FIGURE|FIGCAPTION|DL|DT|DD)$/.test(el.tagName);
+    };
+    const isBlank = (n: Node): boolean =>
+      n.nodeType === Node.TEXT_NODE && !(n.textContent || '').trim();
+
+    let group: ChildNode[] = [];
+    const flush = (): void => {
+      // Trim leading/trailing blank text so we never emit an empty/space-only <p>.
+      while (group.length && isBlank(group[0])) group.shift();
+      while (group.length && isBlank(group[group.length - 1])) group.pop();
+      if (!group.length) return;
+      const p = document.createElement('p');
+      group[0].before(p);
+      group.forEach((n) => p.appendChild(n));
+      group = [];
+    };
+
+    Array.from(root.childNodes).forEach((node) => {
+      if (isBlock(node)) flush();
+      else group.push(node as ChildNode);
+    });
+    flush();
   }
 
   // ----- Live color preview (text & highlight color pickers) -----
@@ -1474,6 +1631,10 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
    */
   setContent(html: string): void {
     this.applyContent(html ?? '');
+    // Wrap loose top-level inline content (bare greeting / merge tag with no <p>)
+    // into paragraphs BEFORE chip rendering, so those lines are proper blocks
+    // (alignable, consistently styleable). No-op when already block-wrapped.
+    this.wrapLooseTopLevelInlines();
     this.hydrateEditorBlocks();
     this.mergeTags.renderChipsInElement(this.canvas);
     this.selectBlock(null);

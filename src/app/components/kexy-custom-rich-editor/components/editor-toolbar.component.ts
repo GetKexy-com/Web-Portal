@@ -83,21 +83,34 @@ interface ToolbarGroup {
     <ng-template #tplAlign>
       <div class="align-tool">
         <button type="button" class="tool-btn with-caret" title="Text alignment" [class.active]="alignOpen()" (click)="toggleAlign()">
-          <svg class="tool-ic" viewBox="0 0 20 20" fill="currentColor"><path d="M2 3.75c0 .414.336.75.75.75h14.5a.75.75 0 1 0 0-1.5H2.75a.75.75 0 0 0-.75.75zm0 8c0 .414.336.75.75.75h14.5a.75.75 0 1 0 0-1.5H2.75a.75.75 0 0 0-.75.75zm0 4c0 .414.336.75.75.75h9.929a.75.75 0 1 0 0-1.5H2.75a.75.75 0 0 0-.75.75zm0-8c0 .414.336.75.75.75h9.929a.75.75 0 1 0 0-1.5H2.75a.75.75 0 0 0-.75.75z"/></svg>
+          @switch (alignValue()) {
+            @case ('center') {
+              <svg class="tool-ic" viewBox="0 0 20 20" fill="currentColor"><path d="M2 3.75c0 .414.336.75.75.75h14.5a.75.75 0 1 0 0-1.5H2.75a.75.75 0 0 0-.75.75zm0 8c0 .414.336.75.75.75h14.5a.75.75 0 1 0 0-1.5H2.75a.75.75 0 0 0-.75.75zm2.286 4c0 .414.336.75.75.75h9.928a.75.75 0 1 0 0-1.5H5.036a.75.75 0 0 0-.75.75zm0-8c0 .414.336.75.75.75h9.928a.75.75 0 1 0 0-1.5H5.036a.75.75 0 0 0-.75.75z"/></svg>
+            }
+            @case ('right') {
+              <svg class="tool-ic" viewBox="0 0 20 20" fill="currentColor"><path d="M18 3.75a.75.75 0 0 1-.75.75H2.75a.75.75 0 1 1 0-1.5h14.5a.75.75 0 0 1 .75.75zm0 8a.75.75 0 0 1-.75.75H2.75a.75.75 0 1 1 0-1.5h14.5a.75.75 0 0 1 .75.75zm0 4a.75.75 0 0 1-.75.75H7.321a.75.75 0 1 1 0-1.5h9.929a.75.75 0 0 1 .75.75zm0-8a.75.75 0 0 1-.75.75H7.321a.75.75 0 1 1 0-1.5h9.929a.75.75 0 0 1 .75.75z"/></svg>
+            }
+            @case ('justify') {
+              <svg class="tool-ic" viewBox="0 0 20 20" fill="currentColor"><path d="M2 3.75c0 .414.336.75.75.75h14.5a.75.75 0 1 0 0-1.5H2.75a.75.75 0 0 0-.75.75zm0 8c0 .414.336.75.75.75h14.5a.75.75 0 1 0 0-1.5H2.75a.75.75 0 0 0-.75.75zm0 4c0 .414.336.75.75.75h9.929a.75.75 0 1 0 0-1.5H2.75a.75.75 0 0 0-.75.75zm0-8c0 .414.336.75.75.75h14.5a.75.75 0 1 0 0-1.5H2.75a.75.75 0 0 0-.75.75z"/></svg>
+            }
+            @default {
+              <svg class="tool-ic" viewBox="0 0 20 20" fill="currentColor"><path d="M2 3.75c0 .414.336.75.75.75h14.5a.75.75 0 1 0 0-1.5H2.75a.75.75 0 0 0-.75.75zm0 8c0 .414.336.75.75.75h14.5a.75.75 0 1 0 0-1.5H2.75a.75.75 0 0 0-.75.75zm0 4c0 .414.336.75.75.75h9.929a.75.75 0 1 0 0-1.5H2.75a.75.75 0 0 0-.75.75zm0-8c0 .414.336.75.75.75h9.929a.75.75 0 1 0 0-1.5H2.75a.75.75 0 0 0-.75.75z"/></svg>
+            }
+          }
           <svg class="tool-ic caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
         </button>
         @if (alignOpen()) {
           <div class="align-menu" role="menu">
-            <button type="button" class="tool-btn" title="Align left" (click)="applyAlign('justifyLeft')">
+            <button type="button" class="tool-btn" title="Align left" [class.active]="alignValue() === 'left'" (click)="applyAlign('left')">
               <svg class="tool-ic" viewBox="0 0 20 20" fill="currentColor"><path d="M2 3.75c0 .414.336.75.75.75h14.5a.75.75 0 1 0 0-1.5H2.75a.75.75 0 0 0-.75.75zm0 8c0 .414.336.75.75.75h14.5a.75.75 0 1 0 0-1.5H2.75a.75.75 0 0 0-.75.75zm0 4c0 .414.336.75.75.75h9.929a.75.75 0 1 0 0-1.5H2.75a.75.75 0 0 0-.75.75zm0-8c0 .414.336.75.75.75h9.929a.75.75 0 1 0 0-1.5H2.75a.75.75 0 0 0-.75.75z"/></svg>
             </button>
-            <button type="button" class="tool-btn" title="Align center" (click)="applyAlign('justifyCenter')">
+            <button type="button" class="tool-btn" title="Align center" [class.active]="alignValue() === 'center'" (click)="applyAlign('center')">
               <svg class="tool-ic" viewBox="0 0 20 20" fill="currentColor"><path d="M2 3.75c0 .414.336.75.75.75h14.5a.75.75 0 1 0 0-1.5H2.75a.75.75 0 0 0-.75.75zm0 8c0 .414.336.75.75.75h14.5a.75.75 0 1 0 0-1.5H2.75a.75.75 0 0 0-.75.75zm2.286 4c0 .414.336.75.75.75h9.928a.75.75 0 1 0 0-1.5H5.036a.75.75 0 0 0-.75.75zm0-8c0 .414.336.75.75.75h9.928a.75.75 0 1 0 0-1.5H5.036a.75.75 0 0 0-.75.75z"/></svg>
             </button>
-            <button type="button" class="tool-btn" title="Align right" (click)="applyAlign('justifyRight')">
+            <button type="button" class="tool-btn" title="Align right" [class.active]="alignValue() === 'right'" (click)="applyAlign('right')">
               <svg class="tool-ic" viewBox="0 0 20 20" fill="currentColor"><path d="M18 3.75a.75.75 0 0 1-.75.75H2.75a.75.75 0 1 1 0-1.5h14.5a.75.75 0 0 1 .75.75zm0 8a.75.75 0 0 1-.75.75H2.75a.75.75 0 1 1 0-1.5h14.5a.75.75 0 0 1 .75.75zm0 4a.75.75 0 0 1-.75.75H7.321a.75.75 0 1 1 0-1.5h9.929a.75.75 0 0 1 .75.75zm0-8a.75.75 0 0 1-.75.75H7.321a.75.75 0 1 1 0-1.5h9.929a.75.75 0 0 1 .75.75z"/></svg>
             </button>
-            <button type="button" class="tool-btn" title="Justify" (click)="applyAlign('justifyFull')">
+            <button type="button" class="tool-btn" title="Justify" [class.active]="alignValue() === 'justify'" (click)="applyAlign('justify')">
               <svg class="tool-ic" viewBox="0 0 20 20" fill="currentColor"><path d="M2 3.75c0 .414.336.75.75.75h14.5a.75.75 0 1 0 0-1.5H2.75a.75.75 0 0 0-.75.75zm0 8c0 .414.336.75.75.75h14.5a.75.75 0 1 0 0-1.5H2.75a.75.75 0 0 0-.75.75zm0 4c0 .414.336.75.75.75h9.929a.75.75 0 1 0 0-1.5H2.75a.75.75 0 0 0-.75.75zm0-8c0 .414.336.75.75.75h14.5a.75.75 0 1 0 0-1.5H2.75a.75.75 0 0 0-.75.75z"/></svg>
             </button>
           </div>
@@ -413,6 +426,9 @@ export class EditorToolbarComponent implements AfterViewInit, OnDestroy {
   readonly ulActive = signal(false);
   readonly olActive = signal(false);
   readonly linkActive = signal(false);
+  /** Current alignment of the selection (drives the align button icon + the
+   *  active option in the align menu). `null` = mixed / none → show the default. */
+  readonly alignValue = signal<'left' | 'center' | 'right' | 'justify' | null>('left');
 
   readonly overflowOpen = signal(false);
   readonly alignOpen = signal(false);
@@ -634,8 +650,9 @@ export class EditorToolbarComponent implements AfterViewInit, OnDestroy {
     this.overflowOpen.set(false);
   }
 
-  applyAlign(command: string): void {
-    this.canvas?.execCommand(command);
+  applyAlign(align: 'left' | 'center' | 'right' | 'justify'): void {
+    this.canvas?.setAlignment(align);
+    this.alignValue.set(align); // reflect immediately on the button + menu
     this.alignOpen.set(false);
   }
 
@@ -713,6 +730,8 @@ export class EditorToolbarComponent implements AfterViewInit, OnDestroy {
     this.syncFontControls();
     // Reflect the color of the text under the caret in the text/fill color bars.
     this.syncColorControls();
+    // Reflect the current alignment on the align button + menu.
+    this.alignValue.set(this.canvas?.getSelectionAlignment() ?? null);
   }
 
   /** Point the text-color / fill-color bars at the current selection's colors. */
