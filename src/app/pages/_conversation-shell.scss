@@ -330,54 +330,83 @@ $page-h: calc(100vh - 70px);
     .pane-head {
       flex-shrink: 0;
       display: flex;
-      align-items: flex-start;
+      // `center`, not flex-start: the identity block is now a 50px avatar beside
+      // two lines, so the action cluster reads better centred against it.
+      align-items: center;
       justify-content: space-between;
       gap: 20px;
-      padding: 16px 22px;
+      padding: 14px 22px;
       background: #ffffff;
       border-bottom: 1px solid $kx-border;
 
       .pane-identity {
         display: flex;
         align-items: center;
-        gap: 12px;
+        gap: 14px;
         min-width: 0;
       }
 
-      .identity-name-row {
-        display: flex;
-        align-items: baseline;
-        flex-wrap: wrap;
-        gap: 8px;
+      .identity-text {
+        min-width: 0;
       }
 
+      // Name is the headline of the pane — bigger than it was (15px), with the
+      // 50px avatar beside it, so the header has a real identity block rather than
+      // three same-weight clusters on one line.
       .identity-name {
-        font-size: 15px;
+        margin: 0;
+        font-size: 18px;
         font-weight: 700;
+        line-height: 1.25;
         color: $kx-ink;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
 
-      .unsubscribe-link {
-        font-size: 12px;
-        font-weight: 500;
-        color: $kx-primary-deep;
-        text-decoration: underline;
-        cursor: pointer;
-
-        &:hover { color: $kx-red; }
-      }
-
-      .identity-role {
-        margin-top: 2px;
+      // Role · company · phone · email on ONE muted line. The middots are drawn by
+      // CSS between items, so items can be conditionally absent without leaving a
+      // stray separator behind.
+      .identity-meta {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 2px 10px;
+        margin-top: 3px;
         font-size: 12.5px;
-        line-height: 1.4;
+        line-height: 1.5;
         color: $kx-muted;
 
-        .company-name {
-          color: $kx-primary-deep;
+        .meta-item {
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          min-width: 0;
+
+          // Separator before every item except the first ON ITS LINE. `~ ` would
+          // also mark wrapped rows, which is fine — it reads as a continuation.
+          & + .meta-item::before {
+            content: '·';
+            margin-right: 8px;
+            color: #cbd5e1;
+          }
+
+          i {
+            font-size: 11px;
+            color: #94a3b8;
+          }
+        }
+
+        .meta-link {
+          color: $kx-muted;
           text-decoration: none;
 
-          &:hover { text-decoration: underline; }
+          &:hover {
+            color: $kx-primary-deep;
+            text-decoration: underline;
+
+            i { color: $kx-primary-deep; }
+          }
         }
       }
 
@@ -385,27 +414,27 @@ $page-h: calc(100vh - 70px);
         flex-shrink: 0;
         display: flex;
         align-items: center;
-        gap: 14px;
+        gap: 10px;
       }
 
-      .contact-chips {
-        display: flex;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 8px;
+      // Quiet secondary next to the filled primary. Unsubscribe used to be an
+      // underlined link welded to the contact's name, where it read as part of it.
+      .ghost-btn {
+        padding: 9px 14px;
+        border: 1px solid $kx-border;
+        border-radius: 10px;
+        background: #fff;
+        color: $kx-muted;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        white-space: nowrap;
 
-        .contact-chip {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          padding: 5px 10px;
-          border: 1px solid $kx-border;
-          border-radius: 999px;
-          background: $kx-field-bg;
-          font-size: 12px;
-          color: $kx-muted;
-
-          img { width: 14px; }
+        &:hover {
+          border-color: $kx-red;
+          background: $kx-red-bg;
+          color: $kx-red;
         }
       }
     }

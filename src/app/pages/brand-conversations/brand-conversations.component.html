@@ -120,51 +120,63 @@
       <header class="pane-head">
         <div class="pane-identity">
           <brand-convo-avatar
+            size="large"
             [text]="getNameInitials(selectedConversation.receiverDetails.details)"
             [seed]="getFullName(selectedConversation.receiverDetails.details) || selectedConversation.receiverEmail"
           ></brand-convo-avatar>
 
           <div class="identity-text">
-            <div class="identity-name-row">
-              <span class="identity-name">{{ getFullName(selectedConversation.receiverDetails.details) }}</span>
-              <span class="unsubscribe-link" (click)="unsubscribeBtnClick()">Unsubscribe</span>
-            </div>
-            <div class="identity-role">
-              {{ selectedConversation.receiverDetails.details.title }}
-              {{ (selectedConversation.receiverDetails.details.title && selectedConversation.receiverDetails.details.organization.name) ? 'at' : '' }}
+            <p class="identity-name">{{ getFullName(selectedConversation.receiverDetails.details) }}</p>
+
+            <!--ONE muted metadata line, middot-separated, replacing the old role
+                line PLUS a row of bordered chips that competed with the primary
+                action. Phone and email are real tel:/mailto: links now.
+                NOTE: the company name used to render TWICE when a contact had both
+                a website and a name (two *ngIf blocks that could both match) — the
+                second is now `!websiteUrl && name`.-->
+            <div class="identity-meta">
+              <span class="meta-item" *ngIf="selectedConversation.receiverDetails.details.title">
+                {{ selectedConversation.receiverDetails.details.title }}
+              </span>
               <a
+                class="meta-item meta-link"
                 *ngIf="selectedConversation.receiverDetails.details.organization.websiteUrl"
                 [href]="selectedConversation.receiverDetails.details.organization.websiteUrl"
                 target="_blank"
-                class="company-name"
+              >{{ selectedConversation.receiverDetails.details.organization.name }}</a>
+              <span
+                class="meta-item"
+                *ngIf="!selectedConversation.receiverDetails.details.organization.websiteUrl && selectedConversation.receiverDetails.details.organization.name"
+              >{{ selectedConversation.receiverDetails.details.organization.name }}</span>
+              <a
+                class="meta-item meta-link"
+                *ngIf="selectedConversation.receiverDetails.details.organization.phone"
+                [href]="'tel:' + selectedConversation.receiverDetails.details.organization.phone"
               >
-                {{ selectedConversation.receiverDetails.details.organization.name }}
+                <i class="fa fa-phone" aria-hidden="true"></i>
+                {{ selectedConversation.receiverDetails.details.organization.phone }}
               </a>
-              <span *ngIf="selectedConversation.receiverDetails.details.organization.name">
-                {{ selectedConversation.receiverDetails.details.organization.name }}
-              </span>
+              <a class="meta-item meta-link" [href]="'mailto:' + selectedConversation.receiverEmail">
+                <i class="fa fa-envelope-o" aria-hidden="true"></i>
+                {{ selectedConversation.receiverEmail }}
+              </a>
             </div>
           </div>
         </div>
 
+        <!--Unsubscribe moved OFF the name (where it read as part of it) into the
+            action cluster as a quiet secondary, so the filled primary now clearly
+            outranks it.-->
         <div class="pane-actions">
-          <div class="contact-chips">
-            <span class="contact-chip" *ngIf="selectedConversation.receiverDetails.details.organization.phone">
-              <img src="/assets/icon/phone-icon.svg" alt="" aria-hidden="true">
-              {{ selectedConversation.receiverDetails.details.organization.phone }}
-            </span>
-            <span class="contact-chip">
-              <img src="/assets/icon/envelope-icon.svg" alt="" aria-hidden="true">
-              {{ selectedConversation.receiverEmail }}
-            </span>
-          </div>
+          <button type="button" class="ghost-btn" (click)="unsubscribeBtnClick()">
+            Unsubscribe
+          </button>
           <app-kexy-button
             label="Send next email"
             iconLeft="fa-paper-plane-o"
             (click)="sendNextEmailTapped(sendEmailModal)"
-            bgColor="#ffffff"
-            textColor="#095dd1"
-            borderColor="#e2e8f0"
+            bgColor="#095dd1"
+            textColor="#ffffff"
             radius="10px"
           ></app-kexy-button>
         </div>
