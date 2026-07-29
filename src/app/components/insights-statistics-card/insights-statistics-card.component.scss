@@ -1,36 +1,57 @@
-.content {
-  padding: 16px;
-  border: 1px solid #ddd;
-  border-radius: 10px;
-  .title-wrap {
-    margin-bottom: 15px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    p {
-      font-size: 16px;
-      line-height: 16px;
-      margin-bottom: 0;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      span {
-        color: #0047CC;
-      }
-      img {
-        width: 18px;
-        height: 18px;
-        margin-left: 5px;
-      }
+// Tokens match the shared drawer design (see email-insights-content, which is this
+// component's ONLY consumer).
+$kx-primary: #12a5f4;
+$kx-ink: #0f172a;
+$kx-muted: #64748b;
+$kx-border: #e2e8f0;
+
+// Stat tile: label (sentence case) → value → meter.
+.stat-tile {
+  padding: 18px 20px;
+  border: 1px solid $kx-border;
+  border-radius: 14px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+
+  .stat-label {
+    margin-bottom: 10px;
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: $kx-muted;
+  }
+
+  // Ink, NOT the accent hue — the meter below carries the color; text keeps text
+  // tokens so the number stays readable and doesn't compete with the fill.
+  // Proportional (default) figures: `tabular-nums` would make this look loose.
+  .stat-value {
+    margin-bottom: 14px;
+    font-size: 30px;
+    font-weight: 600;
+    line-height: 1.1;
+    color: $kx-ink;
+
+    .stat-unit {
+      margin-left: 2px;
+      font-size: 17px;
+      font-weight: 600;
+      color: $kx-muted;
     }
   }
 }
 
-.credit-progressbar-orange {
-  height: 10px;
-  background-color: #D3E3EC;
+// Meter: accent fill on a LIGHTER STEP OF THE SAME BLUE ramp, so the bar reads as
+// one scale rather than color-on-gray. Host is the track; ::ng-deep reaches the
+// ng-bootstrap fill (this component is private to the insights drawer).
+.stat-meter {
+  display: block;
+  height: 8px;
+  border-radius: 999px;
+  overflow: hidden;
+  background-color: #dceafb;
+
   ::ng-deep .progress-bar {
-    background-color: #12A5F4 !important;
-    border-radius: 5px;
+    background-color: $kx-primary !important;
+    border-radius: 999px;
   }
 }

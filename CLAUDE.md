@@ -417,7 +417,33 @@ whether or not they render their own labels.
 helper's default `email-time-settings-slider` — 900px, same as the Settings
 drawer, which is why 3 columns fit.
 
-So there are now seven copies of this drawer — restyle them together.
+**`email-insights-content`** (per-email Insights, wide `email-insights` panel) is the
+**read-only variant**: nothing is edited, so it has **no `<form>` and no docked
+`.buttons` footer**. Its one action (Export) sits in a `.head-actions` row in the
+header beside the close button. Body = a `.summary-section` card (Email #N eyebrow +
+subject + the view's single **hero figure**, `Sent to N` at 48px) → a 3-up `.kpi-row`
+of rate tiles → a 2-up `.insights-grid`. Bootstrap `.row`/`.col-4` was replaced with
+CSS grid.
+
+Its two child cards, **`insights-statistics-card`** and
+**`insights-contacts-or-links`**, are consumed ONLY by this drawer, so they were
+restyled directly rather than via `::ng-deep` — check that before reusing them
+elsewhere. They draw their own card chrome, so the drawer does NOT wrap them in a
+`.form-section` (that would read as a card-in-a-card). Notes on those two:
+- The stat tile is `label → value → meter`; the value moved out of a small span
+  beside the title. The value wears **ink, not the accent hue** (the meter carries
+  the color) and uses proportional figures, while the counts column in the list card
+  uses `tabular-nums` so digits align. All three rate tiles share ONE treatment on
+  purpose — a hue per tile would imply a categorical identity that isn't there.
+- The meter's track is a **lighter step of the same blue ramp** (`#dceafb` under
+  `$kx-primary`), not gray, so the bar reads as one scale. `::ng-deep .progress-bar`
+  is still needed to reach the ng-bootstrap fill.
+- Row separators in the list card now come from `.data-row + .data-row` in CSS; they
+  used to be an inline `style="border-top: …"` repeated on every row.
+- The subject line was brand-blue with `cursor: pointer` but had **no click
+  handler** — it now renders as plain ink text rather than a link that does nothing.
+
+So there are now eight copies of this drawer — restyle them together.
 
 ---
 

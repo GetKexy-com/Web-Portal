@@ -1,14 +1,10 @@
-<div class="content" [style.background-color]="bgColor">
-  <div *ngIf="cardTitle" class="title-wrap">
-    <ng-container>
-      <p>
-        {{ cardTitle }}
-        <span *ngIf="showProgressbar">{{insightRate}}%</span>
-      </p>
-    </ng-container>
-  </div>
+<div class="stat-tile" [style.background-color]="bgColor">
+  <div *ngIf="cardTitle" class="stat-label">{{ cardTitle }}</div>
 
-  <div *ngIf="showProgressbar">
-    <ngb-progressbar class="credit-progressbar-orange" [value]="insightRate" />
+  <!--Label above, value below, meter last — the value is no longer a small span
+      tucked beside the title, so the number reads first.-->
+  <div *ngIf="showProgressbar" class="stat-value">
+    {{ insightRate }}<span class="stat-unit">%</span>
   </div>
+  <ngb-progressbar *ngIf="showProgressbar" class="stat-meter" [value]="insightRate" />
 </div>
