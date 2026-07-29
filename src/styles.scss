@@ -1234,3 +1234,26 @@ header#main-header #logo {
   border-radius: 16px;
   overflow: hidden;
 }
+
+/* ── Compose modal ("Send next email", brand-conversations + -sent) ──────────
+   NgbModal builds .modal-dialog / .modal-content itself and appends them to
+   <body>, so they carry no _ngcontent attribute and the pages' component styles
+   cannot reach them — these wrappers HAVE to be styled globally. Opened with
+   `windowClass: 'kx-compose-modal'`; the panel's inner markup stays scoped to the
+   page (see pages/_conversation-shell.scss `.send-email-modal-content`). */
+.kx-compose-modal {
+  .modal-dialog {
+    /* Wider than Bootstrap's `lg` (800px): the compose box holds the rich editor,
+       and a wider strip keeps more toolbar clusters out of the ⋮ overflow menu. */
+    max-width: 940px;
+    width: calc(100% - 32px);
+  }
+
+  .modal-content {
+    border: none;
+    border-radius: 16px;
+    overflow: hidden; /* clip the header/footer bars to the rounded corners */
+    box-shadow: 0 24px 60px -20px rgba(15, 23, 42, 0.35),
+      0 4px 12px rgba(15, 23, 42, 0.08);
+  }
+}

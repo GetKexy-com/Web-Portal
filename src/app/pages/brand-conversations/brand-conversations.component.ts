@@ -208,7 +208,12 @@ export class BrandConversationsComponent implements OnInit, OnDestroy {
   };
 
   sendNextEmailTapped = async (modalContent) => {
-    this.modal.open(modalContent, { size: 'lg' });
+    // `windowClass` is how the compose window gets its width + rounded shell:
+    // NgbModal builds .modal-dialog/.modal-content itself and appends them to
+    // <body>, so those wrappers carry no _ngcontent attribute and component styles
+    // cannot reach them. The class is styled globally in styles.scss; the template's
+    // own content is still component-scoped as usual.
+    this.modal.open(modalContent, { size: 'lg', windowClass: 'kx-compose-modal' });
   };
 
   emailContent = '';

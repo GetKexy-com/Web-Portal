@@ -240,39 +240,29 @@
   <ng-template #sendEmailModal let-c="close" let-d="dismiss">
     <div class="send-email-modal-content">
       <div class="modal-head">
-        <div>
-          <p class="modal-title-text">Send an email</p>
-          <span class="modal-subtitle">to {{ getFullName(selectedConversation.receiverDetails.details) }}</span>
-        </div>
+        <p class="modal-title-text">
+          <i class="fa fa-paper-plane-o" aria-hidden="true"></i>
+          New message
+        </p>
         <button type="button" class="icon-btn" aria-label="Close" (click)="c()">
           <i class="fa fa-times" aria-hidden="true"></i>
         </button>
       </div>
 
       <div class="send-email-modal-body">
-        <div class="recipient-card" *ngIf="selectedConversation">
-          <brand-convo-avatar
-            [text]="getNameInitials(selectedConversation.receiverDetails.details)"
-            [seed]="getFullName(selectedConversation.receiverDetails.details) || selectedConversation.receiverEmail"
-          ></brand-convo-avatar>
-          <div class="recipient-text">
-            <span class="recipient-name">{{ getFullName(selectedConversation.receiverDetails.details) }}</span>
-            <span class="recipient-role">
-              {{ selectedConversation.receiverDetails.details.title }}
-              {{ (selectedConversation.receiverDetails.details.title && selectedConversation.receiverDetails.details.organization.name) ? 'at' : '' }}
-              <a
-                *ngIf="selectedConversation.receiverDetails.details.organization.websiteUrl"
-                [href]="selectedConversation.receiverDetails.details.organization.websiteUrl"
-                target="_blank"
-                class="company-name"
-              >
-                {{ selectedConversation.receiverDetails.details.organization.name }}
-              </a>
-              <span *ngIf="selectedConversation.receiverDetails.details.organization.name">
-                {{ selectedConversation.receiverDetails.details.organization.name }}
-              </span>
-            </span>
-          </div>
+        <!--A compose "To" row rather than a contact card: the recipient reads as an
+            addressed field, which is what it is, and it costs one line instead of
+            three.-->
+        <div class="to-row" *ngIf="selectedConversation">
+          <span class="to-label">To</span>
+          <span class="recipient-chip">
+            <brand-convo-avatar
+              [text]="getNameInitials(selectedConversation.receiverDetails.details)"
+              [seed]="getFullName(selectedConversation.receiverDetails.details) || selectedConversation.receiverEmail"
+            ></brand-convo-avatar>
+            <span class="chip-name">{{ getFullName(selectedConversation.receiverDetails.details) }}</span>
+            <span class="chip-email">{{ selectedConversation.receiverEmail }}</span>
+          </span>
         </div>
 
         <div class="text-area">
@@ -283,16 +273,26 @@
             </kexy-custom-rich-editor>
           </div>
           <ng-container *ngIf="!(emailContent || updatedEmailContent) && sendBtnClicked">
-            <span class="compose-error">Email content is required.</span>
+            <span class="compose-error">
+              <i class="fa fa-exclamation-circle" aria-hidden="true"></i>
+              Email content is required.
+            </span>
           </ng-container>
         </div>
+      </div>
 
-        <div class="modal-foot">
+      <div class="modal-foot">
+        <span class="foot-hint">Replies land in this conversation.</span>
+        <div class="foot-actions">
+          <button type="button" class="ghost-btn" (click)="c()">Cancel</button>
           <app-kexy-button
             (click)="addMessageToConversation(composeEditor)"
             [disabled]="isLoading"
             [label]="isLoading ? 'Please wait...' : 'Send email' "
             [iconLeft]="isLoading ? 'fa-refresh fa-spin' : 'fa-paper-plane-o'"
+            bgColor="#095dd1"
+            textColor="#ffffff"
+            radius="10px"
           ></app-kexy-button>
         </div>
       </div>

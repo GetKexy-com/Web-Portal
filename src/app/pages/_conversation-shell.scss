@@ -607,29 +607,38 @@ $page-h: calc(100vh - 70px);
   }
 }
 
-// ── Compose modal ─────────────────────────────────────────────────────────
+// ── Compose modal ("Send next email") ─────────────────────────────────────
+// Only the PANEL CONTENT is styled here — the .modal-dialog width and the rounded
+// .modal-content shell are built by NgbModal outside this component, so they live
+// in styles.scss under `.kx-compose-modal`.
 .send-email-modal-content {
+  display: flex;
+  flex-direction: column;
+
   .modal-head {
+    flex-shrink: 0;
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     justify-content: space-between;
     gap: 16px;
-    padding: 20px 22px;
+    padding: 16px 22px;
+    background: #ffffff;
     border-bottom: 1px solid $kx-border;
 
     .modal-title-text {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
       margin: 0;
-      font-size: 18px;
+      font-size: 16px;
       font-weight: 700;
       line-height: 1.2;
       color: $kx-ink;
-    }
 
-    .modal-subtitle {
-      display: block;
-      margin-top: 3px;
-      font-size: 13px;
-      color: $kx-muted;
+      i {
+        font-size: 13px;
+        color: $kx-primary-deep;
+      }
     }
 
     .icon-btn {
@@ -656,90 +665,113 @@ $page-h: calc(100vh - 70px);
   }
 
   .send-email-modal-body {
-    padding: 18px 22px 22px;
+    padding: 0;
+    background: #ffffff;
+  }
 
-    .recipient-card {
-      display: flex;
+  // ── "To" row ──────────────────────────────────────────────────────────
+  .to-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 22px;
+    border-bottom: 1px solid #f1f5f9;
+
+    .to-label {
+      flex-shrink: 0;
+      font-weight: 600;
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #94a3b8;
+    }
+
+    // Recipient as an addressed chip, like a real compose field.
+    .recipient-chip {
+      display: inline-flex;
       align-items: center;
-      gap: 12px;
-      padding: 12px 14px;
+      gap: 8px;
+      min-width: 0;
+      padding: 4px 12px 4px 4px;
       border: 1px solid $kx-border;
-      border-radius: 12px;
+      border-radius: 999px;
       background: $kx-field-bg;
 
-      .recipient-text {
-        min-width: 0;
-      }
-
-      .recipient-name {
-        display: block;
-        font-size: 14px;
-        font-weight: 700;
+      .chip-name {
+        font-size: 13px;
+        font-weight: 600;
         color: $kx-ink;
+        white-space: nowrap;
       }
 
-      .recipient-role {
-        display: block;
-        margin-top: 2px;
+      .chip-email {
         font-size: 12.5px;
         color: $kx-muted;
-
-        .company-name {
-          color: $kx-primary-deep;
-          text-decoration: none;
-
-          &:hover { text-decoration: underline; }
-        }
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
-    }
-
-    .text-area {
-      margin-top: 16px;
-
-      // The custom rich editor renders a "Subject line" field above its toolbar.
-      // This reply-in-thread compose keeps the conversation's existing subject
-      // (sent via selectedConversation.emailSubject), so hide the editor's own
-      // subject to match the previous body-only compose box. ::ng-deep pierces
-      // the editor's ViewEncapsulation.None DOM; scoped under .textarea-wrap so
-      // it only affects this modal's instance.
-      .textarea-wrap ::ng-deep .email-meta {
-        display: none;
-      }
-
-      .compose-error {
-        display: block;
-        margin-top: 8px;
-        font-size: 12px;
-        color: $kx-red;
-      }
-    }
-
-    .modal-foot {
-      display: flex;
-      justify-content: flex-end;
-      margin-top: 18px;
     }
   }
-}
 
-// Respect the OS "reduce motion" setting — the shimmer and the hover/selection
-// transitions are decoration, not information.
-@media (prefers-reduced-motion: reduce) {
-  .brand-conversations-page {
-    .skeleton-row .sk-avatar,
-    .skeleton-row .sk-line {
-      animation: none;
+  .text-area {
+    padding: 16px 22px 18px;
+
+    // The custom rich editor renders a "Subject line" field above its toolbar.
+    // This reply-in-thread compose keeps the conversation's existing subject
+    // (sent via selectedConversation.emailSubject), so hide the editor's own
+    // subject to match the previous body-only compose box. ::ng-deep pierces
+    // the editor's ViewEncapsulation.None DOM; scoped under .textarea-wrap so
+    // it only affects this modal's instance.
+    .textarea-wrap ::ng-deep .email-meta {
+      display: none;
     }
 
-    .icon-btn,
-    .checkbox-icon,
-    .search-field,
-    .conv-messages {
-      transition: none;
+    .compose-error {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 10px;
+      font-size: 12.5px;
+      font-weight: 500;
+      color: $kx-red;
+    }
+  }
+
+  // ── Footer bar ────────────────────────────────────────────────────────
+  .modal-foot {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 14px 22px;
+    background: $kx-field-bg;
+    border-top: 1px solid $kx-border;
+
+    .foot-hint {
+      font-size: 12.5px;
+      color: $kx-muted;
     }
 
-    .conv-loading-overlay {
-      animation: none;
+    .foot-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .ghost-btn {
+      padding: 9px 16px;
+      border: 1px solid $kx-border;
+      border-radius: 10px;
+      background: #fff;
+      color: $kx-ink;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+
+      &:hover { border-color: $kx-muted; }
     }
   }
 }
