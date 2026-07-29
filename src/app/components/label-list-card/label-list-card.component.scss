@@ -308,3 +308,38 @@ $kx-header-bg: #f8fafc;
 .list-wrapper.scrolled-x .n-table .n-header-name:first-child::after {
   opacity: 1;
 }
+
+// Long values were HARD-CUT mid-word, not ellipsised. `text-overflow` only applies
+// to inline text directly inside the block, and `td.n-cell span` is
+// `display: inline-block` — so an overflowing span (a list name, a campaign title,
+// a coloured `.label-tag` pill) was simply clipped by the cell with no "…".
+// Fix: make the SPAN itself the truncating box. `max-width: 100%` bounds it to the
+// cell, and the ellipsis then has somewhere to render.
+.kexy-table-card .n-table td.n-cell:not(:first-child) > span {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+// The coloured pill truncates inside its own rounded shape rather than being
+// sliced off by the cell edge.
+.kexy-table-card .n-table td.n-cell .label-tag {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap !important;
+}
+
+// A cell holding a pill PLUS a "+N more" affordance must let the pill shrink while
+// the counter stays whole.
+.kexy-table-card .n-table td.n-cell > span.d-flex,
+.kexy-table-card .n-table td.n-cell > span.d-inline-flex {
+  display: inline-flex !important;
+  align-items: center;
+  min-width: 0;
+
+  > .label-tag { flex: 0 1 auto; min-width: 0; }
+  > .see-more-label-text { flex: 0 0 auto; }
+}

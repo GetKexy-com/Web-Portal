@@ -93,12 +93,15 @@ export class ListOfDripCampaignTableComponent implements OnInit, AfterViewChecke
       // Unit-string widths: checkbox fixed px, the rest percentages so columns
       // proportionally FILL the width (table-layout:fixed + width:100%). No flex
       // column (a greedy width:100% ballooned while loading).
+      // Title is the column people scan, so it gets the most room; the rest were
+      // trimmed to keep the total at 100%. Long values now ellipsise inside the
+      // cell (see the SCSS) rather than being hard-cut.
       { name: '', key: 'action', width: '58px' },
-      { name: 'Drip Campaign Title', key: 'drip_campaign_title', width: '26%' },
-      { name: 'Number Of Emails', key: 'number_of_emails', width: '14%' },
-      { name: 'Email Tone', key: 'email_tone', width: '13%' },
-      { name: 'Status', key: 'status', width: '13%' },
-      { name: 'Lists', key: 'label', width: '16%' },
+      { name: 'Drip Campaign Title', key: 'drip_campaign_title', width: '32%' },
+      { name: 'Number Of Emails', key: 'number_of_emails', width: '12%' },
+      { name: 'Email Tone', key: 'email_tone', width: '12%' },
+      { name: 'Status', key: 'status', width: '12%' },
+      { name: 'Lists', key: 'label', width: '14%' },
       { name: 'Date Created', key: 'date_created', width: '18%' },
     ];
     this.columnList = columnList;

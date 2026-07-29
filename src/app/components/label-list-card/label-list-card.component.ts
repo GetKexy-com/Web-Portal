@@ -93,12 +93,16 @@ export class LabelListCardComponent implements OnInit, OnDestroy, AfterViewInit 
       // Widths are unit strings. The checkbox is a fixed px column; the rest are
       // percentages so, with table-layout:fixed + width:100%, the columns
       // proportionally FILL the available width (checkbox stays fixed).
+      // Name is the column people scan, so it gets the most room; the rest were
+      // trimmed to keep the total at 100%. Long values now ellipsise inside the
+      // cell (see the SCSS) rather than being hard-cut, so this is about comfort,
+      // not correctness.
       { name: '', key: 'action', width: '58px' },
-      { name: 'Name', key: 'label', width: '26%' },
+      { name: 'Name', key: 'label', width: '32%' },
       { name: 'List Size', key: 'list_size', width: '10%' },
-      { name: 'Creator', key: 'creator', width: '18%' },
-      { name: 'Used In', key: 'used_in', width: '22%' },
-      { name: 'Date Created', key: 'date_created', width: '24%' },
+      { name: 'Creator', key: 'creator', width: '16%' },
+      { name: 'Used In', key: 'used_in', width: '20%' },
+      { name: 'Date Created', key: 'date_created', width: '22%' },
       // { name: "", key: "edit", width: 50 },
     ];
     this.columnList = columnList;
