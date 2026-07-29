@@ -1,387 +1,645 @@
-$left-side-width: 365px;
+// ── Tokens (match the drawer family: prospecting-contacts, lead-magnet-form, …) ─
+$kx-primary: #12a5f4;
+$kx-primary-deep: #095dd1;
+$kx-ink: #0f172a;
+$kx-muted: #64748b;
+$kx-border: #e2e8f0;
+$kx-field-bg: #f7f9fc;
+$kx-red: #dc2626;
+$kx-red-bg: #fdeaea;
+$kx-amber: #b45309;
+$kx-amber-bg: #fff7ed;
+
+$rail-width: 380px;
+// brand-layout's header is `.main-warp` (15px padding + ~34px controls + 1px
+// border) ≈ 70px. The page owns its own height because the layout renders
+// `<ng-content>` in an unstyled div when `layoutPaddingNone` is set.
+$page-h: calc(100vh - 70px);
+
+// Two-pane mail layout. This used to be `float: left` columns each with their own
+// `height: calc(100vh - 120px)` — which made the two columns different total
+// heights. It is now ONE flex row of fixed height, and each pane's scroll region
+// flexes into whatever is left.
 .brand-conversations-page {
-  background-color: #f3fbff;
+  display: flex;
+  height: $page-h;
+  min-height: 0;
   overflow: hidden;
+  background: #f4f6fb;
 
-  .conv-top-left {
-    width: $left-side-width;
-    float: left;
-    border-right: 1px solid #f6f2ea;
+  // Shared square icon button (rail actions, pager, modal close)
+  .icon-btn {
+    flex-shrink: 0;
+    width: 34px;
+    height: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid $kx-border;
+    border-radius: 10px;
+    background: #fff;
+    color: $kx-muted;
+    font-size: 15px;
+    cursor: pointer;
+    transition: all 0.15s ease;
 
-    .search-section {
-      padding: 15px;
-      background-color: white;
-      height: 50px;
-      border-bottom: 1px solid #ededed;
+    &:hover:not(:disabled) {
+      border-color: $kx-primary;
+      background: $kx-field-bg;
+      color: $kx-primary-deep;
+    }
+
+    &.danger:hover:not(:disabled) {
+      border-color: $kx-red;
+      background: $kx-red-bg;
+      color: $kx-red;
+    }
+
+    &.sm {
+      width: 30px;
+      height: 30px;
+      font-size: 16px;
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+
+  // ── Left rail ───────────────────────────────────────────────────────────
+  .conv-rail {
+    flex: 0 0 $rail-width;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    background: #ffffff;
+    border-right: 1px solid $kx-border;
+
+    .rail-head {
+      flex-shrink: 0;
+      display: flex;
       align-items: center;
+      gap: 10px;
+      padding: 14px 16px;
+      border-bottom: 1px solid $kx-border;
 
-      .search-input {
-        i {
-          color: #999999;
-          padding-right: 8px;
+      // Pill search field — the input itself is borderless; the wrapper is the
+      // control, so the magnifier and spinner sit inside it.
+      .search-field {
+        flex: 1 1 auto;
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        height: 38px;
+        padding: 0 12px;
+        border: 1.5px solid $kx-border;
+        border-radius: 10px;
+        background: $kx-field-bg;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+
+        &:focus-within {
+          background: #fff;
+          border-color: $kx-primary;
+          box-shadow: 0 0 0 3px rgba(18, 165, 244, 0.15);
+        }
+
+        > i {
+          flex-shrink: 0;
+          font-size: 13px;
+          color: $kx-muted;
         }
 
         input {
+          flex: 1 1 auto;
+          min-width: 0;
           border: none;
-          font-size: 13px;
-          font-style: normal;
-          font-weight: 400;
-          line-height: 20px;
+          outline: none;
+          background: transparent;
+          font-size: 13.5px;
+          color: $kx-ink;
+
+          &::placeholder { color: #9aa6b6; }
         }
+
+        .search-spinner { color: $kx-primary-deep; }
       }
 
-      .filter {
-        cursor: pointer;
+      .rail-actions {
+        flex-shrink: 0;
         display: flex;
         align-items: center;
-
-        img {
-          width: 20px;
-        }
-
-        .dropdown-content-wrap {
-          width: 242px;
-          padding: 4px 8px 0 12px;
-
-          .item-in-dropdown {
-            display: flex;
-            align-items: center;
-            margin-bottom: 8px;
-
-            input {
-              min-width: 14px;
-              min-height: 14px;
-            }
-
-            label {
-              cursor: pointer;
-              margin: 0 0 0 10px;
-              font-size: 13px;
-              font-weight: 400;
-              line-height: 20px;
-              letter-spacing: 0em;
-              color: black;
-            }
-          }
-        }
-      }
-    }
-  }
-
-  .conv-top-right {
-    width: 100%;
-
-    .user-extra-info {
-      background-color: white;
-      border-bottom: 1px solid #ededed;
-      padding-left: 5px;
-
-      p {
-        margin: 0;
-        padding: 12px 8px;
-        font-size: 14px;
-        display: flex;
-        align-items: center;
-
-        img {
-          width: 22px;
-          padding-right: 5px;
-        }
-      }
-    }
-
-    .unsubscribed {
-      position: absolute;
-      left: 0;
-      right: 0;
-      height: 100%;
-      justify-content: center;
-      align-items: center;
-      display: flex;
-      text-align: center;
-      background: rgb(244 244 244 / 82%);
-
-      p {
-        font-size: 15px;
-      }
-    }
-  }
-
-  .user-info-section {
-    background-color: white;
-    height: 50px;
-    border-bottom: 1px solid #ededed;
-    align-items: center;
-
-    .user-info {
-      span {
-        font-size: 13px !important;
-        font-weight: 600;
+        gap: 8px;
       }
 
-      .unsubscribe-link {
-        cursor: pointer !important;
-        font-weight: 400 !important;
-        text-decoration: underline !important;
-        color: #0D6EFD;
-      }
-    }
+      .dropdown-content-wrap {
+        width: 242px;
+        padding: 10px 12px;
 
-    .convo-actions {
-      min-width: fit-content;
-    }
-  }
-
-
-  .conv-list,
-  .conv-view {
-    overflow-x: scroll;
-    height: calc(100vh - 120px);
-    position: relative;
-
-    // One loader for the whole thread; shown only if the load runs long (see
-    // showSpinner). Fades in so it doesn't pop.
-    .conv-loading-overlay {
-      position: sticky;
-      top: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 140px;
-      font-size: 24px;
-      color: #0d50cd;
-      animation: convLoaderFade 0.2s ease both;
-    }
-
-    @keyframes convLoaderFade {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-
-    // Messages stay laid out (so their iframes load + size) but invisible until
-    // every frame is ready, then fade in together — no per-message reflow jump.
-    .conv-messages {
-      transition: opacity 0.2s ease; // fades IN on reveal
-
-      &.hidden {
-        opacity: 0;
-        pointer-events: none;
-        transition: none; // hide INSTANTLY — no fade-out flash of the new messages
-      }
-    }
-  }
-
-  .conv-list {
-    background: white;
-    width: $left-side-width;
-    float: left;
-
-    .conv-pagination-wrap {
-      position: sticky;
-      top: 0;
-      z-index: 10;
-      background: white;
-      padding: 8px 15px 8px 8px;
-      border-bottom: 1px solid #ededed;
-      border-right: 1px solid #ededed;
-
-      .conv-pagination {
-        display: flex;
-        justify-content: space-between;
-        //justify-content: flex-end;
-        align-items: center;
-        //padding: 8px 15px 0px 8px;
-        //box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px;
-        p {
-          color: #5e5e5e;
-          font-size: 14px;
-          margin-bottom: 0;
-        }
-
-        .pagination-arrow {
-          font-size: 20px;
-          margin-left: 20px;
-          cursor: pointer;
-        }
-
-        .disabled {
-          color: grey;
-          pointer-events: none;
-          cursor: crosshair;
-        }
-      }
-    }
-
-    .empty-user-info {
-      display: flex;
-      align-items: center;
-      padding: 8px;
-      margin: 8px;
-      border-radius: 8px;
-      border-bottom: 1px solid #E7F6FE;
-
-      .empty-avatar {
-        width: 34px;
-        height: 34px;
-        border-radius: 50%;
-        background: #0047cc;
-        opacity: 30%;
-        margin-right: 15px;
-      }
-
-      .empty-user-content {
-        .top {
-          width: 60px;
-          height: 8px;
-          top: 120px;
-          border-radius: 100px;
-          // opacity: 0.2px;
-          background: #0047cc;
-          opacity: 30%;
-          margin-bottom: 7px;
-        }
-
-        .bottom {
-          width: 120px;
-          height: 6px;
-          border-radius: 100px;
-          background: #0047cc;
-          opacity: 10%;
-        }
-      }
-    }
-  }
-
-  .conv-view {
-    background: #f4f6fb;
-    padding: 20px 20px 60px 20px;
-  }
-
-  .no-data-found {
-    flex: 1;
-
-    .no-data-found-content {
-      height: 100%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-
-      .content-wrap {
-        width: 280px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-
-        .top-circle-with-icon {
-          width: 86px;
-          height: 86px;
-          border-radius: 50%;
-          background: #12a5f421;
+        .item-in-dropdown {
           display: flex;
-          justify-content: center;
           align-items: center;
-        }
+          gap: 10px;
 
-        .content {
-          .sorry-text {
-            font-size: 14px;
-            font-weight: 700;
-            line-height: 20px;
-            letter-spacing: 0.5px;
-            color: #0047cc;
-            margin-top: 10px;
-            margin-bottom: 0;
+          input {
+            min-width: 15px;
+            min-height: 15px;
+            accent-color: $kx-primary;
+            cursor: pointer;
           }
 
-          .desc-text {
-            font-size: 12px;
-            font-weight: 400;
-            line-height: 18px;
-            letter-spacing: 0px;
-            color: black;
-            margin-top: 5px;
+          label {
+            cursor: pointer;
+            margin: 0;
+            font-size: 13px;
+            color: $kx-ink;
           }
         }
       }
     }
-  }
-}
 
-.send-email-modal-content {
-  padding: 20px;
+    .rail-toolbar {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 8px 12px 8px 14px;
+      background: $kx-field-bg;
+      border-bottom: 1px solid $kx-border;
 
-  .title-and-close-btn {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+      .select-all {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 4px 6px;
+        border: none;
+        border-radius: 8px;
+        background: transparent;
+        font-size: 12.5px;
+        font-weight: 600;
+        color: $kx-muted;
+        cursor: pointer;
 
-    .modal-of-title {
-      font-size: 20px;
-      font-weight: 500;
-      line-height: 24px;
-      letter-spacing: 0px;
-      margin-bottom: 0;
-      color: #0047cc;
+        &:hover { color: $kx-primary-deep; }
+      }
+
+      .rail-pager {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+
+        .pager-count {
+          font-size: 12.5px;
+          color: $kx-muted;
+          white-space: nowrap;
+        }
+      }
+
+      .disabled {
+        opacity: 0.45;
+        pointer-events: none;
+      }
     }
 
-    .close-icon-wrap {
+    // The ONLY scroll region in the rail.
+    .rail-list {
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow-y: auto;
+      padding: 8px;
+    }
+  }
+
+  .checkbox-icon {
+    font-size: 15px;
+    color: #9aa6b6;
+    transition: color 0.15s ease;
+
+    &.selected { color: $kx-primary; }
+  }
+
+  // A list row = checkbox + the shared brand-convo-card.
+  .conv-row {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    border-radius: 12px;
+    transition: background 0.15s ease;
+
+    &:hover { background: $kx-field-bg; }
+
+    &.is-selected { background: rgba(18, 165, 244, 0.09); }
+
+    .row-check {
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 30px;
+      height: 30px;
+      margin-left: 4px;
+      border: none;
+      border-radius: 8px;
+      background: transparent;
       cursor: pointer;
     }
   }
 
-  .send-email-modal-body {
-    .top-area {
-      display: flex;
-      align-items: center;
-      margin-top: 15px;
+  // ── brand-convo-card, restyled from HERE on purpose ─────────────────────
+  // The card is ALSO used by brand-conversation-sent, which is not in scope for
+  // this redesign — so its own SCSS is left alone and these overrides are scoped
+  // under this page. `::ng-deep` is required to reach the child's internals
+  // (the same pattern the compose modal below already uses).
+  .conv-row ::ng-deep brand-convo-card {
+    min-width: 0;
 
-      .icon-wrap {
-        width: 30px;
-        height: 30px;
-        border-radius: 50%;
-        background: #0047cc;
-        display: flex;
-        justify-content: center;
-        align-items: center;
+    .sing-conv {
+      align-items: flex-start;
+      gap: 10px;
+      margin: 0;
+      padding: 10px 12px 10px 6px;
+      border-bottom: none;
+      border-radius: 12px;
+      cursor: pointer;
 
-        i,
-        span {
-          color: white;
-          font-weight: 600;
-          // font-size: 17px;
+      // Selection lives on `.conv-row` now, so the card's own tint would
+      // double up.
+      &.selected { background: transparent; }
+
+      .conv-user {
+        width: auto;
+        flex: 1 1 auto;
+        min-width: 0;
+        padding: 0;
+
+        .name-date {
+          gap: 8px;
+          margin-bottom: 2px;
+
+          p {
+            font-size: 13.5px;
+            font-weight: 600;
+            color: $kx-ink;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+
+          span {
+            flex-shrink: 0;
+            font-size: 11.5px;
+            color: $kx-muted;
+          }
+        }
+
+        // The message preview line
+        > span {
+          display: block;
+          font-size: 12.5px;
+          line-height: 1.45;
+          color: $kx-muted;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
         }
       }
 
-      .text-content {
-        .you-sent-email-text {
-          margin-bottom: 0;
-          font-size: 16px;
-          font-weight: 400;
-          line-height: 20px;
-          letter-spacing: 0px;
-          color: black;
-          opacity: 60%;
+      // Unread: the name goes ink+bold and the preview darkens (was font-weight
+      // 900 on everything, which read as shouting).
+      &.unread .conv-user {
+        .name-date p { font-weight: 800 !important; }
+        span { font-weight: 600 !important; color: $kx-ink !important; }
+      }
+
+      .pinbar-wrap {
+        top: 8px;
+        right: 6px;
+        margin: 0;
+        color: $kx-muted;
+        font-size: 12px;
+
+        &:hover { color: $kx-primary-deep; }
+      }
+    }
+  }
+
+  // ── Skeleton placeholders ───────────────────────────────────────────────
+  .skeleton-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 10px;
+
+    .sk-avatar,
+    .sk-line {
+      background: linear-gradient(90deg, #eef2f7 25%, #e2e8f0 37%, #eef2f7 63%);
+      background-size: 400% 100%;
+      animation: skShimmer 1.4s ease infinite;
+    }
+
+    .sk-avatar {
+      flex-shrink: 0;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+    }
+
+    .sk-lines {
+      flex: 1 1 auto;
+
+      .sk-line {
+        border-radius: 999px;
+
+        &.top { width: 45%; height: 9px; margin-bottom: 8px; }
+        &.bottom { width: 78%; height: 7px; }
+      }
+    }
+  }
+
+  @keyframes skShimmer {
+    from { background-position: 100% 50%; }
+    to { background-position: 0 50%; }
+  }
+
+  // ── Right pane ──────────────────────────────────────────────────────────
+  .conv-pane {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+
+    // Contact header — the old 50px bar + a second "extra info" strip merged
+    // into one block, so the name, role and contact details read together.
+    .pane-head {
+      flex-shrink: 0;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 16px 22px;
+      background: #ffffff;
+      border-bottom: 1px solid $kx-border;
+
+      .pane-identity {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 0;
+      }
+
+      .identity-name-row {
+        display: flex;
+        align-items: baseline;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .identity-name {
+        font-size: 15px;
+        font-weight: 700;
+        color: $kx-ink;
+      }
+
+      .unsubscribe-link {
+        font-size: 12px;
+        font-weight: 500;
+        color: $kx-primary-deep;
+        text-decoration: underline;
+        cursor: pointer;
+
+        &:hover { color: $kx-red; }
+      }
+
+      .identity-role {
+        margin-top: 2px;
+        font-size: 12.5px;
+        line-height: 1.4;
+        color: $kx-muted;
+
+        .company-name {
+          color: $kx-primary-deep;
+          text-decoration: none;
+
+          &:hover { text-decoration: underline; }
         }
+      }
 
-        .time-text {
-          margin-bottom: 0;
-          font-size: 18px;
-          font-weight: 700;
-          line-height: 22px;
-          letter-spacing: 0px;
-          color: #000000;
-          opacity: 60%;
+      .pane-actions {
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
 
-          i {
-            margin-left: 8px;
-          }
+      .contact-chips {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px;
+
+        .contact-chip {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 5px 10px;
+          border: 1px solid $kx-border;
+          border-radius: 999px;
+          background: $kx-field-bg;
+          font-size: 12px;
+          color: $kx-muted;
+
+          img { width: 14px; }
+        }
+      }
+    }
+
+    .unsubscribed-banner {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 22px;
+      background: $kx-amber-bg;
+      border-bottom: 1px solid #fed7aa;
+      font-size: 13px;
+      font-weight: 600;
+      color: $kx-amber;
+    }
+
+    // The ONLY scroll region in the pane.
+    .pane-thread {
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow-y: auto;
+      position: relative;
+      padding: 20px 22px 60px;
+
+      // One loader for the whole thread; shown only if the load runs long (see
+      // showSpinner). Fades in so it doesn't pop.
+      .conv-loading-overlay {
+        position: sticky;
+        top: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 140px;
+        font-size: 24px;
+        color: $kx-primary-deep;
+        animation: convLoaderFade 0.2s ease both;
+      }
+
+      @keyframes convLoaderFade {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+
+      // Messages stay laid out (so their iframes load + size) but invisible until
+      // every frame is ready, then fade in together — no per-message reflow jump.
+      .conv-messages {
+        transition: opacity 0.2s ease; // fades IN on reveal
+
+        &.hidden {
+          opacity: 0;
+          pointer-events: none;
+          transition: none; // hide INSTANTLY — no fade-out flash of the new messages
+        }
+      }
+    }
+  }
+
+  // ── Empty state ─────────────────────────────────────────────────────────
+  .conv-empty {
+    flex: 1 1 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .empty-content {
+      width: 320px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .empty-badge {
+      width: 86px;
+      height: 86px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: rgba(18, 165, 244, 0.13);
+      margin-bottom: 14px;
+    }
+
+    .empty-title {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 700;
+      color: $kx-ink;
+    }
+
+    .empty-desc {
+      margin: 6px 0 0;
+      font-size: 13px;
+      line-height: 1.5;
+      color: $kx-muted;
+    }
+  }
+}
+
+// ── Compose modal ─────────────────────────────────────────────────────────
+.send-email-modal-content {
+  .modal-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 20px 22px;
+    border-bottom: 1px solid $kx-border;
+
+    .modal-title-text {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 700;
+      line-height: 1.2;
+      color: $kx-ink;
+    }
+
+    .modal-subtitle {
+      display: block;
+      margin-top: 3px;
+      font-size: 13px;
+      color: $kx-muted;
+    }
+
+    .icon-btn {
+      flex-shrink: 0;
+      width: 34px;
+      height: 34px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid $kx-border;
+      border-radius: 10px;
+      background: #fff;
+      color: $kx-muted;
+      font-size: 15px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+
+      &:hover {
+        background: $kx-red-bg;
+        border-color: $kx-red;
+        color: $kx-red;
+      }
+    }
+  }
+
+  .send-email-modal-body {
+    padding: 18px 22px 22px;
+
+    .recipient-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      border: 1px solid $kx-border;
+      border-radius: 12px;
+      background: $kx-field-bg;
+
+      .recipient-text {
+        min-width: 0;
+      }
+
+      .recipient-name {
+        display: block;
+        font-size: 14px;
+        font-weight: 700;
+        color: $kx-ink;
+      }
+
+      .recipient-role {
+        display: block;
+        margin-top: 2px;
+        font-size: 12.5px;
+        color: $kx-muted;
+
+        .company-name {
+          color: $kx-primary-deep;
+          text-decoration: none;
+
+          &:hover { text-decoration: underline; }
         }
       }
     }
 
     .text-area {
-      margin-top: 15px;
+      margin-top: 16px;
 
       // The custom rich editor renders a "Subject line" field above its toolbar.
       // This reply-in-thread compose keeps the conversation's existing subject
@@ -392,14 +650,19 @@ $left-side-width: 365px;
       .textarea-wrap ::ng-deep .email-meta {
         display: none;
       }
+
+      .compose-error {
+        display: block;
+        margin-top: 8px;
+        font-size: 12px;
+        color: $kx-red;
+      }
     }
 
-    .bottom-btn-area {
-      margin-top: 15px;
-      width: 160px;
-
-      .btn-wrap {
-      }
+    .modal-foot {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 18px;
     }
   }
 }
