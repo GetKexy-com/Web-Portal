@@ -1,3 +1,19 @@
+// ── Tokens (match prospecting-contacts / lead-magnet-form / add-suppression) ──
+// These apply to the DRAWER CHROME only. The reading pane below intentionally
+// keeps a mail-client palette (#202124 / #5f6368 / #f1f3f4) — see the note there.
+$kx-primary: #12a5f4;
+$kx-primary-deep: #095dd1;
+$kx-ink: #0f172a;
+$kx-muted: #64748b;
+$kx-border: #e2e8f0;
+$kx-red: #dc2626;
+$kx-red-bg: #fdeaea;
+
+// Modern slide-over header, shared with the other drawer copies. The body here is
+// NOT the usual `.canvas-body` card stack: it is a full-bleed inbox reading pane,
+// and there is no docked `.buttons` footer (nothing is edited — Spin/Close live in
+// the header). The wrap stays WHITE rather than the usual #f4f6fb, because a real
+// client's reading pane is white and the iframe supplies its own grey canvas.
 .canvas-content-wrap {
   display: flex;
   flex-direction: column;
@@ -8,23 +24,61 @@
   .head-area {
     flex: 0 0 auto;
     display: flex;
+    align-items: flex-start;
     justify-content: space-between;
-    align-items: center;
-    padding: 15px 15px 15px 24px;
-    border-bottom: 1px solid #e8e8e8;
+    gap: 16px;
+    padding: 22px 28px;
+    background: #ffffff;
+    border-bottom: 1px solid $kx-border;
 
-    p {
-      margin-bottom: 0;
-      font-size: 18px;
-      font-weight: 500;
-      line-height: 20px;
-      letter-spacing: 0em;
-      color: #0047CC;
+    .head-title {
+      margin: 0;
+      font-weight: 700;
+      font-size: 20px;
+      line-height: 1.2;
+      color: $kx-ink;
     }
 
-    img {
-      align-self: center;
+    .head-subtitle {
+      display: block;
+      margin-top: 4px;
+      font-size: 13px;
+      color: $kx-muted;
+    }
+
+    .head-actions {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .head-divider {
+      width: 1px;
+      height: 24px;
+      background: $kx-border;
+    }
+
+    .close-btn {
+      flex-shrink: 0;
+      width: 36px;
+      height: 36px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid $kx-border;
+      border-radius: 10px;
+      background: #fff;
+      color: $kx-muted;
+      font-size: 16px;
       cursor: pointer;
+      transition: all 0.15s ease;
+
+      &:hover {
+        background: $kx-red-bg;
+        border-color: $kx-red;
+        color: $kx-red;
+      }
     }
   }
 

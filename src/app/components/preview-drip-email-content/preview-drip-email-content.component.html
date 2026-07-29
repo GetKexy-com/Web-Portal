@@ -1,29 +1,33 @@
 <div class="canvas-content-wrap">
   <div class="head-area">
-    <p><i class="fa fa-envelope-open-o pe-2"></i> Preview Email</p>
-    <div class="d-flex">
+    <div class="head-text">
+      <p class="head-title">Preview Email</p>
+      <span class="head-subtitle">How this email will look in the recipient's inbox</span>
+    </div>
+    <div class="head-actions">
       <app-kexy-button
-        class="me-3"
         label="Spin Another Version"
-        bgColor="transparent"
-        [borderColor]="'#0047cc'"
-        [textColor]="'#0047cc'"
         iconLeft="fa-refresh"
+        bgColor="#ffffff"
+        textColor="#095dd1"
+        borderColor="#e2e8f0"
+        radius="10px"
         (click)="spinEmail()"
       ></app-kexy-button>
-      <app-kexy-button
-        style="margin-right: 10px"
-        label="Close"
-        iconLeft="fa-close"
-        bgColor="#e7f6fe"
-        textColor="#2847cc"
-        (click)="activeCanvas.dismiss('Cross click')"
-      ></app-kexy-button>
+      <!--Spin is a content action, Close dismisses the drawer — the rule keeps
+          them from reading as one cluster.-->
+      <span class="head-divider" aria-hidden="true"></span>
+      <button type="button" class="close-btn" aria-label="Close" (click)="activeCanvas.dismiss('Cross click')">
+        <i class="fa fa-times" aria-hidden="true"></i>
+      </button>
     </div>
   </div>
 
   <!-- Gmail-style "open email" reading pane — header chrome only, then the
-       rendered email body in the iframe below. -->
+       rendered email body in the iframe below.
+       DO NOT restyle this block to the drawer's design tokens: it deliberately
+       wears a mail client's palette because its job is to look like a real inbox,
+       not like the rest of the portal. -->
   <div class="reading-pane">
     <div class="mail-subject-row">
       <h1 class="mail-subject">{{ emailSubject || '(no subject)' }}</h1>
@@ -51,6 +55,8 @@
       </div>
     </div>
 
+    <!-- The iframe is filled by the component via `srcdoc` and is found through
+         the `#previewFrame` @ViewChild — keep BOTH the element and the ref name. -->
     <div class="preview-stage">
       <iframe #previewFrame title="Email preview"></iframe>
     </div>

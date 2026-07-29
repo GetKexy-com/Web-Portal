@@ -443,7 +443,32 @@ elsewhere. They draw their own card chrome, so the drawer does NOT wrap them in 
 - The subject line was brand-blue with `cursor: pointer` but had **no click
   handler** — it now renders as plain ink text rather than a link that does nothing.
 
-So there are now eight copies of this drawer — restyle them together.
+**`preview-drip-email-content`** (Preview Email) adopts the shared design for its
+**header only** — title + subtitle, a `.head-actions` row with "Spin Another
+Version", a `.head-divider`, then the round `.close-btn` (which replaced a
+`Close` `<app-kexy-button>`). Everything below the header is deliberately NOT
+restyled, and that is the point of the component:
+
+- The `.reading-pane` **simulates a real inbox**, so it wears a mail-client palette
+  (`#202124` / `#5f6368` / `#f1f3f4`) instead of the drawer tokens, and it is
+  full-bleed white rather than cards on `#f4f6fb`. Don't "fix" it to match the
+  other drawers — it would stop looking like an inbox. There is no `.canvas-body`
+  card stack and no docked `.buttons` footer here.
+- **The preview itself is an `<iframe>` filled via `srcdoc`** from
+  `__renderPreview()`, found through `@ViewChild('previewFrame')`. Two things must
+  survive any edit: the `#previewFrame` ref on the `<iframe>`, and the height chain
+  `.preview-stage { position: relative; flex: 1 1 auto; min-height: 420px }` with
+  `iframe { position: absolute; inset: 0; height: 100% }`. The iframe is positioned
+  absolutely ON PURPOSE — an iframe can't be content-height, so an unresolved
+  `height: 100%` collapses to 0 and the preview renders blank white.
+- The template imports `DatePipe` + `KexyButtonComponent` but **NOT `CommonModule`**,
+  so `*ngIf`/`*ngFor` are unavailable — the empty-subject case uses
+  `{{ emailSubject || '(no subject)' }}` rather than a conditional.
+- The star / reply / ellipsis icons in `.mail-actions` are decorative set dressing
+  with no handlers (they carry `cursor: pointer` for realism). Intentional here,
+  unlike the insights subject line that was fixed.
+
+So there are now nine copies of this drawer — restyle them together.
 
 ---
 
