@@ -1,86 +1,248 @@
+// ── Tokens (match step 1, the drawer family and the dashboard) ────────────────
+$kx-primary: #12a5f4;
+$kx-primary-deep: #095dd1;
+$kx-ink: #0f172a;
+$kx-muted: #64748b;
+$kx-faint: #94a3b8;
+$kx-border: #e2e8f0;
+$kx-hairline: #f1f5f9;
+$kx-field-bg: #f7f9fc;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SETTINGS-BAND COLOUR — flip this ONE number to try each option. Only the chosen
+// branch compiles, so the unused ones cost nothing.
+//
+//   1 = Cool grey        #eaeff6  · neutral step, safe default
+//   2 = Deeper grey      #e2e9f2  · strongest separation of the greys   ← CHOSEN
+//   3 = Brand blue wash  #e8f3fd  · tinted toward the accent, feels connected
+//   4 = White + rule     #ffffff  · no second grey at all; a 2px divider separates
+//                                   the bands (the Stripe approach)
+//   5 = Ink footer       #0f172a  · dark band, inverted labels. Boldest.
+//
+// The problem being solved: the original $kx-field-bg (#f7f9fc) sat ~1% in lightness
+// from the page canvas (#f4f6fb, set by brand-drip-campaign), so the band dissolved
+// into the page and the card looked like it had no bottom edge. Any option below is
+// a deliberate, visible step away from BOTH the page and the card's white.
+//
+// All five were compared in the browser; 2 was chosen — a neutral band with enough
+// lightness separation to hold up against the page canvas, where the original
+// #f7f9fc did not.
+$settings-band: 2;
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Step 2 of the campaign builder. Scroll geometry unchanged — the campaign layout
+// puts a fixed button bar below this, so the panel owns its own scroll region.
 .drip-campaign-content {
-  border-radius: 10px;
   height: calc(100vh - 245px);
   overflow-y: auto;
   overflow-x: hidden;
   margin: 18px 0;
 
-  .drip-campaign-fields {
-    background: #ffffff;
-    border-radius: 10px;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+  &::-webkit-scrollbar { width: 8px; }
+  &::-webkit-scrollbar-track { background: transparent; }
+  &::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: #cbd5e1;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+
+  // The TOP SECTION spans the page, exactly as it did before (the old
+  // `.drip-campaign-fields` used `margin: 0 24px`). The sequence below it keeps its
+  // original `row.justify-content-center > .col-md-7`, because the Delay and Email
+  // cards are designed for that narrower measure — do not fold the two into one
+  // column.
+  .top-section {
     margin: 0 24px;
   }
 
-  .conv-view {
-    background: white;
-    padding: 20px;
-    margin-top: 50px;
+  // ── Sequence header ─────────────────────────────────────────────────────
+  .sequence-card {
+    background: #fff;
+    border: 1px solid #dbe3ec;
+    border-radius: 14px;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+    overflow: hidden;
+    margin-bottom: 18px;
+  }
 
-    .no-data-found-content {
-      height: 100%;
-      display: flex;
-      justify-content: center;
+  .seq-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+    padding: 18px 20px;
+  }
+
+  .seq-title {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: $kx-ink;
+  }
+
+  .seq-meta {
+    margin-top: 4px;
+    font-size: 12.5px;
+    color: $kx-muted;
+
+    .meta-item {
+      display: inline-flex;
       align-items: center;
+      gap: 6px;
 
-      .content-wrap {
-        width: 280px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
+      i { font-size: 11px; color: $kx-faint; }
+    }
 
-        .top-circle-with-icon {
-          width: 86px;
-          height: 86px;
-          border-radius: 50%;
-          background: #12a5f421;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-        }
+    // Inline edit affordance, replacing a bare pencil glyph with no hit target.
+    .edit-count {
+      width: 22px;
+      height: 22px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-left: 2px;
+      padding: 0;
+      border: none;
+      border-radius: 6px;
+      background: transparent;
+      color: $kx-faint;
+      font-size: 10.5px;
+      cursor: pointer;
+      transition: all 0.12s ease;
 
-        .content {
-          .sorry-text {
-            font-size: 15px;
-            font-weight: 700;
-            line-height: 20px;
-            letter-spacing: 0.5px;
-            color: #0047cc;
-            margin-top: 10px;
-            margin-bottom: 0;
-          }
+      &:hover { background: rgba(18, 165, 244, 0.12); color: $kx-primary-deep; }
+    }
+  }
 
-          .desc-text {
-            font-size: 14px;
-            font-weight: 400;
-            color: black;
-            margin-top: 5px;
-          }
-        }
+  .count-editor {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+
+    .count-input {
+      width: 96px;
+      background: $kx-field-bg;
+      border: 1.5px solid $kx-border;
+      border-radius: 10px;
+      padding: 9px 11px;
+      font-size: 14px;
+      color: $kx-ink;
+
+      &:focus {
+        outline: none;
+        background: #fff;
+        border-color: $kx-primary;
+        box-shadow: 0 0 0 3px rgba(18, 165, 244, 0.15);
       }
     }
   }
 
-  .title-and-shortener-wrap {
-    padding: 16px;
-    border-bottom: 1px solid #e7f6fe;
+  // Primary actions. Generate is the filled one; Settings and Send Test are quiet,
+  // so the hierarchy is obvious.
+  .seq-actions {
     display: flex;
-    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
   }
 
-  .title {
-    font-size: 15px;
-    font-weight: 700;
-    line-height: 18px;
-    letter-spacing: 0.5px;
-    color: #0047cc;
-    margin-bottom: 0;
+  // Generation settings, on their own band so they stop competing with the actions.
+  .seq-settings {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+    align-items: end;
+    gap: 12px;
+    padding: 16px 20px 18px;
+
+    // See the $settings-band switch at the top of this file.
+    @if $settings-band == 1 {
+      background: #eaeff6;
+      border-top: 1px solid #dbe3ec;
+    } @else if $settings-band == 2 {
+      background: #e2e9f2;
+      border-top: 1px solid #d2dbe7;
+    } @else if $settings-band == 3 {
+      background: #e8f3fd;
+      border-top: 1px solid #cfe4f8;
+    } @else if $settings-band == 4 {
+      // No second grey: the bands are separated by the RULE alone, so it is 2px to
+      // carry that job on its own.
+      background: #ffffff;
+      border-top: 2px solid #e2e8f0;
+    } @else {
+      // Dark footer. The dropdowns keep white controls, so they read as inset panels
+      // against it; only the surrounding label text needs inverting.
+      background: #0f172a;
+      border-top: 1px solid #0f172a;
+
+      ::ng-deep label,
+      ::ng-deep .input-label-text {
+        color: rgba(255, 255, 255, 0.72) !important;
+      }
+    }
+
+    // The dropdowns render their own labels — no .field-label here.
+    .setting { min-width: 0; }
+
+    // Generate Emails occupies the 4th (auto-width) grid slot, bottom-aligned with
+    // the dropdowns beside it.
+    .settings-action { align-self: end; }
+  }
+
+  // ── Empty / generating ──────────────────────────────────────────────────
+  // Sits inside the narrow sequence column, so it inherits that width.
+  .seq-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    margin-top: 8px;
+    padding: 40px 24px 36px;
+    background: #fff;
+    border: 1px solid $kx-border;
+    border-radius: 14px;
+
+    .empty-badge {
+      width: 72px;
+      height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: rgba(18, 165, 244, 0.12);
+      color: $kx-primary-deep;
+      font-size: 24px;
+      margin-bottom: 14px;
+    }
+
+    .empty-title {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 700;
+      color: $kx-ink;
+    }
+
+    .empty-desc {
+      margin: 6px 0 0;
+      max-width: 340px;
+      font-size: 13px;
+      line-height: 1.5;
+      color: $kx-muted;
+    }
+
+    .empty-action { margin-top: 18px; }
   }
 
   .scraper-notification-card {
     background: #ffffff;
     padding: 12px 30px 20px 30px;
-    margin: 0 24px;
+    margin: 0 0 16px;
     border-radius: 10px;
     border: 1px solid #e5e7eb;
     box-shadow: 0 4px 20px rgba(59, 130, 246, 0.08);
@@ -249,44 +411,6 @@
     }
   }
 
-  .generate-drip-campaign-content {
-    display: flex;
-    //align-items: center;
-    justify-content: space-between;
-    padding: 16px;
-
-    .drip-campaign-icon-wrap {
-      width: 30px;
-      height: 30px;
-      border-radius: 8px;
-      background: #e7f6fe;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-
-    .length-of-campaign-text {
-      font-size: 12px;
-      font-weight: 600;
-      line-height: 14px;
-      letter-spacing: -0.01em;
-      margin-bottom: 2px;
-      color: #202020;
-      opacity: 60%;
-
-      span {
-        font-size: 14px;
-      }
-    }
-
-    .day-text {
-      margin-bottom: 0;
-      font-size: 14px;
-      font-weight: 700;
-      line-height: 16px;
-      letter-spacing: 0px;
-    }
-  }
 }
 
 .input-label-text {
@@ -457,56 +581,20 @@
 }
 
 
-@media (min-width: 992px) and (max-width: 1599px) {
-  .drip-campaign-content {
-    .conv-view {
-      padding: 20px 20px 0 20px;
-      margin-top: 0;
-
-      .no-data-found-content {
-        .content-wrap {
-          .top-circle-with-icon {
-            width: 70px;
-            height: 70px;
-
-            img {
-              width: 30px;
-            }
-
-            i {
-
-            }
-          }
-
-          .content {
-            .sorry-text {
-              font-size: 14px;
-            }
-
-            .desc-text {
-              font-size: 13px;
-            }
-          }
-        }
-      }
-    }
-  }
-}
-
 .campaign-paused-warning {
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  background: #fff8e6;
-  border: 1px solid #ffe2a8;
-  border-left: 4px solid #f0a500;
-  border-radius: 8px;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-left: 3px solid #b45309;
+  border-radius: 12px;
   padding: 14px 16px;
   margin-bottom: 16px;
 
   // Only the leading warning icon (direct child) is amber — not the button's icon.
   > i {
-    color: #f0a500;
+    color: #b45309;
     font-size: 18px;
     line-height: 1.4;
   }
