@@ -55,7 +55,9 @@ back with `JSON.parse(...)` (see `DripCampaign.ts` and
 
 `delay-details-content.component.ts` edits a single email's delay. Validation
 clamps: `days >= 0`, `0 <= hours <= 24`, `0 <= minutes <= 60`; submit is rejected
-if all three are `0`. On submit it updates local state and, when the email has an
+if all three are `0`. (These clamps are restated to the user as a `.field-hint`
+under the inputs — keep the two in sync.) It uses the shared drawer design; see
+"Shared drawer look" above. On submit it updates local state and, when the email has an
 `id`, calls `dripCampaignService.updateDripCampaignEmail(...)`, then
 `sseService.updateDripBulkEmail(...)` to sync the in-memory list.
 
@@ -405,7 +407,17 @@ the skip-dates list and the analytics recipients; `.repeat-row` uses
 `align-items: end` so the remove button lines up with the bottom of controls
 whether or not they render their own labels.
 
-So there are now six copies of this drawer — restyle them together.
+**`delay-details-content`** (Delay Details — edit one email's wait time) is the
+**smallest** copy: a single `.form-section` card ("Wait time") holding a 3-column
+`.fields-grid` of Days / Hours / Minutes number inputs, a `.section-note`, a
+`.field-hint` restating the clamps the component applies, and the
+`error-message-card` in a `.section-error`. It replaced a Bootstrap
+`.row`/`.col-md-4` grid. Note it is opened WITHOUT a panel class
+(`__createRightSideSlide(DelayDetailsContentComponent)`), so it inherits that
+helper's default `email-time-settings-slider` — 900px, same as the Settings
+drawer, which is why 3 columns fit.
+
+So there are now seven copies of this drawer — restyle them together.
 
 ---
 

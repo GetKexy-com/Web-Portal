@@ -1,46 +1,85 @@
 <div class="canvas-content-wrap">
   <div class="head-area">
-    <div>
-      <p>Delay Details</p>
-      <span>Create a delay between actions.</span>
+    <div class="head-text">
+      <p class="head-title">Delay Details</p>
+      <span class="head-subtitle">Create a delay between actions.</span>
     </div>
-    <img src="/assets/images/close-icon.png" alt="Close" (click)="activeCanvas.dismiss('Cross click')" />
+    <button type="button" class="close-btn" aria-label="Close" (click)="activeCanvas.dismiss('Cross click')">
+      <i class="fa fa-times" aria-hidden="true"></i>
+    </button>
   </div>
 
-  <div class="canvas-body">
-    <form (ngSubmit)="handleSubmit()">
-      <div class="input-wrap">
+  <form class="canvas-form" (ngSubmit)="handleSubmit()">
+    <div class="canvas-body">
 
-        <!--Wait time-->
-        <div class="label-and-input">
-          <p class="choose-how-long-text">Choose how long the contact should wait before moving to the next action</p>
-          <div class="row">
-            <div class="col-12 col-md-4">
-              <p class="input-title">Days</p>
-              <input type="number" name="delayDays" class="form-control" min="0" [(ngModel)]="delay.days" (change)="onDelayDaysChange()"/>
-            </div>
-            <div class="col-12 col-md-4">
-              <p class="input-title">Hours</p>
-              <input type="number" name="delayHours" class="form-control" min="0" max="24" [(ngModel)]="delay.hours" (change)="onDelayHoursChange()"/>
-            </div>
-            <div class="col-12 col-md-4">
-              <p class="input-title">Minutes</p>
-              <input type="number" name="delayMinutes" class="form-control" min="0" max="60" [(ngModel)]="delay.minutes" (change)="onDelayMinuteChange()"/>
-            </div>
-            <div class="col-12" *ngIf="submitted && delay.days === 0 && delay.hours === 0 && delay.minutes === 0">
-              <error-message-card message="Please enter a valid delay time."></error-message-card>
-            </div>
+      <!--Wait time-->
+      <div class="form-section">
+        <div class="section-head">
+          <i class="fa fa-clock-o section-icon" aria-hidden="true"></i>
+          <span class="section-title">Wait time</span>
+        </div>
+
+        <p class="section-note">
+          Choose how long the contact should wait before moving to the next action.
+        </p>
+
+        <div class="fields-grid">
+          <div class="field">
+            <label class="field-label" for="delayDays">Days</label>
+            <input
+              id="delayDays"
+              type="number"
+              name="delayDays"
+              class="form-control"
+              min="0"
+              [(ngModel)]="delay.days"
+              (change)="onDelayDaysChange()"
+            />
+          </div>
+          <div class="field">
+            <label class="field-label" for="delayHours">Hours</label>
+            <input
+              id="delayHours"
+              type="number"
+              name="delayHours"
+              class="form-control"
+              min="0"
+              max="24"
+              [(ngModel)]="delay.hours"
+              (change)="onDelayHoursChange()"
+            />
+          </div>
+          <div class="field">
+            <label class="field-label" for="delayMinutes">Minutes</label>
+            <input
+              id="delayMinutes"
+              type="number"
+              name="delayMinutes"
+              class="form-control"
+              min="0"
+              max="60"
+              [(ngModel)]="delay.minutes"
+              (change)="onDelayMinuteChange()"
+            />
           </div>
         </div>
-      </div>
 
-      <div class="bottom-buttons">
-        <button class="blue-button me-3" type="submit">
-          <i *ngIf="isLoading" class="fa fa-spinner fa-spin ms-2" aria-hidden="true" style="color: white"></i>
-          Save
-        </button>
-        <button class="blue-border-white-bg-button" type="button" (click)="activeCanvas.dismiss('Cross click')">Cancel</button>
+        <p class="field-hint">Hours are capped at 24 and minutes at 60. The delay can't be all zeros.</p>
+
+        <div class="section-error" *ngIf="submitted && delay.days === 0 && delay.hours === 0 && delay.minutes === 0">
+          <error-message-card message="Please enter a valid delay time."></error-message-card>
+        </div>
       </div>
-    </form>
-  </div>
+    </div>
+
+    <div class="buttons">
+      <button class="blue-border-white-bg-button" type="button" (click)="activeCanvas.dismiss('Cross click')">
+        Cancel
+      </button>
+      <button class="blue-button" type="submit">
+        <i *ngIf="isLoading" class="fa fa-spinner fa-spin me-2" aria-hidden="true"></i>
+        Save
+      </button>
+    </div>
+  </form>
 </div>
