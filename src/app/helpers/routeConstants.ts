@@ -37,6 +37,7 @@ export const routeConstants = {
     INVITATION: BRAND + "invitation",
     INVITATION_LIST: BRAND + "invitation-list",
     LIST_INVOICE: BRAND + "list-of-invoices",
+    DASHBOARD: BRAND + "dashboard",
     EDIT_COMPANY: BRAND + "edit-brand",
     EDIT_PROFILE: BRAND + "edit-profile",
     SUBSCRIPTION: BRAND + "subscriptions",

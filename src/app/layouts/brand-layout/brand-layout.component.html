@@ -15,6 +15,14 @@
   >
     <app-org-info></app-org-info>
 
+    <!--Home. First item, above the grouped sections.-->
+    <nav-item
+      [isDropDown]="false"
+      icon="fa-th-large"
+      [navigateTo]="brand.DASHBOARD"
+      label="Dashboard"
+    ></nav-item>
+
     <nav-item-dropdown icon="fa-building-o" [label]="constants.COMPANY_DETAILS" [expand]="expandCompanyDetailsDropdown" [collapsed]="railCollapsed">
       <nav-item
         icon="fa-building-o"

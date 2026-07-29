@@ -1,0 +1,680 @@
+// ── Tokens (match the drawer family + conversation pages) ─────────────────────
+$kx-primary: #12a5f4;
+$kx-primary-deep: #095dd1;
+$kx-ink: #0f172a;
+$kx-muted: #64748b;
+$kx-border: #e2e8f0;
+$kx-field-bg: #f7f9fc;
+$kx-hairline: #f1f5f9;
+
+// Reserved STATUS palette — never reused for a data series, and every badge that
+// uses these also carries its label, so state never rests on colour alone.
+$kx-good: #047857;
+$kx-good-bg: #ecfdf5;
+$kx-warn: #b45309;
+$kx-warn-bg: #fff7ed;
+$kx-info: #1d4ed8;
+$kx-info-bg: #eff6ff;
+$kx-neutral: #475569;
+$kx-neutral-bg: #f1f5f9;
+$kx-red: #dc2626;
+
+.dashboard-page {
+  padding: 4px 4px 40px;
+
+  // ── Page head ───────────────────────────────────────────────────────────
+  .page-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 20px;
+
+    .page-title {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 700;
+      line-height: 1.2;
+      color: $kx-ink;
+    }
+
+    .page-sub {
+      margin: 4px 0 0;
+      font-size: 13.5px;
+      color: $kx-muted;
+    }
+  }
+
+  // Segmented range control
+  .range-switch {
+    display: inline-flex;
+    padding: 4px;
+    border: 1px solid $kx-border;
+    border-radius: 12px;
+    background: #fff;
+
+    .range-btn {
+      padding: 7px 14px;
+      border: none;
+      border-radius: 9px;
+      background: transparent;
+      font-size: 13px;
+      font-weight: 600;
+      color: $kx-muted;
+      cursor: pointer;
+      transition: all 0.15s ease;
+
+      &:hover { color: $kx-primary-deep; }
+
+      &.active {
+        background: linear-gradient(135deg, $kx-primary, $kx-primary-deep);
+        color: #fff;
+        box-shadow: 0 4px 12px -4px rgba(9, 93, 209, 0.5);
+      }
+    }
+  }
+
+  // ── Loading ─────────────────────────────────────────────────────────────
+  .dash-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 80px 32px;
+
+    .loading-badge {
+      width: 64px;
+      height: 64px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: rgba(18, 165, 244, 0.12);
+      color: $kx-primary-deep;
+      font-size: 26px;
+    }
+
+    .loading-text {
+      font-size: 14.5px;
+      font-weight: 600;
+      color: $kx-muted;
+    }
+  }
+
+  // ── Shared panel ────────────────────────────────────────────────────────
+  .panel {
+    background: #fff;
+    border: 1px solid $kx-border;
+    border-radius: 16px;
+    padding: 20px 22px;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+
+    .panel-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 18px;
+
+      .panel-title {
+        margin: 0;
+        font-size: 15px;
+        font-weight: 700;
+        color: $kx-ink;
+      }
+
+      .panel-sub {
+        margin: 3px 0 0;
+        font-size: 12.5px;
+        color: $kx-muted;
+      }
+    }
+  }
+
+  .link-btn {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border: 1px solid $kx-border;
+    border-radius: 9px;
+    background: #fff;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: $kx-primary-deep;
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    &:hover {
+      border-color: $kx-primary;
+      background: $kx-field-bg;
+    }
+  }
+
+  // ── KPI tiles ───────────────────────────────────────────────────────────
+  .kpi-row {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  .kpi-tile {
+    position: relative;
+    overflow: hidden;
+    padding: 18px 20px;
+    background: #fff;
+    border: 1px solid $kx-border;
+    border-radius: 16px;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+
+    // A hairline accent edge gives the row rhythm without four competing fills.
+    &::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background: linear-gradient(180deg, $kx-primary, $kx-primary-deep);
+    }
+
+    .kpi-label {
+      margin: 0 0 8px;
+      font-weight: 600;
+      font-size: 11.5px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: $kx-muted;
+    }
+
+    // Proportional (default) figures — `tabular-nums` makes a big standalone number
+    // look loose. Tabular is for COLUMNS of numbers (see .dash-table .num).
+    .kpi-value {
+      margin: 0;
+      font-size: 30px;
+      font-weight: 600;
+      line-height: 1.05;
+      color: $kx-ink;
+
+      .kpi-unit {
+        margin-left: 2px;
+        font-size: 17px;
+        font-weight: 600;
+        color: $kx-muted;
+      }
+    }
+
+    .kpi-foot {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    // Direction colour uses the STATUS palette and always ships with an arrow +
+    // the signed number, so it never depends on colour alone.
+    .kpi-delta {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: $kx-neutral-bg;
+      font-size: 11.5px;
+      font-weight: 700;
+      color: $kx-neutral;
+
+      i { font-size: 9px; }
+
+      &.up { background: $kx-good-bg; color: $kx-good; }
+      &.down { background: #fdeaea; color: $kx-red; }
+    }
+
+    .kpi-vs {
+      font-size: 11px;
+      color: #94a3b8;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .kpi-spark {
+      flex-shrink: 0;
+      width: 56px;
+      height: 20px;
+      margin-left: auto;
+
+      polyline {
+        fill: none;
+        stroke: #b9d9f6; // de-emphasised: the number is the message, not the line
+        stroke-width: 1.6;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        vector-effect: non-scaling-stroke;
+      }
+    }
+  }
+
+  // ── Chart + funnel ──────────────────────────────────────────────────────
+  .chart-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  .chart-wrap {
+    // The SVG is width-stretched (preserveAspectRatio: none), so the wrapper owns
+    // the height and the bars scale with the panel.
+    height: 180px;
+  }
+
+  .bar-chart {
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+
+    .bar {
+      fill: $kx-primary;
+      opacity: 0.85;
+      transition: opacity 0.12s ease, fill 0.12s ease;
+
+      &:hover {
+        fill: $kx-primary-deep;
+        opacity: 1;
+      }
+    }
+  }
+
+  .chart-axis {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid $kx-hairline;
+    font-size: 11.5px;
+    color: #94a3b8;
+  }
+
+  .funnel {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+
+    .funnel-row + .funnel-row { margin-top: 14px; }
+
+    .funnel-top {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+
+    .funnel-label {
+      font-size: 12.5px;
+      font-weight: 600;
+      color: $kx-ink;
+    }
+
+    .funnel-value {
+      font-size: 12.5px;
+      color: $kx-muted;
+      font-variant-numeric: tabular-nums;
+
+      em {
+        margin-left: 6px;
+        font-style: normal;
+        font-weight: 700;
+        color: $kx-ink;
+      }
+    }
+
+    // Track is a lighter step of the SAME ramp as the fills, so the whole bar reads
+    // as one scale rather than colour-on-grey.
+    .funnel-track {
+      display: block;
+      height: 10px;
+      border-radius: 999px;
+      background: #eaf3fd;
+      overflow: hidden;
+    }
+
+    .funnel-fill {
+      display: block;
+      height: 100%;
+      border-radius: 999px;
+      transition: width 0.3s ease;
+    }
+  }
+
+  .funnel-foot {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    margin-top: 18px;
+    padding-top: 14px;
+    border-top: 1px solid $kx-hairline;
+
+    .foot-stat {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: $kx-muted;
+
+      i { font-size: 11px; color: $kx-warn; }
+    }
+  }
+
+  // ── Reach cards ─────────────────────────────────────────────────────────
+  .mini-row {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  .mini-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    background: #fff;
+    border: 1px solid $kx-border;
+    border-radius: 14px;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.15s ease;
+
+    &:hover {
+      border-color: $kx-primary;
+      box-shadow: 0 6px 18px -10px rgba(9, 93, 209, 0.4);
+
+      .mini-go { color: $kx-primary-deep; transform: translateX(2px); }
+    }
+
+    .mini-icon {
+      flex-shrink: 0;
+      width: 38px;
+      height: 38px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 11px;
+      background: rgba(18, 165, 244, 0.12);
+      color: $kx-primary-deep;
+      font-size: 15px;
+
+      // "Active now" is a live state → the reserved good/positive step.
+      &.is-live { background: $kx-good-bg; color: $kx-good; }
+    }
+
+    .mini-text {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .mini-value {
+      font-size: 19px;
+      font-weight: 700;
+      line-height: 1.15;
+      color: $kx-ink;
+    }
+
+    .mini-label {
+      font-size: 12px;
+      color: $kx-muted;
+    }
+
+    .mini-go {
+      margin-left: auto;
+      color: #cbd5e1;
+      font-size: 18px;
+      transition: all 0.15s ease;
+    }
+  }
+
+  // ── Lower grid ──────────────────────────────────────────────────────────
+  .lower-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  .table-scroll { overflow-x: auto; }
+
+  .dash-table {
+    width: 100%;
+    border-collapse: collapse;
+
+    th {
+      padding: 0 10px 10px;
+      border-bottom: 1px solid $kx-border;
+      font-weight: 600;
+      font-size: 11px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: $kx-muted;
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 12px 10px;
+      border-bottom: 1px solid $kx-hairline;
+      font-size: 13px;
+      color: $kx-ink;
+      vertical-align: middle;
+    }
+
+    tbody tr:last-child td { border-bottom: none; }
+
+    // Columns of numbers DO get tabular figures so the digits line up.
+    .num {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    .strong { font-weight: 700; }
+
+    .c-title {
+      display: block;
+      max-width: 260px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .c-meta {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 5px;
+    }
+
+    .c-emails {
+      font-size: 11.5px;
+      color: $kx-muted;
+    }
+  }
+
+  // Labelled status badge — the label carries the meaning, the colour reinforces it.
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 9px;
+    border-radius: 999px;
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+
+    &.is-active { background: $kx-good-bg; color: $kx-good; }
+    &.is-paused { background: $kx-warn-bg; color: $kx-warn; }
+    &.is-complete { background: $kx-info-bg; color: $kx-info; }
+    &.is-draft { background: $kx-neutral-bg; color: $kx-neutral; }
+  }
+
+  // ── Activity feed ───────────────────────────────────────────────────────
+  .activity {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+
+    .activity-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 11px 0;
+
+      & + .activity-row { border-top: 1px solid $kx-hairline; }
+    }
+
+    .act-icon {
+      flex-shrink: 0;
+      width: 30px;
+      height: 30px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 9px;
+      font-size: 12px;
+
+      &.act-reply { background: $kx-good-bg; color: $kx-good; }
+      &.act-click { background: $kx-info-bg; color: $kx-info; }
+      &.act-open { background: rgba(18, 165, 244, 0.12); color: $kx-primary-deep; }
+      &.act-unsub { background: $kx-neutral-bg; color: $kx-neutral; }
+    }
+
+    .act-body {
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+
+    .act-line {
+      display: block;
+      font-size: 13px;
+      color: $kx-ink;
+
+      strong { font-weight: 600; }
+
+      .act-verb {
+        margin-left: 5px;
+        color: $kx-muted;
+      }
+    }
+
+    .act-meta {
+      display: block;
+      margin-top: 2px;
+      font-size: 12px;
+      color: $kx-muted;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+
+      .act-link { color: $kx-primary-deep; }
+    }
+
+    .act-time {
+      flex-shrink: 0;
+      font-size: 11.5px;
+      color: #94a3b8;
+      white-space: nowrap;
+    }
+  }
+
+  // ── Top links ───────────────────────────────────────────────────────────
+  .link-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+
+    .link-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 0;
+
+      & + .link-row { border-top: 1px solid $kx-hairline; }
+    }
+
+    .link-rank {
+      flex-shrink: 0;
+      width: 22px;
+      height: 22px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 7px;
+      background: $kx-field-bg;
+      font-size: 11px;
+      font-weight: 700;
+      color: $kx-muted;
+    }
+
+    .link-key {
+      flex: 1 1 auto;
+      min-width: 0;
+      font-size: 13px;
+      color: $kx-ink;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .link-count {
+      flex-shrink: 0;
+      font-size: 13px;
+      font-weight: 700;
+      color: $kx-ink;
+      font-variant-numeric: tabular-nums;
+    }
+  }
+
+  // Keyboard users get a real ring; mouse users never see it.
+  button:focus-visible {
+    outline: 2px solid $kx-primary;
+    outline-offset: 2px;
+  }
+}
+
+@media (max-width: 1200px) {
+  .dashboard-page {
+    .kpi-row,
+    .mini-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .chart-grid,
+    .lower-grid { grid-template-columns: minmax(0, 1fr); }
+  }
+}
+
+@media (max-width: 640px) {
+  .dashboard-page {
+    .kpi-row,
+    .mini-row { grid-template-columns: minmax(0, 1fr); }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-page {
+    .range-btn,
+    .mini-card,
+    .mini-go,
+    .link-btn,
+    .bar,
+    .funnel-fill { transition: none; }
+
+    .dash-loading .loading-badge .fa-spin { animation: none; }
+  }
+}
