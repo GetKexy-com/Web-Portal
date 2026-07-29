@@ -1,101 +1,257 @@
+// ── Tokens (match the drawer family / conversations / dashboard) ──────────────
+$kx-primary: #12a5f4;
+$kx-primary-deep: #095dd1;
+$kx-ink: #0f172a;
+$kx-muted: #64748b;
+$kx-faint: #94a3b8;
+$kx-border: #e2e8f0;
+$kx-hairline: #f1f5f9;
+$kx-field-bg: #f7f9fc;
+$kx-red: #dc2626;
+
+// Step 1 of the campaign builder. The scroll geometry is unchanged — the campaign
+// layout puts a fixed bottom button bar below this, so the panel owns its own scroll
+// region at `100vh - 245px`. Don't turn this into a page-level scroll.
 .drip-campaign-content {
-  border-radius: 10px;
   height: calc(100vh - 245px);
   overflow-y: auto;
   margin: 18px 24px;
+  padding-right: 2px; // keeps the scrollbar off the card edges
 
-  .drip-campaign-fields {
-    background: #ffffff;
-    border-radius: 10px;
+  // Thin overlay scrollbar rather than the chunky default gutter.
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+
+  &::-webkit-scrollbar { width: 8px; }
+  &::-webkit-scrollbar-track { background: transparent; }
+  &::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: #cbd5e1;
+    border: 2px solid transparent;
+    background-clip: content-box;
   }
-  .title {
-    border-bottom: 1px solid #e7f6fe;
-    font-size: 15px;
-    font-weight: 700;
-    line-height: 18px;
-    letter-spacing: 0.5px;
-    color: #0047cc;
-    margin-bottom: 0;
-    padding: 16px;
-    a {
-      margin-left: 5px;
-      color: #202020;
+
+  // ── Centred content column ──────────────────────────────────────────────
+  // The single most important difference from the drawer version: a page form must
+  // have a measure. Full-width fields on a 27" monitor are unusable, and it is what
+  // made the card stack look wrong here.
+  .content-column {
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  // ── Head ────────────────────────────────────────────────────────────────
+  .content-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 14px;
+
+    .content-title {
+      margin: 0;
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      color: $kx-ink;
+    }
+
+    .content-sub {
+      margin: 3px 0 0;
       font-size: 13px;
-      line-height: 16px;
-      text-decoration: underline !important;
+      color: $kx-muted;
     }
   }
-  form {
-    padding: 16px 0px;
 
-    label {
+  // The examples link was an inline underlined `(Here are some drip campaign
+  // examples)` hanging off the title. It is an outbound link, so it now reads as a
+  // deliberate secondary action.
+  .examples-link {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 7px 12px;
+    border: 1px solid $kx-border;
+    border-radius: 9px;
+    background: #fff;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: $kx-primary-deep;
+    text-decoration: none !important; // styles.scss forces underlines on <a>
+    transition: all 0.15s ease;
+
+    i { font-size: 11px; }
+
+    &:hover {
+      border-color: $kx-primary;
+      background: $kx-field-bg;
+    }
+  }
+
+  // ── One card, divided into settings rows ────────────────────────────────
+  // ONE surface with internal dividers, not a stack of cards. Cards-per-section is
+  // drawer language; on a page it reads as unrelated widgets.
+  .form-card {
+    padding: 0;
+    background: #fff;
+    border: 1px solid $kx-border;
+    border-radius: 14px;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    overflow: hidden; // keeps the row dividers inside the rounded corners
+  }
+
+  // Description on the left, fields on the right — the Stripe/GitHub settings row.
+  // The description column gives each group a purpose instead of a bare heading, and
+  // it caps the field column at a sane width for free.
+  .form-row {
+    display: grid;
+    grid-template-columns: 220px minmax(0, 1fr);
+    gap: 28px;
+    padding: 24px 26px;
+
+    & + .form-row { border-top: 1px solid $kx-hairline; }
+  }
+
+  .row-desc {
+    .row-title {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      color: $kx-ink;
+    }
+
+    .row-hint {
+      margin: 5px 0 0;
+      font-size: 12.5px;
+      line-height: 1.5;
+      color: $kx-muted;
+    }
+  }
+
+  // ── Fields ──────────────────────────────────────────────────────────────
+  .fields-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px 18px;
+
+    .field.full { grid-column: 1 / -1; }
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+
+    // Only for the NATIVE inputs — the kexy-select-dropdowns render their own labels.
+    .field-label {
       position: relative;
-      i {
-        font-size: 8px;
-        color: red;
-        position: absolute;
-        margin-left: 3px;
+      margin-bottom: 7px;
+      font-weight: 600;
+      font-size: 12px;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      color: $kx-muted;
+    }
+
+    // Required marker: was an absolutely-positioned 8px asterisk that could overlap
+    // the label text. Now it just sits inline after it.
+    .req {
+      margin-left: 3px;
+      font-size: 7px;
+      color: $kx-red;
+      vertical-align: super;
+    }
+
+    .field-hint {
+      margin-top: 6px;
+      font-size: 11.5px;
+      line-height: 1.45;
+      color: $kx-faint;
+    }
+
+    .form-control {
+      width: 100%;
+      background: $kx-field-bg;
+      border: 1.5px solid $kx-border;
+      border-radius: 10px;
+      padding: 11px 13px;
+      font-size: 14px;
+      color: $kx-ink;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+
+      &::placeholder { color: #9aa6b6; }
+
+      &:focus {
+        outline: none;
+        background: #fff;
+        border-color: $kx-primary;
+        box-shadow: 0 0 0 3px rgba(18, 165, 244, 0.15);
       }
     }
+
+    .campaign-textarea {
+      height: 118px;
+      resize: vertical;
+      line-height: 1.55;
+    }
   }
-  .input-field-wrap {
+
+  // ── Toggle row ──────────────────────────────────────────────────────────
+  .toggle-row {
     display: flex;
     align-items: center;
-    padding: 0 16px;
-    margin-bottom: 20px;
-  }
-  .section-padding {
-    padding: 0 16px;
-  }
-  .title-of-campaign-input {
-    border: none;
-    width: 100%;
-    border-bottom: 1px solid black;
-    margin-left: 20px;
-    font-size: 14px;
-    font-weight: 400;
-    line-height: 20px;
-    letter-spacing: 0em;
-    padding-bottom: 5px;
-  }
-  .number-input-field {
-    margin-left: 15px;
-    padding: 7px 10px;
-    border-radius: 8px;
-    border: 1px solid #e1e1e1;
-  }
-  .label-text {
-    min-width: fit-content;
-    font-size: 10px;
-    font-weight: 600;
-    line-height: 12px;
-    letter-spacing: -0.01em;
-    margin-bottom: 0;
-    color: #202020;
-    text-transform: uppercase;
-  }
-  .campaign-textarea {
-    height: 150px;
-  }
-  .email-tone-checkbox-wrap {
-    border-top: 1px solid #e7f6fe;
-    padding: 16px;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 12px 14px;
+    border: 1px solid $kx-border;
+    border-radius: 12px;
+    background: $kx-field-bg;
+
+    .toggle-text {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .toggle-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: $kx-ink;
+    }
+
+    .toggle-hint {
+      margin-top: 2px;
+      font-size: 11.5px;
+      color: $kx-muted;
+    }
   }
 }
 
-@media (min-width: 992px) and (max-width: 1599px) {
-  .input-label-text {
-    font-size: 11px;
-    line-height: 13px;
+// Below the two-column threshold the description stacks ABOVE its fields, which is
+// how every settings page degrades — it never squeezes into a narrow gutter.
+@media (max-width: 1080px) {
+  .drip-campaign-content .form-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
   }
-  input {
-    font-size: 13px;
-    padding: 8px 10px;
+}
+
+@media (max-width: 900px) {
+  .drip-campaign-content {
+    margin: 14px 16px;
+
+    .form-row { padding: 20px 18px; }
+    .fields-grid { grid-template-columns: minmax(0, 1fr); }
   }
-  .page-item {
-    button {
-      padding: 3px 10px;
-      font-size: 15px;
-    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .drip-campaign-content {
+    .examples-link,
+    .field .form-control { transition: none; }
   }
 }

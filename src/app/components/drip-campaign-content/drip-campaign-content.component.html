@@ -1,12 +1,38 @@
 <section class="drip-campaign-content">
-  <div class="drip-campaign-fields">
-    <p class="title">Drip Campaign Content <a
-      href="https://drive.google.com/drive/folders/1UFEkAdUj1ZqnDLlu04jOBcZsHYbTFZv5" target="_blank">(Here are some
-      drip campaign examples)</a></p>
-    <form>
-      <div class="container-fluid">
-        <div class="row section-padding">
-          <div class="col-12 p-0">
+  <!--PAGE form, not a drawer: the content sits in a centred, max-width column, and
+      each section is a ROW inside ONE card — description on the left, fields on the
+      right (the Stripe/GitHub settings pattern). Stacked full-width cards are drawer
+      language, and they left fields stretched absurdly wide on a large monitor.-->
+  <div class="content-column">
+    <header class="content-head">
+      <div>
+        <h2 class="content-title">Campaign content</h2>
+        <p class="content-sub">Tell KEXY what to write and who it is for.</p>
+      </div>
+      <a
+        class="examples-link"
+        href="https://drive.google.com/drive/folders/1UFEkAdUj1ZqnDLlu04jOBcZsHYbTFZv5"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <i class="fa fa-external-link" aria-hidden="true"></i>
+        See examples
+      </a>
+    </header>
+
+    <form class="form-card">
+
+      <!--══════════ The campaign ══════════-->
+      <div class="form-row">
+        <div class="row-desc">
+          <h3 class="row-title">Campaign</h3>
+          <p class="row-hint">Name it and set the shape of the sequence.</p>
+        </div>
+
+        <!--kexy-select-dropdown renders its OWN label — do NOT add a .field-label
+            for those, only for the native inputs.-->
+        <div class="fields-grid">
+          <div class="field full">
             <kexy-select-dropdown
               label="Title of Campaign"
               shortNoteBesideLabel=""
@@ -31,17 +57,27 @@
             </div>
           </div>
 
-          <div class="col-12 col-md-6 mt-3 ps-0">
-            <label class="input-label-text">How many emails do you want to send to each prospect? <i
-              class="fa fa-asterisk" aria-hidden="true"></i></label>
-            <input type="number" class="form-control" placeholder="Number" name="numberOfEmail" min="1"
-                   [(ngModel)]="numberOfEmail" (change)="onChangeNumberOfEmail($event)" />
+          <div class="field">
+            <label class="field-label" for="numberOfEmail">
+              Emails per prospect <i class="fa fa-asterisk req" aria-hidden="true"></i>
+            </label>
+            <input
+              id="numberOfEmail"
+              type="number"
+              class="form-control"
+              placeholder="e.g. 4"
+              name="numberOfEmail"
+              min="1"
+              [(ngModel)]="numberOfEmail"
+              (change)="onChangeNumberOfEmail($event)"
+            />
+            <span class="field-hint">How many emails each prospect receives.</span>
             <div *ngIf="submitted && !numberOfEmail">
               <error-message-card message="Please enter valid data."></error-message-card>
             </div>
           </div>
 
-          <div class="col-12 col-md-3 mt-4 pe-0">
+          <div class="field">
             <kexy-select-dropdown
               label="Email Tone"
               shortNoteBesideLabel=""
@@ -66,7 +102,7 @@
             </div>
           </div>
 
-          <div class="col-12 col-md-3 mt-4 pe-0">
+          <div class="field">
             <kexy-select-dropdown
               label="Email Length"
               shortNoteBesideLabel=""
@@ -88,21 +124,55 @@
               placeholder="Please Select"
             ></kexy-select-dropdown>
           </div>
+        </div>
+      </div>
 
-          <div
-            class="col-12 col-md-6 mt-3 position-static ps-0">
-            <label class="input-label-text">What do you want to cover? <i class="fa fa-asterisk" aria-hidden="true"></i></label>
+      <!--══════════ The brief ══════════-->
+      <div class="form-row">
+        <div class="row-desc">
+          <h3 class="row-title">Content brief</h3>
+          <p class="row-hint">What the emails should say, and who they are for.</p>
+        </div>
+
+        <div class="fields-grid">
+          <div class="field full">
+            <label class="field-label" for="whatDoYouCover">
+              What do you want to cover? <i class="fa fa-asterisk req" aria-hidden="true"></i>
+            </label>
             <textarea
+              id="whatDoYouCover"
               class="form-control campaign-textarea"
               name="whatDoYouCover"
-              [(ngModel)]="whatDoYouCover">
-            </textarea>
+              placeholder="The offer, the problem it solves, anything the emails must mention…"
+              [(ngModel)]="whatDoYouCover"
+            ></textarea>
             <div *ngIf="submitted && !numberOfEmail">
               <error-message-card message="Please enter valid data."></error-message-card>
             </div>
+          </div>
 
-            <div class="platform-priority mt-3 mb-1">
-              <label class="input-label-text">Use your own prompt to override the KEXY default</label>
+          <div class="field full">
+            <label class="field-label" for="targetAudience">
+              Define your target audience <i class="fa fa-asterisk req" aria-hidden="true"></i>
+            </label>
+            <textarea
+              id="targetAudience"
+              class="form-control campaign-textarea"
+              placeholder="i.e. - small business owner, female consumers ages 21-40, etc."
+              name="targetAudience"
+              [(ngModel)]="targetAudience"
+            ></textarea>
+            <div *ngIf="submitted && !targetAudience">
+              <error-message-card message="Please enter valid data."></error-message-card>
+            </div>
+          </div>
+
+          <div class="field full">
+            <div class="toggle-row">
+              <span class="toggle-text">
+                <span class="toggle-label">Use your own prompt to override the KEXY default</span>
+                <span class="toggle-hint">Your brief is sent verbatim instead of being rewritten.</span>
+              </span>
               <kexy-toggle-switch
                 [isSwitchActive]="userPromptPriority"
                 [changeSwitchOption]="onUserPromptPriorityChange"
@@ -111,23 +181,18 @@
               ></kexy-toggle-switch>
             </div>
           </div>
+        </div>
+      </div>
 
-          <div class="col-12 col-md-6 mt-3 pe-0">
-            <label class="input-label-text">
-              Define your target audience?
-              <i class="fa fa-asterisk" aria-hidden="true"></i></label>
-            <textarea
-              class="form-control campaign-textarea"
-              placeholder="i.e. - small business owner, female consumers ages 21-40, etc."
-              name="targetAudience"
-              [(ngModel)]="targetAudience">
-            </textarea>
-            <div *ngIf="submitted && !targetAudience">
-              <error-message-card message="Please enter valid data."></error-message-card>
-            </div>
-          </div>
+      <!--══════════ Links & context ══════════-->
+      <div class="form-row">
+        <div class="row-desc">
+          <h3 class="row-title">Links &amp; context</h3>
+          <p class="row-hint">Where prospects go, and what KEXY can draw on.</p>
+        </div>
 
-          <div class="col-12 col-md-6 mt-4 ps-0">
+        <div class="fields-grid">
+          <div class="field">
             <kexy-select-dropdown
               label="Calendly or Scheduling link"
               shortNoteBesideLabel=""
@@ -148,7 +213,7 @@
             ></kexy-select-dropdown>
           </div>
 
-          <div class="col-12 col-md-6 mt-4 pe-0">
+          <div class="field">
             <kexy-select-dropdown
               label="Website"
               shortNoteBesideLabel=""
@@ -171,7 +236,8 @@
               <error-message-card message="Please enter valid data."></error-message-card>
             </div>
           </div>
-          <div class="col-12 mt-4 ps-0 pe-0">
+
+          <div class="field full">
             <kexy-select-dropdown
               label="Select Company"
               shortNoteBesideLabel=""
@@ -193,7 +259,8 @@
               <error-message-card message="Please enter valid data."></error-message-card>
             </div>
           </div>
-          <div class="col-12 mt-4 ps-0 pe-0">
+
+          <div class="field full">
             <kexy-select-dropdown
               label="Select Lead Magnet(s)"
               shortNoteBesideLabel=""
@@ -211,11 +278,7 @@
               backgroundColor="white"
               placeholder="Please select"
             ></kexy-select-dropdown>
-            <!--            <div *ngIf="submitted && !selectedLeadMagnet()">-->
-            <!--              <error-message-card message="Please enter valid data."></error-message-card>-->
-            <!--            </div>-->
           </div>
-
         </div>
       </div>
     </form>

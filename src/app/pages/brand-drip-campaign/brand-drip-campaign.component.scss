@@ -3,13 +3,23 @@
   overflow: hidden;
   background: #f4f6fb;
 
+  // The stepper now renders "Step N" above each title, so it needs a little more
+  // room than the old single-line labels. It also spans a max-width column and is
+  // left/right padded rather than centred, so long titles have somewhere to go.
   .progress-wrap {
     display: flex;
     justify-content: center;
-    overflow: hidden;
     height: 70px;
-    padding: 8px;
-    background: white;
+    padding: 0 24px;
+    background: #fff;
+    border-bottom: 1px solid #e2e8f0;
+
+    progress-count {
+      display: block;
+      width: 100%;
+      max-width: 980px;
+      align-self: center;
+    }
   }
 
   .page-content {
