@@ -1,0 +1,966 @@
+// ── Tokens ────────────────────────────────────────────────────────────────────
+$kx-primary: #12a5f4;
+$kx-primary-deep: #095dd1;
+$kx-ink: #0f172a;
+$kx-muted: #64748b;
+$kx-faint: #94a3b8;
+$kx-border: #e2e8f0;
+$kx-hairline: #f1f5f9;
+$kx-field-bg: #f7f9fc;
+
+// Reserved STATUS palette. Never reused for a data series, and every badge or pill
+// using it also carries its label — state never rests on colour alone.
+$kx-good: #047857;
+$kx-good-bg: #ecfdf5;
+$kx-warn: #b45309;
+$kx-warn-bg: #fff7ed;
+$kx-info: #1d4ed8;
+$kx-info-bg: #eff6ff;
+$kx-neutral: #475569;
+$kx-neutral-bg: #f1f5f9;
+$kx-red: #dc2626;
+$kx-red-bg: #fdeaea;
+
+// Analytics consoles are QUIET: hairline borders, no drop shadows, no gradient
+// fills on chrome, tight type. The data is the only thing allowed to be loud.
+.dashboard-page {
+  // Canvas is TRANSPARENT — the layout's own background shows through, and the
+  // panels are separated by their hairline borders alone (the Linear/Vercel
+  // treatment). The previous tinted canvas needed a negative-margin bleed to reach
+  // `.main-warp`'s padding edges plus a min-height to fill the viewport; with no
+  // background, all three are unnecessary and are gone.
+  padding: 0 0 40px;
+
+  // ── Page toolbar ────────────────────────────────────────────────────────
+  // Scrolls with the content (NOT sticky). The opaque background and z-index that
+  // the pinned version needed are gone with it — the page canvas shows through.
+  .toolbar {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin: 0 0 16px;
+    padding: 2px 0 12px;
+    background: transparent;
+    border-bottom: none;
+
+    .tb-title {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      color: $kx-ink;
+    }
+
+    .tb-sub {
+      margin: 2px 0 0;
+      font-size: 12.5px;
+      color: $kx-muted;
+
+      .tb-dot { margin: 0 4px; color: #cbd5e1; }
+      .tb-stamp { color: $kx-faint; }
+    }
+  }
+
+  // ── Insight strip ───────────────────────────────────────────────────────
+  .insight-strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .insight {
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+    padding: 11px 13px;
+    border: 1px solid $kx-border;
+    border-left-width: 3px;
+    border-radius: 9px;
+    background: #fff;
+    font-size: 12.5px;
+    line-height: 1.45;
+    color: $kx-ink;
+
+    i { margin-top: 2px; font-size: 11px; }
+
+    // Tone comes from the reserved status palette and always ships with an icon and
+    // a full sentence — never colour alone.
+    &.tone-good { border-left-color: $kx-good; i { color: $kx-good; } }
+    &.tone-warn { border-left-color: $kx-warn; i { color: $kx-warn; } }
+    &.tone-info { border-left-color: $kx-primary; i { color: $kx-primary-deep; } }
+  }
+
+  // ── Skeletons ───────────────────────────────────────────────────────────
+  .sk {
+    display: block;
+    border-radius: 6px;
+    background: linear-gradient(90deg, #eef2f7 25%, #e3e9f1 37%, #eef2f7 63%);
+    background-size: 400% 100%;
+    animation: skShimmer 1.4s ease infinite;
+  }
+  .sk-xs { width: 40%; height: 9px; }
+  .sk-sm { width: 28%; height: 11px; margin-bottom: 14px; }
+  .sk-lg { width: 58%; height: 24px; margin: 8px 0; }
+  .sk-block { height: 210px; border-radius: 10px; }
+  .sk-block.short { height: 120px; }
+
+  @keyframes skShimmer {
+    from { background-position: 100% 50%; }
+    to { background-position: 0 50%; }
+  }
+
+  .sk-panel { padding: 0; }
+  .sk-strip {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    border-bottom: 1px solid $kx-border;
+
+    .sk-tile {
+      padding: 16px 20px;
+      border-right: 1px solid $kx-hairline;
+      &:last-child { border-right: none; }
+    }
+  }
+  .sk-chart { padding: 16px 20px; }
+
+  // Segmented control — flat, hairline, no gradient. The active step is a plain
+  // ink fill, which is what Stripe/Linear/Vercel all do.
+  .range-switch {
+    display: inline-flex;
+    gap: 2px;
+    padding: 3px;
+    border: 1px solid $kx-border;
+    border-radius: 9px;
+    background: #fff;
+
+    .range-btn {
+      padding: 6px 12px;
+      border: none;
+      border-radius: 6px;
+      background: transparent;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: $kx-muted;
+      cursor: pointer;
+      transition: background 0.12s ease, color 0.12s ease;
+
+      &:hover { background: $kx-field-bg; color: $kx-ink; }
+
+      &.active {
+        background: $kx-ink;
+        color: #fff;
+      }
+    }
+  }
+
+  // ── Panels ──────────────────────────────────────────────────────────────
+  .panel {
+    background: #fff;
+    border: 1px solid $kx-border;
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin-bottom: 16px;
+
+    .panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 16px;
+
+      .panel-title {
+        margin: 0;
+        font-size: 13.5px;
+        font-weight: 700;
+        letter-spacing: 0.01em;
+        color: $kx-ink;
+      }
+
+      .panel-note {
+        font-size: 11.5px;
+        color: $kx-faint;
+      }
+    }
+
+    .panel-foot {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 18px;
+      margin-top: 16px;
+      padding-top: 13px;
+      border-top: 1px solid $kx-hairline;
+      font-size: 12px;
+      color: $kx-muted;
+
+      i { margin-right: 5px; font-size: 11px; color: $kx-warn; }
+    }
+  }
+
+  .link-btn {
+    padding: 5px 9px;
+    border: 1px solid $kx-border;
+    border-radius: 7px;
+    background: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    color: $kx-primary-deep;
+    cursor: pointer;
+    transition: all 0.12s ease;
+
+    &:hover { border-color: $kx-primary; background: $kx-field-bg; }
+  }
+
+  // ── Metric strip (tiles double as the chart's control) ───────────────────
+  .metric-panel { padding: 0; }
+
+  .metric-strip {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    border-bottom: 1px solid $kx-border;
+
+    .metric-tile {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 5px;
+      padding: 16px 20px;
+      border: none;
+      border-right: 1px solid $kx-hairline;
+      background: #fff;
+      text-align: left;
+      cursor: pointer;
+      transition: background 0.12s ease;
+
+      &:last-child { border-right: none; }
+      &:hover { background: #fcfdfe; }
+
+      // Selected = an ink underline on the panel's own edge, the standard console
+      // "active tab" cue. No fill, so the numbers stay comparable across tiles.
+      &::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: -1px;
+        height: 2px;
+        background: transparent;
+      }
+
+      &.active {
+        background: #fcfdff;
+        &::after { background: $kx-primary-deep; }
+        .m-value { color: $kx-ink; }
+      }
+
+      .m-label {
+        font-size: 11.5px;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        color: $kx-muted;
+      }
+
+      // Proportional (default) figures — tabular widths make a big standalone
+      // number look loose. Columns of numbers get tabular-nums instead.
+      .m-value {
+        font-size: 26px;
+        font-weight: 650;
+        line-height: 1.1;
+        letter-spacing: -0.02em;
+        color: $kx-ink;
+      }
+
+      .m-foot {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px;
+        font-size: 11.5px;
+      }
+
+      // Direction wears the status palette AND ships a caret + signed number, so
+      // it never depends on colour alone.
+      .m-delta {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        font-weight: 700;
+        color: $kx-neutral;
+
+        i { font-size: 10px; }
+
+        &.up { color: $kx-good; }
+        &.down { color: $kx-red; }
+      }
+
+      .m-sub { color: $kx-faint; }
+    }
+  }
+
+  // ── Chart ───────────────────────────────────────────────────────────────
+  .chart-block { padding: 16px 20px 12px; }
+
+  .chart-head {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 10px;
+  }
+
+  // A legend is present because there are TWO series (this period + previous).
+  .chart-legend {
+    display: flex;
+    gap: 16px;
+
+    .lg-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11.5px;
+      color: $kx-muted;
+    }
+
+    .lg-swatch {
+      width: 14px;
+      height: 0;
+      border-top: 2px solid $kx-primary-deep;
+
+      &.previous {
+        border-top-style: dashed;
+        border-top-color: $kx-faint;
+      }
+    }
+  }
+
+  $y-gutter: 42px;
+  $plot-h: 210px;
+
+  .chart-frame {
+    position: relative;
+    padding-left: $y-gutter;
+  }
+
+  // Axis TEXT is HTML, never SVG: the plot is non-uniformly scaled to be
+  // width-responsive, which would stretch any text inside it.
+  .y-axis {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: $y-gutter;
+    height: $plot-h;
+
+    .y-tick {
+      position: absolute;
+      right: 8px;
+      transform: translateY(50%);
+      font-size: 10.5px;
+      color: $kx-faint;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+  }
+
+  .plot {
+    position: relative;
+    height: $plot-h;
+  }
+
+  .plot-svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+
+    // Every stroke is non-scaling, so stretching the viewBox cannot fatten lines
+    // or the crosshair.
+    .grid {
+      stroke: $kx-hairline;
+      stroke-width: 1;
+      vector-effect: non-scaling-stroke;
+    }
+
+    .area {
+      fill: rgba(18, 165, 244, 0.1);
+    }
+
+    .line {
+      fill: none;
+      stroke-width: 2;
+      stroke-linejoin: round;
+      stroke-linecap: round;
+      vector-effect: non-scaling-stroke;
+
+      &.current { stroke: $kx-primary-deep; }
+
+      // Same hue family, dashed: it is the SAME measure in a different window, so
+      // line style carries the difference rather than a second colour.
+      &.previous {
+        stroke: $kx-faint;
+        stroke-width: 1.5;
+        stroke-dasharray: 4 4;
+        opacity: 0.9;
+      }
+    }
+
+    .crosshair {
+      stroke: #cbd5e1;
+      stroke-width: 1;
+      vector-effect: non-scaling-stroke;
+    }
+  }
+
+  .hover-dot {
+    position: absolute;
+    width: 9px;
+    height: 9px;
+    margin: -4.5px 0 0 -4.5px;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    background: $kx-primary-deep;
+    pointer-events: none;
+  }
+
+  .chart-tip {
+    position: absolute;
+    top: 4px;
+    z-index: 5;
+    min-width: 168px;
+    padding: 9px 11px;
+    transform: translateX(-50%);
+    border: 1px solid $kx-border;
+    border-radius: 9px;
+    background: #fff;
+    box-shadow: 0 8px 24px -8px rgba(15, 23, 42, 0.25);
+    pointer-events: none;
+
+    // Near the right edge, flip so the tooltip stays inside the plot.
+    &.flip { transform: translateX(-100%); }
+
+    .tip-date {
+      margin: 0 0 6px;
+      font-size: 11px;
+      font-weight: 700;
+      color: $kx-ink;
+    }
+
+    .tip-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin: 0;
+      font-size: 11.5px;
+      color: $kx-muted;
+
+      & + .tip-row { margin-top: 3px; }
+
+      strong {
+        margin-left: auto;
+        font-weight: 700;
+        color: $kx-ink;
+        font-variant-numeric: tabular-nums;
+      }
+
+      &.muted strong { color: $kx-muted; }
+    }
+
+    .tip-swatch {
+      width: 10px;
+      height: 0;
+      border-top: 2px solid $kx-primary-deep;
+
+      &.previous {
+        border-top-style: dashed;
+        border-top-color: $kx-faint;
+      }
+    }
+  }
+
+  .x-axis {
+    position: relative;
+    height: 22px;
+    margin-top: 6px;
+    border-top: 1px solid $kx-hairline;
+
+    .x-tick {
+      position: absolute;
+      top: 6px;
+      transform: translateX(-50%);
+      font-size: 10.5px;
+      color: $kx-faint;
+      white-space: nowrap;
+
+      &:first-child { transform: none; }
+      &:last-child { transform: translateX(-100%); }
+    }
+  }
+
+  // ── Grids ───────────────────────────────────────────────────────────────
+  // Every section grid carries the SAME bottom margin, so vertical rhythm survives
+  // reordering. Their child panels drop their own margin, since the grid `gap`
+  // already spaces them.
+  .mid-grid,
+  .tri-grid,
+  .perf-grid,
+  .lower-grid {
+    display: grid;
+    gap: 16px;
+    margin-bottom: 16px;
+
+    > .panel { margin-bottom: 0; }
+  }
+
+  .mid-grid { grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); }
+  // Campaign performance / Activity at 60/40. `3fr 2fr` IS 60/40, and minmax(0,…)
+  // stops the table's own content from forcing the column wider than its share.
+  .perf-grid { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); }
+  // Funnel · deliverability · send windows.
+  .tri-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+  // ── Deliverability ──────────────────────────────────────────────────────
+  .delivery {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+
+    li + li { margin-top: 13px; }
+
+    .d-top {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+
+    .d-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: $kx-ink;
+    }
+
+    .d-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+
+      &.tone-good { background: $kx-good; }
+      &.tone-warn { background: $kx-warn; }
+      &.tone-neutral { background: $kx-neutral; }
+    }
+
+    .d-num {
+      font-size: 12px;
+      color: $kx-muted;
+      font-variant-numeric: tabular-nums;
+
+      em { margin-left: 5px; font-style: normal; font-weight: 700; color: $kx-ink; }
+    }
+  }
+
+  // Deliverability bars use the reserved STATUS palette (this is state, not a data
+  // series), while the funnel below uses the sequential blue ramp (magnitude).
+  .f-fill {
+    &.tone-good { background: $kx-good; }
+    &.tone-warn { background: $kx-warn; }
+    &.tone-neutral { background: #94a3b8; }
+  }
+
+  // ── Send-window heatmap ─────────────────────────────────────────────────
+  .heat {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .heat-row {
+    display: grid;
+    grid-template-columns: 34px repeat(4, minmax(0, 1fr));
+    gap: 4px;
+    align-items: center;
+  }
+
+  .heat-day,
+  .heat-cell-label {
+    font-size: 10.5px;
+    color: $kx-faint;
+    white-space: nowrap;
+  }
+
+  .heat-cell-label { text-align: center; }
+
+  .heat-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 26px;
+    border-radius: 5px;
+    font-size: 10.5px;
+    font-weight: 600;
+    color: $kx-muted;
+    font-variant-numeric: tabular-nums;
+    cursor: default;
+
+    // On the dark end of the ramp, flip the label to white so it always clears
+    // contrast against its own fill.
+    &.is-strong { color: #fff; }
+  }
+
+  .heat-legend {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+    font-size: 10.5px;
+    color: $kx-faint;
+
+    .heat-ramp {
+      flex: 1 1 auto;
+      height: 6px;
+      border-radius: 999px;
+      // The same single hue the cells use, shown as a continuous scale.
+      background: linear-gradient(90deg, #f6f8fb, rgba(9, 93, 209, 0.95));
+    }
+  }
+
+  // Funnel as a TABLE: label, bar, count, share. A table is the honest structure
+  // here, and it gives the numbers a column to align in.
+  .funnel-table {
+    width: 100%;
+    border-collapse: collapse;
+
+    th[scope='row'] {
+      width: 74px;
+      padding: 7px 0;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: $kx-ink;
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    td { padding: 7px 0; }
+
+    .f-bar { padding-right: 14px; width: auto; }
+
+    .f-num,
+    .f-step {
+      width: 68px;
+      text-align: right;
+      font-size: 12.5px;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    .f-num { color: $kx-muted; }
+    .f-step {
+      font-weight: 700;
+      color: $kx-ink;
+
+      .dash { color: #cbd5e1; font-weight: 400; }
+    }
+  }
+
+  // Magnitude → ONE hue, light to dark. The track is a lighter step of the same
+  // ramp so the whole bar reads as one scale, not colour-on-grey.
+  .f-track {
+    display: block;
+    height: 8px;
+    border-radius: 999px;
+    background: #eef5fd;
+    overflow: hidden;
+  }
+
+  .f-fill {
+    display: block;
+    height: 100%;
+    border-radius: 999px;
+    transition: width 0.3s ease;
+
+    &.step-1 { background: #c7defa; }
+    &.step-2 { background: #8dc0f4; }
+    &.step-3 { background: #3f93ea; }
+    &.step-4 { background: $kx-primary-deep; }
+  }
+
+  .reach-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+
+    li + li { border-top: 1px solid $kx-hairline; }
+
+    button {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      padding: 11px 2px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      text-align: left;
+
+      &:hover {
+        .r-label { color: $kx-ink; }
+        .fa { color: $kx-primary-deep; transform: translateX(2px); }
+      }
+    }
+
+    .r-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 13px;
+      color: $kx-muted;
+      transition: color 0.12s ease;
+    }
+
+    .r-value {
+      margin-left: auto;
+      font-size: 15px;
+      font-weight: 700;
+      color: $kx-ink;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .fa {
+      color: #cbd5e1;
+      font-size: 16px;
+      transition: all 0.12s ease;
+    }
+
+    // "Active now" is a live state → reserved good/positive step, with the label
+    // right beside it.
+    .live-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: $kx-good;
+      box-shadow: 0 0 0 3px $kx-good-bg;
+    }
+  }
+
+  // ── Lower grid ──────────────────────────────────────────────────────────
+  // Layout only — the shared rule above owns display/gap/margins. Two columns now
+  // that Activity has moved up beside Campaign performance.
+  .lower-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr);
+  }
+
+  .table-scroll { overflow-x: auto; }
+
+  .dash-table {
+    width: 100%;
+    border-collapse: collapse;
+
+    th {
+      padding: 0 10px 9px;
+      border-bottom: 1px solid $kx-border;
+      font-weight: 600;
+      font-size: 10.5px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: $kx-faint;
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 11px 10px;
+      border-bottom: 1px solid $kx-hairline;
+      font-size: 12.5px;
+      color: $kx-ink;
+      vertical-align: middle;
+    }
+
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover td { background: #fcfdfe; }
+
+    th:first-child, td:first-child { padding-left: 2px; }
+    th:last-child, td:last-child { padding-right: 2px; }
+
+    // COLUMNS of numbers get tabular figures so digits align down the column.
+    .num {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    .strong { font-weight: 700; }
+
+    // Sortable header
+    .sortable {
+      cursor: pointer;
+      user-select: none;
+      transition: color 0.12s ease;
+
+      &:hover { color: $kx-muted; }
+
+      .s-ic {
+        margin-left: 5px;
+        font-size: 9px;
+        opacity: 0;
+        transition: opacity 0.12s ease, transform 0.12s ease;
+      }
+
+      // Only the ACTIVE column shows its arrow, so the sort state is unambiguous.
+      &.sorted {
+        color: $kx-ink;
+        .s-ic { opacity: 1; }
+        .s-ic.asc { transform: scaleY(-1); }
+      }
+    }
+
+    .c-title {
+      display: block;
+      max-width: 250px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .c-meta {
+      display: block;
+      margin-top: 2px;
+      font-size: 11px;
+      color: $kx-faint;
+    }
+
+    &.links {
+      .l-rank {
+        width: 26px;
+        font-size: 11px;
+        font-weight: 700;
+        color: $kx-faint;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .l-key {
+        display: block;
+        max-width: 320px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .l-bar { width: 34%; }
+    }
+  }
+
+  .status-badge {
+    display: inline-flex;
+    padding: 2px 8px;
+    border-radius: 5px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+
+    &.is-active { background: $kx-good-bg; color: $kx-good; }
+    &.is-paused { background: $kx-warn-bg; color: $kx-warn; }
+    &.is-complete { background: $kx-info-bg; color: $kx-info; }
+    &.is-draft { background: $kx-neutral-bg; color: $kx-neutral; }
+  }
+
+  // ── Activity ────────────────────────────────────────────────────────────
+  .activity {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+
+    li {
+      display: flex;
+      align-items: flex-start;
+      gap: 11px;
+      padding: 10px 0;
+
+      & + li { border-top: 1px solid $kx-hairline; }
+    }
+
+    // A bare glyph, not a coloured chip: six coloured tiles in a narrow column read
+    // as decoration and compete with the data.
+    .act-ic {
+      flex-shrink: 0;
+      width: 16px;
+      margin-top: 2px;
+      font-size: 12px;
+      color: $kx-faint;
+      text-align: center;
+    }
+
+    .act-body { flex: 1 1 auto; min-width: 0; }
+
+    .act-line {
+      display: block;
+      font-size: 12.5px;
+      color: $kx-muted;
+
+      strong { font-weight: 600; color: $kx-ink; }
+    }
+
+    .act-meta {
+      display: block;
+      margin-top: 2px;
+      font-size: 11.5px;
+      color: $kx-faint;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .act-time {
+      flex-shrink: 0;
+      font-size: 11px;
+      color: $kx-faint;
+      white-space: nowrap;
+    }
+  }
+
+  button:focus-visible {
+    outline: 2px solid $kx-primary;
+    outline-offset: 2px;
+  }
+}
+
+@media (max-width: 1400px) {
+  .dashboard-page .tri-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 1200px) {
+  .dashboard-page {
+    .metric-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .metric-strip .metric-tile:nth-child(2) { border-right: none; }
+    .mid-grid,
+    .tri-grid,
+    .perf-grid,
+    .lower-grid { grid-template-columns: minmax(0, 1fr); }
+  }
+}
+
+@media (max-width: 640px) {
+  .dashboard-page {
+    .metric-strip { grid-template-columns: minmax(0, 1fr); }
+    .metric-strip .metric-tile { border-right: none; border-bottom: 1px solid $kx-hairline; }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-page {
+    .range-btn,
+    .link-btn,
+    .metric-tile,
+    .f-fill,
+    .reach-list button,
+    .reach-list .fa,
+    .sortable,
+    .s-ic { transition: none; }
+
+    .sk { animation: none; }
+  }
+}

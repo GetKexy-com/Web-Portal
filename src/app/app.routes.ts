@@ -88,6 +88,12 @@ export const routes: Routes = [
     canActivate: [AuthGuard],
   },
   {
+    path: routeConstants.BRAND.DASHBOARD,
+    loadComponent: () =>
+      import('./pages/brand-dashboard/brand-dashboard.component').then((m) => m.BrandDashboardComponent),
+    canActivate: [AuthGuard],
+  },
+  {
     path: routeConstants.BRAND.PROSPECTING_CONV_ALL,
     loadComponent: () =>
       import('./pages/brand-conversations/brand-conversations.component').then((m) => m.BrandConversationsComponent),
