@@ -44,7 +44,12 @@ $kx-border: #e2e8f0;
 // one scale rather than color-on-gray. Host is the track; ::ng-deep reaches the
 // ng-bootstrap fill (this component is private to the insights drawer).
 .stat-meter {
-  display: block;
+  // MUST stay `flex`. ngb-progressbar puts Bootstrap's `.progress` class on this
+  // host (`display: flex`) and renders an EMPTY `<div class="progress-bar">`
+  // inside it: the fill gets its width from an inline style and its height ONLY by
+  // stretching as a flex item. Override this to `block` and the fill collapses to
+  // 0 height — the bar renders as an empty track.
+  display: flex;
   height: 8px;
   border-radius: 999px;
   overflow: hidden;
