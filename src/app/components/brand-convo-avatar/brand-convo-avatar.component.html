@@ -1,3 +1,5 @@
-<div class="avatar" [ngClass]="size" [style.background-color]="color">
+<!--`avatarClass` (av-0..av-5) wins when a [seed] was given; otherwise the explicit
+    [color] still applies, so existing call sites are unchanged.-->
+<div class="avatar" [ngClass]="[size, avatarClass]" [style.background-color]="avatarClass ? null : color">
   {{ text }}
 </div>

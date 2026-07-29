@@ -88,8 +88,12 @@ export class BrandConvoEmailComponent implements OnInit, OnDestroy {
       });
     });
 
-    const bubble = received ? 'background:#0d50cd;color:#fff;' : 'background:#fff;color:#000;';
-    const linkColor = received ? '#ffffff' : '#0d50cd';
+    // These MUST match the bubble colours in the component SCSS — the CSS colour
+    // shows through the transparent frame until the content paints, so a mismatch
+    // flashes the wrong colour. Both now use the app's token blue ($kx-primary-deep
+    // #095dd1) and ink (#0f172a) instead of the old #0d50cd / #000.
+    const bubble = received ? 'background:#095dd1;color:#fff;' : 'background:#fff;color:#0f172a;';
+    const linkColor = received ? '#ffffff' : '#095dd1';
 
     const base = doc.createElement('base');
     base.setAttribute('target', '_blank');

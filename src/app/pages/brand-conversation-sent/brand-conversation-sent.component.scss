@@ -172,7 +172,10 @@ $left-side-width: 365px;
   }
 
   .conv-list {
-    background: white;
+    // Tinted list BED, matching brand-conversations. brand-convo-card's hover and
+    // selected states are white cards that lift off this tint — on a white bed
+    // they would have nothing to lift off.
+    background: #f8fafc;
     width: $left-side-width;
     float: left;
 

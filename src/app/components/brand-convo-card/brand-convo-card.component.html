@@ -1,27 +1,56 @@
+<!--Hover state is pure CSS (`.sing-conv:hover …`) rather than a mouseenter
+    binding, so hovering the list no longer triggers change detection per row.-->
 <div
   class="sing-conv"
   [class.selected]="selected"
-  [class.unread]="conversation.hasUnread"
-  on-mouseenter="onCardHover()"
-  on-mouseleave="onCardHoverEnd()">
-  <div class="m-1">
-    <brand-convo-avatar [text]="getNameInitials(prospect['receiverDetails'].details)" [color]="'blue'"></brand-convo-avatar>
-  </div>
+  [class.checked]="checked"
+  [class.unread]="conversation.hasUnread">
+
+  <!--The AVATAR is the select target (Gmail / Front pattern): identity at rest, a
+      check overlay on hover, a filled accent check when selected. This replaces a
+      separate checkbox column, so the row gains that width back for content.-->
+  <button
+    type="button"
+    class="select-target"
+    [attr.aria-pressed]="checked"
+    [title]="checked ? 'Deselect conversation' : 'Select conversation'"
+    (click)="toggleChecked($event)"
+  >
+    <brand-convo-avatar
+      class="conv-avatar"
+      [text]="getNameInitials(prospect['receiverDetails'].details)"
+      [seed]="getFullName(prospect['receiverDetails'].details) || conversation.receiverEmail"
+    ></brand-convo-avatar>
+    <span class="select-veil" aria-hidden="true"><i class="fa fa-check"></i></span>
+  </button>
+
   <div class="conv-user">
     <div class="name-date">
       <p>{{ prospect['receiverDetails'].details.firstName || prospect['receiverDetails'].details.first_name }} {{ prospect['receiverDetails'].details.lastName || prospect['receiverDetails'].details.last_name }}</p>
-      <span *ngIf="prospect['messages']?.length">
-        {{ getLatestMessageDate() | date }}
-      </span>
+
+      <!--Date + pin share one shrink-proof cluster. The pin used to be absolutely
+          positioned in the corner, where it sat ON TOP of the date and clipped it.
+          The button is always rendered (hidden, not removed) so showing it on hover
+          costs no layout shift.-->
+      <div class="row-meta">
+        <span class="conv-date" *ngIf="prospect['messages']?.length">
+          {{ getLatestMessageDate() | date }}
+        </span>
+        <button
+          type="button"
+          class="pin-btn"
+          [class.pinned]="conversation.isPinned"
+          [attr.aria-pressed]="conversation.isPinned"
+          [title]="conversation.isPinned ? 'Unpin conversation' : 'Pin conversation'"
+          (click)="handlePinbarClick($event)"
+        >
+          <i class="fa fa-thumb-tack" aria-hidden="true"></i>
+        </button>
+      </div>
     </div>
-    <span *ngIf="prospect['messages'][0]">
+
+    <span class="conv-preview" *ngIf="prospect['messages'][0]">
       {{ shortMessage }}...
     </span>
-  </div>
-  <div *ngIf="hoverActiveCard && !conversation.isPinned" class="pinbar-wrap" (click)="handlePinbarClick()">
-    <i class="fa fa-thumb-tack" aria-hidden="true"></i>
-  </div>
-  <div *ngIf="conversation.isPinned" class="pinbar-wrap" (click)="handlePinbarClick()">
-    <i class="fa fa-thumb-tack" aria-hidden="true" style="color: #12A5F4"></i>
   </div>
 </div>

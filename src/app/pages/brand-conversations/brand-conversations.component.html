@@ -87,20 +87,16 @@
       </div>
 
       <div class="rail-list" *ngIf="!isLoading && filteredConversations.length > 0">
-        <div class="conv-row" *ngFor="let c of filteredConversations" [class.is-selected]="c.id === selectedConversation.id">
-          <button type="button" class="row-check" aria-label="Select conversation" (click)="onSelectContact(c)">
-            <i
-              aria-hidden="true"
-              class="fa checkbox-icon"
-              [class.fa-square-o]="!isContactSelected(c)"
-              [class.fa-check-square]="isContactSelected(c)"
-              [class.selected]="isContactSelected(c)"
-            ></i>
-          </button>
+        <!--Selection, hover and the separator all live in brand-convo-card (shared
+            with the sent page). The row-level checkbox column is gone: the card's
+            avatar IS the select target now.-->
+        <div class="conv-row" *ngFor="let c of filteredConversations">
           <brand-convo-card
             class="flex-grow-1"
             [conversation]="c"
             [selected]="c.id === selectedConversation.id"
+            [checked]="isContactSelected(c)"
+            (checkedChange)="onSelectContact(c)"
             (click)="conversationTapped(c)"
           >
           </brand-convo-card>
@@ -125,7 +121,7 @@
         <div class="pane-identity">
           <brand-convo-avatar
             [text]="getNameInitials(selectedConversation.receiverDetails.details)"
-            [color]="'blue'"
+            [seed]="getFullName(selectedConversation.receiverDetails.details) || selectedConversation.receiverEmail"
           ></brand-convo-avatar>
 
           <div class="identity-text">
@@ -227,7 +223,7 @@
         <div class="recipient-card" *ngIf="selectedConversation">
           <brand-convo-avatar
             [text]="getNameInitials(selectedConversation.receiverDetails.details)"
-            [color]="'blue'"
+            [seed]="getFullName(selectedConversation.receiverDetails.details) || selectedConversation.receiverEmail"
           ></brand-convo-avatar>
           <div class="recipient-text">
             <span class="recipient-name">{{ getFullName(selectedConversation.receiverDetails.details) }}</span>

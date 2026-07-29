@@ -1,18 +1,36 @@
+// ── Tokens (match the drawer family + brand-conversations page) ───────────────
+$kx-primary-deep: #095dd1;
+$kx-ink: #0f172a;
+$kx-muted: #64748b;
+$kx-border: #e2e8f0;
+
+// A single message in the thread, shared by brand-conversations AND
+// brand-conversation-sent.
+//
+// IMPORTANT: the bubble colour is set in TWO places that must agree — here, and
+// in `prepareFrameHtml` (component TS), which injects the same background/text
+// colour into the sandboxed iframe's own <body>. The CSS colour shows through the
+// transparent frame until the content paints, so a mismatch shows up as a flash
+// of the wrong colour. Change both together.
 .msg-box {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  margin-bottom: 20px;
+  margin-bottom: 18px;
 
   .conv-message {
-    // Sent (right): white bubble. The message renders in a sandboxed iframe (see
-    // component) so full-HTML emails display faithfully, like the editor Preview.
-    // The iframe body carries the actual bubble color/text (per side) + padding;
-    // this background shows through the transparent frame so there's no white flash
-    // before the content paints. Auto-sized to content via onFrameLoad().
-    background-color: white;
+    // Sent (right): white bubble with a hairline + soft lift. The message renders
+    // in a sandboxed iframe (see component) so full-HTML emails display
+    // faithfully, like the editor Preview. Auto-sized to content via
+    // onFrameLoad().
+    background-color: #ffffff;
     width: 85%;
-    border-radius: 12px 12px 0 12px;
+    // Cap the measure — a full-width bubble on a wide monitor is unreadable.
+    max-width: 720px;
+    border: 1px solid $kx-border;
+    // Tail corner on the sender's side, like every modern messaging surface.
+    border-radius: 16px 16px 4px 16px;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
     overflow: hidden; // clip the iframe to the rounded corners
 
     // The whole thread is held hidden by the parent until every frame is sized
@@ -27,21 +45,35 @@
   }
 
   .time {
-    font-size: 12px;
-    font-weight: 400;
-    padding: 5px 0 5px 5px;
-    color: #5c6266;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 6px 4px 0;
+    font-size: 11.5px;
+    font-weight: 500;
+    color: $kx-muted;
+
+    .link-text {
+      color: $kx-primary-deep;
+      cursor: pointer;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
   }
 
   &.left {
     align-items: flex-start;
 
-    // Received: blue bubble. The iframe body paints the real blue + white text
-    // (see prepareFrameHtml); this bubble color also shows through the transparent
-    // frame until the content paints, so no white flash on the blue side.
+    // Received: brand-blue bubble. The iframe body paints the real blue + white
+    // text (see prepareFrameHtml); this colour also shows through the transparent
+    // frame until the content paints, so there's no white flash on the blue side.
     .conv-message {
-      background: #0d50cd;
-      border-radius: 12px 12px 12px 0;
+      background: $kx-primary-deep;
+      border-color: transparent;
+      border-radius: 16px 16px 16px 4px;
+      box-shadow: 0 8px 20px -10px rgba(9, 93, 209, 0.5);
     }
   }
 }

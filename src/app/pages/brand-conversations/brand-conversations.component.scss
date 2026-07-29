@@ -27,6 +27,46 @@ $page-h: calc(100vh - 70px);
   overflow: hidden;
   background: #f4f6fb;
 
+  // Thin overlay scrollbars on both scroll regions — the chunky default gutter is
+  // the loudest thing in a dense list. Firefox gets the standard property; WebKit
+  // needs the pseudo-elements.
+  .rail-list,
+  .pane-thread {
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+
+    &::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      border-radius: 999px;
+      background: #cbd5e1;
+      // Inset the thumb so it reads as an overlay rail rather than a filled gutter.
+      border: 2px solid transparent;
+      background-clip: content-box;
+    }
+
+    &:hover::-webkit-scrollbar-thumb {
+      background: #94a3b8;
+      background-clip: content-box;
+    }
+  }
+
+  // Keyboard users get a real ring; mouse users never see it. Everything
+  // interactive here is a <button>, so one rule covers the lot.
+  button:focus-visible,
+  .search-field:focus-within,
+  a:focus-visible {
+    outline: 2px solid $kx-primary;
+    outline-offset: 2px;
+    border-radius: 10px;
+  }
+
   // Shared square icon button (rail actions, pager, modal close)
   .icon-btn {
     flex-shrink: 0;
@@ -73,7 +113,10 @@ $page-h: calc(100vh - 70px);
     display: flex;
     flex-direction: column;
     min-height: 0;
-    background: #ffffff;
+    // The list BED is tinted, not white. brand-convo-card's hover and selected
+    // states are white cards that lift off this tint — on a white bed they would
+    // have nothing to lift off. Keep the two in step.
+    background: #f8fafc;
     border-right: 1px solid $kx-border;
 
     .rail-head {
@@ -82,6 +125,9 @@ $page-h: calc(100vh - 70px);
       align-items: center;
       gap: 10px;
       padding: 14px 16px;
+      // Head + toolbar stay white so they read as one crisp header block above
+      // the tinted list.
+      background: #ffffff;
       border-bottom: 1px solid $kx-border;
 
       // Pill search field — the input itself is borderless; the wrapper is the
@@ -166,7 +212,7 @@ $page-h: calc(100vh - 70px);
       justify-content: space-between;
       gap: 10px;
       padding: 8px 12px 8px 14px;
-      background: $kx-field-bg;
+      background: #ffffff;
       border-bottom: 1px solid $kx-border;
 
       .select-all {
@@ -221,109 +267,17 @@ $page-h: calc(100vh - 70px);
   }
 
   // A list row = checkbox + the shared brand-convo-card.
+  // Hover / selected / unread all live IN brand-convo-card now, so this page and
+  // brand-conversation-sent cannot drift apart — the row here is pure layout.
   .conv-row {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 2px;
-    border-radius: 12px;
-    transition: background 0.15s ease;
 
-    &:hover { background: $kx-field-bg; }
+    & + .conv-row { margin-top: 2px; }
 
-    &.is-selected { background: rgba(18, 165, 244, 0.09); }
-
-    .row-check {
-      flex-shrink: 0;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 30px;
-      height: 30px;
-      margin-left: 4px;
-      border: none;
-      border-radius: 8px;
-      background: transparent;
-      cursor: pointer;
-    }
   }
 
-  // ── brand-convo-card, restyled from HERE on purpose ─────────────────────
-  // The card is ALSO used by brand-conversation-sent, which is not in scope for
-  // this redesign — so its own SCSS is left alone and these overrides are scoped
-  // under this page. `::ng-deep` is required to reach the child's internals
-  // (the same pattern the compose modal below already uses).
-  .conv-row ::ng-deep brand-convo-card {
-    min-width: 0;
-
-    .sing-conv {
-      align-items: flex-start;
-      gap: 10px;
-      margin: 0;
-      padding: 10px 12px 10px 6px;
-      border-bottom: none;
-      border-radius: 12px;
-      cursor: pointer;
-
-      // Selection lives on `.conv-row` now, so the card's own tint would
-      // double up.
-      &.selected { background: transparent; }
-
-      .conv-user {
-        width: auto;
-        flex: 1 1 auto;
-        min-width: 0;
-        padding: 0;
-
-        .name-date {
-          gap: 8px;
-          margin-bottom: 2px;
-
-          p {
-            font-size: 13.5px;
-            font-weight: 600;
-            color: $kx-ink;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-          }
-
-          span {
-            flex-shrink: 0;
-            font-size: 11.5px;
-            color: $kx-muted;
-          }
-        }
-
-        // The message preview line
-        > span {
-          display: block;
-          font-size: 12.5px;
-          line-height: 1.45;
-          color: $kx-muted;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-        }
-      }
-
-      // Unread: the name goes ink+bold and the preview darkens (was font-weight
-      // 900 on everything, which read as shouting).
-      &.unread .conv-user {
-        .name-date p { font-weight: 800 !important; }
-        span { font-weight: 600 !important; color: $kx-ink !important; }
-      }
-
-      .pinbar-wrap {
-        top: 8px;
-        right: 6px;
-        margin: 0;
-        color: $kx-muted;
-        font-size: 12px;
-
-        &:hover { color: $kx-primary-deep; }
-      }
-    }
-  }
 
   // ── Skeleton placeholders ───────────────────────────────────────────────
   .skeleton-row {
@@ -663,6 +617,28 @@ $page-h: calc(100vh - 70px);
       display: flex;
       justify-content: flex-end;
       margin-top: 18px;
+    }
+  }
+}
+
+// Respect the OS "reduce motion" setting — the shimmer and the hover/selection
+// transitions are decoration, not information.
+@media (prefers-reduced-motion: reduce) {
+  .brand-conversations-page {
+    .skeleton-row .sk-avatar,
+    .skeleton-row .sk-line {
+      animation: none;
+    }
+
+    .icon-btn,
+    .checkbox-icon,
+    .search-field,
+    .conv-messages {
+      transition: none;
+    }
+
+    .conv-loading-overlay {
+      animation: none;
     }
   }
 }

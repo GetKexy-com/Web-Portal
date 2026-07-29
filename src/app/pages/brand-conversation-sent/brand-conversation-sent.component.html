@@ -87,20 +87,16 @@
             </div>
           </div>
           <ng-container *ngFor="let c of filteredConversations">
+            <!--The separate checkbox column is gone: brand-convo-card's avatar is
+                the select target now (see that component). Keeps this page in step
+                with brand-conversations.-->
             <div class="d-flex align-items-center">
-              <span (click)="onSelectContact(c)">
-                <i
-                  aria-hidden="true"
-                  class="fa checkbox-icon ms-2"
-                  [class.fa-square-o]="!isContactSelected(c)"
-                  [class.fa-check-square]="isContactSelected(c)"
-                  [class.selected]="isContactSelected(c)"
-                ></i>
-              </span>
               <brand-convo-card
                 class="flex-grow-1"
                 [conversation]="c"
                 [selected]="c.id === selectedConversation.id"
+                [checked]="isContactSelected(c)"
+                (checkedChange)="onSelectContact(c)"
                 (click)="conversationTapped(c)"
               >
               </brand-convo-card>

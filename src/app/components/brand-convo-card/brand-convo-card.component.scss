@@ -1,59 +1,267 @@
+// ── Tokens (match the drawer family + brand-conversations page) ───────────────
+$kx-primary: #12a5f4;
+$kx-primary-deep: #095dd1;
+$kx-ink: #0f172a;
+$kx-muted: #64748b;
+$kx-field-bg: #f7f9fc;
+
+// Conversation list item, shared by brand-conversations AND
+// brand-conversation-sent — both render it inside an identical
+// `checkbox + card` row, so hover / selected / unread all live HERE rather than
+// in either page. Keep it that way so the two inboxes can't drift apart.
+:host {
+  display: block;
+  min-width: 0;
+}
+
 .sing-conv {
-  display: flex;
-  align-items: center;
-  border-bottom: 1px solid #E7F6FE;
-  padding: 6px 3px;
-  margin: 8px;
   position: relative;
-  .pinbar-wrap {
-    margin: 0 5px;
-    cursor: pointer;
-    position: absolute;
-    right: 0;
-    top: 20px;
+  display: flex;
+  // `center`, not `flex-start`: the row is a 34px avatar beside a two-line text
+  // block, so top-aligning left the circle visually high against the name.
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+
+  // Hover = a WHITE row with the faintest lift, a step below selected. This reads
+  // because the list bed is tinted (#f8fafc, set by the host page) — on a white
+  // bed neither this nor the selected card below would have anything to lift off.
+  // Both list pages must keep that tint.
+  &:hover {
+    background: #ffffff;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
   }
-  &.unread {
-    .conv-user {
-      .name-date {
-        p {
-          font-weight: 900 !important;
-        }
-      }
-      span {
-        font-weight: 900 !important;
-      }
+
+  // Selected: pure white card that lifts off the tinted bed, plus a 3px accent
+  // spine. Stronger shadow than hover so the two states are distinguishable.
+  &.selected {
+    background: #ffffff;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06),
+      0 10px 24px -12px rgba(9, 93, 209, 0.35);
+
+    &::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 10px;
+      bottom: 10px;
+      width: 3px;
+      border-radius: 0 3px 3px 0;
+      background: linear-gradient(180deg, $kx-primary, $kx-primary-deep);
     }
   }
+
+  // ── Separator between prospects ─────────────────────────────────────────
+  // Inset to start at the text column (like iOS / Gmail) so it reads as a list
+  // rhythm rather than a full-width rule boxing every row in. Sits on the row's
+  // bottom edge; hidden while the row is hovered/active so the tinted surface
+  // stays clean.
+  &::after {
+    content: '';
+    position: absolute;
+    left: 56px; // avatar (34) + gap (10) + padding (12)
+    right: 12px;
+    bottom: 0;
+    height: 1px;
+    // A touch darker than #eef2f7 so it still reads against the tinted list bed.
+    background: #e4eaf2;
+    transition: opacity 0.15s ease;
+  }
+
+  &:hover::after,
+  &.selected::after,
+  &.checked::after {
+    opacity: 0;
+  }
+
+  // ── Avatar as the select target ─────────────────────────────────────────
+  .select-target {
+    position: relative;
+    flex-shrink: 0;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .conv-avatar {
+    flex-shrink: 0;
+  }
+
+  // Overlay that turns the avatar into a checkbox. Hidden at rest → the avatar
+  // keeps its identity value; a check appears on row hover to advertise that the
+  // avatar is clickable; selected is a filled accent circle.
+  .select-veil {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(15, 23, 42, 0.55);
+    color: #fff;
+    font-size: 12px;
+    opacity: 0;
+    transition: opacity 0.12s ease;
+  }
+
+  &:hover .select-veil {
+    opacity: 1;
+  }
+
+  &.checked .select-veil {
+    opacity: 1;
+    background: linear-gradient(135deg, $kx-primary, $kx-primary-deep);
+    box-shadow: 0 0 0 2px #fff, 0 0 0 3px rgba(18, 165, 244, 0.4);
+  }
+
   .conv-user {
-    width: calc(100% - 34px);
-    padding: 0 5px;
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 0;
+
     .name-date {
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 8px;
+      margin-bottom: 2px;
+
       p {
-        font-size: 14px;
-        font-style: normal;
-        font-weight: 400;
         margin: 0;
-      }
-      span {
-        font-size: 12px;
-        font-style: normal;
-        font-weight: 400;
-        line-height: normal;
-        letter-spacing: -0.3px;
+        font-size: 13.5px;
+        font-weight: 600;
+        color: $kx-ink;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
     }
-    span {
-      font-size: 13px;
-      font-style: normal;
+
+    // Date + pin. `flex-shrink: 0` means the NAME truncates when space runs out,
+    // never the date — the old absolutely-positioned pin used to sit on top of the
+    // date and clip it.
+    .row-meta {
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .conv-date {
+      font-size: 11.5px;
       font-weight: 400;
       line-height: normal;
+      letter-spacing: normal;
+      color: $kx-muted;
+      white-space: nowrap;
+    }
+
+    // The message preview line — one line, ellipsised.
+    .conv-preview {
+      display: block;
+      font-size: 12.5px;
+      font-weight: 400;
+      line-height: 1.45;
+      color: $kx-muted;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
   }
-  &.selected {
-    background-color: #e7f6fe;
-    border-radius: 8px;
+
+  // ── Pin ───────────────────────────────────────────────────────────────────
+  // Always in the DOM so revealing it costs no layout shift. Tilted, because an
+  // upright thumbtack glyph reads as a dot at this size.
+  .pin-btn {
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: none;
+    border-radius: 7px;
+    background: transparent;
+    color: $kx-muted;
+    font-size: 11px;
+    cursor: pointer;
+    opacity: 0;
+    visibility: hidden;
+    transform: rotate(-30deg);
+    transition: opacity 0.12s ease, background 0.12s ease, color 0.12s ease,
+      box-shadow 0.12s ease;
+
+    &:hover {
+      background: rgba(18, 165, 244, 0.14);
+      color: $kx-primary-deep;
+    }
+  }
+
+  // Reveal on row hover so an un-pinned list stays quiet…
+  &:hover .pin-btn {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  // …but a PINNED conversation is always obvious: a filled accent badge, not a
+  // 12px grey glyph tucked behind the date.
+  .pin-btn.pinned {
+    opacity: 1;
+    visibility: visible;
+    color: #fff;
+    background: linear-gradient(135deg, $kx-primary, $kx-primary-deep);
+    box-shadow: 0 2px 6px -1px rgba(9, 93, 209, 0.5);
+
+    &:hover {
+      color: #fff;
+      filter: brightness(1.06);
+    }
+  }
+
+  // Unread: an accent DOT before the name plus a modest weight bump. The old rule
+  // set `font-weight: 900` on the name AND the preview, which read as shouting.
+  &.unread {
+    .conv-user {
+      .name-date p {
+        font-weight: 700;
+
+        &::before {
+          content: '';
+          display: inline-block;
+          width: 7px;
+          height: 7px;
+          margin-right: 7px;
+          border-radius: 50%;
+          background: $kx-primary;
+          vertical-align: middle;
+        }
+      }
+
+      > span {
+        font-weight: 500;
+        color: $kx-ink;
+      }
+    }
+  }
+
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sing-conv .pin-btn {
+    transition: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sing-conv {
+    transition: none;
   }
 }

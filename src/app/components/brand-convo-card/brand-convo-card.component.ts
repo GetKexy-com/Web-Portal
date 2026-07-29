@@ -1,4 +1,4 @@
-import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { ProspectingService } from '../../services/prospecting.service';
 import { ProspectContact } from '../../models/ProspectContact';
 import { HttpService } from '../../services/http.service';
@@ -19,7 +19,12 @@ import { CommonModule, DatePipe } from '@angular/common';
 })
 export class BrandConvoCardComponent implements OnInit {
   @Input() conversation;
+  /** The conversation is the one open in the reading pane. */
   @Input() selected: boolean = false;
+  /** The conversation is ticked for a bulk action (the avatar shows a check). */
+  @Input() checked: boolean = false;
+  /** Asks the host to toggle this conversation's bulk-selection. */
+  @Output() checkedChange = new EventEmitter<void>();
   shortMessage;
   prospect;
 
@@ -75,16 +80,22 @@ export class BrandConvoCardComponent implements OnInit {
     return this.prospect['messages'][0].messageSentAt;
   };
 
-  hoverActiveCard = false;
-  onCardHover = () => {
-    this.hoverActiveCard = true;
+  /**
+   * Toggle bulk-selection. Like the pin, `stopPropagation` keeps the parent's
+   * host-level (click) from also opening the conversation.
+   */
+  toggleChecked = (event: Event) => {
+    event.stopPropagation();
+    this.checkedChange.emit();
   };
 
-  onCardHoverEnd = () => {
-    this.hoverActiveCard = false;
-  };
-
-  handlePinbarClick = () => {
+  /**
+   * Toggle pinned. `stopPropagation` matters: the PARENT binds (click) on the
+   * <brand-convo-card> host to open the conversation, so without it every pin
+   * click also switched the reading pane.
+   */
+  handlePinbarClick = (event?: Event) => {
+    event?.stopPropagation();
     const postData = {
       pin: this.conversation.isPinned ? constants.NO : constants.YES,
       conversationId: this.conversation.id,

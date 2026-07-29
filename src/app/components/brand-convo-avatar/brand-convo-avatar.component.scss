@@ -15,3 +15,17 @@
     line-height: 50px;
   }
 }
+
+// Per-person avatar colours — the SAME 6 gradients and hash as the Manage
+// Contacts table (contact-list-card `.av-0`..`.av-5` / `getAvatarClass`), so one
+// person reads as the same colour in the contacts table, the conversation list and
+// the conversation header. Applied via [seed]; call sites passing [color] are
+// untouched.
+.avatar {
+  &.av-0 { background: linear-gradient(135deg, #6366f1, #4338ca); }
+  &.av-1 { background: linear-gradient(135deg, #06b6d4, #0e7490); }
+  &.av-2 { background: linear-gradient(135deg, #f59e0b, #b45309); }
+  &.av-3 { background: linear-gradient(135deg, #ec4899, #be185d); }
+  &.av-4 { background: linear-gradient(135deg, #10b981, #047857); }
+  &.av-5 { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+}
