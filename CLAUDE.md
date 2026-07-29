@@ -329,18 +329,46 @@ restyle it, and note the **height rule, which has exactly one correct shape**:
   (i.e. drop the `min-height: 0`) and the editor grows with the email instead —
   the toolbar then scrolls off the top and is unreachable while editing the
   bottom of a long email.
-- **The single height floor lives on `.editor-section` (the card), not on the
-  editor host** — `min-height: 460px`, the editor's usable height being that minus
-  ~84px of card chrome. On the card, the floor can't be exceeded by the editor, so
-  the editor can never spill outside the white box. Put the floor on the editor
-  host instead and a card shrunk below it stops containing the editor.
-- The floor is ONLY a short-viewport fallback; `flex-grow` makes the editor much
-  taller normally. **Do not raise it to "give the editor more height"** — past the
-  height the drawer actually has it forces `.canvas-body` to scroll, which scrolls
-  the toolbar out of view, the exact thing the bounded layout prevents. Trim chrome
-  instead. Any real floor on the editor host must be scoped
-  `:not(.fullscreen)`, since a rule that specific also beats the editor's
-  fullscreen `min-height: 0` + `height: 100vh` reset.
+- **`.editor-section` is `flex: 0 0 auto; height: 100%`** — exactly one visible
+  `.canvas-body` height, so the editor always takes the FULL height the drawer has
+  available. This produces the **scroll handoff**, and it is pure geometry with no
+  JS: scrollable content is `settings card + gap + one viewport of editor`, so the
+  parent's max scroll equals the settings card's height. Scrolling the drawer
+  scrolls the settings card away and then **runs out exactly as the editor's
+  toolbar reaches the top** — from there, further wheel/trackpad input goes to the
+  editor's own canvas and scrolls the email. The toolbar is never carried off the
+  top, so no sticky positioning is needed anywhere. `flex: 0 0 auto` is
+  load-bearing: let the card flex-shrink and it gets squeezed to fit, nothing
+  overflows, and nothing ever scrolls. `.canvas-body`'s height must stay definite
+  (`flex: 1; min-height: 0`) since `height: 100%` resolves against it.
+- **The card also carries a floor**, DERIVED (not typed literally) from
+  `$kx-editor-min-h` (the height the editor itself is guaranteed, currently 720px)
+  + `$kx-editor-card-chrome` (85px — this card's `.section-head` + padding). So the
+  editor is `max(full available height, $kx-editor-min-h)` and never collapses to
+  an unreadably short box on a small screen. To retune, edit `$kx-editor-min-h`
+  only — the card floor follows.
+- **Known trade-off between those two rules** (deliberate, product decision): the
+  handoff is exact only while the card FITS the drawer. The visible body area is
+  roughly `100vh - 200px`, so under about a **`$kx-editor-min-h + 285px`**
+  viewport (~1005px at the current 720px floor) the card is taller than the visible
+  area, the parent gains scroll range BEYOND the handoff point (enough to reach the
+  card's bottom edge), and spending it carries the toolbar above the top of the
+  view. It only bites when scrolling to the very bottom of the editor box — the
+  email itself is fully reachable without that, since the canvas scrolls
+  internally. Two ways out if it becomes a problem: lower `$kx-editor-min-h` so the
+  card fits, or re-add the sticky `.editor-head` in the editor component (see
+  below) so the toolbar survives the extra scroll. Note the ceiling neither can
+  beat: visible content can never exceed the viewport, so a floor above the drawer
+  height buys reachable-by-scrolling height, not more content on screen at once.
+- Any floor put on the editor HOST (rather than the card) must be scoped
+  `:not(.fullscreen)`, since a rule that specific beats the editor's fullscreen
+  `min-height: 0` + `height: 100vh` reset.
+- The shared `kexy-custom-rich-editor` component is **untouched** by this drawer —
+  all of the above lives in the drawer's own SCSS. An earlier attempt made the
+  editor's toolbar `position: sticky`, which required relaxing the editor's
+  `.editor-modal > section { overflow: hidden }` and wrapping the toolbar + tab row
+  in an `.editor-head` div; that was reverted in favour of the handoff. Prefer
+  fixing scroll behaviour here over reaching into the editor.
 
 The editor card uses tighter padding than its siblings
 (`16px 18px 18px`, slimmer `.section-head`) since the editor draws its own bordered

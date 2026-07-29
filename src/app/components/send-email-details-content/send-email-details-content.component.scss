@@ -8,6 +8,18 @@ $kx-field-bg: #f7f9fc;
 $kx-red: #dc2626;
 $kx-red-bg: #fdeaea;
 
+// ── Editor height (tweak HERE) ───────────────────────────────────────────────
+// The height the EDITOR itself is guaranteed, even on a drawer too short to show
+// it — so the email never collapses to an unreadably short box. On a taller
+// drawer the editor grows past this (see `.editor-section`'s `height: 100%`).
+$kx-editor-min-h: 720px;
+// `.editor-section`'s own chrome around the editor: `.section-head` (28px icon
+// row + 12px margin + 10px padding + 1px border) + 16px/18px card padding. The
+// card floor is derived from these two so `$kx-editor-min-h` lands on the EDITOR,
+// not on the card with the editor coming out ~85px short. Change the head/padding
+// in `.editor-section` and this is the number to re-check.
+$kx-editor-card-chrome: 85px;
+
 // Modern slide-over: header / scrollable body / docked footer as flex-column
 // siblings. Shared with prospecting-contacts, lead-magnet-form,
 // company-description-canvas and add-suppression — restyle them together.
@@ -77,14 +89,19 @@ $kx-red-bg: #fdeaea;
   }
 
   // ── Body (the only scroll region) ──────────────────────────────────────
-  // Flex column so the editor section can absorb the leftover height. The
-  // editor is [fillHeight] and scrolls its own Design canvas internally, so
-  // `overflow-y: auto` here is the SHORT-VIEWPORT fallback: once the editor
-  // hits its min-height floor below, this region scrolls instead.
+  // Flex column, and the OUTER half of the scroll handoff: it scrolls the
+  // settings card away and then runs out of scroll, handing off to the editor's
+  // internal canvas (see `.editor-section`, whose `height: 100%` resolves
+  // against this element and is what bounds the handoff point). Its height must
+  // stay definite — that is what `height: 100%` below resolves against — so keep
+  // `flex: 1; min-height: 0` here.
   .canvas-body {
     flex: 1;
     min-height: 0;
     overflow-y: auto;
+    // Don't let the drawer's scroll chain out to the page behind it when the
+    // email content is scrolled to either end.
+    overscroll-behavior: contain;
     display: flex;
     flex-direction: column;
     // Tighter than the sibling drawers (22px/28px/18px gap): this drawer's
@@ -236,26 +253,44 @@ $kx-red-bg: #fdeaea;
     // cards on purpose — the editor draws its OWN bordered card inside, so the
     // usual 20px/22px would read as a card-in-a-card and waste editor height.
     .form-section.editor-section {
-      flex: 1 1 auto;
-      // ─── THE ONLY HEIGHT FLOOR IN THIS DRAWER (tweak this) ──────────────
-      // The floor lives on the CARD, not on the editor host, and everything
-      // below it stays `min-height: 0`. That ordering is the whole trick:
-      //   * `min-height: 0` all the way down = the editor is height-BOUNDED, so
-      //     it scrolls its Design canvas internally and the toolbar + subject
-      //     stay pinned. Give any wrapper a content-based minimum instead and
-      //     the editor grows with the email, pushing the toolbar off the top.
-      //   * The floor on the card (not the editor) means the editor can never
-      //     be taller than the card, so it cannot spill outside this white box.
-      //     Put the floor on the editor host and a shrunken card no longer
-      //     contains it.
-      // The editor's usable height is this value minus ~84px of card chrome
-      // (`.section-head` + padding). It is ONLY a short-viewport fallback — on a
-      // normal viewport `flex-grow` makes the editor much taller than this.
-      // CAUTION: raising this past the height the drawer actually has forces
-      // `.canvas-body` to scroll, which scrolls the toolbar out of view — the
-      // exact problem the bounded layout above exists to prevent. To give the
-      // editor more room, trim chrome rather than raising this.
-      min-height: 800px;
+      // ─── SCROLL HANDOFF: parent scrolls the settings card away, then the
+      //     email scrolls INSIDE the editor ──────────────────────────────────
+      // `height: 100%` = exactly the visible height of `.canvas-body`. That one
+      // declaration is what produces the handoff, purely geometrically:
+      //   * Scrollable content is `settings card + gap + (one viewport of
+      //     editor)`, so the parent's MAX scroll equals the settings card's
+      //     height — just enough to scroll the settings card away and no more.
+      //   * At that point the editor exactly fills the visible area with its
+      //     toolbar at the top, and the parent is out of scroll — so further
+      //     wheel/trackpad input goes to the editor's own canvas and scrolls the
+      //     email content instead. No JS, no wheel hijacking, and it keeps
+      //     native trackpad momentum + keyboard scrolling intact.
+      // `flex: 0 0 auto` is required: the card must NOT flex-shrink, or it would
+      // be squeezed to fit and never overflow, so nothing would ever scroll.
+      flex: 0 0 auto;
+      height: 100%;
+      // Everything below stays `min-height: 0` so the editor remains height-
+      // BOUNDED — that is what makes it scroll internally with the toolbar and
+      // subject pinned, rather than growing with the email.
+      //
+      // Floor = the editor's guaranteed height + this card's own chrome, so the
+      // editor itself is `max(full available height, $kx-editor-min-h)`.
+      //
+      // KNOWN TRADE-OFF, deliberate: the scroll handoff described above is exact
+      // only while the card FITS the drawer. The floor is
+      // `$kx-editor-min-h + $kx-editor-card-chrome`, and the visible body area is
+      // roughly `100vh - 200px`, so on a viewport shorter than about
+      // `$kx-editor-min-h + 285px` the card is taller than the visible area (at
+      // the current 720px floor, under ~1005px). The parent then has
+      // scroll range BEYOND the handoff point (enough to reach the card's bottom
+      // edge), and spending it carries the toolbar above the top of the view. The
+      // email itself is still fully reachable without that — the canvas scrolls
+      // internally — so it only bites when scrolling to the very bottom of the
+      // editor box. Lower this floor to ~`100vh - 285px` to make the handoff exact
+      // again, or re-add the sticky `.editor-head` in the editor component (see
+      // this drawer's section in ../../../CLAUDE.md) to keep the toolbar visible
+      // through that extra scroll.
+      min-height: $kx-editor-min-h + $kx-editor-card-chrome;
       display: flex;
       flex-direction: column;
       padding: 16px 18px 18px;
