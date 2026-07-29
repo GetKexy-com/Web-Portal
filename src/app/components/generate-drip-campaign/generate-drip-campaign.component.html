@@ -37,49 +37,59 @@
           <h2 class="seq-title">Drip campaign emails</h2>
 
           <div class="seq-meta">
-            <span class="meta-item">
+            <!--The count stays visible while editing: the editor is a POPOVER over it,
+                modelled on the email editor's app-fallback-popover, rather than the
+                row swapping into an input + Save/Cancel and shifting the layout.-->
+            <span class="meta-item count-anchor">
               <i class="fa fa-envelope-o" aria-hidden="true"></i>
-              <span *ngIf="!numberOfEmailsInputShow">
-                {{ dripCampaign.details.numberOfEmails }} emails
-                <button
-                  *ngIf="dripCampaignStatus === constants.INACTIVE"
-                  type="button"
-                  class="edit-count"
-                  title="Change the number of emails"
-                  aria-label="Change the number of emails"
-                  (click)="handleShowHideNumberOfEmailsInput()"
-                >
-                  <i class="fa fa-pencil" aria-hidden="true"></i>
-                </button>
-              </span>
-            </span>
-          </div>
+              {{ dripCampaign.details.numberOfEmails }} emails
+              <button
+                *ngIf="dripCampaignStatus === constants.INACTIVE"
+                type="button"
+                class="edit-count"
+                [class.is-open]="numberOfEmailsInputShow"
+                title="Change the number of emails"
+                aria-label="Change the number of emails"
+                [attr.aria-expanded]="numberOfEmailsInputShow"
+                (click)="handleShowHideNumberOfEmailsInput()"
+              >
+                <i class="fa fa-pencil" aria-hidden="true"></i>
+              </button>
 
-          <!--Inline editor for the email count.-->
-          <div *ngIf="numberOfEmailsInputShow" class="count-editor">
-            <input
-              class="form-control count-input"
-              type="number"
-              min="1"
-              aria-label="Number of emails"
-              [(ngModel)]="numberOfEmail"
-              (change)="onChangeNumberOfEmail($event)"
-            />
-            <app-kexy-button
-              label="Save"
-              [disabled]="numberOfEmailUpdateApiLoading"
-              [iconLeft]="numberOfEmailUpdateApiLoading ? 'fa-refresh fa-spin' : ''"
-              radius="9px"
-              (click)="handleUpdateNumberOfEmail()">
-            </app-kexy-button>
-            <app-kexy-button
-              label="Cancel"
-              bgColor="#ffffff"
-              textColor="#0f172a"
-              borderColor="#e2e8f0"
-              radius="9px"
-              (click)="handleShowHideNumberOfEmailsInput()">
-            </app-kexy-button>
+              <div class="count-popover" *ngIf="numberOfEmailsInputShow" role="dialog"
+                   aria-label="Number of emails">
+                <div class="pop-head">
+                  <span class="pop-icon" aria-hidden="true"><i class="fa fa-envelope-o"></i></span>
+                  <h3 class="pop-title">Number of emails</h3>
+                </div>
+                <p class="pop-label">How many emails each prospect receives.</p>
+
+                <!--Enter saves, Escape cancels — same keyboard contract as the
+                    editor's fallback popover.-->
+                <input
+                  class="pop-input"
+                  type="number"
+                  min="1"
+                  aria-label="Number of emails"
+                  [(ngModel)]="numberOfEmail"
+                  (change)="onChangeNumberOfEmail($event)"
+                  (keydown.enter)="handleUpdateNumberOfEmail()"
+                  (keydown.escape)="handleShowHideNumberOfEmailsInput()"
+                />
+
+                <div class="pop-actions">
+                  <button type="button" class="pop-cancel"
+                          (click)="handleShowHideNumberOfEmailsInput()">Cancel</button>
+                  <button type="button" class="pop-save"
+                          [disabled]="numberOfEmailUpdateApiLoading"
+                          (click)="handleUpdateNumberOfEmail()">
+                    <i *ngIf="numberOfEmailUpdateApiLoading" class="fa fa-refresh fa-spin"
+                       aria-hidden="true"></i>
+                    Save
+                  </button>
+                </div>
+              </div>
+            </span>
           </div>
         </div>
 

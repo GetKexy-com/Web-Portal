@@ -4,9 +4,36 @@
       <progress-count [currentStep]="currentStep" [steps]="steps"></progress-count>
     </div>
     <div class="page-content">
-      <div *ngIf="isWaitingFlag" class="loading">
-        <i class="fa me-2 fa-spinner fa-spin" aria-hidden="true"></i>
-        Please wait....
+      <!--Layout-shaped skeleton rather than a floating "Please wait" box. While a
+          campaign loads, `currentStep` is null so NO step content renders — this is
+          the only thing on screen, so it should preview the shape that is coming
+          instead of hovering over an empty page.-->
+      <div *ngIf="isWaitingFlag" class="page-loading">
+        <div class="sk-card">
+          <div class="sk-card-head">
+            <span class="sk sk-line lg"></span>
+            <div class="sk-actions">
+              <span class="sk sk-btn"></span>
+              <span class="sk sk-btn"></span>
+              <span class="sk sk-btn"></span>
+            </div>
+          </div>
+          <div class="sk-card-band">
+            <span class="sk sk-field"></span>
+            <span class="sk sk-field"></span>
+            <span class="sk sk-field"></span>
+          </div>
+        </div>
+
+        <div class="sk-card sk-body">
+          <span class="sk sk-line md"></span>
+          <span class="sk sk-block"></span>
+        </div>
+
+        <p class="loading-note">
+          <i class="fa fa-spinner fa-spin" aria-hidden="true"></i>
+          Loading your campaign…
+        </p>
       </div>
 
       <div class="content">

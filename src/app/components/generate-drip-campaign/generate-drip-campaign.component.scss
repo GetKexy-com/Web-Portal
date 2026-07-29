@@ -64,8 +64,10 @@ $settings-band: 2;
     border: 1px solid #dbe3ec;
     border-radius: 14px;
     box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
-    overflow: hidden;
     margin-bottom: 18px;
+    // NO `overflow: hidden` — it would clip the email-count popover. The settings
+    // band rounds its OWN bottom corners instead (see .seq-settings), which is what
+    // the hidden overflow was there for.
   }
 
   .seq-head {
@@ -115,24 +117,89 @@ $settings-band: 2;
       cursor: pointer;
       transition: all 0.12s ease;
 
-      &:hover { background: rgba(18, 165, 244, 0.12); color: $kx-primary-deep; }
+      &:hover,
+      &.is-open { background: rgba(18, 165, 244, 0.12); color: $kx-primary-deep; }
     }
   }
 
-  .count-editor {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-top: 10px;
+  // ── Email-count popover ─────────────────────────────────────────────────
+  // Mirrors the email editor's app-fallback-popover: a small anchored card with an
+  // icon header, one labelled field and right-aligned actions. Replaces an inline
+  // input + Save/Cancel that reflowed the header row every time it opened.
+  .count-anchor { position: relative; }
 
-    .count-input {
-      width: 96px;
+  .count-popover {
+    position: absolute;
+    top: calc(100% + 10px);
+    left: 0;
+    z-index: 60;
+    width: 268px;
+    padding: 14px 15px 15px;
+    background: #fff;
+    border: 1px solid $kx-border;
+    border-radius: 12px;
+    box-shadow: 0 12px 32px -8px rgba(15, 23, 42, 0.24),
+      0 2px 6px rgba(15, 23, 42, 0.06);
+    text-align: left;
+    cursor: default;
+
+    // Little arrow pointing back at the pencil, so the popover reads as attached to
+    // it rather than floating.
+    &::before,
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: 100%;
+      left: 18px;
+      border: 7px solid transparent;
+    }
+    &::before { border-bottom-color: $kx-border; }
+    // Second triangle, 1px lower, masks the border so the arrow looks hollow.
+    &::after { border-bottom-color: #fff; margin-bottom: -1.5px; border-width: 6px; left: 19px; }
+
+    .pop-head {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      margin-bottom: 10px;
+    }
+
+    .pop-icon {
+      flex-shrink: 0;
+      width: 26px;
+      height: 26px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      background: rgba(18, 165, 244, 0.12);
+      color: $kx-primary-deep;
+      font-size: 12px;
+    }
+
+    .pop-title {
+      margin: 0;
+      font-size: 13.5px;
+      font-weight: 700;
+      color: $kx-ink;
+    }
+
+    .pop-label {
+      margin: 0 0 8px;
+      font-size: 12px;
+      line-height: 1.45;
+      color: $kx-muted;
+    }
+
+    .pop-input {
+      width: 100%;
       background: $kx-field-bg;
       border: 1.5px solid $kx-border;
-      border-radius: 10px;
+      border-radius: 9px;
       padding: 9px 11px;
       font-size: 14px;
       color: $kx-ink;
+      box-sizing: border-box;
 
       &:focus {
         outline: none;
@@ -140,6 +207,43 @@ $settings-band: 2;
         border-color: $kx-primary;
         box-shadow: 0 0 0 3px rgba(18, 165, 244, 0.15);
       }
+    }
+
+    .pop-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .pop-cancel,
+    .pop-save {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 14px;
+      border-radius: 9px;
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.12s ease;
+    }
+
+    .pop-cancel {
+      border: 1px solid $kx-border;
+      background: #fff;
+      color: $kx-ink;
+
+      &:hover { border-color: $kx-muted; }
+    }
+
+    .pop-save {
+      border: none;
+      background: $kx-primary-deep;
+      color: #fff;
+
+      &:hover:not(:disabled) { filter: brightness(1.08); }
+      &:disabled { opacity: 0.6; cursor: not-allowed; }
     }
   }
 
@@ -159,6 +263,9 @@ $settings-band: 2;
     align-items: end;
     gap: 12px;
     padding: 16px 20px 18px;
+
+    // Rounds its own bottom corners, since the card no longer clips overflow.
+    border-radius: 0 0 13px 13px;
 
     // See the $settings-band switch at the top of this file.
     @if $settings-band == 1 {

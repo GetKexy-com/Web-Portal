@@ -17,26 +17,99 @@
     progress-count {
       display: block;
       width: 100%;
-      max-width: 980px;
+      // Deliberately much narrower than the content column below. This wizard has
+      // only TWO steps and the stepper's connector is `flex: 1`, so a wide container
+      // just stretches the two markers to opposite ends. Sizing to the content keeps
+      // them read as one sequence.
+      max-width: 520px;
       align-self: center;
     }
   }
 
   .page-content {
-    .loading {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      position: absolute;
-      width: 300px;
-      height: 200px;
-      margin: 100px auto;
-      left: 0;
-      right: 0;
-      z-index: 10;
-      overflow: hidden;
-      background: white;
-      border-radius: 10px;
+    // ── Initial page skeleton ───────────────────────────────────────────
+    // Replaced a 300x200 absolutely-positioned white box holding a 14px spinner. It
+    // is in normal flow now, sized like the real content, so the page does not jump
+    // when the campaign arrives.
+    .page-loading {
+      max-width: 980px;
+      margin: 18px auto 0;
+      padding: 0 24px;
+
+      .sk-card {
+        background: #fff;
+        border: 1px solid #dbe3ec;
+        border-radius: 14px;
+        overflow: hidden;
+        margin-bottom: 18px;
+      }
+
+      // Mirrors the real header: title left, three action buttons right.
+      .sk-card-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 20px;
+      }
+
+      .sk-actions {
+        display: flex;
+        gap: 8px;
+      }
+
+      // …and the settings band below it.
+      .sk-card-band {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+        padding: 16px 20px 18px;
+        background: #e2e9f2;
+        border-top: 1px solid #d2dbe7;
+      }
+
+      .sk-body {
+        padding: 20px;
+      }
+
+      .sk {
+        display: block;
+        border-radius: 7px;
+        background: linear-gradient(90deg, #eef2f7 25%, #e3e9f1 37%, #eef2f7 63%);
+        background-size: 400% 100%;
+        animation: skShimmer 1.4s ease infinite;
+      }
+
+      .sk-line {
+        height: 13px;
+        &.lg { width: 190px; }
+        &.md { width: 130px; margin-bottom: 14px; }
+      }
+
+      .sk-btn { width: 92px; height: 34px; border-radius: 10px; }
+      .sk-field { height: 38px; border-radius: 10px; }
+      .sk-block { height: 190px; border-radius: 12px; }
+
+      .loading-note {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        margin: 0;
+        font-size: 13px;
+        font-weight: 600;
+        color: #64748b;
+      }
+    }
+
+    @keyframes skShimmer {
+      from { background-position: 100% 50%; }
+      to { background-position: 0 50%; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .page-loading .sk { animation: none; }
+      .page-loading .loading-note .fa-spin { animation: none; }
     }
 
     .content {

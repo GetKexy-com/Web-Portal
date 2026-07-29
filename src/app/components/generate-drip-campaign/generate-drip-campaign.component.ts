@@ -1,4 +1,4 @@
-import { AfterViewChecked, Component, ElementRef, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterViewChecked, Component, ElementRef, HostListener, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { constants } from '../../helpers/constants';
 import { NgbModal, NgbOffcanvas } from '@ng-bootstrap/ng-bootstrap';
 import { AuthService } from '../../services/auth.service';
@@ -707,6 +707,30 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
   handleShowHideNumberOfEmailsInput = () => {
     this.numberOfEmailsInputShow = !this.numberOfEmailsInputShow;
   };
+
+  /**
+   * Close the email-count popover on an outside click.
+   *
+   * `closest('.count-anchor')` covers BOTH the pencil and the popover itself, since
+   * they share that wrapper — so this can't fight the pencil's own toggle (that click
+   * returns early) and clicks inside the popover don't dismiss it.
+   *
+   * Bound on `document` rather than the host, because a click anywhere on the page
+   * should dismiss it, not just one inside this component.
+   */
+  @HostListener('document:click', ['$event'])
+  onDocumentClickCloseCountPopover(event: MouseEvent): void {
+    if (!this.numberOfEmailsInputShow) return;
+    const target = event.target as HTMLElement | null;
+    if (target?.closest('.count-anchor')) return;
+    this.numberOfEmailsInputShow = false;
+  }
+
+  /** Escape closes it too, from anywhere — matching the editor's popover. */
+  @HostListener('document:keydown.escape')
+  onEscapeCloseCountPopover(): void {
+    if (this.numberOfEmailsInputShow) this.numberOfEmailsInputShow = false;
+  }
 
   handleUpdateNumberOfEmail = async () => {
     this.numberOfEmailUpdateApiLoading = true;
