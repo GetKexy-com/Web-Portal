@@ -308,7 +308,52 @@ each duplicating the tokens/layout locally. `add-suppression` is a **repeatable-
 variant: each user is a `.user-row` grid (First / Last / Email + a bordered
 `.row-remove` icon button, disabled at one row), labels shown only on row 0, plus a
 dashed **`.add-row-btn`** ghost button; it collapses to a single column under 720px.
-So there are now four copies of this drawer — restyle them together.
+
+**`send-email-details-content`** (Email Details, opened from
+`generate-drip-campaign` on the wide `email-content` panel) also reuses this
+design, with one structural difference forced by the rich editor: it is the only
+copy whose `.canvas-body` is itself a **flex column** (`gap: 18px`) rather than a
+plain scroll box, because the `.form-section.editor-section` must GROW to absorb
+the leftover height so `<kexy-custom-rich-editor [fillHeight]="true">` can stretch
+into it and scroll its Design canvas internally. `overflow-y: auto` on
+`.canvas-body` is therefore only the short-viewport fallback: once the editor hits
+its floor the drawer scrolls instead. Keep that flex chain
+(`.canvas-body` → `.editor-section` → `.ckeditor-wrap` → editor) intact if you
+restyle it, and note the **height rule, which has exactly one correct shape**:
+
+- **Everything from `.ckeditor-wrap` down stays `min-height: 0`,** including the
+  editor host (this deliberately overrides the editor package's own
+  `.fill-height { min-height: 420px }`). `min-height: 0` is what makes the editor
+  height-BOUNDED, which is what makes it scroll its Design canvas internally and
+  keep the toolbar + subject pinned. Give any wrapper a content-based minimum
+  (i.e. drop the `min-height: 0`) and the editor grows with the email instead —
+  the toolbar then scrolls off the top and is unreachable while editing the
+  bottom of a long email.
+- **The single height floor lives on `.editor-section` (the card), not on the
+  editor host** — `min-height: 460px`, the editor's usable height being that minus
+  ~84px of card chrome. On the card, the floor can't be exceeded by the editor, so
+  the editor can never spill outside the white box. Put the floor on the editor
+  host instead and a card shrunk below it stops containing the editor.
+- The floor is ONLY a short-viewport fallback; `flex-grow` makes the editor much
+  taller normally. **Do not raise it to "give the editor more height"** — past the
+  height the drawer actually has it forces `.canvas-body` to scroll, which scrolls
+  the toolbar out of view, the exact thing the bounded layout prevents. Trim chrome
+  instead. Any real floor on the editor host must be scoped
+  `:not(.fullscreen)`, since a rule that specific also beats the editor's
+  fullscreen `min-height: 0` + `height: 100vh` reset.
+
+The editor card uses tighter padding than its siblings
+(`16px 18px 18px`, slimmer `.section-head`) since the editor draws its own bordered
+card inside and the usual padding reads as a card-in-a-card. Its two sections are
+Email settings (a 3-col `.settings-grid` of tone/length/style — the dropdowns
+render their own labels, so no `.field-label`; the `?` help tooltip sits beside
+Email Style; **Generate Email** is a right-aligned `.section-action` in the
+section head) and Email content. Unlike the other copies it keeps
+`<app-kexy-button>` in the footer instead of plain `.blue-button` markup, because
+Save/Generate depend on its spinner + `disabled`/`title` tooltip inputs — the
+footer sizes the host (`min-width: 130px`) to match the shared look.
+
+So there are now five copies of this drawer — restyle them together.
 
 ---
 

@@ -1,205 +1,330 @@
+// ── Tokens (match prospecting-contacts / lead-magnet-form drawers) ──────────
+$kx-primary: #12a5f4;
+$kx-primary-deep: #095dd1;
+$kx-ink: #0f172a;
+$kx-muted: #64748b;
+$kx-border: #e2e8f0;
+$kx-field-bg: #f7f9fc;
+$kx-red: #dc2626;
+$kx-red-bg: #fdeaea;
+
+// Modern slide-over: header / scrollable body / docked footer as flex-column
+// siblings. Shared with prospecting-contacts, lead-magnet-form,
+// company-description-canvas and add-suppression — restyle them together.
 .canvas-content-wrap {
-  // Flex column with a pinned header + footer and a scrolling middle. The
-  // editor stays CONTENT-HEIGHT (it grows with the email — see the editor's
-  // CLAUDE.md); the growth is absorbed by the scrollable `.input-wrap`, so the
-  // Save/Cancel footer no longer gets pushed off-screen in Design mode.
+  position: relative;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   height: 100vh;
-  .head-area {
-    flex: 0 0 auto;
+  background: #f4f6fb;
+
+  // Wraps body + footer so the footer stays docked AND `type="submit"` works.
+  .canvas-form {
     display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+  }
+
+  // ── Header ────────────────────────────────────────────────────────────
+  .head-area {
+    flex-shrink: 0;
+    display: flex;
+    align-items: flex-start;
     justify-content: space-between;
-    padding: 15px 24px;
-    border-bottom: 1px solid #e8e8e8;
-    p {
-      margin-bottom: 0;
-      font-size: 18px;
-      font-weight: 500;
-      line-height: 20px;
-      letter-spacing: 0em;
-      color: #0047CC;
+    gap: 16px;
+    padding: 22px 28px;
+    background: #ffffff;
+    border-bottom: 1px solid $kx-border;
+
+    .head-title {
+      margin: 0;
+      font-weight: 700;
+      font-size: 20px;
+      line-height: 1.2;
+      color: $kx-ink;
     }
-    img {
-      align-self: center;
+
+    .head-subtitle {
+      display: block;
+      margin-top: 4px;
+      font-size: 13px;
+      color: $kx-muted;
+    }
+
+    .close-btn {
+      flex-shrink: 0;
+      width: 36px;
+      height: 36px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid $kx-border;
+      border-radius: 10px;
+      background: #fff;
+      color: $kx-muted;
+      font-size: 16px;
       cursor: pointer;
+      transition: all 0.15s ease;
+
+      &:hover {
+        background: $kx-red-bg;
+        border-color: $kx-red;
+        color: $kx-red;
+      }
     }
   }
+
+  // ── Body (the only scroll region) ──────────────────────────────────────
+  // Flex column so the editor section can absorb the leftover height. The
+  // editor is [fillHeight] and scrolls its own Design canvas internally, so
+  // `overflow-y: auto` here is the SHORT-VIEWPORT fallback: once the editor
+  // hits its min-height floor below, this region scrolls instead.
   .canvas-body {
-    flex: 1 1 auto;
+    flex: 1;
     min-height: 0;
+    overflow-y: auto;
     display: flex;
+    flex-direction: column;
+    // Tighter than the sibling drawers (22px/28px/18px gap): this drawer's
+    // body is dominated by the editor, so the chrome gives height back to it.
+    gap: 14px;
+    padding: 18px 28px 22px;
 
-    form {
-      flex: 1 1 auto;
-      min-height: 0;
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-    }
+    .form-section {
+      flex: 0 0 auto;
+      background: #ffffff;
+      border: 1px solid $kx-border;
+      border-radius: 14px;
+      padding: 20px 22px;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
 
-    .input-wrap {
-      // Flex column: the tone/length/style row stays its size and the editor
-      // block grows to fill the rest (the editor is [fillHeight] so its Design
-      // canvas scrolls internally). overflow-y:auto is only a small-screen
-      // fallback for when even the min editor + row don't fit.
-      flex: 1 1 auto;
-      min-height: 0;
-      overflow-y: auto;
-      margin-top: 5px;
-      display: flex;
-      flex-direction: column;
-      .label-and-input {
-        flex: 0 0 auto;
-        padding: 10px 25px 10px 25px;
-        .personalized-tags {
-          padding-top: 10px;
-          p {
-            text-transform: none;
-            font-weight: normal;
-            letter-spacing: normal;
-            font-size: 14px;
-          }
-        }
-        .form-control {
-          font-size: 14px;
-          padding: 10px;
-        }
-        p {
-          margin-bottom: 10px;
-          font-weight: 700;
-          font-size: 12px;
-          line-height: 12px;
-          letter-spacing: -0.01em;
-          text-transform: uppercase;
-          color: #202020;
-          position: relative;
+      .section-head {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        margin-bottom: 18px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid #f1f5f9;
 
-          i {
-            color: red;
-            font-size: 6px;
-            position: absolute;
-            margin-left: 2px;
-          }
-        }
-        select.form-control {
-          padding: 12px;
-        }
-        // "?" help icon beside the Email Style dropdown, with a hover/focus tooltip.
-        .email-style-help {
-          position: relative;
-          flex: 0 0 auto;
+        .section-icon {
+          flex-shrink: 0;
+          width: 28px;
+          height: 28px;
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          width: 20px;
-          height: 20px;
-          margin: 0 0 10px 8px; // sit next to the dropdown button (row is align-items-end)
-          border-radius: 50%;
-          background: #12a5f4;
+          border-radius: 8px;
+          background: linear-gradient(135deg, $kx-primary, $kx-primary-deep);
           color: #fff;
-          cursor: help;
-          outline: none;
+          font-size: 13px;
+        }
+
+        .section-title {
+          font-weight: 700;
+          font-size: 14px;
+          letter-spacing: 0.01em;
+          color: $kx-ink;
+        }
+
+        .section-hint {
+          font-size: 12.5px;
+          color: $kx-muted;
+        }
+
+        // Generate Email — right-aligned action in the section header.
+        .section-action {
+          display: inline-block;
+          margin-left: auto;
           flex-shrink: 0;
-
-          i {
-            color: #fff;
-            font-size: 11px;
-          }
-
-          .email-style-tooltip {
-            position: absolute;
-            top: calc(100% + 8px);
-            right: 0;
-            z-index: 50;
-            width: 280px;
-            padding: 10px 12px;
-            border-radius: 6px;
-            background: #1f2937;
-            color: #fff;
-            font-size: 12px;
-            font-weight: 400;
-            line-height: 1.5;
-            text-transform: none;
-            letter-spacing: normal;
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
-            opacity: 0;
-            visibility: hidden;
-            transform: translateY(-4px);
-            transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s;
-            pointer-events: none;
-
-            &::before {
-              content: "";
-              position: absolute;
-              bottom: 100%;
-              right: 6px;
-              border: 6px solid transparent;
-              border-bottom-color: #1f2937;
-            }
-          }
-
-          &:hover .email-style-tooltip,
-          &:focus .email-style-tooltip,
-          &:focus-within .email-style-tooltip {
-            opacity: 1;
-            visibility: visible;
-            transform: translateY(0);
-          }
         }
       }
-      // The editor block grows to fill the space below the tone/length/style
-      // row; the editor ([fillHeight]) then stretches into it and scrolls its
-      // Design canvas internally.
-      .label-and-input.editor-block {
+    }
+
+    // ── Tone / length / style ───────────────────────────────────────────
+    // The kexy-select-dropdowns render their OWN labels — do NOT add a
+    // .field-label for them.
+    .settings-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      align-items: end;
+      gap: 16px 18px;
+
+      .setting-select {
+        display: block;
+        min-width: 0;
+      }
+
+      .setting-with-help {
+        display: flex;
+        align-items: flex-end;
+        gap: 8px;
+        min-width: 0;
+
+        .setting-select {
+          flex: 1 1 auto;
+        }
+      }
+    }
+
+    // "?" help icon beside the Email Style dropdown, with a hover/focus tooltip.
+    .email-style-help {
+      position: relative;
+      flex: 0 0 auto;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+      margin-bottom: 10px; // sit next to the dropdown button (row is align-items: flex-end)
+      border-radius: 50%;
+      background: $kx-primary;
+      color: #fff;
+      cursor: help;
+      outline: none;
+
+      i {
+        color: #fff;
+        font-size: 11px;
+      }
+
+      .email-style-tooltip {
+        position: absolute;
+        top: calc(100% + 8px);
+        right: 0;
+        z-index: 50;
+        width: 280px;
+        padding: 10px 12px;
+        border-radius: 6px;
+        background: #1f2937;
+        color: #fff;
+        font-size: 12px;
+        font-weight: 400;
+        line-height: 1.5;
+        text-transform: none;
+        letter-spacing: normal;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-4px);
+        transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s;
+        pointer-events: none;
+
+        &::before {
+          content: "";
+          position: absolute;
+          bottom: 100%;
+          right: 6px;
+          border: 6px solid transparent;
+          border-bottom-color: #1f2937;
+        }
+      }
+
+      &:hover .email-style-tooltip,
+      &:focus .email-style-tooltip,
+      &:focus-within .email-style-tooltip {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+      }
+    }
+
+    // ── Editor section ──────────────────────────────────────────────────
+    // Grows to fill the height left over by the settings card; the editor
+    // ([fillHeight]) then stretches into it. Tighter padding than the other
+    // cards on purpose — the editor draws its OWN bordered card inside, so the
+    // usual 20px/22px would read as a card-in-a-card and waste editor height.
+    .form-section.editor-section {
+      flex: 1 1 auto;
+      // ─── THE ONLY HEIGHT FLOOR IN THIS DRAWER (tweak this) ──────────────
+      // The floor lives on the CARD, not on the editor host, and everything
+      // below it stays `min-height: 0`. That ordering is the whole trick:
+      //   * `min-height: 0` all the way down = the editor is height-BOUNDED, so
+      //     it scrolls its Design canvas internally and the toolbar + subject
+      //     stay pinned. Give any wrapper a content-based minimum instead and
+      //     the editor grows with the email, pushing the toolbar off the top.
+      //   * The floor on the card (not the editor) means the editor can never
+      //     be taller than the card, so it cannot spill outside this white box.
+      //     Put the floor on the editor host and a shrunken card no longer
+      //     contains it.
+      // The editor's usable height is this value minus ~84px of card chrome
+      // (`.section-head` + padding). It is ONLY a short-viewport fallback — on a
+      // normal viewport `flex-grow` makes the editor much taller than this.
+      // CAUTION: raising this past the height the drawer actually has forces
+      // `.canvas-body` to scroll, which scrolls the toolbar out of view — the
+      // exact problem the bounded layout above exists to prevent. To give the
+      // editor more room, trim chrome rather than raising this.
+      min-height: 800px;
+      display: flex;
+      flex-direction: column;
+      padding: 16px 18px 18px;
+
+      .section-head {
+        margin-bottom: 12px;
+        padding-bottom: 10px;
+      }
+
+      .ckeditor-wrap {
         flex: 1 1 auto;
         min-height: 0;
         display: flex;
         flex-direction: column;
-        .ckeditor-wrap {
+
+        kexy-custom-rich-editor {
           flex: 1 1 auto;
+          // Deliberately 0, overriding the editor package's own
+          // `.fill-height { min-height: 420px }` default: the floor is the
+          // card's job (above), and a floor here would let the editor outgrow
+          // the card. Keep it 0 — if you ever set a real value, scope it
+          // `:not(.fullscreen)`, since a rule this specific also beats the
+          // editor's fullscreen `min-height: 0` + `height: 100vh` reset and
+          // would hang a fullscreen editor off the bottom of the screen.
           min-height: 0;
-          display: flex;
-          flex-direction: column;
-          kexy-custom-rich-editor {
-            flex: 1 1 auto;
-            // ─── EMAIL EDITOR MINIMUM HEIGHT (tweak this) ───────────────────
-            // On a TALL viewport flex-grow makes the editor fill the available
-            // space (this floor is irrelevant). On a SHORT viewport the editor
-            // stops shrinking at this height and the `.input-wrap` above scrolls
-            // instead — so the user sees a usable editor and scrolls the drawer.
-            // Raise/lower this value to taste. This rule WINS over the editor's
-            // own `kexy-custom-rich-editor.fill-height { min-height }` default
-            // (it's more specific), so change the number HERE.
-            min-height: 660px;
-          }
         }
       }
-    }
-    // Pinned option row — sits between the scrolling content and the footer, so
-    // it stays visible in every editor mode (Design canvas is content-height).
-    .pinned-options {
-      flex: 0 0 auto;
-      padding: 12px 25px;
-      border-top: 1px solid #e8e8e8;
-      background: #fff;
-    }
 
-    .bottom-buttons {
-      // Pinned footer — always visible regardless of email length.
-      flex: 0 0 auto;
-      display: flex;
-      padding: 16px 25px 24px;
-      background: #fff;
-      button {
-        border-radius: 15px;
-        padding: 10px 0;
+      .section-error {
+        flex: 0 0 auto;
+        margin-top: 12px;
       }
-      .blue-border-white-bg-button {
-        border: 2px solid #d9d9d9;
-        color: #010101;
-      }
+    }
+  }
+
+  // ── Footer action bar (always visible) ──────────────────────────────────
+  .buttons {
+    flex-shrink: 0;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 16px 28px;
+    background: #ffffff;
+    border-top: 1px solid $kx-border;
+    box-shadow: 0 -6px 16px rgba(15, 23, 42, 0.06);
+
+    // app-kexy-button is kept here (not the plain .blue-button markup the other
+    // drawers use) because Save/Generate rely on its spinner + disabled/title
+    // tooltip inputs. Size the host so the actions match the shared look.
+    app-kexy-button {
+      display: inline-block;
+      min-width: 130px;
+    }
+  }
+}
+
+@media (max-width: 900px) {
+  .canvas-content-wrap .canvas-body .settings-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .canvas-content-wrap {
+    .head-area,
+    .canvas-body,
+    .buttons {
+      padding-left: 18px;
+      padding-right: 18px;
     }
   }
 }

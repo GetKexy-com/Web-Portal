@@ -1,17 +1,36 @@
 <div class="canvas-content-wrap">
   <div class="head-area">
-    <p>Email Details</p>
-    <img src="/assets/images/close-icon.png" alt="Close" (click)="activeCanvas.dismiss('Cross click')" />
+    <div class="head-text">
+      <p class="head-title">Email Details</p>
+      <span class="head-subtitle">Set the tone, length and style, then tweak the email content</span>
+    </div>
+    <button type="button" class="close-btn" aria-label="Close" (click)="activeCanvas.dismiss('Cross click')">
+      <i class="fa fa-times" aria-hidden="true"></i>
+    </button>
   </div>
 
-  <div class="canvas-body">
-    <form (ngSubmit)="handleSubmit()">
-      <div class="input-wrap">
+  <form class="canvas-form" (ngSubmit)="handleSubmit()">
+    <div class="canvas-body">
 
-        <!--Email Tones-->
-        <div class="label-and-input d-flex align-items-end" style="border-bottom: 1px solid #E7F6FE">
+      <!--Email tone / length / style-->
+      <div class="form-section">
+        <div class="section-head">
+          <i class="fa fa-sliders section-icon" aria-hidden="true"></i>
+          <span class="section-title">Email settings</span>
+          <app-kexy-button
+            *ngIf="this.dripEmail.templateOptions !== 'template'"
+            class="section-action"
+            [label]="isLoading ? 'Please wait...' : 'Generate Email' "
+            [disabled]="generateEmailOrSaveDisabled()"
+            [title]="disableTitle"
+            [iconLeft]="isLoading ? 'fa-refresh fa-spin' : 'fa-refresh'"
+            (click)="generateEmailContent()"
+          ></app-kexy-button>
+        </div>
+
+        <div class="settings-grid">
           <kexy-select-dropdown
-            style="flex: 1"
+            class="setting-select"
             label="Email Tone"
             shortNoteBesideLabel=""
             [selectAllBtn]="false"
@@ -29,10 +48,10 @@
             optionStyle="button"
             backgroundColor="white"
             placeholder="Please Select"
-
           ></kexy-select-dropdown>
+
           <kexy-select-dropdown
-            style="margin-left: 10px; flex: 1"
+            class="setting-select"
             label="Email Length"
             shortNoteBesideLabel=""
             [selectAllBtn]="false"
@@ -53,99 +72,78 @@
             backgroundColor="white"
             placeholder="Please Select"
           ></kexy-select-dropdown>
-          <kexy-select-dropdown
-            style="margin-left: 10px; flex: 1"
-            label="Email Style"
-            shortNoteBesideLabel=""
-            [selectAllBtn]="false"
-            [required]="false"
-            [options]="emailStyleKeys"
-            [addNewBtn]="false"
-            [onAddNewClick]=""
-            [selectedOption]="selectedEmailStyle ? selectedEmailStyle['value'] : ''"
-            [onSelectSingleItem]="onEmailStyleSelect"
-            [rowIndex]="2"
-            [editIcon]="false"
-            [deleteIcon]="false"
-            [onDeleteClick]=""
-            [onEditClick]=""
-            [isSearchAble]="false"
-            [isClearable]="false"
-            optionStyle="button"
-            backgroundColor="white"
-            placeholder="Please Select"
-          ></kexy-select-dropdown>
-          <span class="email-style-help" tabindex="0" role="button" aria-label="Email style help">
-            <i class="fa fa-question" aria-hidden="true"></i>
-            <span class="email-style-tooltip" role="tooltip">Plain text is recommended for cold email outreach because it feels more personal and typically improves deliverability. HTML is best for branded emails, newsletters, and promotions.</span>
-          </span>
-          <app-kexy-button
-            *ngIf="this.dripEmail.templateOptions !== 'template'"
-            [label]="isLoading ? 'Please wait...' : 'Generate Email' "
-            [disabled]="generateEmailOrSaveDisabled()"
-            [title]="disableTitle"
-            [iconLeft]="isLoading ? 'fa-refresh fa-spin' : 'fa-refresh'"
-            (click)="generateEmailContent()"
-            class="ms-2"
-            style="min-width: fit-content"
-          ></app-kexy-button>
-        </div>
 
-        <!--Subject line + body: both live inside the editor (subject supports merge-tag chips)-->
-        <div class="label-and-input editor-block">
-          <p>Tweak the Email to your liking!</p>
-          <div class="ckeditor-wrap">
-            <kexy-custom-rich-editor
-              [content]="emailContent"
-              [subject]="emailSubject"
-              (subjectChanged)="emailSubject = $event"
-              [plainText]="selectedEmailStyle?.key === 'plain_text'"
-              [fillHeight]="true"
-            ></kexy-custom-rich-editor>
-          </div>
-          <div *ngIf="!emailSubject">
-            <error-message-card message="Subject line is required!"></error-message-card>
+          <!--Email Style keeps the "?" help affordance beside it-->
+          <div class="setting-with-help">
+            <kexy-select-dropdown
+              class="setting-select"
+              label="Email Style"
+              shortNoteBesideLabel=""
+              [selectAllBtn]="false"
+              [required]="false"
+              [options]="emailStyleKeys"
+              [addNewBtn]="false"
+              [onAddNewClick]=""
+              [selectedOption]="selectedEmailStyle ? selectedEmailStyle['value'] : ''"
+              [onSelectSingleItem]="onEmailStyleSelect"
+              [rowIndex]="2"
+              [editIcon]="false"
+              [deleteIcon]="false"
+              [onDeleteClick]=""
+              [onEditClick]=""
+              [isSearchAble]="false"
+              [isClearable]="false"
+              optionStyle="button"
+              backgroundColor="white"
+              placeholder="Please Select"
+            ></kexy-select-dropdown>
+            <span class="email-style-help" tabindex="0" role="button" aria-label="Email style help">
+              <i class="fa fa-question" aria-hidden="true"></i>
+              <span class="email-style-tooltip" role="tooltip">Plain text is recommended for cold email outreach because it feels more personal and typically improves deliverability. HTML is best for branded emails, newsletters, and promotions.</span>
+            </span>
           </div>
         </div>
       </div>
 
-      <!-- Pinned just above Save/Cancel so it stays visible regardless of the
-           editor mode/height (the Design canvas is content-height and would
-           otherwise push this option far down the scroll region). -->
-<!--      <div class="pinned-options">-->
-<!--        <div class="form-check checkbox-and-label">-->
-<!--          <input-->
-<!--            class="form-check-input"-->
-<!--            type="checkbox"-->
-<!--            value=""-->
-<!--            [checked]="isCheckedAddUnsubscribeLink"-->
-<!--            (change)="handleCheckboxClick()"-->
-<!--            id="purchase"-->
-<!--          />-->
-<!--          <label class="form-check-label purchase-info-label" for="purchase">-->
-<!--            Add unsubscribe link-->
-<!--          </label>-->
-<!--        </div>-->
-<!--      </div>-->
+      <!--Subject line + body: both live inside the editor (subject supports merge-tag chips)-->
+      <div class="form-section editor-section">
+        <div class="section-head">
+          <i class="fa fa-pencil section-icon" aria-hidden="true"></i>
+          <span class="section-title">Email content</span>
+          <span class="section-hint">Tweak the email to your liking</span>
+        </div>
 
-      <div class="bottom-buttons">
-        <app-kexy-button
-          style="width: 50%; margin-right: 10px"
-          [label]="isLoading ? 'Please wait...' : 'Save' "
-          [title]="disableTitle"
-          [disabled]="generateEmailOrSaveDisabled()"
-          [iconLeft]="isLoading ? 'fa-refresh fa-spin' : 'fa-cloud-upload'"
-          type="submit"
-        ></app-kexy-button>
-        <app-kexy-button
-          style="width: 50%"
-          label="Cancel"
-          bgColor="white"
-          textColor="#010101"
-          borderColor="#d9d9d9"
-          (click)="activeCanvas.dismiss('Cross click')"
-        ></app-kexy-button>
+        <div class="ckeditor-wrap">
+          <kexy-custom-rich-editor
+            [content]="emailContent"
+            [subject]="emailSubject"
+            (subjectChanged)="emailSubject = $event"
+            [plainText]="selectedEmailStyle?.key === 'plain_text'"
+            [fillHeight]="true"
+          ></kexy-custom-rich-editor>
+        </div>
+
+        <div class="section-error" *ngIf="!emailSubject">
+          <error-message-card message="Subject line is required!"></error-message-card>
+        </div>
       </div>
-    </form>
-  </div>
+    </div>
+
+    <div class="buttons">
+      <app-kexy-button
+        label="Cancel"
+        bgColor="white"
+        textColor="#010101"
+        borderColor="#d9d9d9"
+        (click)="activeCanvas.dismiss('Cross click')"
+      ></app-kexy-button>
+      <app-kexy-button
+        [label]="isLoading ? 'Please wait...' : 'Save' "
+        [title]="disableTitle"
+        [disabled]="generateEmailOrSaveDisabled()"
+        [iconLeft]="isLoading ? 'fa-refresh fa-spin' : 'fa-cloud-upload'"
+        type="submit"
+      ></app-kexy-button>
+    </div>
+  </form>
 </div>

@@ -193,6 +193,7 @@ $st-amber-bg: #fef3d9;
           &.selected {
             background: $kx-selected;
             box-shadow: inset 3px 0 0 0 $kx-primary;
+            border-bottom: 1px solid $kx-border;
           }
 
           &.state-row:hover { background: #fff; }
