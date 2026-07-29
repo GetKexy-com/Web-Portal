@@ -99,14 +99,42 @@ $kx-red-bg: #fdeaea;
   }
 
   // ── Loading state ─────────────────────────────────────────────────────
+  // Was a 14px inline spinner + text, which read as a stray line of text in a 900px
+  // drawer. Now a stacked, properly scaled block that fills the empty drawer.
   .canvas-loading {
     flex: 1;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 10px;
-    font-size: 14px;
-    color: $kx-muted;
+    gap: 16px;
+    padding: 32px;
+
+    // Soft accent disc, same device as the insights drawer's empty state — gives
+    // the spinner enough presence to read as "the drawer is working".
+    .loading-badge {
+      width: 64px;
+      height: 64px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: rgba(18, 165, 244, 0.12);
+      color: $kx-primary-deep;
+      font-size: 26px;
+    }
+
+    .loading-text {
+      font-size: 14.5px;
+      font-weight: 600;
+      color: $kx-muted;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .canvas-loading .loading-badge .fa-spin {
+      animation: none;
+    }
   }
 
   // ── Body (the only scroll region) ──────────────────────────────────────

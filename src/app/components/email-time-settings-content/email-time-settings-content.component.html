@@ -10,8 +10,10 @@
   </section>
 
   <div *ngIf="isWaitingFlag" class="canvas-loading">
-    <i class="fa fa-spinner fa-spin" aria-hidden="true"></i>
-    <span>Please wait…</span>
+    <span class="loading-badge" aria-hidden="true">
+      <i class="fa fa-spinner fa-spin"></i>
+    </span>
+    <span class="loading-text">Loading settings…</span>
   </div>
 
   <!--Tab strip — pinned below the header so it stays visible while the body scrolls-->
