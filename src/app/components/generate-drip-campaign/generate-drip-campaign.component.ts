@@ -484,6 +484,19 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
       return;
     }
 
+    // A campaign with no send-from SMTP would activate and then fail to send, so
+    // block it here the same way a missing list is blocked: open the settings canvas
+    // (the SMTP selector is on its Enrollment Triggers tab) and explain why.
+    if (!this.__getSelectedSmtpId()) {
+      this.openSettingsCanvas();
+      await Swal.fire({
+        title: `Error`,
+        text: 'Please select an SMTP account from settings and save it before activating.',
+        icon: 'warning',
+      });
+      return;
+    }
+
     const confirmed = await this.__isConfirmed();
     if (!confirmed) return;
 
@@ -773,6 +786,42 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
 
   openSettingsCanvas = () => {
     this.__createRightSideSlide(EmailTimeSettingsContentComponent, 'email-time-settings-slider');
+  };
+
+  /**
+   * The campaign's saved send-from SMTP id, or null when none is selected.
+   *
+   * Reads the `smtp_account` entry of `drip_campaign_settings`, whose value shape is
+   * `[{ smtpId }]`. Mirrors how `email-time-settings-content` reads it on load, and
+   * for the same reasons: `settingsValue` can arrive JSON-STRINGIFIED (the backend
+   * stores it as a string), older rows use `value` instead of `smtpId`, and
+   * detaching an SMTP writes `smtpId: null` rather than deleting the row — so the
+   * setting EXISTING is not enough, the id inside it has to be non-empty.
+   */
+  __getSelectedSmtpId = (): any => {
+    // RE-READ from the service first, exactly like getEnrolledList does. Saving in
+    // the settings canvas goes through updateDripCampaignWithLatestSettings, which
+    // constructs a NEW DripCampaign and swaps it into the service — so this
+    // component's `this.dripCampaign` reference is stale afterwards. Without this,
+    // picking an SMTP, saving, and clicking Activate again would still be blocked.
+    this.dripCampaign = this.dripCampaignService.getDripCampaignContentPageData();
+
+    const setting = (this.dripCampaign?.settings || []).find(
+      (s: any) => s?.settingsType === 'smtp_account',
+    );
+    if (!setting) return null;
+
+    let value = setting.settingsValue;
+    if (typeof value === 'string') {
+      try {
+        value = JSON.parse(value);
+      } catch {
+        return null;
+      }
+    }
+    if (!Array.isArray(value) || !value.length) return null;
+
+    return value[0]?.smtpId ?? value[0]?.value ?? null;
   };
 
   onEmailToneSelect = (tone, index = null, rowIndex = null) => {
