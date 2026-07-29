@@ -381,7 +381,31 @@ section head) and Email content. Unlike the other copies it keeps
 Save/Generate depend on its spinner + `disabled`/`title` tooltip inputs — the
 footer sizes the host (`min-width: 130px`) to match the shared look.
 
-So there are now five copies of this drawer — restyle them together.
+**`email-time-settings-content`** (campaign Settings, 900px
+`email-time-settings-slider` panel, opened from `generate-drip-campaign`) is the
+**two-tab variant**. `kexy-tab` switches between `constants.ENROLLMENT_TRIGGERS`
+and `constants.TIMING`, and each tab is its **own `<form class="canvas-form">`**
+because they submit to different handlers (`handleSubmitEnrollmentTriggers` /
+`handleSubmitTiming`) — only one is in the DOM at a time via `*ngIf`, so the
+`.canvas-body` + `.buttons` pair is duplicated per tab rather than shared. The
+**`.tab-strip` sits OUTSIDE both forms** (a pinned flex-column sibling between
+`.head-area` and the form) so it stays visible while the body scrolls. `kexy-tab`
+is a shared component whose internals can't be reached from a parent stylesheet
+without `::ng-deep`, so its palette is passed through its own
+`tabBgColor`/`tabItemColor`/`tabItemActiveColor` inputs instead of being restyled.
+Beyond the standard `.form-section` cards it adds a few local patterns: a
+`.toggle-row` (label + `kexy-toggle-switch` in a soft-filled bar), a `.subpanel`
+for content revealed by a toggle/radio, `.radio-row`/`.radio-option` (native
+inputs + `accent-color`), `.chip-row`/`.list-chip` for the active-list pills (their
+colors come from inline `[style.*]` bindings, so the class sets only shape), and an
+`.analytics-row` grid whose labels live in ONE `.analytics-head` row rather than
+being repeated per row. It reuses `add-suppression`'s repeatable-row vocabulary
+(`.repeat-row` + `.row-remove` + dashed `.add-row-btn`) for the day/time schedule,
+the skip-dates list and the analytics recipients; `.repeat-row` uses
+`align-items: end` so the remove button lines up with the bottom of controls
+whether or not they render their own labels.
+
+So there are now six copies of this drawer — restyle them together.
 
 ---
 

@@ -15,7 +15,6 @@ import { CommonModule } from '@angular/common';
 import { ListDetail } from '../../models/List';
 import { DripCampaign } from '../../models/DripCampaign';
 import { ErrorMessageCardComponent } from '../error-message-card/error-message-card.component';
-import { KexyButtonComponent } from '../kexy-button/kexy-button.component';
 
 @Component({
   selector: 'email-time-settings-content',
@@ -26,7 +25,6 @@ import { KexyButtonComponent } from '../kexy-button/kexy-button.component';
     KexyToggleSwitchComponent,
     CommonModule,
     ReactiveFormsModule,
-    KexyButtonComponent,
   ],
   templateUrl: './email-time-settings-content.component.html',
   styleUrl: './email-time-settings-content.component.scss',
