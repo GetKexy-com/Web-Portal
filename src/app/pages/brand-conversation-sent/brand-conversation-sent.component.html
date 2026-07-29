@@ -27,23 +27,41 @@
             <i class="fa fa-trash-o" aria-hidden="true"></i>
           </button>
 
-          <div ngbDropdown class="d-inline-block">
-            <button type="button" class="icon-btn" id="dropdownForm1" ngbDropdownToggle title="Filters" aria-label="Filters">
+          <!--`placement="bottom-end"` matters: the toggle sits at the right edge of
+              a 380px rail, so a default left-aligned menu overhangs it.-->
+          <div ngbDropdown placement="bottom-end" class="filter-menu">
+            <button
+              type="button"
+              class="icon-btn"
+              [class.has-filter]="pinedConversation"
+              id="dropdownForm1"
+              ngbDropdownToggle
+              title="Filters"
+              aria-label="Filters"
+            >
               <i class="fa fa-sliders" aria-hidden="true"></i>
             </button>
-            <div ngbDropdownMenu aria-labelledby="dropdownForm1">
-              <div class="dropdown-content-wrap">
-                <div class="item-in-dropdown">
-                  <input
-                    type="checkbox"
-                    id="pinnedConversations"
-                    name="pinnedConversations"
-                    [(ngModel)]="pinedConversation"
-                    (change)="getPinndedOrUnreadConversations()"
-                  />
-                  <label for="pinnedConversations">Pinned conversations</label>
-                </div>
-              </div>
+            <div ngbDropdownMenu class="filter-panel" aria-labelledby="dropdownForm1">
+              <p class="filter-panel-title">Filter</p>
+
+              <!--The whole row is the <label>, so the entire 100%-wide row is the
+                  hit target. The native checkbox is visually hidden but still the
+                  thing ngModel binds to and the thing screen readers see; the
+                  square is drawn by `.filter-check` off `input:checked`.-->
+              <label class="filter-row" for="pinnedConversations">
+                <input
+                  type="checkbox"
+                  id="pinnedConversations"
+                  name="pinnedConversations"
+                  [(ngModel)]="pinedConversation"
+                  (change)="getPinndedOrUnreadConversations()"
+                />
+                <span class="filter-check" aria-hidden="true"><i class="fa fa-check"></i></span>
+                <span class="filter-row-text">
+                  <i class="fa fa-thumb-tack" aria-hidden="true"></i>
+                  Pinned conversations
+                </span>
+              </label>
             </div>
           </div>
         </div>

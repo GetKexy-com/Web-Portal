@@ -105,6 +105,14 @@ $page-h: calc(100vh - 70px);
       opacity: 0.5;
       cursor: not-allowed;
     }
+
+    // A filter is on — the toggle itself shows it, so the state is visible without
+    // opening the popover.
+    &.has-filter {
+      border-color: $kx-primary;
+      background: rgba(18, 165, 244, 0.1);
+      color: $kx-primary-deep;
+    }
   }
 
   // ── Left rail ───────────────────────────────────────────────────────────
@@ -179,27 +187,91 @@ $page-h: calc(100vh - 70px);
         gap: 8px;
       }
 
-      .dropdown-content-wrap {
-        width: 242px;
-        padding: 10px 12px;
+      // ── Filter popover ────────────────────────────────────────────────────
+      // ngbDropdownMenu puts Bootstrap's `.dropdown-menu` on this element and it
+      // lives in THIS template (not a child component), so page styles reach it
+      // directly — no ::ng-deep needed.
+      .filter-panel.dropdown-menu {
+        min-width: 236px;
+        margin-top: 8px;
+        padding: 8px;
+        border: 1px solid $kx-border;
+        border-radius: 14px;
+        background: #fff;
+        box-shadow: 0 12px 32px -12px rgba(15, 23, 42, 0.22),
+          0 2px 6px rgba(15, 23, 42, 0.06);
+      }
 
-        .item-in-dropdown {
-          display: flex;
+      .filter-panel-title {
+        margin: 2px 8px 8px;
+        font-weight: 600;
+        font-size: 11px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: #94a3b8;
+      }
+
+      // The whole row is the label → the whole row is clickable.
+      .filter-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 0;
+        padding: 9px 8px;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: background 0.12s ease;
+
+        &:hover { background: $kx-field-bg; }
+
+        // Visually hidden, NOT `display:none` — it stays focusable and it is still
+        // the element ngModel binds to.
+        input[type='checkbox'] {
+          position: absolute;
+          width: 1px;
+          height: 1px;
+          opacity: 0;
+          pointer-events: none;
+        }
+
+        .filter-check {
+          flex-shrink: 0;
+          width: 18px;
+          height: 18px;
+          display: inline-flex;
           align-items: center;
-          gap: 10px;
+          justify-content: center;
+          border: 1.5px solid #cbd5e1;
+          border-radius: 6px;
+          background: #fff;
+          color: transparent;
+          font-size: 10px;
+          transition: all 0.12s ease;
+        }
 
-          input {
-            min-width: 15px;
-            min-height: 15px;
-            accent-color: $kx-primary;
-            cursor: pointer;
-          }
+        input[type='checkbox']:checked + .filter-check {
+          border-color: $kx-primary-deep;
+          background: linear-gradient(135deg, $kx-primary, $kx-primary-deep);
+          color: #fff;
+        }
 
-          label {
-            cursor: pointer;
-            margin: 0;
-            font-size: 13px;
-            color: $kx-ink;
+        // Keyboard focus has to show on the drawn square, since the real input is
+        // visually hidden.
+        input[type='checkbox']:focus-visible + .filter-check {
+          box-shadow: 0 0 0 3px rgba(18, 165, 244, 0.3);
+        }
+
+        .filter-row-text {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          font-size: 13px;
+          color: $kx-ink;
+
+          i {
+            font-size: 11px;
+            color: #94a3b8;
+            transform: rotate(-30deg); // matches the pin badge on a pinned row
           }
         }
       }
