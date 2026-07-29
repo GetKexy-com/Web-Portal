@@ -76,6 +76,19 @@ export interface IDashboardTopLink {
   count: number;
 }
 
+/**
+ * Reply rate for one day-of-week × time-of-day bucket, for the send-window heatmap.
+ * Real source: bucket `insights[]` by the weekday and hour of `messageSentAt`.
+ */
+export interface IDashboardHeatCell {
+  /** 0 = Sunday … 6 = Saturday, matching JS `Date.getDay()`. */
+  dow: number;
+  /** 0 = 6-11h, 1 = 11-14h, 2 = 14-17h, 3 = 17-21h (local). */
+  bucket: number;
+  sent: number;
+  replies: number;
+}
+
 export interface IDashboardStats {
   totals: IDashboardTotals;
   /** Oldest → newest. The page slices the tail for the selected range. */
@@ -83,7 +96,12 @@ export interface IDashboardStats {
   campaigns: IDashboardCampaignRow[];
   recentActivity: IDashboardActivity[];
   topLinks: IDashboardTopLink[];
+  sendWindows: IDashboardHeatCell[];
 }
+
+/** Time-of-day bucket labels, index-aligned with `IDashboardHeatCell.bucket`. */
+export const HEAT_BUCKETS = ['6–11', '11–14', '14–17', '17–21'] as const;
+export const HEAT_DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as const;
 
 /** Selectable trend windows, in days. */
 export const DASHBOARD_RANGES = [

@@ -1,15 +1,16 @@
 <brand-layout headerBgWhite="true">
   <div class="dashboard-page">
 
-    <!--══════════ Page head ══════════-->
-    <header class="page-head">
-      <div>
-        <h1 class="page-title">Dashboard</h1>
-        <p class="page-sub">
-          <span *ngIf="userName">{{ userName }} · </span>Outreach performance
-          <span *ngIf="lastUpdated" class="stamp">
-            · updated {{ lastUpdated | date: 'h:mm a' }}
-          </span>
+    <!--══════════ Toolbar ══════════
+        Scrolls away with the content rather than pinning to the top.-->
+    <header class="toolbar">
+      <div class="tb-text">
+        <h1 class="tb-title">Dashboard</h1>
+        <p class="tb-sub">
+          <span *ngIf="userName">{{ userName }}</span>
+          <span class="tb-dot" *ngIf="userName">·</span>
+          Last {{ selectedDays }} days vs previous {{ selectedDays }}
+          <span *ngIf="lastUpdated" class="tb-stamp">· updated {{ lastUpdated | date: 'h:mm a' }}</span>
         </p>
       </div>
 
@@ -21,23 +22,43 @@
           [class.active]="selectedDays === r.days"
           [attr.aria-pressed]="selectedDays === r.days"
           (click)="selectRange(r.days)"
-        >
-          {{ r.label }}
-        </button>
+        >{{ r.label }}</button>
       </div>
     </header>
 
-    <div *ngIf="isLoading" class="dash-loading">
-      <span class="loading-badge" aria-hidden="true"><i class="fa fa-spinner fa-spin"></i></span>
-      <span class="loading-text">Loading your dashboard…</span>
-    </div>
+    <!--══════════ Skeleton ══════════
+        A layout-shaped skeleton, not a spinner: the page doesn't reflow when data
+        lands, and the shape tells you what's coming.-->
+    <ng-container *ngIf="isLoading">
+      <div class="panel sk-panel">
+        <div class="sk-strip">
+          <div class="sk-tile" *ngFor="let i of [1,2,3,4]">
+            <span class="sk sk-sm"></span>
+            <span class="sk sk-lg"></span>
+            <span class="sk sk-xs"></span>
+          </div>
+        </div>
+        <div class="sk-chart"><span class="sk sk-block"></span></div>
+      </div>
+      <div class="mid-grid">
+        <div class="panel"><span class="sk sk-sm"></span><span class="sk sk-block short"></span></div>
+        <div class="panel"><span class="sk sk-sm"></span><span class="sk sk-block short"></span></div>
+      </div>
+    </ng-container>
 
     <ng-container *ngIf="!isLoading && stats">
 
-      <!--══════════ Metric strip + chart ══════════
-          One panel, like every analytics console: the tiles are the chart's legend
-          AND its control. Clicking a tile re-plots below it, so there is one chart
-          to read instead of four disconnected sparklines.-->
+      <!--══════════ Derived insights ══════════
+          Computed from the data, never authored — only material swings surface, so
+          the strip is worth reading instead of restating the tiles.-->
+      <section class="insight-strip" *ngIf="insights.length">
+        <div class="insight" *ngFor="let ins of insights" [ngClass]="'tone-' + ins.tone">
+          <i class="fa" [ngClass]="ins.icon" aria-hidden="true"></i>
+          <span>{{ ins.text }}</span>
+        </div>
+      </section>
+
+      <!--══════════ Metric strip + chart ══════════-->
       <section class="panel metric-panel">
         <div class="metric-strip" role="tablist" aria-label="Metric">
           <button
@@ -57,8 +78,6 @@
                    aria-hidden="true"></i>
                 {{ t.delta === 0 ? 'no change' : (t.delta > 0 ? '+' : '') + t.delta + '%' }}
               </span>
-              <!--Rate tiles also state the raw count, so a big percentage on a tiny
-                  base can't mislead.-->
               <span class="m-sub" *ngIf="t.rate !== null">{{ compact(t.total) }} total</span>
             </span>
           </button>
@@ -66,29 +85,23 @@
 
         <div class="chart-block">
           <div class="chart-head">
+            <span class="chart-title">{{ activeTile?.label }} per day</span>
             <div class="chart-legend">
               <span class="lg-item">
-                <span class="lg-swatch current" aria-hidden="true"></span>
-                This period
+                <span class="lg-swatch current" aria-hidden="true"></span>This period
               </span>
               <span class="lg-item" *ngIf="previousLine">
-                <span class="lg-swatch previous" aria-hidden="true"></span>
-                Previous {{ selectedDays }} days
+                <span class="lg-swatch previous" aria-hidden="true"></span>Previous
               </span>
             </div>
           </div>
 
           <div class="chart-frame">
-            <!--Y scale in HTML so the labels never distort when the plot stretches.-->
             <div class="y-axis" aria-hidden="true">
               <span *ngFor="let t of yTicks" class="y-tick" [style.bottom.%]="t.pct">{{ t.label }}</span>
             </div>
 
-            <div
-              class="plot"
-              (mousemove)="onChartMove($event)"
-              (mouseleave)="clearHover()"
-            >
+            <div class="plot" (mousemove)="onChartMove($event)" (mouseleave)="clearHover()">
               <svg
                 class="plot-svg"
                 viewBox="0 0 100 100"
@@ -96,37 +109,25 @@
                 role="img"
                 [attr.aria-label]="activeTile?.label + ' over the last ' + selectedDays + ' days'"
               >
-                <!--Recessive gridlines: present so the scale is readable, quiet
-                    enough that the data stays the loudest thing.-->
                 <line
                   *ngFor="let t of yTicks"
-                  class="grid"
-                  x1="0" x2="100"
-                  [attr.y1]="100 - t.pct"
-                  [attr.y2]="100 - t.pct"
+                  class="grid" x1="0" x2="100"
+                  [attr.y1]="100 - t.pct" [attr.y2]="100 - t.pct"
                 />
-
                 <polygon class="area" [attr.points]="currentArea" />
-                <!--Previous period is the SAME hue, dashed — same measure, different
-                    window, so style carries the difference, not colour.-->
                 <polyline *ngIf="previousLine" class="line previous" [attr.points]="previousLine" />
                 <polyline class="line current" [attr.points]="currentLine" />
-
                 <line
                   *ngIf="hoverIndex >= 0"
                   class="crosshair"
-                  [attr.x1]="hoverX" [attr.x2]="hoverX"
-                  y1="0" y2="100"
+                  [attr.x1]="hoverX" [attr.x2]="hoverX" y1="0" y2="100"
                 />
               </svg>
 
-              <!--Marker + tooltip live in HTML: a circle inside a non-uniformly
-                  scaled SVG would render as an ellipse.-->
               <span
                 *ngIf="hoverIndex >= 0"
                 class="hover-dot"
-                [style.left.%]="hoverX"
-                [style.top.%]="hoverY"
+                [style.left.%]="hoverX" [style.top.%]="hoverY"
                 aria-hidden="true"
               ></span>
 
@@ -144,8 +145,7 @@
                 </p>
                 <p class="tip-row muted" *ngIf="hoverPrevValue() !== null">
                   <span class="tip-swatch previous" aria-hidden="true"></span>
-                  Previous
-                  <strong>{{ hoverPrevValue() | number }}</strong>
+                  Previous<strong>{{ hoverPrevValue() | number }}</strong>
                 </p>
               </div>
             </div>
@@ -157,39 +157,76 @@
         </div>
       </section>
 
-      <!--══════════ Funnel + reach ══════════-->
-      <section class="mid-grid">
+      <!--══════════ Campaign performance + Activity (60/40) ══════════-->
+      <section class="perf-grid">
         <article class="panel">
           <div class="panel-head">
-            <h2 class="panel-title">Engagement funnel</h2>
-            <span class="panel-note">share of sent</span>
+            <h2 class="panel-title">Campaign performance</h2>
+            <button type="button" class="link-btn" (click)="goTo(brand.LIST_DRIP_CAMPAIGN)">View all</button>
           </div>
 
-          <table class="funnel-table">
-            <tbody>
-              <tr *ngFor="let s of funnel">
-                <th scope="row">{{ s.label }}</th>
-                <td class="f-bar">
-                  <span class="f-track">
-                    <span class="f-fill" [ngClass]="s.step" [style.width.%]="s.pct"></span>
-                  </span>
-                </td>
-                <td class="f-num">{{ s.value | number }}</td>
-                <td class="f-pct">{{ s.pct }}%</td>
-              </tr>
-            </tbody>
-          </table>
-
-          <div class="panel-foot">
-            <span><i class="fa fa-ban" aria-hidden="true"></i> {{ stats.totals.unsubscribes | number }} unsubscribed</span>
-            <span><i class="fa fa-exclamation-triangle" aria-hidden="true"></i> {{ stats.totals.bounces | number }} bounced</span>
+          <div class="table-scroll">
+            <table class="dash-table">
+              <thead>
+                <tr>
+                  <!--Sortable headers: a performance table you can't reorder is a
+                      report, not a tool.-->
+                  <th class="sortable" [class.sorted]="sortKey === 'title'" (click)="sortBy('title')">
+                    Campaign <i class="fa fa-sort-amount-desc s-ic" [class.asc]="sortDir === 'asc'" aria-hidden="true"></i>
+                  </th>
+                  <th>Status</th>
+                  <th class="num sortable" [class.sorted]="sortKey === 'sent'" (click)="sortBy('sent')">
+                    Sent <i class="fa fa-sort-amount-desc s-ic" [class.asc]="sortDir === 'asc'" aria-hidden="true"></i>
+                  </th>
+                  <th class="num sortable" [class.sorted]="sortKey === 'openRate'" (click)="sortBy('openRate')">
+                    Open <i class="fa fa-sort-amount-desc s-ic" [class.asc]="sortDir === 'asc'" aria-hidden="true"></i>
+                  </th>
+                  <th class="num sortable" [class.sorted]="sortKey === 'clickRate'" (click)="sortBy('clickRate')">
+                    Click <i class="fa fa-sort-amount-desc s-ic" [class.asc]="sortDir === 'asc'" aria-hidden="true"></i>
+                  </th>
+                  <th class="num sortable" [class.sorted]="sortKey === 'replyRate'" (click)="sortBy('replyRate')">
+                    Reply <i class="fa fa-sort-amount-desc s-ic" [class.asc]="sortDir === 'asc'" aria-hidden="true"></i>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let c of sortedCampaigns">
+                  <td>
+                    <span class="c-title" [title]="c.title">{{ c.title }}</span>
+                    <span class="c-meta">{{ c.numberOfEmails }} emails · {{ c.createdAt | date: 'MMM y' }}</span>
+                  </td>
+                  <td><span class="status-badge" [ngClass]="statusClass(c.status)">{{ c.status }}</span></td>
+                  <td class="num">{{ c.sent | number }}</td>
+                  <td class="num">{{ c.openRate }}%</td>
+                  <td class="num">{{ c.clickRate }}%</td>
+                  <td class="num strong">{{ c.replyRate }}%</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </article>
-
         <article class="panel">
           <div class="panel-head">
-            <h2 class="panel-title">Audience</h2>
+            <h2 class="panel-title">Activity</h2>
+            <button type="button" class="link-btn" (click)="goTo(brand.PROSPECTING_CONV_ALL)">Inbox</button>
           </div>
+          <ul class="activity">
+            <li *ngFor="let a of stats.recentActivity">
+              <i class="fa act-ic" [ngClass]="activityIcon(a.type)" aria-hidden="true"></i>
+              <span class="act-body">
+                <span class="act-line"><strong>{{ a.contactName }}</strong> {{ a.type }}</span>
+                <span class="act-meta">{{ a.campaignTitle }}<span *ngIf="a.clickedLink"> · {{ a.clickedLink }}</span></span>
+              </span>
+              <span class="act-time">{{ a.occurredAt | date: 'MMM d, h:mm a' }}</span>
+            </li>
+          </ul>
+        </article>
+      </section>
+
+      <!--══════════ Audience · Activity · Links ══════════-->
+      <section class="lower-grid">
+        <article class="panel">
+          <div class="panel-head"><h2 class="panel-title">Audience</h2></div>
           <ul class="reach-list">
             <li>
               <button type="button" (click)="goTo(brand.MANAGE_CONTACTS)">
@@ -214,100 +251,122 @@
             </li>
             <li>
               <button type="button" (click)="goTo(brand.LIST_DRIP_CAMPAIGN)">
-                <span class="r-label">
-                  Active now
-                  <span class="live-dot" aria-hidden="true"></span>
-                </span>
+                <span class="r-label">Active now <span class="live-dot" aria-hidden="true"></span></span>
                 <span class="r-value">{{ stats.totals.activeCampaigns | number }}</span>
                 <i class="fa fa-angle-right" aria-hidden="true"></i>
               </button>
             </li>
           </ul>
         </article>
+
+        <article class="panel">
+          <div class="panel-head"><h2 class="panel-title">Top clicked links</h2></div>
+          <table class="dash-table links">
+            <tbody>
+              <tr *ngFor="let l of stats.topLinks; let i = index">
+                <td class="l-rank">{{ i + 1 }}</td>
+                <td><span class="l-key" [title]="l.key">{{ l.key }}</span></td>
+                <td class="l-bar">
+                  <span class="f-track">
+                    <span
+                      class="f-fill step-3"
+                      [style.width.%]="stats.topLinks[0].count ? (l.count / stats.topLinks[0].count) * 100 : 0"
+                    ></span>
+                  </span>
+                </td>
+                <td class="num strong">{{ l.count | number }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </article>
       </section>
 
-      <!--══════════ Campaigns + activity ══════════-->
-      <section class="lower-grid">
+      <!--══════════ Funnel · Deliverability · Send windows ══════════-->
+      <section class="tri-grid">
         <article class="panel">
           <div class="panel-head">
-            <h2 class="panel-title">Campaigns</h2>
-            <button type="button" class="link-btn" (click)="goTo(brand.LIST_DRIP_CAMPAIGN)">View all</button>
+            <h2 class="panel-title">Engagement funnel</h2>
+            <span class="panel-note">step conversion</span>
           </div>
 
-          <div class="table-scroll">
-            <table class="dash-table">
-              <thead>
-                <tr>
-                  <th>Campaign</th>
-                  <th>Status</th>
-                  <th class="num">Sent</th>
-                  <th class="num">Open</th>
-                  <th class="num">Click</th>
-                  <th class="num">Reply</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let c of stats.campaigns">
-                  <td>
-                    <span class="c-title" [title]="c.title">{{ c.title }}</span>
-                    <span class="c-meta">{{ c.numberOfEmails }} emails</span>
-                  </td>
-                  <td>
-                    <span class="status-badge" [ngClass]="statusClass(c.status)">{{ c.status }}</span>
-                  </td>
-                  <td class="num">{{ c.sent | number }}</td>
-                  <td class="num">{{ c.openRate }}%</td>
-                  <td class="num">{{ c.clickRate }}%</td>
-                  <td class="num strong">{{ c.replyRate }}%</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+          <table class="funnel-table">
+            <tbody>
+              <tr *ngFor="let s of funnel">
+                <th scope="row">{{ s.label }}</th>
+                <td class="f-bar">
+                  <span class="f-track">
+                    <span class="f-fill" [ngClass]="s.step" [style.width.%]="s.pct"></span>
+                  </span>
+                </td>
+                <td class="f-num">{{ s.value | number }}</td>
+                <!--Conversion from the stage ABOVE — this is where drop-off shows.
+                    Share-of-sent alone hides that opens→clicks is the weak link.-->
+                <td class="f-step">
+                  <span *ngIf="s.stepPct !== null">{{ s.stepPct }}%</span>
+                  <span *ngIf="s.stepPct === null" class="dash">—</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </article>
 
         <article class="panel">
           <div class="panel-head">
-            <h2 class="panel-title">Activity</h2>
-            <button type="button" class="link-btn" (click)="goTo(brand.PROSPECTING_CONV_ALL)">Inbox</button>
+            <h2 class="panel-title">Deliverability</h2>
+            <span class="panel-note">{{ deliveredPct }}% delivered</span>
           </div>
 
-          <ul class="activity">
-            <li *ngFor="let a of stats.recentActivity">
-              <i class="fa act-ic" [ngClass]="activityIcon(a.type)" aria-hidden="true"></i>
-              <span class="act-body">
-                <span class="act-line"><strong>{{ a.contactName }}</strong> {{ a.type }}</span>
-                <span class="act-meta">
-                  {{ a.campaignTitle }}<span *ngIf="a.clickedLink"> · {{ a.clickedLink }}</span>
+          <ul class="delivery">
+            <li *ngFor="let d of delivery">
+              <span class="d-top">
+                <span class="d-label">
+                  <span class="d-dot" [ngClass]="'tone-' + d.tone" aria-hidden="true"></span>
+                  {{ d.label }}
                 </span>
+                <span class="d-num">{{ d.value | number }} <em>{{ d.pct }}%</em></span>
               </span>
-              <span class="act-time">{{ a.occurredAt | date: 'MMM d, h:mm a' }}</span>
+              <span class="f-track">
+                <span class="f-fill" [ngClass]="'tone-' + d.tone" [style.width.%]="d.pct"></span>
+              </span>
             </li>
           </ul>
-        </article>
-      </section>
 
-      <!--══════════ Top links ══════════-->
-      <section class="panel">
-        <div class="panel-head">
-          <h2 class="panel-title">Top clicked links</h2>
-        </div>
-        <table class="dash-table links">
-          <tbody>
-            <tr *ngFor="let l of stats.topLinks; let i = index">
-              <td class="l-rank">{{ i + 1 }}</td>
-              <td><span class="l-key" [title]="l.key">{{ l.key }}</span></td>
-              <td class="l-bar">
-                <span class="f-track">
-                  <span
-                    class="f-fill step-3"
-                    [style.width.%]="stats.topLinks[0].count ? (l.count / stats.topLinks[0].count) * 100 : 0"
-                  ></span>
-                </span>
-              </td>
-              <td class="num strong">{{ l.count | number }}</td>
-            </tr>
-          </tbody>
-        </table>
+          <div class="panel-foot">
+            <span><i class="fa fa-shield" aria-hidden="true"></i> Keep bounces under 2% to protect sender reputation.</span>
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-head">
+            <h2 class="panel-title">Best send windows</h2>
+            <span class="panel-note">reply rate</span>
+          </div>
+
+          <!--Heatmap: magnitude, so ONE hue with intensity carrying the value, plus a
+              legend stating the range. Every cell has a title with the exact figures.-->
+          <div class="heat">
+            <div class="heat-row heat-head" aria-hidden="true">
+              <span class="heat-day"></span>
+              <span class="heat-cell-label" *ngFor="let b of heatBuckets">{{ b }}</span>
+            </div>
+            <div class="heat-row" *ngFor="let day of heatDays; let d = index">
+              <span class="heat-day">{{ day }}</span>
+              <span
+                class="heat-cell"
+                *ngFor="let b of heatBuckets; let bi = index"
+                [style.background]="heatColor(cellAt(d, bi)?.intensity || 0)"
+                [class.is-strong]="(cellAt(d, bi)?.intensity || 0) > 0.62"
+                [title]="cellAt(d, bi)?.title"
+              >{{ cellAt(d, bi)?.rate }}</span>
+            </div>
+          </div>
+
+          <div class="heat-legend">
+            <span>0%</span>
+            <span class="heat-ramp" aria-hidden="true"></span>
+            <span>{{ heatMaxRate | number: '1.0-1' }}%</span>
+          </div>
+        </article>
       </section>
     </ng-container>
   </div>

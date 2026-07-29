@@ -1,6 +1,10 @@
 import { Injectable } from '@angular/core';
 import { constants } from '../helpers/constants';
-import { IDashboardStats, IDashboardTrendPoint } from '../models/DashboardStats';
+import {
+  IDashboardHeatCell,
+  IDashboardStats,
+  IDashboardTrendPoint,
+} from '../models/DashboardStats';
 
 /**
  * Dashboard statistics.
@@ -53,6 +57,7 @@ export class DashboardService {
       trend,
       campaigns: this.__buildCampaigns(),
       recentActivity: this.__buildActivity(),
+      sendWindows: this.__buildSendWindows(),
       topLinks: [
         { key: 'policyninja.co/pricing', count: 148 },
         { key: 'policyninja.co/book-a-call', count: 96 },
@@ -173,6 +178,29 @@ export class DashboardService {
         createdAt: '2026-04-02T16:57:00.000Z',
       },
     ];
+  }
+
+  /**
+   * Reply rate by weekday × time-of-day. Shaped so business-hours midweek performs
+   * best and weekends barely register — the pattern real outreach data shows, so the
+   * heatmap is legible rather than noise.
+   */
+  private __buildSendWindows(): IDashboardHeatCell[] {
+    const rand = this.seeded(880123);
+    const cells: IDashboardHeatCell[] = [];
+
+    for (let dow = 0; dow < 7; dow++) {
+      const weekend = dow === 0 || dow === 6;
+      for (let bucket = 0; bucket < 4; bucket++) {
+        // Late morning and early afternoon are the strong windows.
+        const bucketWeight = [1, 1.25, 1.05, 0.6][bucket];
+        const dayWeight = weekend ? 0.18 : 1;
+        const sent = Math.round((60 + rand() * 90) * dayWeight * bucketWeight);
+        const replyRate = (weekend ? 0.012 : 0.035) * bucketWeight + rand() * 0.012;
+        cells.push({ dow, bucket, sent, replies: Math.round(sent * replyRate) });
+      }
+    }
+    return cells;
   }
 
   private __buildActivity() {

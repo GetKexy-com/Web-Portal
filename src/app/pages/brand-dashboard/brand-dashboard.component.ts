@@ -8,6 +8,9 @@ import { routeConstants } from '../../helpers/routeConstants';
 import { constants } from '../../helpers/constants';
 import {
   DASHBOARD_RANGES,
+  HEAT_BUCKETS,
+  HEAT_DAYS,
+  IDashboardCampaignRow,
   IDashboardStats,
   IDashboardTrendPoint,
 } from '../../models/DashboardStats';
@@ -32,6 +35,36 @@ interface IAxisTick {
   /** Position along the axis, 0-100. */
   pct: number;
   label: string;
+}
+
+/**
+ * An auto-derived callout. These are COMPUTED from the data, never authored — the
+ * point of an insight strip is that it reacts to what actually happened, so it keeps
+ * working unchanged once the mock is swapped for the live endpoint.
+ */
+interface IInsight {
+  tone: 'good' | 'warn' | 'info';
+  icon: string;
+  text: string;
+}
+
+/** One deliverability row: delivered / bounced / unsubscribed, with its share. */
+interface IDeliveryRow {
+  label: string;
+  value: number;
+  pct: number;
+  tone: 'good' | 'warn' | 'neutral';
+}
+
+/** A heatmap cell, pre-scaled for rendering. */
+interface IHeatCellView {
+  dow: number;
+  bucket: number;
+  rate: number;
+  sent: number;
+  /** 0-1 position on the sequential ramp. */
+  intensity: number;
+  title: string;
 }
 
 @Component({
@@ -75,7 +108,15 @@ export class BrandDashboardComponent implements OnInit {
   hoverX = 0;
   hoverY = 0;
 
-  funnel: { label: string; value: number; pct: number; step: string }[] = [];
+  funnel: {
+    label: string;
+    value: number;
+    /** Share of everything sent. */
+    pct: number;
+    /** Conversion from the PREVIOUS stage — the number that shows where drop-off is. */
+    stepPct: number | null;
+    step: string;
+  }[] = [];
 
   constructor(
     private dashboardService: DashboardService,
@@ -181,6 +222,11 @@ export class BrandDashboardComponent implements OnInit {
     this.__buildTiles();
     this.__buildChart();
     this.__buildFunnel();
+    this.__buildDelivery();
+    this.__buildHeat();
+    // Insights read the tiles AND the heatmap, so it runs last.
+    this.__buildInsights();
+    this.__applySort();
   }
 
   private __sum(rows: IDashboardTrendPoint[], k: MetricKey): number {
@@ -326,6 +372,163 @@ export class BrandDashboardComponent implements OnInit {
     return p ? (p[this.selectedMetric] as number) : null;
   }
 
+  // ── Derived insight strip ───────────────────────────────────────────────
+  insights: IInsight[] = [];
+
+  /**
+   * Turn the numbers into sentences. Only material changes are surfaced (>=8% swing,
+   * or a deliverability threshold breach) so the strip stays worth reading rather
+   * than restating every metric.
+   */
+  private __buildInsights(): void {
+    const out: IInsight[] = [];
+    const reply = this.tiles.find((t) => t.key === 'replies');
+    const open = this.tiles.find((t) => t.key === 'opens');
+    const sent = this.tiles.find((t) => t.key === 'sent');
+
+    if (reply && Math.abs(reply.delta) >= 8) {
+      out.push({
+        tone: reply.delta > 0 ? 'good' : 'warn',
+        icon: reply.delta > 0 ? 'fa-arrow-up' : 'fa-arrow-down',
+        text: `Reply rate ${reply.delta > 0 ? 'up' : 'down'} ${Math.abs(reply.delta)}% to ${reply.rate}% versus the previous ${this.selectedDays} days.`,
+      });
+    }
+
+    if (open && Math.abs(open.delta) >= 8) {
+      out.push({
+        tone: open.delta > 0 ? 'good' : 'warn',
+        icon: 'fa-envelope-open-o',
+        text: `Open rate ${open.delta > 0 ? 'improved' : 'slipped'} to ${open.rate}% (${open.delta > 0 ? '+' : ''}${open.delta}%).`,
+      });
+    }
+
+    // Best send window, straight from the heatmap — the actionable one.
+    const best = this.heatCells.reduce(
+      (a, b) => (b.rate > (a?.rate ?? -1) ? b : a),
+      null as IHeatCellView,
+    );
+    if (best && best.rate > 0) {
+      out.push({
+        tone: 'info',
+        icon: 'fa-clock-o',
+        text: `Best send window is ${HEAT_DAYS[best.dow]} ${HEAT_BUCKETS[best.bucket]}h at a ${best.rate}% reply rate.`,
+      });
+    }
+
+    const bounceRate = this.__pct(this.stats.totals.bounces, this.stats.totals.emailsSent);
+    if (bounceRate >= 2) {
+      out.push({
+        tone: 'warn',
+        icon: 'fa-exclamation-triangle',
+        text: `Bounce rate is ${bounceRate}% — above the 2% threshold that puts sender reputation at risk.`,
+      });
+    }
+
+    if (!out.length && sent) {
+      out.push({
+        tone: 'info',
+        icon: 'fa-check',
+        text: `Steady period: ${this.compact(sent.total)} sent with no material change in engagement.`,
+      });
+    }
+
+    this.insights = out.slice(0, 3);
+  }
+
+  // ── Deliverability ──────────────────────────────────────────────────────
+  delivery: IDeliveryRow[] = [];
+  deliveredPct = 0;
+
+  private __buildDelivery(): void {
+    const t = this.stats.totals;
+    // `delivered` is derived, not stored: sent minus bounces, so it can never
+    // contradict the other two numbers.
+    const delivered = Math.max(t.emailsSent - t.bounces, 0);
+    this.deliveredPct = this.__pct(delivered, t.emailsSent);
+
+    this.delivery = [
+      { label: 'Delivered', value: delivered, pct: this.deliveredPct, tone: 'good' },
+      {
+        label: 'Bounced',
+        value: t.bounces,
+        pct: this.__pct(t.bounces, t.emailsSent),
+        tone: 'warn',
+      },
+      {
+        label: 'Unsubscribed',
+        value: t.unsubscribes,
+        pct: this.__pct(t.unsubscribes, t.emailsSent),
+        tone: 'neutral',
+      },
+    ];
+  }
+
+  // ── Send-window heatmap ─────────────────────────────────────────────────
+  readonly heatDays = HEAT_DAYS;
+  readonly heatBuckets = HEAT_BUCKETS;
+  heatCells: IHeatCellView[] = [];
+  heatMaxRate = 0;
+
+  /**
+   * Reply rate per weekday × time bucket. Sequential ONE-hue ramp: this is
+   * magnitude, so intensity carries the value and a legend states the range.
+   */
+  private __buildHeat(): void {
+    const cells = this.stats.sendWindows || [];
+    const rates = cells.map((c) => (c.sent ? (c.replies / c.sent) * 100 : 0));
+    this.heatMaxRate = Math.max(...rates, 1);
+
+    this.heatCells = cells.map((c, i) => {
+      const rate = Math.round(rates[i] * 10) / 10;
+      return {
+        dow: c.dow,
+        bucket: c.bucket,
+        rate,
+        sent: c.sent,
+        intensity: rates[i] / this.heatMaxRate,
+        title: `${HEAT_DAYS[c.dow]} ${HEAT_BUCKETS[c.bucket]}h — ${rate}% reply rate from ${c.sent} sent`,
+      };
+    });
+  }
+
+  cellAt = (dow: number, bucket: number): IHeatCellView =>
+    this.heatCells.find((c) => c.dow === dow && c.bucket === bucket);
+
+  /** Single-hue ramp. Alpha carries magnitude; the hue never changes. */
+  heatColor = (intensity: number): string => {
+    if (!intensity) return '#f6f8fb';
+    return `rgba(9, 93, 209, ${(0.1 + intensity * 0.85).toFixed(3)})`;
+  };
+
+  // ── Sortable campaign table ─────────────────────────────────────────────
+  sortKey: keyof IDashboardCampaignRow = 'sent';
+  sortDir: 'asc' | 'desc' = 'desc';
+  sortedCampaigns: IDashboardCampaignRow[] = [];
+
+  sortBy = (key: keyof IDashboardCampaignRow): void => {
+    if (this.sortKey === key) {
+      this.sortDir = this.sortDir === 'desc' ? 'asc' : 'desc';
+    } else {
+      this.sortKey = key;
+      this.sortDir = 'desc';
+    }
+    this.__applySort();
+  };
+
+  private __applySort(): void {
+    const rows = [...(this.stats?.campaigns || [])];
+    const k = this.sortKey;
+    const dir = this.sortDir === 'asc' ? 1 : -1;
+
+    rows.sort((a, b) => {
+      const av = a[k];
+      const bv = b[k];
+      if (typeof av === 'number' && typeof bv === 'number') return (av - bv) * dir;
+      return String(av).localeCompare(String(bv)) * dir;
+    });
+    this.sortedCampaigns = rows;
+  }
+
   /** Funnel = magnitude → one hue, light to dark. Steps, never a rainbow. */
   private __buildFunnel(): void {
     const cur = this.visibleTrend;
@@ -334,11 +537,31 @@ export class BrandDashboardComponent implements OnInit {
     const clicks = this.__sum(cur, 'clicks');
     const replies = this.__sum(cur, 'replies');
 
+    // `stepPct` is conversion from the stage above, which is where drop-off shows.
+    // Share-of-sent alone hides that opens→clicks is the weak link.
     this.funnel = [
-      { label: 'Sent', value: sent, pct: 100, step: 'step-1' },
-      { label: 'Opened', value: opens, pct: this.__pct(opens, sent), step: 'step-2' },
-      { label: 'Clicked', value: clicks, pct: this.__pct(clicks, sent), step: 'step-3' },
-      { label: 'Replied', value: replies, pct: this.__pct(replies, sent), step: 'step-4' },
+      { label: 'Sent', value: sent, pct: 100, stepPct: null, step: 'step-1' },
+      {
+        label: 'Opened',
+        value: opens,
+        pct: this.__pct(opens, sent),
+        stepPct: this.__pct(opens, sent),
+        step: 'step-2',
+      },
+      {
+        label: 'Clicked',
+        value: clicks,
+        pct: this.__pct(clicks, sent),
+        stepPct: this.__pct(clicks, opens),
+        step: 'step-3',
+      },
+      {
+        label: 'Replied',
+        value: replies,
+        pct: this.__pct(replies, sent),
+        stepPct: this.__pct(replies, clicks),
+        step: 'step-4',
+      },
     ];
   }
 }
