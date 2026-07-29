@@ -5,6 +5,20 @@ $kx-ink: #0f172a;
 $kx-muted: #64748b;
 $kx-field-bg: #f7f9fc;
 
+// ─────────────────────────────────────────────────────────────────────────────
+// SELECTED-ROW STYLE — flip this ONE number to change the treatment. Only the
+// chosen branch compiles, so the unused two cost nothing at runtime.
+//   1 = white card lifting off the tinted list bed + accent spine  (Superhuman/Linear)
+//   2 = solid accent fill, white text                             (Slack)  ← CHOSEN
+//   3 = quiet neutral-blue fill, bold name, no spine               (Gmail)
+// All three assume the host pages keep their tinted list bed (#f8fafc). Style 1
+// REQUIRES it (a white card needs something to lift off); 2 and 3 merely tolerate
+// it, so the bed never has to change when switching.
+//
+// All three were reviewed side by side in the browser; 2 was chosen.
+$selected-style: 2;
+// ─────────────────────────────────────────────────────────────────────────────
+
 // Conversation list item, shared by brand-conversations AND
 // brand-conversation-sent — both render it inside an identical
 // `checkbox + card` row, so hover / selected / unread all live HERE rather than
@@ -27,30 +41,84 @@ $kx-field-bg: #f7f9fc;
   transition: background 0.15s ease, box-shadow 0.15s ease;
 
   // Hover = a WHITE row with the faintest lift, a step below selected. This reads
-  // because the list bed is tinted (#f8fafc, set by the host page) — on a white
-  // bed neither this nor the selected card below would have anything to lift off.
-  // Both list pages must keep that tint.
+  // because the list bed is tinted (#f8fafc, set by the host page).
   &:hover {
     background: #ffffff;
     box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
   }
 
-  // Selected: pure white card that lifts off the tinted bed, plus a 3px accent
-  // spine. Stronger shadow than hover so the two states are distinguishable.
-  &.selected {
-    background: #ffffff;
-    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06),
-      0 10px 24px -12px rgba(9, 93, 209, 0.35);
+  // ── Selected ────────────────────────────────────────────────────────────
+  @if $selected-style == 1 {
+    // 1 — pure white card lifting off the tinted bed + a 3px accent spine.
+    &.selected,
+    &.selected:hover {
+      background: #ffffff;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06),
+        0 10px 24px -12px rgba(9, 93, 209, 0.35);
 
-    &::before {
-      content: '';
-      position: absolute;
-      left: 0;
-      top: 10px;
-      bottom: 10px;
-      width: 3px;
-      border-radius: 0 3px 3px 0;
-      background: linear-gradient(180deg, $kx-primary, $kx-primary-deep);
+      &::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 10px;
+        bottom: 10px;
+        width: 3px;
+        border-radius: 0 3px 3px 0;
+        background: linear-gradient(180deg, $kx-primary, $kx-primary-deep);
+      }
+    }
+  } @else if $selected-style == 2 {
+    // 2 — solid accent fill, white text (Slack's active channel). The fill IS the
+    // indicator, so there is no spine. Every text/icon colour inside the row has
+    // to be inverted, which is why this branch is the longest.
+    &.selected,
+    &.selected:hover {
+      background: linear-gradient(135deg, $kx-primary, $kx-primary-deep);
+      box-shadow: 0 6px 18px -8px rgba(9, 93, 209, 0.55);
+
+      .conv-user {
+        .name-date p { color: #ffffff; }
+        .conv-date { color: rgba(255, 255, 255, 0.75); }
+        .conv-preview { color: rgba(255, 255, 255, 0.85); }
+      }
+
+      // Unread cues have to invert too, or they vanish into the fill.
+      &.unread .conv-user {
+        .name-date p::before { background: #ffffff; }
+        .conv-preview { color: #ffffff; }
+      }
+
+      // A white ring separates the avatar's own per-person gradient from the fill.
+      .select-target {
+        box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.5);
+      }
+
+      .pin-btn {
+        color: rgba(255, 255, 255, 0.85);
+
+        &:hover {
+          background: rgba(255, 255, 255, 0.22);
+          color: #ffffff;
+        }
+
+        &.pinned {
+          background: #ffffff;
+          color: $kx-primary-deep;
+          box-shadow: none;
+        }
+      }
+    }
+  } @else {
+    // 3 — quiet neutral-blue fill + bold name, no spine, no shadow (Gmail).
+    &.selected,
+    &.selected:hover {
+      background: #eef4ff;
+      box-shadow: none;
+
+      .conv-user .name-date p {
+        font-weight: 700;
+        color: $kx-ink;
+      }
     }
   }
 

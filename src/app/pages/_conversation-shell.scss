@@ -1,0 +1,644 @@
+// ── Tokens (match the drawer family: prospecting-contacts, lead-magnet-form, …) ─
+$kx-primary: #12a5f4;
+$kx-primary-deep: #095dd1;
+$kx-ink: #0f172a;
+$kx-muted: #64748b;
+$kx-border: #e2e8f0;
+$kx-field-bg: #f7f9fc;
+$kx-red: #dc2626;
+$kx-red-bg: #fdeaea;
+$kx-amber: #b45309;
+$kx-amber-bg: #fff7ed;
+
+$rail-width: 380px;
+// brand-layout's header is `.main-warp` (15px padding + ~34px controls + 1px
+// border) ≈ 70px. The page owns its own height because the layout renders
+// `<ng-content>` in an unstyled div when `layoutPaddingNone` is set.
+$page-h: calc(100vh - 70px);
+
+// Two-pane mail layout. This used to be `float: left` columns each with their own
+// `height: calc(100vh - 120px)` — which made the two columns different total
+// heights. It is now ONE flex row of fixed height, and each pane's scroll region
+// flexes into whatever is left.
+.brand-conversations-page {
+  display: flex;
+  height: $page-h;
+  min-height: 0;
+  overflow: hidden;
+  background: #f4f6fb;
+
+  // Thin overlay scrollbars on both scroll regions — the chunky default gutter is
+  // the loudest thing in a dense list. Firefox gets the standard property; WebKit
+  // needs the pseudo-elements.
+  .rail-list,
+  .pane-thread {
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+
+    &::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      border-radius: 999px;
+      background: #cbd5e1;
+      // Inset the thumb so it reads as an overlay rail rather than a filled gutter.
+      border: 2px solid transparent;
+      background-clip: content-box;
+    }
+
+    &:hover::-webkit-scrollbar-thumb {
+      background: #94a3b8;
+      background-clip: content-box;
+    }
+  }
+
+  // Keyboard users get a real ring; mouse users never see it. Everything
+  // interactive here is a <button>, so one rule covers the lot.
+  button:focus-visible,
+  .search-field:focus-within,
+  a:focus-visible {
+    outline: 2px solid $kx-primary;
+    outline-offset: 2px;
+    border-radius: 10px;
+  }
+
+  // Shared square icon button (rail actions, pager, modal close)
+  .icon-btn {
+    flex-shrink: 0;
+    width: 34px;
+    height: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid $kx-border;
+    border-radius: 10px;
+    background: #fff;
+    color: $kx-muted;
+    font-size: 15px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    &:hover:not(:disabled) {
+      border-color: $kx-primary;
+      background: $kx-field-bg;
+      color: $kx-primary-deep;
+    }
+
+    &.danger:hover:not(:disabled) {
+      border-color: $kx-red;
+      background: $kx-red-bg;
+      color: $kx-red;
+    }
+
+    &.sm {
+      width: 30px;
+      height: 30px;
+      font-size: 16px;
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+
+  // ── Left rail ───────────────────────────────────────────────────────────
+  .conv-rail {
+    flex: 0 0 $rail-width;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    // The list BED is tinted, not white. brand-convo-card's hover and selected
+    // states are white cards that lift off this tint — on a white bed they would
+    // have nothing to lift off. Keep the two in step.
+    background: #f8fafc;
+    border-right: 1px solid $kx-border;
+
+    .rail-head {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 16px;
+      // Head + toolbar stay white so they read as one crisp header block above
+      // the tinted list.
+      background: #ffffff;
+      border-bottom: 1px solid $kx-border;
+
+      // Pill search field — the input itself is borderless; the wrapper is the
+      // control, so the magnifier and spinner sit inside it.
+      .search-field {
+        flex: 1 1 auto;
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        height: 38px;
+        padding: 0 12px;
+        border: 1.5px solid $kx-border;
+        border-radius: 10px;
+        background: $kx-field-bg;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+
+        &:focus-within {
+          background: #fff;
+          border-color: $kx-primary;
+          box-shadow: 0 0 0 3px rgba(18, 165, 244, 0.15);
+        }
+
+        > i {
+          flex-shrink: 0;
+          font-size: 13px;
+          color: $kx-muted;
+        }
+
+        input {
+          flex: 1 1 auto;
+          min-width: 0;
+          border: none;
+          outline: none;
+          background: transparent;
+          font-size: 13.5px;
+          color: $kx-ink;
+
+          &::placeholder { color: #9aa6b6; }
+        }
+
+        .search-spinner { color: $kx-primary-deep; }
+      }
+
+      .rail-actions {
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .dropdown-content-wrap {
+        width: 242px;
+        padding: 10px 12px;
+
+        .item-in-dropdown {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+
+          input {
+            min-width: 15px;
+            min-height: 15px;
+            accent-color: $kx-primary;
+            cursor: pointer;
+          }
+
+          label {
+            cursor: pointer;
+            margin: 0;
+            font-size: 13px;
+            color: $kx-ink;
+          }
+        }
+      }
+    }
+
+    .rail-toolbar {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 8px 12px 8px 14px;
+      background: #ffffff;
+      border-bottom: 1px solid $kx-border;
+
+      .select-all {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 4px 6px;
+        border: none;
+        border-radius: 8px;
+        background: transparent;
+        font-size: 12.5px;
+        font-weight: 600;
+        color: $kx-muted;
+        cursor: pointer;
+
+        &:hover { color: $kx-primary-deep; }
+      }
+
+      .rail-pager {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+
+        .pager-count {
+          font-size: 12.5px;
+          color: $kx-muted;
+          white-space: nowrap;
+        }
+      }
+
+      .disabled {
+        opacity: 0.45;
+        pointer-events: none;
+      }
+    }
+
+    // The ONLY scroll region in the rail.
+    .rail-list {
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow-y: auto;
+      padding: 8px;
+    }
+  }
+
+  .checkbox-icon {
+    font-size: 15px;
+    color: #9aa6b6;
+    transition: color 0.15s ease;
+
+    &.selected { color: $kx-primary; }
+  }
+
+  // A list row = checkbox + the shared brand-convo-card.
+  // Hover / selected / unread all live IN brand-convo-card now, so this page and
+  // brand-conversation-sent cannot drift apart — the row here is pure layout.
+  .conv-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 2px;
+
+    & + .conv-row { margin-top: 2px; }
+
+  }
+
+
+  // ── Skeleton placeholders ───────────────────────────────────────────────
+  .skeleton-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 10px;
+
+    .sk-avatar,
+    .sk-line {
+      background: linear-gradient(90deg, #eef2f7 25%, #e2e8f0 37%, #eef2f7 63%);
+      background-size: 400% 100%;
+      animation: skShimmer 1.4s ease infinite;
+    }
+
+    .sk-avatar {
+      flex-shrink: 0;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+    }
+
+    .sk-lines {
+      flex: 1 1 auto;
+
+      .sk-line {
+        border-radius: 999px;
+
+        &.top { width: 45%; height: 9px; margin-bottom: 8px; }
+        &.bottom { width: 78%; height: 7px; }
+      }
+    }
+  }
+
+  @keyframes skShimmer {
+    from { background-position: 100% 50%; }
+    to { background-position: 0 50%; }
+  }
+
+  // ── Right pane ──────────────────────────────────────────────────────────
+  .conv-pane {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+
+    // Contact header — the old 50px bar + a second "extra info" strip merged
+    // into one block, so the name, role and contact details read together.
+    .pane-head {
+      flex-shrink: 0;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 16px 22px;
+      background: #ffffff;
+      border-bottom: 1px solid $kx-border;
+
+      .pane-identity {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 0;
+      }
+
+      .identity-name-row {
+        display: flex;
+        align-items: baseline;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .identity-name {
+        font-size: 15px;
+        font-weight: 700;
+        color: $kx-ink;
+      }
+
+      .unsubscribe-link {
+        font-size: 12px;
+        font-weight: 500;
+        color: $kx-primary-deep;
+        text-decoration: underline;
+        cursor: pointer;
+
+        &:hover { color: $kx-red; }
+      }
+
+      .identity-role {
+        margin-top: 2px;
+        font-size: 12.5px;
+        line-height: 1.4;
+        color: $kx-muted;
+
+        .company-name {
+          color: $kx-primary-deep;
+          text-decoration: none;
+
+          &:hover { text-decoration: underline; }
+        }
+      }
+
+      .pane-actions {
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+
+      .contact-chips {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px;
+
+        .contact-chip {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 5px 10px;
+          border: 1px solid $kx-border;
+          border-radius: 999px;
+          background: $kx-field-bg;
+          font-size: 12px;
+          color: $kx-muted;
+
+          img { width: 14px; }
+        }
+      }
+    }
+
+    .unsubscribed-banner {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 22px;
+      background: $kx-amber-bg;
+      border-bottom: 1px solid #fed7aa;
+      font-size: 13px;
+      font-weight: 600;
+      color: $kx-amber;
+    }
+
+    // The ONLY scroll region in the pane.
+    .pane-thread {
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow-y: auto;
+      position: relative;
+      padding: 20px 22px 60px;
+
+      // One loader for the whole thread; shown only if the load runs long (see
+      // showSpinner). Fades in so it doesn't pop.
+      .conv-loading-overlay {
+        position: sticky;
+        top: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 140px;
+        font-size: 24px;
+        color: $kx-primary-deep;
+        animation: convLoaderFade 0.2s ease both;
+      }
+
+      @keyframes convLoaderFade {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+
+      // Messages stay laid out (so their iframes load + size) but invisible until
+      // every frame is ready, then fade in together — no per-message reflow jump.
+      .conv-messages {
+        transition: opacity 0.2s ease; // fades IN on reveal
+
+        &.hidden {
+          opacity: 0;
+          pointer-events: none;
+          transition: none; // hide INSTANTLY — no fade-out flash of the new messages
+        }
+      }
+    }
+  }
+
+  // ── Empty state ─────────────────────────────────────────────────────────
+  .conv-empty {
+    flex: 1 1 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .empty-content {
+      width: 320px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .empty-badge {
+      width: 86px;
+      height: 86px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: rgba(18, 165, 244, 0.13);
+      margin-bottom: 14px;
+    }
+
+    .empty-title {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 700;
+      color: $kx-ink;
+    }
+
+    .empty-desc {
+      margin: 6px 0 0;
+      font-size: 13px;
+      line-height: 1.5;
+      color: $kx-muted;
+    }
+  }
+}
+
+// ── Compose modal ─────────────────────────────────────────────────────────
+.send-email-modal-content {
+  .modal-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 20px 22px;
+    border-bottom: 1px solid $kx-border;
+
+    .modal-title-text {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 700;
+      line-height: 1.2;
+      color: $kx-ink;
+    }
+
+    .modal-subtitle {
+      display: block;
+      margin-top: 3px;
+      font-size: 13px;
+      color: $kx-muted;
+    }
+
+    .icon-btn {
+      flex-shrink: 0;
+      width: 34px;
+      height: 34px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid $kx-border;
+      border-radius: 10px;
+      background: #fff;
+      color: $kx-muted;
+      font-size: 15px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+
+      &:hover {
+        background: $kx-red-bg;
+        border-color: $kx-red;
+        color: $kx-red;
+      }
+    }
+  }
+
+  .send-email-modal-body {
+    padding: 18px 22px 22px;
+
+    .recipient-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      border: 1px solid $kx-border;
+      border-radius: 12px;
+      background: $kx-field-bg;
+
+      .recipient-text {
+        min-width: 0;
+      }
+
+      .recipient-name {
+        display: block;
+        font-size: 14px;
+        font-weight: 700;
+        color: $kx-ink;
+      }
+
+      .recipient-role {
+        display: block;
+        margin-top: 2px;
+        font-size: 12.5px;
+        color: $kx-muted;
+
+        .company-name {
+          color: $kx-primary-deep;
+          text-decoration: none;
+
+          &:hover { text-decoration: underline; }
+        }
+      }
+    }
+
+    .text-area {
+      margin-top: 16px;
+
+      // The custom rich editor renders a "Subject line" field above its toolbar.
+      // This reply-in-thread compose keeps the conversation's existing subject
+      // (sent via selectedConversation.emailSubject), so hide the editor's own
+      // subject to match the previous body-only compose box. ::ng-deep pierces
+      // the editor's ViewEncapsulation.None DOM; scoped under .textarea-wrap so
+      // it only affects this modal's instance.
+      .textarea-wrap ::ng-deep .email-meta {
+        display: none;
+      }
+
+      .compose-error {
+        display: block;
+        margin-top: 8px;
+        font-size: 12px;
+        color: $kx-red;
+      }
+    }
+
+    .modal-foot {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 18px;
+    }
+  }
+}
+
+// Respect the OS "reduce motion" setting — the shimmer and the hover/selection
+// transitions are decoration, not information.
+@media (prefers-reduced-motion: reduce) {
+  .brand-conversations-page {
+    .skeleton-row .sk-avatar,
+    .skeleton-row .sk-line {
+      animation: none;
+    }
+
+    .icon-btn,
+    .checkbox-icon,
+    .search-field,
+    .conv-messages {
+      transition: none;
+    }
+
+    .conv-loading-overlay {
+      animation: none;
+    }
+  }
+}

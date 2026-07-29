@@ -99,13 +99,37 @@ export class BrandConvoEmailComponent implements OnInit, OnDestroy {
     base.setAttribute('target', '_blank');
     base.setAttribute('rel', 'noopener noreferrer');
 
+    // ── Flatten OUR email shell (sent messages only) ──────────────────────────
+    // The editor's getHtml() export wraps the body in a 100%-wide grey "page" table
+    // holding a centred 600px white card (see editor-canvas.generateEmailHtml).
+    // Inside a chat bubble that shell is redundant — the bubble already IS the card
+    // — and it rendered as a thick grey band with the message floating in the
+    // middle, which is why only SOME messages looked over-padded: plain fragments
+    // have no shell. Keyed on the shell's own width attributes, and applied only to
+    // SENT messages: a received reply is arbitrary third-party HTML, where making
+    // its card transparent could drop dark text onto the blue bubble.
+    const shellReset = received
+      ? ''
+      : `body>table[width="100%"]{background:transparent !important;width:100% !important;}` +
+        `body>table[width="100%"]>tbody>tr>td{padding:0 !important;background:transparent !important;}` +
+        `body table[width="600"]{width:100% !important;max-width:100% !important;background:transparent !important;}` +
+        `body table[width="600"]>tbody>tr>td{padding:0 !important;}`;
+
     const style = doc.createElement('style');
     style.textContent =
-      `html,body{margin:0;padding:0;}` +
-      `body{padding:10px 12px;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:1.5;${bubble}}` +
+      `html,body{margin:0 !important;}` +
+      // `!important` on background/padding is REQUIRED: a full email-shell document
+      // (the editor's getHtml export) carries its own INLINE
+      // `<body style="background:#f3f4f6;padding:0">`, and an inline style beats a
+      // stylesheet — so without it the bubble showed the shell's grey page and threw
+      // away the padding below. `color` deliberately stays non-important so an
+      // email's own text colours still apply.
+      `body{padding:10px 12px !important;background:${received ? '#095dd1' : '#ffffff'} !important;` +
+      `font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:1.5;${bubble}}` +
       `body a{color:${linkColor};}` +
       `p{margin:.4rem 0;}` +
       `img{max-width:100%;height:auto;}` +
+      shellReset +
       `.gmail_quote{display:none !important;}`;
 
     const head = doc.head || doc.documentElement;
