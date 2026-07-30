@@ -87,14 +87,25 @@ $kx-header-bg: #f8fafc;
 
     .list-wrapper {
       overflow: auto;
+      // CAP, not a fixed height: the card grows with its rows and only scrolls once
+      // they exceed the room available. An inline `height` binding used to force this
+      // value whenever there was >= 1 row, stretching a 3-row table down the viewport.
+      max-height: calc(100vh - 260px);
 
       .n-table {
         outline: 0;
         border-collapse: collapse;
-        // Fill the available width with proportional (percentage) columns; the
-        // checkbox is a fixed px column. min-width keeps it usable on narrow
-        // screens (the wrapper scrolls instead of cramping).
-        table-layout: fixed;
+        // AUTO layout, so the Name column can size to its content — list names are
+        // user-chosen, and under `fixed` a percentage width forced them to ellipsise
+        // however much room the row had spare.
+        //
+        // `width: 100%` keeps the table filling the card (and avoids a load-time
+        // narrow → wide balloon: it starts full width either way). The declared column
+        // widths become preferences, which is what lets the slack land on Name.
+        // min-width keeps it usable on narrow screens (the wrapper scrolls instead of
+        // cramping). Auto layout only behaves with exactly ONE uncapped column — hence
+        // the `.creator-cell` cap below.
+        table-layout: auto;
         width: 100%;
         min-width: 700px;
 
@@ -270,8 +281,9 @@ $kx-header-bg: #f8fafc;
     // Match contact-list-card's checkbox column spacing.
     padding-left: 28px;
     padding-right: 4px;
-    // min-width enforces the column size (the Name column is width:100% and eats
-    // spare width, so a plain `width` on this column is ignored).
+    // min-width, not width: under `table-layout: auto` a plain `width` is only a
+    // preference and content sizing can override it, so the checkbox column needs a
+    // floor to hold its size against the uncapped Name column.
     min-width: 58px;
     position: sticky;
     left: 0;
@@ -330,6 +342,38 @@ $kx-header-bg: #f8fafc;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap !important;
+}
+
+// ── Name column: never truncate ─────────────────────────────────────────────
+// Opts OUT of the ellipsis rules above (both the generic `> span` one and the
+// `.label-tag` one). That opt-out is what actually widens the column: while the pill
+// was allowed to ellipsise, auto layout saw the content as "fitting" at any size and
+// never asked for more width.
+.kexy-table-card .n-table td.n-cell.name-cell,
+.kexy-table-card .n-table .n-header-name.name-cell {
+  overflow: visible;
+  text-overflow: clip;
+  white-space: nowrap;
+
+  > span,
+  .label-tag {
+    max-width: none;
+    overflow: visible;
+    text-overflow: clip;
+    white-space: nowrap;
+  }
+}
+
+// ── Creator column: stays capped ────────────────────────────────────────────
+// Required for the Name change to hold. A long creator name would otherwise take the
+// slack under auto layout and squeeze Name back toward truncation — the exact problem
+// being fixed. Keeps its ellipsis; the cell is short text so nothing important is lost.
+.kexy-table-card .n-table td.n-cell.creator-cell > span {
+  display: inline-block;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 // A cell holding a pill PLUS a "+N more" affordance must let the pill shrink while

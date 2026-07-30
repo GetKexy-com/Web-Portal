@@ -147,11 +147,14 @@ export class ContactListCardComponent implements OnInit, OnChanges, OnDestroy, A
       { name: 'Linkedin', key: 'linkedinUrl', width: 80 },
       { name: 'Email Address', key: 'email', width: 180 },
       { name: 'Email Status', key: 'email_status', width: 120 },
+      // Lists sits with the email columns, not out past Country: which lists a
+      // contact belongs to is a targeting fact, so it belongs beside their
+      // deliverability rather than among the location fields.
+      { name: 'Lists', key: 'label', width: 130 },
       { name: 'Phone Number', key: 'phone_number', width: 120 },
       { name: 'City', key: 'city', width: 100 },
       { name: 'State/Province', key: 'state', width: 100 },
       { name: 'Country', key: 'country', width: 120 },
-      { name: 'Lists', key: 'label', width: 130 },
       { name: 'Company Name', key: 'company_name', width: 160 },
       { name: 'Job Title', key: 'title', width: 170 },
       { name: 'Marketing Status', key: 'marketing_status', width: 120 },

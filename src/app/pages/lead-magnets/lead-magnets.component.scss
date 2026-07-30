@@ -79,6 +79,9 @@ $kx-header-bg: #f8fafc;
 
       .list-wrapper {
         overflow: auto;
+        // CAP, not a fixed height — see the note in the template. Lets a short table
+        // render short and a long one scroll.
+        max-height: calc(100vh - 330px);
 
         .n-table {
           outline: 0;

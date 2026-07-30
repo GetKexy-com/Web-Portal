@@ -97,11 +97,15 @@ export class ListOfDripCampaignTableComponent implements OnInit, AfterViewChecke
       // trimmed to keep the total at 100%. Long values now ellipsise inside the
       // cell (see the SCSS) rather than being hard-cut.
       { name: '', key: 'action', width: '58px' },
-      { name: 'Drip Campaign Title', key: 'drip_campaign_title', width: '32%' },
+      { name: 'Drip Campaign Title', key: 'drip_campaign_title', width: '30%' },
       { name: 'Number Of Emails', key: 'number_of_emails', width: '12%' },
       { name: 'Email Tone', key: 'email_tone', width: '12%' },
       { name: 'Status', key: 'status', width: '12%' },
-      { name: 'Lists', key: 'label', width: '14%' },
+      // `auto` on purpose: list names are user-chosen and unpredictable, and a
+      // percentage here forced them to ellipsise. Under `table-layout: auto` (see the
+      // scss) this column sizes to its content and the table scrolls if the row
+      // needs more than the viewport, instead of hiding the name behind a "…".
+      { name: 'Lists', key: 'label', width: 'auto' },
       { name: 'Date Created', key: 'date_created', width: '18%' },
     ];
     this.columnList = columnList;

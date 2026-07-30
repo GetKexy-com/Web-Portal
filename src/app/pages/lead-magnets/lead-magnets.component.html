@@ -108,8 +108,9 @@
         </section>
 
         <section class="new-table-wrapper">
+          <!--Height is a CAP in the scss (`max-height`), not an inline `height`. The
+              old binding forced the full viewport height as soon as there was one row.-->
           <div
-            [style.height]="!isWaitingFlag && leadMagnets.length ? 'calc(100vh - 330px)' : 'auto'"
             class="list-wrapper"
             [class.scrolled-x]="scrolledX"
             (scroll)="onTableScroll($event)"

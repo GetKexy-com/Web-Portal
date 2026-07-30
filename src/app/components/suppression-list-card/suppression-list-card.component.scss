@@ -11,9 +11,19 @@ $kx-hover: #f8fafc;
 $kx-selected: #eff6ff;
 $kx-header-bg: #f8fafc;
 
+// ── Height: CAPPED, not forced ──────────────────────────────────────────────
+// The card grows with its content and stops at the height its page allows, so a few
+// rows render a short card instead of stretching down the whole viewport with a blank
+// area under the last row. See the fuller note in `contact-list-card`'s scss.
+//
+// The host is a flex column (was `display: block`) purely so the card below it can be
+// shrunk by flex when the cap bites — `max-height: 100%` on the card alone wouldn't
+// resolve against an auto-height host.
 :host {
-  display: block;
-  height: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  max-height: 100%;
 }
 
 .kexy-table-card {
@@ -22,11 +32,13 @@ $kx-header-bg: #f8fafc;
   border-radius: 14px;
   box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
   overflow: hidden;
-  // Fill the (bounded-height) content area as a flex column so the header and
-  // footer pager stay pinned in view and only the table body scrolls.
+  // Flex column so the header and footer pager stay pinned and only the table body
+  // scrolls. Content-sized and shrinkable rather than `height: 100%` — see the
+  // ":host" note above.
   display: flex;
   flex-direction: column;
-  height: 100%;
+  flex: 0 1 auto;
+  min-height: 0;
   max-height: 100%;
 
   .card-header,
@@ -116,13 +128,19 @@ $kx-header-bg: #f8fafc;
   }
 
   .new-table-wrapper {
-    flex: 1;
+    // `0 1 auto`, NOT `flex: 1`: a 0% basis would contribute nothing to the card's
+    // content height and collapse the table area.
+    flex: 0 1 auto;
     min-height: 0;
     overflow-y: hidden;
     overflow-x: auto;
 
     .list-wrapper {
-      height: 100%;
+      // CAP, not `height: 100%`: this is the vertical scroll container (which is why
+      // the sticky header pins to it), and it must be free to be SHORTER than its
+      // parent when there are only a few rows. `max-height` bounds it when the card
+      // hits its own cap, which is what makes the body scroll then.
+      max-height: 100%;
       overflow: auto;
 
       .n-table {

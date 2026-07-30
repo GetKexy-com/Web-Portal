@@ -90,15 +90,14 @@ export class LabelListCardComponent implements OnInit, OnDestroy, AfterViewInit 
   getListViewData = () => {
     let columnList: any;
     columnList = [
-      // Widths are unit strings. The checkbox is a fixed px column; the rest are
-      // percentages so, with table-layout:fixed + width:100%, the columns
-      // proportionally FILL the available width (checkbox stays fixed).
-      // Name is the column people scan, so it gets the most room; the rest were
-      // trimmed to keep the total at 100%. Long values now ellipsise inside the
-      // cell (see the SCSS) rather than being hard-cut, so this is about comfort,
-      // not correctness.
+      // Widths are unit strings and, under `table-layout: auto` (see the SCSS), act
+      // as PREFERENCES rather than hard sizes — the checkbox stays a fixed px column
+      // and the percentages keep the rest proportional, but slack can go where it is
+      // needed. Name is `auto` because list names are user-chosen and a percentage
+      // forced them to ellipsise however much room the row had spare; it now sizes to
+      // its content and the wrapper scrolls if a name is longer than the viewport.
       { name: '', key: 'action', width: '58px' },
-      { name: 'Name', key: 'label', width: '32%' },
+      { name: 'Name', key: 'label', width: 'auto' },
       { name: 'List Size', key: 'list_size', width: '10%' },
       { name: 'Creator', key: 'creator', width: '16%' },
       { name: 'Used In', key: 'used_in', width: '20%' },
@@ -136,6 +135,11 @@ export class LabelListCardComponent implements OnInit, OnDestroy, AfterViewInit 
     let classes = {
       'n-cell-only-name': column.key === 'no',
       'col-zip': column.key === 'zip_code',
+      // The two column-specific width treatments the SCSS needs — see the
+      // `table-layout: auto` note there. They go together: `name-cell` is the one
+      // uncapped column, `creator-cell` is capped so it can't compete for the slack.
+      'name-cell': column.key === 'label',
+      'creator-cell': column.key === 'creator',
     };
 
     return Object.keys(classes)

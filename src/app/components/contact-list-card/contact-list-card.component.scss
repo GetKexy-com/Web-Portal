@@ -19,13 +19,26 @@ $st-red-bg: #fdecec;
 $st-amber: #b45309;
 $st-amber-bg: #fef3d9;
 
-// The host fills the remaining height its (flex-column) page parent gives it, so
-// the card's header + footer pager stay pinned and only the body scrolls.
+// ── Height: CAPPED, not forced ──────────────────────────────────────────────
+// The card grows with its content and only stops at the height its page allows —
+// so 3 rows render a short card, and a full page renders a tall one whose body
+// scrolls with the header + footer pager pinned.
+//
+// `max-height: 100%` (not `height`/`flex: 1`) is what makes that work. Forcing the
+// height stretched the card down the whole viewport whenever the rows didn't fill
+// it, leaving a big blank area under the last row.
+//
+// The whole chain must be `flex: 0 1 auto; min-height: 0`: `auto` basis so each
+// level contributes its CONTENT height (a `flex: 1` basis of 0% would collapse the
+// table area to nothing once the parent stopped forcing a height), and `min-height:
+// 0` so flex-shrink may take it below content height when the cap bites — which is
+// what hands the overflow to `.list-wrapper` to scroll.
 :host {
   display: flex;
   flex-direction: column;
-  flex: 1;
+  flex: 0 1 auto;
   min-height: 0;
+  max-height: 100%;
 }
 
 .kexy-table-card {
@@ -36,7 +49,8 @@ $st-amber-bg: #fef3d9;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  flex: 1;
+  // See the ":host" note above: content-sized, shrinkable, never forced tall.
+  flex: 0 1 auto;
   min-height: 0;
 
   .card-header, .card-footer {
@@ -253,13 +267,19 @@ $st-amber-bg: #fef3d9;
   }
 
   .new-table-wrapper {
-    flex: 1;
+    // `0 1 auto`, NOT `flex: 1`: a 0% basis would contribute nothing to the card's
+    // content height, collapsing the table area now that nothing forces the card tall.
+    flex: 0 1 auto;
     min-height: 0;
     overflow-y: hidden;
     overflow-x: auto;
 
     .list-wrapper {
-      height: 100%;
+      // CAP, not `height: 100%`: this is the vertical scroll container (which is why
+      // the sticky header pins to it), and it must be free to be SHORTER than its
+      // parent when there are only a few rows. `max-height` bounds it when the card
+      // hits its own cap, which is what makes the body scroll then.
+      max-height: 100%;
       overflow: auto;
 
       .n-table {

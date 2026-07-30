@@ -177,10 +177,20 @@ $st-amber-bg: #fef3d9;
       .n-table {
         outline: 0;
         border-collapse: collapse;
-        // Fill the width with proportional (percentage) columns; the checkbox is
-        // a fixed px column. Fixed layout = consistent widths regardless of
-        // content (no load-time balloon). min-width scrolls on narrow screens.
-        table-layout: fixed;
+        // AUTO layout, so the Lists column can size to its content — list names are
+        // user-chosen, and under `fixed` a percentage width forced them to ellipsise
+        // no matter how much room the row had spare.
+        //
+        // `width: 100%` keeps the table filling the card (so it doesn't shrink to
+        // content and leave a gap, and so there's no load-time balloon from narrow →
+        // wide when data lands: it starts full width either way). The declared column
+        // widths become PREFERENCES rather than hard sizes, which is what lets the
+        // spare width land on Lists. If content genuinely needs more than the
+        // viewport, `.new-table-wrapper`'s `overflow: auto` scrolls it.
+        //
+        // Auto layout only behaves if exactly one column is uncapped — hence the
+        // `.title-cell` cap below. Two greedy columns and they fight for the overflow.
+        table-layout: auto;
         width: 100%;
         min-width: 900px;
 
@@ -463,4 +473,42 @@ $st-amber-bg: #fef3d9;
 
   > .label-tag { flex: 0 1 auto; min-width: 0; }
   > .see-more-label-text { flex: 0 0 auto; }
+}
+
+// ── Lists column: never truncate ────────────────────────────────────────────
+// Opts OUT of the shared ellipsis rules above. This is what actually widens the
+// column: while the pill was allowed to ellipsise, auto layout had no reason to ask
+// for more width — the content "fitted" at any size. Letting it demand its natural
+// width is what makes the column grow to the longest list name.
+.kexy-table-card .n-table td.n-cell.lists-cell {
+  // Keeps the header and body cell from being squeezed narrower than their content.
+  white-space: nowrap;
+
+  > span,
+  .label-tag {
+    max-width: none;
+    overflow: visible;
+    text-overflow: clip;
+    white-space: nowrap;
+  }
+
+  // The pill must not shrink now that there is room for it in full.
+  > span.d-flex > .label-tag,
+  > span.d-inline-flex > .label-tag {
+    flex: 0 0 auto;
+  }
+}
+
+// ── Title column: stays capped ──────────────────────────────────────────────
+// Necessary for the Lists change to be worth anything. Campaign titles are
+// AI-generated and can run very long; under auto layout an uncapped title would take
+// the spare width for itself and push Lists back off the visible area — the exact
+// problem this was meant to fix. So the title keeps its ellipsis and a hard ceiling,
+// with the full text on hover via its existing `title` attribute.
+.kexy-table-card .n-table td.n-cell.title-cell > span {
+  display: inline-block;
+  max-width: 340px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }

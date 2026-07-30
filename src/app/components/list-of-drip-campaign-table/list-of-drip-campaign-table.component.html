@@ -136,7 +136,15 @@
           <tbody>
           <tr class="n-product" [class.selected]="row.isSelected" *ngFor="let row of cardData; trackBy: trackByRow">
             <ng-container *ngFor="let column of columnList">
-              <td class="n-cell" [style.width]="column.width">
+              <!--Per-column classes so the scss can opt this cell OUT of the shared
+                  ellipsis rule (Lists) or cap it (Title) — under auto table layout the
+                  two need opposite treatment.-->
+              <td
+                class="n-cell"
+                [class.lists-cell]="column.key === 'label'"
+                [class.title-cell]="column.key === 'drip_campaign_title'"
+                [style.width]="column.width"
+              >
                 <span *ngIf="column.key === 'date_created'">{{ row.createdAt | date : "medium" }}</span>
 
                 <span *ngIf="column.key == 'drip_campaign_title'" class="text-link"
