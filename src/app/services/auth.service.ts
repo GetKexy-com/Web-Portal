@@ -288,13 +288,21 @@ export class AuthService {
     });
   }
 
+  /**
+   * Sends an already-authenticated brand user into the app. Called from every
+   * unauthenticated page (login, register, forgot/reset password, the signup wizard),
+   * so this is THE landing target — changing it here changes all of them.
+   *
+   * Lands on the DASHBOARD, not Create Campaign: the app now has an overview page, and
+   * dropping someone straight into a creation flow assumes what they came to do.
+   */
   async loggedUserRedirectToProperDashboard() {
     const currentUrl = this.router.url;
     const userTokenValue = this.userTokenValue;
     if (userTokenValue) {
       if (userTokenValue.type === constants.BRAND) {
         if (!currentUrl.includes(constants.BRAND)) {
-          await this.router.navigate([routeConstants.BRAND.CREATE_DRIP_CAMPAIGN]);
+          await this.router.navigate([routeConstants.BRAND.DASHBOARD]);
         }
       }
     }

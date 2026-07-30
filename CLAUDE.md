@@ -877,6 +877,21 @@ for the pricing grid. The normal panel is `flex 0 0 38%` / `max-width: 480px`.
 `#main-sidebar` (built from `nav-item` + `nav-item-dropdown` components, with
 `app-org-info` at the top) beside `#content-wrapper`.
 
+### Post-login landing = the Dashboard
+
+Two places decide where an authenticated brand user lands, and BOTH point at
+`BRAND.DASHBOARD` (they used to point at Create Campaign):
+- **`AuthService.loggedUserRedirectToProperDashboard()`** — the shared "already logged
+  in, send them into the app" helper, called from every unauthenticated page (login,
+  register, forgot/reset password, the signup wizard). This is the one that matters;
+  change it here and all of those follow.
+- **`brand-list.selectCompany()`** — the business-selector landing. It honours a stored
+  `returnUrl` FIRST (a deep-link that bounced through login) and only falls back to the
+  dashboard, so don't "simplify" that branch away.
+
+Other `CREATE_DRIP_CAMPAIGN` navigations in the codebase all pass `queryParams` — those
+are edit-an-existing-campaign links, not landings.
+
 ### Page title in the header
 
 The header shows the page name as an `<h1 class="page-title">` immediately after the

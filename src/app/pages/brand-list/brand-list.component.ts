@@ -297,12 +297,16 @@ export class BrandListComponent implements OnInit {
       console.error(ex);
     }
 
+    // A stored returnUrl wins: it means the user was deep-linked somewhere and bounced
+    // through login, so honouring it is more useful than any default landing page.
     const returnUrl = decodeURIComponent(localStorage.getItem("returnUrl") ?? '');
     if (returnUrl && returnUrl !== "null") {
       await this.router.navigateByUrl(returnUrl);
       localStorage.removeItem("returnUrl");
     } else {
-      await this.router.navigate([routeConstants.BRAND.CREATE_DRIP_CAMPAIGN]);
+      // Dashboard rather than Create Campaign — see the note on
+      // `AuthService.loggedUserRedirectToProperDashboard`.
+      await this.router.navigate([routeConstants.BRAND.DASHBOARD]);
     }
   }
 }
