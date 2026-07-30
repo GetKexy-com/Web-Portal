@@ -8,7 +8,7 @@ import { routeConstants } from 'src/app/helpers/routeConstants';
 import { NgbModal, NgbOffcanvas } from '@ng-bootstrap/ng-bootstrap';
 import Swal from 'sweetalert2';
 import { PageUiService } from 'src/app/services/page-ui.service';
-import { BrandLayoutComponent } from '../../layouts/brand-layout/brand-layout.component';
+import { BrandLayoutComponent, IBreadcrumb } from '../../layouts/brand-layout/brand-layout.component';
 import {
   ProspectingCommonCardComponent,
 } from '../../components/prospecting-common-card/prospecting-common-card.component';
@@ -43,6 +43,15 @@ export class BrandListContactsComponent implements OnInit, OnDestroy {
   contactLabelsSubscription: Subscription;
   listId;
   listObj;
+  /**
+   * Header trail: `Manage Lists › <list name>`. A FIELD refreshed by
+   * `__setBreadcrumbs()` rather than a getter — a getter would allocate a new array on
+   * every change-detection pass and make the `*ngFor` re-render each time.
+   *
+   * Seeded with just the parent so the trail is useful immediately; the list's own name
+   * is appended once it arrives (it comes from an async subscription).
+   */
+  breadcrumbs: IBreadcrumb[] = [{ label: 'Manage Lists', link: routeConstants.BRAND.MANAGE_LIST }];
   limit = 100;
   page = 1;
   isWaitingFlag: boolean = true;
@@ -119,10 +128,21 @@ export class BrandListContactsComponent implements OnInit, OnDestroy {
           // This make sure total contact count does not show the count from listobj.
           // We show total count inside of this.setContactSubscription();
           this.listObj['contactListCount'] = this.totalContactsCount;
-          console.log(this.listObj);
+          this.__setBreadcrumbs();
         }
       }
     });
+  };
+
+  /** Rebuilds the header trail. Called whenever the list (and so its name) changes. */
+  private __setBreadcrumbs = () => {
+    const crumbs: IBreadcrumb[] = [
+      { label: 'Manage Lists', link: routeConstants.BRAND.MANAGE_LIST },
+    ];
+    // Only append the leaf once there's a real name — a blank or "…" crumb is worse
+    // than briefly showing just the parent.
+    if (this.listObj?.label) crumbs.push({ label: this.listObj.label });
+    this.breadcrumbs = crumbs;
   };
 
   getContactApiPostData = () => {

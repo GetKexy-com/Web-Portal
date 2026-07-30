@@ -524,7 +524,12 @@ toward a Linear/Stripe/Airtable look. Behavior/bindings/`@Input()`s and the
   + `getAvatarClass()` (stable `av-0..av-5`). Both **memoized on the contact**
   (`__initials`/`__avatarClass`) because they run per-row on every CD pass. Name
   column widened to 220px in `getListViewData()`; **Company Name + Job Title were
-  reordered to sit next to Marketing Status**.
+  reordered to sit next to Marketing Status**, and **Lists sits immediately after
+  Email Status** (a targeting fact, so it belongs beside deliverability rather than
+  out past the location columns). Column order lives ONLY in `getListViewData()` —
+  header and body both `*ngFor` over `columnList`, so reordering that array is the
+  whole change, and it applies to BOTH `brand-contacts` and `brand-list-contacts`
+  since they share this card.
 - **Status pills with a leading dot**: Email Status (`.email-status`
   green/red/amber + `.status-muted` "Not checked" when `emailStatus` empty) and
   Marketing Status (`.ms-green/-red/-amber`, `pending` → amber).
@@ -616,15 +621,29 @@ sticky/frozen behavior). Pagination here is prev/next only — the page provides
 `navigateSpecificPage` and its paging logic is fragile, so no first/last/jump.
 
 **Column widths (lists) differ from contacts.** The Lists table has few columns, so
-the contacts' single-flex-column model made one column absurdly wide. Instead it
-uses **`table-layout: fixed; width: 100%; min-width: 700px`** with **percentage
-column widths** (checkbox a fixed `58px`, the rest `%` summing to 100) so the columns
-**proportionally fill** the width; `min-width` lets it scroll on narrow screens.
-`columnList` widths are **unit strings** here (`'58px'`, `'26%'`, …) bound straight
-to `[style.width]`, and `calcWidth` only computes `browserWidthForTable` (the table
-is `width:100%`, not a px sum). Non-checkbox cells get `overflow:hidden;
-text-overflow:ellipsis`. NOTE: the checkbox column is `58px` on Lists but `87px` on
-Contacts — intentional per the user's edits, not yet unified.
+the contacts' single-flex-column model made one column absurdly wide. It uses
+**`table-layout: auto; width: 100%; min-width: 700px`** with the `columnList` widths as
+**unit-string preferences** (`'58px'`, `'auto'`, `'22%'`, …) bound straight to
+`[style.width]`; `calcWidth` only computes `browserWidthForTable` (the table is
+`width:100%`, not a px sum). Non-checkbox cells get `overflow:hidden;
+text-overflow:ellipsis` by default.
+
+**The Name column is exempt from that ellipsis and sizes to content** — list names are
+user-chosen, and under the previous `table-layout: fixed` + `32%` they truncated however
+much room the row had spare. Same two-class arrangement as
+`list-of-drip-campaign-table`, applied via `getCellClasses` (mirrored onto the HEADER
+cell too, or the header caps the column narrower than the body wants):
+- **`.name-cell`** opts out of BOTH ellipsis rules (the generic `> span` one and the
+  `.label-tag` one). That opt-out is what widens the column — while the pill could
+  ellipsise, auto layout saw the content as fitting at any size.
+- **`.creator-cell`** keeps its ellipsis with `max-width: 180px`, so it can't take the
+  slack and squeeze Name back. Auto layout only behaves with exactly ONE uncapped column.
+The frozen checkbox column uses **`min-width: 58px`, not `width`** — under auto layout a
+plain `width` is only a preference and content sizing can override it.
+
+NOTE: the checkbox column is `58px` on Lists but `87px` on Contacts — intentional per
+the user's edits, not yet unified. `lead-magnets` and `suppression-list-card` still use
+the fixed percentage model.
 
 ### `lead-magnets` page — same redesign
 
@@ -654,10 +673,26 @@ here the scroll container is **`.new-table-wrapper`**, so the shadow keys off
 `.new-table-wrapper.scrolled-x`), Gmail-style checkboxes (`getCheckboxIcon()`
 returns `checkbox-icon selected` for checked/indeterminate), **status pills**
 (`.status-pill` — Active=green, Pause=amber, Draft=muted), label tag + "+N more",
-`.table-state` empty/loading, the **flex fill-width model** (Title column
-`flex:true` → `width:100%`, checkbox `min-width:58px`, no `+300` buffer; removed
-the empty trailing `edit` column), and the **cross-page select-all banner** under
-the header. The full contacts-style pager (First/Prev/Next/Last + "Go to [#]",
+`.table-state` empty/loading, and the **cross-page select-all banner** under
+the header. (The empty trailing `edit` column was removed.)
+
+**Column widths: `table-layout: auto` + one uncapped column.** Earlier revisions used
+`flex:true`/`width:100%` (ballooned while loading) and then `table-layout: fixed` with
+percentages (stable, but it forced user-chosen **list names to ellipsise no matter how
+much spare width the row had**). Now: `auto` layout, `width: 100%` + `min-width: 900px`,
+and the `columnList` widths act as PREFERENCES so spare width can land where it's
+needed. Two `<td>` classes carry the opposite treatments and are load-bearing together:
+- **`.lists-cell`** (`key === 'label'`, `width: 'auto'`) opts OUT of the shared
+  `td.n-cell > span` / `.label-tag` ellipsis rules. That opt-out is what actually
+  widens the column — while the pill was allowed to ellipsise, auto layout saw the
+  content as "fitting" at any size and never asked for more room.
+- **`.title-cell`** keeps its ellipsis plus a hard `max-width: 340px`. This is
+  required, not cosmetic: campaign titles are AI-generated and long, and an uncapped
+  title would take the spare width for itself and push Lists back out of view. Auto
+  layout only behaves with exactly ONE uncapped column.
+`.new-table-wrapper`'s `overflow: auto` scrolls when a row genuinely needs more than
+the viewport. Note this table therefore differs from `label-list-card` /
+`suppression-list-card` / `lead-magnets`, which still use the fixed percentage model. The full contacts-style pager (First/Prev/Next/Last + "Go to [#]",
 in BOTH header and footer) uses new table `@Input()`s
 `paginationFirstClick`/`paginationLastClick`/`navigateSpecificPage`, wired to page
 handlers of the same name. (This is the change committed as "Fix".)
@@ -690,6 +725,31 @@ bounded flex columns with `overflow: hidden`: `brand-list-contacts` (`height: ca
 `suppression-list` (`.content-area` flex column). Use `flex: 1` (not `height: 100%`)
 on the host so the card fills *remaining* space when a page has siblings above it
 (e.g. `brand-contacts`' filter chips).
+
+**Height is CAPPED, never forced — every table card.** A card must grow with its rows
+and only scroll once they exceed the room available. Forcing the height (`height: 100%`,
+`flex: 1`, or an inline `[style.height]`) stretched a 3-row table down the whole viewport
+with a blank area under the last row. Two shapes of the same bug were fixed:
+
+- **`contact-list-card` / `suppression-list-card`** filled via flex/`height: 100%`. Now
+  the whole chain is `flex: 0 1 auto; min-height: 0` with `max-height: 100%` on `:host`.
+  Both parts matter: an `auto` basis so each level contributes its CONTENT height (a
+  `flex: 1` basis of `0%` contributes nothing and collapses the table area once nothing
+  forces the card tall), and `min-height: 0` so flex-shrink may go below content height
+  when the cap bites — which is what hands the overflow to `.list-wrapper` to scroll.
+  `suppression-list-card`'s `:host` also became a flex column (was `display: block`), or
+  the card underneath has no flex parent to be shrunk by.
+- **`label-list-card` (Manage List) / `lead-magnets`** did it via an inline
+  `[style.height]="…length ? 'calc(100vh - Npx)' : 'auto'"` on `.list-wrapper` — which
+  handled *zero* rows but forced full height from the first row onward. Those bindings
+  are gone; the value is now `max-height` in the SCSS (`260px` / `330px` offsets kept),
+  so height is a ceiling rather than a floor and the template has one less expression
+  running per CD pass.
+
+Header + footer stay `flex-shrink: 0` throughout, so the footer pager remains pinned when
+the body does scroll. Note `suppression-list`'s `.content-area` comment claims it is a
+"flex column" — it is not, there is no `display: flex`; the card sizes against its
+definite height instead.
 
 ### Header count + selected indicators are currently HIDDEN
 
@@ -817,6 +877,55 @@ for the pricing grid. The normal panel is `flex 0 0 38%` / `max-width: 480px`.
 `#main-sidebar` (built from `nav-item` + `nav-item-dropdown` components, with
 `app-org-info` at the top) beside `#content-wrapper`.
 
+### Page title in the header
+
+The header shows the page name as an `<h1 class="page-title">` immediately after the
+sidebar toggle (and the back button, when shown). It comes from **`data.title` on the
+route** in `app.routes.ts`, resolved by `brand-layout`'s `__resolveRouteTitle()` and
+exposed as `pageTitle`.
+
+- **Route data, not 24 `@Input()`s.** `headline` already existed but only ONE of 25
+  pages ever set it, so the header was blank almost everywhere. Putting the title on
+  the route keeps it next to the thing it names, and a new page gets one by declaring
+  it there — nothing to wire in the page's own template.
+- **`[headline]` still wins** where the title must be DYNAMIC (`brand-list-contacts`
+  passes the list's name). `pageTitle` is `headline || routeTitle`.
+- Resolved **once in the constructor**, and it walks to the deepest activated child
+  before reading `data` (a title on a child route would be missed otherwise). No
+  router subscription: this layout is re-created on every navigation — the same fact
+  that forces `.sidebar`'s width transition to be gated after first paint — so there
+  is no stale-title case.
+- It's an `<h1>` because the pages don't render one; before this the document had no
+  h1 at all. Long titles ellipsise rather than pushing the account menu off-screen.
+- **Being an `<h1>` means fighting the global heading reset** in `styles.scss`, which
+  sets `padding-bottom: 10px; line-height: 1em; font-size: 30px; color: #333` on every
+  `h1`-`h6`. The `padding-bottom` is what knocked the title off centre beside the
+  toggle: it made the box 10px taller at the BOTTOM, so the header row's
+  `align-items: center` centred that box and left the text sitting visibly high. So
+  `.page-title` needs `padding: 0` as well as `margin: 0`, plus `line-height: 36px` to
+  match the toggle's box — don't drop either thinking the other covers it.
+
+**Breadcrumbs** — a page that is a CHILD of another passes
+`[breadcrumbs]="[{label, link?}, …]"` instead of a title, and the header renders the
+trail. The last entry is the current page and becomes the `<h1>`; earlier entries with a
+`link` are router links. Currently only `brand-list-contacts` (`Manage Lists › <list
+name>`), where a bare "Contacts" gave no clue where you'd come from. That page has
+**no `[showBackButton]`** — the "Manage Lists" crumb IS the way back, and showing both
+would be the same action twice. `brand-price` is now the only page using the back button. The trail is passed WHOLE rather than per-crumb because the page owns the data (it
+knows the list's name; the layout doesn't), and it's a FIELD rebuilt by
+`__setBreadcrumbs()` — a getter would allocate a new array every CD pass and re-render
+the `*ngFor`. The leaf crumb is only appended once the name has actually loaded; a blank
+crumb is worse than briefly showing just the parent.
+
+**Alignment gotcha (bitten twice).** Everything on that header row shares a **36px line
+box** to match the toggle, and each piece needed a framework default stripped to get
+there: the `<h1>` needed `padding: 0` (global heading reset), and `app-back-button`
+needed Bootstrap's **`mb-2` removed** plus `.btn`'s padding zeroed. In both cases the
+extra bottom spacing made the element's box taller at the BOTTOM, so the row's
+`align-items: center` centred the box and left the visible text sitting high. If
+something in this row looks a few px off, check for inherited margin/padding before
+touching the flex properties. `app-back-button` is used ONLY here, so changing it is safe.
+
 ### The toggle lives in the header (not a floating arrow)
 
 `.hideSidebarArrow` is now an in-flow icon button at the **far left of `#main-header`**
@@ -896,6 +1005,8 @@ a "Help & support" tooltip (`data-label`).
 Section headers are text-only now (no icon), so the icons that matter are the
 **leaf `nav-item` icons**, chosen to be distinct + name-matching (the old set had
 several list-lookalikes):
+
+- Dashboard `fa-th-large` — the first item, ungrouped (above every section header)
 
 - Company Desc. `fa-building-o` · Product/Service Desc. `fa-cube`
 - Manage Lists `fa-table` (an Excel-like table of contacts) · Manage Contacts

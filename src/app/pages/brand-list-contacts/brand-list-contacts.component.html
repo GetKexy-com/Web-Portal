@@ -1,4 +1,11 @@
-<brand-layout layoutPaddingNone="true" headerBgWhite="true" [showBackButton]="true" headline="Contacts">
+<!--Breadcrumbs instead of a bare "Contacts": this page is a child of Manage Lists, so
+    the trail states where you are AND gives you the way back. No [showBackButton] —
+    the "Manage Lists" crumb is that affordance, and both would be the same action twice.-->
+<brand-layout
+  layoutPaddingNone="true"
+  headerBgWhite="true"
+  [breadcrumbs]="breadcrumbs"
+>
   <main class="brand-list-contacts-page">
     <section class="card-area-wrap">
       <prospecting-common-card

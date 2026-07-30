@@ -1,5 +1,5 @@
 import { Component, OnInit, ViewChild, Input, ElementRef, HostListener } from "@angular/core";
-import { Router } from "@angular/router";
+import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import {NgbDropdown, NgbDropdownItem, NgbDropdownMenu, NgbDropdownToggle, NgbModal} from "@ng-bootstrap/ng-bootstrap";
 import { AuthService } from "src/app/services/auth.service";
 import { User } from "src/app/models/user";
@@ -32,6 +32,13 @@ import {
 } from '../../components/brand-subscription-modal/brand-subscription-modal.component';
 import {CommonModule} from '@angular/common';
 
+/** One step in the header's breadcrumb trail. `link` is a routeConstants path. */
+export interface IBreadcrumb {
+  label: string;
+  /** Omit on the current (last) page, or for a step that isn't navigable. */
+  link?: string;
+}
+
 @Component({
   selector: 'brand-layout',
   imports: [
@@ -45,7 +52,8 @@ import {CommonModule} from '@angular/common';
     BrandSubscriptionModalComponent,
     CommonModule,
     NgbDropdown,
-    NgbDropdownToggle
+    NgbDropdownToggle,
+    RouterLink
   ],
   templateUrl: './brand-layout.component.html',
   styleUrl: './brand-layout.component.scss'
@@ -56,7 +64,42 @@ export class BrandLayoutComponent implements OnInit {
   @Input() headerBgWhite;
   @Input() mainBgColor = "#f4f6fb";
   @Input() showBackButton = false;
+  /**
+   * Overrides the route's title when a page needs a DYNAMIC one (e.g.
+   * `brand-list-contacts` shows the list's own name). Everything else leaves this
+   * empty and gets its name from `data.title` on the route.
+   */
   @Input() headline = "";
+
+  /**
+   * Page name shown in the header beside the sidebar toggle, read from the activated
+   * route's `data.title` (declared in `app.routes.ts`).
+   *
+   * Route data rather than 24 pages each passing an `@Input()`: the title then lives
+   * next to the route it names, and a new page gets one for free by declaring it there.
+   * Resolved ONCE in the constructor — this layout is re-created on every navigation
+   * (the same reason `.sidebar`'s width transition has to be gated after first paint),
+   * so there is no stale-title case to subscribe for.
+   */
+  routeTitle = "";
+
+  /**
+   * Optional breadcrumb trail, replacing the plain title in the header. For pages that
+   * are a child of another (a list's contacts under Manage Lists), where the title
+   * alone loses the parent context and the back arrow is the only clue where you came
+   * from.
+   *
+   * The LAST entry is the current page and renders as the `<h1>`; earlier entries with
+   * a `link` become router links. Pass it whole, not per-crumb, so the trail is built
+   * where the data is (the page knows the list's name; the layout doesn't).
+   */
+  @Input() breadcrumbs: IBreadcrumb[] = [];
+
+  /** What the header renders when there is no breadcrumb trail. */
+  get pageTitle(): string {
+    return this.headline || this.routeTitle;
+  }
+
   brand = routeConstants.BRAND;
   base_url = routeConstants.BASE_URL;
 
@@ -98,6 +141,7 @@ export class BrandLayoutComponent implements OnInit {
   constructor(
     private _authService: AuthService,
     private router: Router,
+    private route: ActivatedRoute,
     private modal: NgbModal,
     private pageUiService: PageUiService,
     private prospectingService: ProspectingService,
@@ -105,6 +149,18 @@ export class BrandLayoutComponent implements OnInit {
     this.userTokenSubject = new BehaviorSubject(JSON.parse(localStorage.getItem("userToken")));
     this.userToken = this.userTokenSubject.asObservable();
     this.showHideDropdowns();
+    this.routeTitle = this.__resolveRouteTitle();
+  }
+
+  /**
+   * Walk to the DEEPEST activated child before reading `data.title`. `this.route` is
+   * the layout's own (shallow) route; a title declared on a child route would be
+   * missed by reading only that level.
+   */
+  private __resolveRouteTitle(): string {
+    let route = this.route?.snapshot;
+    while (route?.firstChild) route = route.firstChild;
+    return route?.data?.["title"] || "";
   }
 
   get username(): string {

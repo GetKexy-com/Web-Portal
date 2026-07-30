@@ -1,3 +1,6 @@
-<button class="btn mb-2 d-flex align-items-center" (click)="goBack()">
+<!--No `mb-2`: this sits on a vertically-centred header row, and an 8px bottom margin
+    made the button's box taller at the bottom, so centring the box left the visible
+    label sitting high. `brand-layout` is the only consumer, so dropping it is safe.-->
+<button class="btn d-flex align-items-center" (click)="goBack()">
   <i class="fa fa-angle-left me-2" style="font-size: 20px" aria-hidden="true"></i> Back
 </button>

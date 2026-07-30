@@ -508,6 +508,74 @@ app-org-info {
 
 /* Sidebar toggle — lives in the white top header (panel-left glyph, like modern
    apps), replaces the old floating flip-flop arrows over the sidebar. */
+// ── Page title (sits beside the sidebar toggle) ──────────────────────────────
+// An <h1> because it IS the page's heading — the pages themselves don't render one,
+// so without this the document had no h1 at all. Replaces an inline-styled <span>.
+//
+// Being an <h1> means fighting `styles.scss`'s global heading reset, which sets
+// `padding-bottom: 10px; line-height: 1em; font-size: 30px; color: #333` on every
+// h1-h6. The `padding-bottom` is what knocked this off centre: it made the box 10px
+// taller at the BOTTOM, so `align-items: center` on the header row centred the box and
+// left the text sitting visibly above the toggle icon. Every one of the resets below
+// is therefore load-bearing — do not drop `padding: 0` thinking `margin: 0` covers it.
+.page-title {
+  flex: 0 1 auto;
+  margin: 0;
+  padding: 0;
+  // Sized to sit with the 36px toggle rather than to shout: this is a location label
+  // in a toolbar, not a hero heading.
+  font-size: 15px;
+  font-weight: 700;
+  // Matches the toggle's 36px box, so the text's own box is the same height as the
+  // icon's and the two centre on exactly the same line.
+  line-height: 36px;
+  letter-spacing: -0.01em;
+  color: #0f172a;
+  // A long dynamic title (a user-named list) truncates rather than pushing the
+  // account menu off the right edge.
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// ── Breadcrumb trail ────────────────────────────────────────────────────────
+// Same 36px line box as the toggle and the title, so the whole header row sits on one
+// centre line however many crumbs there are.
+.page-crumbs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+
+  .crumb {
+    flex: 0 0 auto;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 36px;
+    color: #64748b;
+    text-decoration: none;
+    transition: color 0.12s ease;
+
+    &:hover { color: #12a5f4; }
+
+    // A non-navigable step reads as context, not as something to click.
+    &.is-static { cursor: default; }
+  }
+
+  .crumb-sep {
+    flex: 0 0 auto;
+    // Was #cbd5e1 — a hairline grey that vanished on the white header. A separator
+    // should be quieter than the labels it divides, not invisible: this is one step
+    // lighter than the parent crumb's #64748b, which reads clearly at this size.
+    font-size: 14px;
+    color: #94a3b8;
+  }
+
+  // The current page keeps the .page-title treatment; only the parents are muted.
+  .page-title { flex: 0 1 auto; }
+}
+
 .hideSidebarArrow {
   flex: 0 0 auto;
   align-self: center;

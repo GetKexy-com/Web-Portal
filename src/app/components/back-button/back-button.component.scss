@@ -2,4 +2,9 @@ button {
   color: #33a5f4;
   font-size: 14px;
   font-weight: bold;
+  // Matches the sidebar toggle's 36px box and kills Bootstrap `.btn`'s own padding,
+  // so the icon, this label and the page title all sit on one centre line.
+  height: 36px;
+  padding: 0 6px;
+  line-height: 1;
 }

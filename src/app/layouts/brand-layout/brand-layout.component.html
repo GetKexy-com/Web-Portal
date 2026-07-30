@@ -15,16 +15,14 @@
   >
     <app-org-info></app-org-info>
 
-    <!--Home. First item, above the grouped sections. HIDDEN FOR NOW — the dashboard
-        is reachable only by URL (/brand/dashboard) until it ships. The ROUTE stays
-        registered in app.routes.ts; only this entry point is commented out, so
-        un-commenting these six lines is all it takes to expose it.-->
-<!--    <nav-item-->
-<!--      [isDropDown]="false"-->
-<!--      icon="fa-th-large"-->
-<!--      [navigateTo]="brand.DASHBOARD"-->
-<!--      label="Dashboard"-->
-<!--    ></nav-item>-->
+    <!--Home. First item, above the grouped sections, so it reads as the landing view
+        rather than as a member of any group.-->
+    <nav-item
+      [isDropDown]="false"
+      icon="fa-th-large"
+      [navigateTo]="brand.DASHBOARD"
+      label="Dashboard"
+    ></nav-item>
 
     <nav-item-dropdown icon="fa-building-o" [label]="constants.COMPANY_DETAILS" [expand]="expandCompanyDetailsDropdown" [collapsed]="railCollapsed">
       <nav-item
@@ -224,7 +222,21 @@
             </svg>
           </a>
           <app-back-button *ngIf="showBackButton"></app-back-button>
-          <span style="font-size: 14px; font-weight: bold">{{ headline }}</span>
+          <!--Breadcrumb trail when the page passes one, otherwise the plain title.
+              `pageTitle` prefers an explicit [headline] (dynamic pages like a list's own
+              name) and otherwise uses the route's `data.title`, so every page has a name
+              without touching its template.
+              The LAST crumb is the <h1>, so the trail adds context without giving the
+              document a second heading.-->
+          <nav class="page-crumbs" *ngIf="breadcrumbs?.length" aria-label="Breadcrumb">
+            <ng-container *ngFor="let crumb of breadcrumbs; let last = last">
+              <a *ngIf="!last && crumb.link" class="crumb" [routerLink]="'/' + crumb.link">{{ crumb.label }}</a>
+              <span *ngIf="!last && !crumb.link" class="crumb is-static">{{ crumb.label }}</span>
+              <i *ngIf="!last" class="fa fa-angle-right crumb-sep" aria-hidden="true"></i>
+              <h1 *ngIf="last" class="page-title" aria-current="page">{{ crumb.label }}</h1>
+            </ng-container>
+          </nav>
+          <h1 class="page-title" *ngIf="!breadcrumbs?.length && pageTitle">{{ pageTitle }}</h1>
         </div>
 
         <div class="col">
