@@ -385,6 +385,13 @@ $kx-red-bg: #fdeaea;
 
         &.up { color: $kx-good; }
         &.down { color: $kx-red; }
+
+        // "No comparison" is an absence of data, not a direction — so it stays out
+        // of the status palette entirely and reads lighter than a real delta.
+        &.is-none {
+          font-weight: 600;
+          color: $kx-faint;
+        }
       }
 
       .m-sub { color: $kx-faint; }

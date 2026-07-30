@@ -8,7 +8,14 @@
         <h1 class="tb-title">{{ greeting }}</h1>
         <!--The name moved up into the heading, so it is NOT repeated here.-->
         <p class="tb-sub">
-          Last {{ selectedDays }} days vs previous {{ selectedDays }}
+          <!--The actual dates, not "last N days vs previous N": the window every
+              number counts, and the window every delta is measured against. When the
+              series doesn't reach back far enough there is no baseline, and saying so
+              beats implying a comparison that isn't happening.-->
+          <span *ngIf="rangeLabel">{{ rangeLabel }}</span>
+          <span *ngIf="!rangeLabel">Last {{ selectedDays }} days</span>
+          <span *ngIf="compareLabel"> vs {{ compareLabel }}</span>
+          <span *ngIf="rangeLabel && !compareLabel" class="tb-stamp"> · no comparison period</span>
           <!--The scope is stated here as well as in the chip bar, so no figure on the
               page is ever ambiguous about what it counts.-->
           <span class="tb-dot">·</span>{{ scopeLabel }}
@@ -103,7 +110,16 @@
             <span class="m-label">{{ t.label }}</span>
             <span class="m-value">{{ t.display }}</span>
             <span class="m-foot">
-              <span class="m-delta" [class.up]="t.delta > 0" [class.down]="t.delta < 0">
+              <!--A null delta means there was no baseline to divide by, which is a
+                  different statement from "no change" — so it gets its own label
+                  rather than being rounded into a flat trend.-->
+              <span class="m-delta is-none" *ngIf="t.delta === null">no comparison</span>
+              <span
+                class="m-delta"
+                *ngIf="t.delta !== null"
+                [class.up]="t.delta > 0"
+                [class.down]="t.delta < 0"
+              >
                 <i class="fa" [class.fa-caret-up]="t.delta > 0" [class.fa-caret-down]="t.delta < 0"
                    aria-hidden="true"></i>
                 {{ t.delta === 0 ? 'no change' : (t.delta > 0 ? '+' : '') + t.delta + '%' }}
@@ -115,7 +131,9 @@
 
         <div class="chart-block">
           <div class="chart-head">
-            <span class="chart-title">{{ activeTile?.label }} per day</span>
+            <!--No chart title: the metric tile above is highlighted and already names
+                the series, and "per day" never varies, so the label only restated
+                what the tiles and the date axis say.-->
             <div class="chart-legend">
               <span class="lg-item">
                 <span class="lg-swatch current" aria-hidden="true"></span>This period

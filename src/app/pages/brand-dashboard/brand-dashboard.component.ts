@@ -30,8 +30,13 @@ interface IMetricTile {
   total: number;
   /** Rate vs sent, 0-100. Null for `sent` itself, which has no denominator. */
   rate: number | null;
-  /** Signed % change vs the preceding window of equal length. */
-  delta: number;
+  /**
+   * Signed % change vs the preceding window of equal length, or NULL when there is
+   * no baseline to divide by — either no prior window exists, or its value was 0.
+   * Percent change from zero is undefined, and reporting it as `0` (which the page
+   * renders as "no change") claims a flat trend that was never measured.
+   */
+  delta: number | null;
   /** Formatted headline (compact for counts, `NN%` for rates). */
   display: string;
 }
@@ -169,6 +174,14 @@ export class BrandDashboardComponent implements OnInit {
   scopeChips: { id: number; title: string }[] = [];
   /** Sends inside the current scope — drives the "nothing here" states. */
   scopedSent = 0;
+
+  // ── Window labels ───────────────────────────────────────────────────────
+  // The toolbar names the ACTUAL dates rather than saying "last 7 days vs previous
+  // 7", which left it to the reader to work out what was being compared with what.
+  /** e.g. `Jul 24 – Jul 30`. Empty only when there is no data at all. */
+  rangeLabel = '';
+  /** e.g. `Jul 17 – Jul 23`, or null when the series doesn't reach back that far. */
+  compareLabel: string | null = null;
 
   // ── Fact table, indexed ─────────────────────────────────────────────────
   // Built once on load. `dates` is the gap-free day axis the data spans; `rowsByDate`
@@ -393,6 +406,11 @@ export class BrandDashboardComponent implements OnInit {
     this.previousTrend = this.__daily(prevDates, prevRows);
     this.scopedSent = this.__sum(this.visibleTrend, 'sent');
 
+    this.rangeLabel = this.__spanLabel(curDates);
+    // A shorter-than-requested prior window would make every delta compare unequal
+    // periods, so a partial one counts as no baseline at all.
+    this.compareLabel = prevDates.length === n ? this.__spanLabel(prevDates) : null;
+
     this.scopeChips = (this.stats.campaigns || [])
       .filter((c) => this.selectedCampaignIds.has(c.id))
       .map((c) => ({ id: c.id, title: c.title }));
@@ -469,8 +487,21 @@ export class BrandDashboardComponent implements OnInit {
     return whole ? Math.round((part / whole) * 100) : 0;
   }
 
-  private __delta(current: number, previous: number): number {
-    if (!previous) return 0;
+  /** `Jul 24 – Jul 30`, or a single date when the window is one day. */
+  private __spanLabel(dates: string[]): string {
+    if (!dates.length) return '';
+    const from = this.__shortDate(dates[0]);
+    const to = this.__shortDate(dates[dates.length - 1]);
+    return from === to ? from : `${from} – ${to}`;
+  }
+
+  /**
+   * Signed % change, or null when it isn't defined: no baseline window, or a baseline
+   * of zero. Returning 0 for those cases would render as "no change" and assert a
+   * flat trend the data never showed.
+   */
+  private __delta(current: number, previous: number): number | null {
+    if (!this.compareLabel || !previous) return null;
     return Math.round(((current - previous) / previous) * 100);
   }
 
@@ -633,7 +664,9 @@ export class BrandDashboardComponent implements OnInit {
     const open = this.tiles.find((t) => t.key === 'opens');
     const sent = this.tiles.find((t) => t.key === 'sent');
 
-    if (reply && Math.abs(reply.delta) >= 8) {
+    // Every delta-based callout needs an explicit null check: without a baseline
+    // there is no swing to report, and `Math.abs(null)` quietly evaluates to 0.
+    if (reply && reply.delta !== null && Math.abs(reply.delta) >= 8) {
       out.push({
         tone: reply.delta > 0 ? 'good' : 'warn',
         icon: reply.delta > 0 ? 'fa-arrow-up' : 'fa-arrow-down',
@@ -641,7 +674,7 @@ export class BrandDashboardComponent implements OnInit {
       });
     }
 
-    if (open && Math.abs(open.delta) >= 8) {
+    if (open && open.delta !== null && Math.abs(open.delta) >= 8) {
       out.push({
         tone: open.delta > 0 ? 'good' : 'warn',
         icon: 'fa-envelope-open-o',
@@ -675,7 +708,11 @@ export class BrandDashboardComponent implements OnInit {
       out.push({
         tone: 'info',
         icon: 'fa-check',
-        text: `Steady period: ${this.compact(sent.total)} sent with no material change in engagement.`,
+        // "No material change" is only sayable against a baseline. Without one, say
+        // what IS known rather than implying the trend was checked and found flat.
+        text: this.compareLabel
+          ? `Steady period: ${this.compact(sent.total)} sent with no material change in engagement.`
+          : `${this.compact(sent.total)} sent over ${this.rangeLabel}. No earlier period of the same length to compare against.`,
       });
     }
 
