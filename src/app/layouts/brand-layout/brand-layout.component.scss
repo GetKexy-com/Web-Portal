@@ -486,8 +486,34 @@ app-org-info {
   width: 80px;
 }
 
+// The header's vertical padding. A variable because `.header-divider` has to cancel it
+// with an equal negative margin to span the full header height — retune here only, or
+// the rule will stop reaching the header's edges.
+$kx-header-pad-y: 15px;
+
 .main-warp {
-  padding: 15px 24px;
+  padding: $kx-header-pad-y 24px;
+}
+
+// ── Full-height divider (sidebar toggle | page identity) ─────────────────────
+// `align-self: stretch` only reaches the 36px control ROW, because that row is what the
+// flex container is. The negative vertical margin is what takes it the rest of the way,
+// out through the header's own padding, so the rule meets the top edge and the bottom
+// border. The asymmetric horizontal margins account for the toggle's existing 8px
+// margin-right, so the gaps either side of the line look equal (8+6 = 14 vs 14).
+.header-divider {
+  flex: 0 0 auto;
+  align-self: stretch;
+  width: 1px;
+  // LONGHAND, not the four-value shorthand. In a space-separated Sass list `14px
+  // -$kx-header-pad-y` parses as SUBTRACTION (14px - 15px = -1px), so the shorthand
+  // silently compiled to `margin: -15px -1px 6px` — three values, no negative bottom
+  // margin, and the rule stopped short of the header's bottom edge.
+  margin-top: -$kx-header-pad-y;
+  margin-bottom: -$kx-header-pad-y;
+  margin-left: 6px;
+  margin-right: 14px;
+  background: #e5e9f0;
 }
 
 .top-link {
@@ -742,7 +768,9 @@ button.close:focus {
     width: var(--kx-sidebar-w, 264px);
   }
   .main-warp {
-    padding: 15px 10px;
+    // Vertical stays on the variable: `.header-divider` cancels it with a negative
+    // margin, so a different value here would leave the rule short of the edges.
+    padding: $kx-header-pad-y 10px;
   }
   .top-link {
     a {

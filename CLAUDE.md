@@ -917,6 +917,22 @@ knows the list's name; the layout doesn't), and it's a FIELD rebuilt by
 the `*ngFor`. The leaf crumb is only appended once the name has actually loaded; a blank
 crumb is worse than briefly showing just the parent.
 
+**Full-height divider.** A 1px `.header-divider` sits between the toggle and the page
+identity. `align-self: stretch` alone only reaches the 36px control row (that row IS the
+flex container), so an equal **negative vertical margin** takes it out through the
+header's own padding to meet the top edge and the bottom border. That padding is the
+`$kx-header-pad-y` variable, used by `.main-warp` at both breakpoints AND by the
+divider's cancelling margin — retune it in one place or the rule stops reaching the
+edges. Its horizontal margins are asymmetric (6px left / 14px right) to absorb the
+toggle's existing 8px `margin-right`, so the gaps either side look equal.
+
+Those margins are written as **longhand, not the four-value shorthand**, and that is not
+style preference: in a space-separated Sass list `14px -$kx-header-pad-y` parses as
+SUBTRACTION (`14px - 15px = -1px`), so `margin: -$pad 14px -$pad 6px` silently compiled
+to `margin: -15px -1px 6px` — three values, no negative bottom margin, and the rule
+stopped short of the header's bottom edge with no build error. Any negative-`$variable`
+margin/padding shorthand in this repo is exposed to the same trap.
+
 **Alignment gotcha (bitten twice).** Everything on that header row shares a **36px line
 box** to match the toggle, and each piece needed a framework default stripped to get
 there: the `<h1>` needed `padding: 0` (global heading reset), and `app-back-button`

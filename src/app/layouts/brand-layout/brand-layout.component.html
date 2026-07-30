@@ -221,6 +221,9 @@
               <path d="M9 3v18" />
             </svg>
           </a>
+          <!--Full-height rule separating the sidebar control from the page identity.
+              Decorative, so aria-hidden — it carries no meaning a screen reader needs.-->
+          <span class="header-divider" aria-hidden="true"></span>
           <app-back-button *ngIf="showBackButton"></app-back-button>
           <!--Breadcrumb trail when the page passes one, otherwise the plain title.
               `pageTitle` prefers an explicit [headline] (dynamic pages like a list's own
