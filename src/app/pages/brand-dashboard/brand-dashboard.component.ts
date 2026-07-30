@@ -8,9 +8,14 @@ import { routeConstants } from '../../helpers/routeConstants';
 import { constants } from '../../helpers/constants';
 import {
   DASHBOARD_RANGES,
+  ENGAGEMENT_METRICS,
+  EngagementMetricKey,
   HEAT_BUCKETS,
   HEAT_DAYS,
+  IDashboardActivity,
   IDashboardCampaignRow,
+  IDashboardCampaignTrendPoint,
+  IDashboardLinkCount,
   IDashboardStats,
   IDashboardTrendPoint,
 } from '../../models/DashboardStats';
@@ -67,6 +72,23 @@ interface IHeatCellView {
   title: string;
 }
 
+/**
+ * One row of the contact leaderboard: a contact's totals for the window and campaign
+ * scope on screen, plus the bar length for whichever metric it is ranked by.
+ */
+interface IEngagedContactRow {
+  contactId: number;
+  name: string;
+  email: string;
+  opens: number;
+  clicks: number;
+  replies: number;
+  /** Most recent day with any activity, ISO date. */
+  lastActivity: string;
+  /** Share of the leader's value for the ranked metric, 0-100. */
+  barPct: number;
+}
+
 @Component({
   selector: 'app-brand-dashboard',
   imports: [CommonModule, BrandLayoutComponent],
@@ -75,12 +97,32 @@ interface IHeatCellView {
 })
 export class BrandDashboardComponent implements OnInit {
   readonly ranges = DASHBOARD_RANGES;
+  readonly engagementMetrics = ENGAGEMENT_METRICS;
   readonly constants = constants;
   readonly brand = routeConstants.BRAND;
+
+  /**
+   * Parks the Engagement funnel, Top clicked links, Deliverability and Best send
+   * windows panels — kept for later, off screen for now. Set to `true` to bring all
+   * four back; nothing else needs changing.
+   *
+   * Their numbers are still COMPUTED while hidden, on purpose and cheaply: the
+   * insight strip's "best send window" callout reads the heatmap, so skipping the
+   * heat build would silently drop the one actionable line off the top of the page.
+   */
+  readonly showSecondaryPanels = false;
 
   isLoading = true;
   stats: IDashboardStats;
   userName = '';
+  /**
+   * Page heading. A FIELD, not a getter: it is settled once in `ngOnInit` and a
+   * getter would rebuild the string on every change-detection pass.
+   *
+   * Falls back to a nameless "Welcome back" when the token carries no name — a
+   * trailing comma with nothing after it is worse than a shorter greeting.
+   */
+  greeting = 'Welcome back';
   selectedDays = 30;
   selectedMetric: MetricKey = 'sent';
   lastUpdated: Date = null;
@@ -118,6 +160,24 @@ export class BrandDashboardComponent implements OnInit {
     step: string;
   }[] = [];
 
+  // ── Campaign scope ──────────────────────────────────────────────────────
+  // An EMPTY set means "all campaigns". That is the honest default: the page opens
+  // showing everything, and there is no state where the user has deselected their way
+  // into an empty dashboard by accident.
+  selectedCampaignIds = new Set<number>();
+  /** The selected campaigns, for the removable chips above the chart. */
+  scopeChips: { id: number; title: string }[] = [];
+  /** Sends inside the current scope — drives the "nothing here" states. */
+  scopedSent = 0;
+
+  // ── Fact table, indexed ─────────────────────────────────────────────────
+  // Built once on load. `dates` is the gap-free day axis the data spans; `rowsByDate`
+  // buckets the campaign-day rows so a window is a slice, not a scan.
+  private dates: string[] = [];
+  private rowsByDate = new Map<string, IDashboardCampaignTrendPoint[]>();
+  /** Campaign-day rows inside the current window AND campaign scope. */
+  private visibleRows: IDashboardCampaignTrendPoint[] = [];
+
   constructor(
     private dashboardService: DashboardService,
     private authService: AuthService,
@@ -126,12 +186,19 @@ export class BrandDashboardComponent implements OnInit {
 
   async ngOnInit(): Promise<void> {
     const user: any = this.authService.userTokenValue || {};
-    this.userName = (user.first_name || user.supplier_name || '').trim();
+    // `firstName` is what the token actually carries — see `brand-layout`'s
+    // `getUserName()` and `org-info`. `first_name` is tolerated because
+    // `auth.service` writes that spelling on one path, but `supplier_name` is
+    // deliberately NOT a fallback: that is the COMPANY name, and greeting someone by
+    // their employer is worse than greeting them by nothing.
+    this.userName = (user.firstName || user.first_name || '').trim();
+    if (this.userName) this.greeting = `Welcome back, ${this.userName}`;
 
     this.isLoading = true;
     try {
       this.stats = await this.dashboardService.getStats();
       this.lastUpdated = new Date();
+      this.__indexTrend();
       this.__recompute();
     } finally {
       this.isLoading = false;
@@ -160,6 +227,62 @@ export class BrandDashboardComponent implements OnInit {
 
   get activeTile(): IMetricTile {
     return this.tiles.find((t) => t.key === this.selectedMetric) || this.tiles[0];
+  }
+
+  // ── Campaign segmentation ───────────────────────────────────────────────
+
+  /** True when no explicit selection is active, i.e. the whole account is in scope. */
+  get isAllCampaigns(): boolean {
+    return this.selectedCampaignIds.size === 0;
+  }
+
+  /**
+   * Add or remove one campaign from the comparison. Removing the last one falls back
+   * to "all campaigns" rather than to an empty dashboard.
+   */
+  toggleCampaign = (id: number): void => {
+    if (this.selectedCampaignIds.has(id)) this.selectedCampaignIds.delete(id);
+    else this.selectedCampaignIds.add(id);
+
+    this.hoverIndex = -1;
+    this.__recompute();
+  };
+
+  clearCampaignScope = (): void => {
+    if (this.isAllCampaigns) return;
+    this.selectedCampaignIds.clear();
+    this.hoverIndex = -1;
+    this.__recompute();
+  };
+
+  isCampaignSelected = (id: number): boolean => this.selectedCampaignIds.has(id);
+
+  /** Gmail-style checkbox glyphs, matching the app's other selectable tables. */
+  campaignCheckboxIcon = (id: number): string =>
+    this.isCampaignSelected(id) ? 'fa-check-square-o' : 'fa-square-o';
+
+  /** Reads out the scope in the toolbar, so no chart is ever unlabelled. */
+  get scopeLabel(): string {
+    const total = this.stats?.campaigns?.length || 0;
+    return this.isAllCampaigns
+      ? 'All campaigns'
+      : `${this.selectedCampaignIds.size} of ${total} campaigns`;
+  }
+
+  // ── Contact leaderboard ─────────────────────────────────────────────────
+  selectedEngagementMetric: EngagementMetricKey = 'clicks';
+  engagedContacts: IEngagedContactRow[] = [];
+
+  selectEngagementMetric = (key: EngagementMetricKey): void => {
+    if (key === this.selectedEngagementMetric) return;
+    this.selectedEngagementMetric = key;
+    this.__buildEngagedContacts();
+  };
+
+  get engagementMetricLabel(): string {
+    return (
+      this.engagementMetrics.find((m) => m.key === this.selectedEngagementMetric)?.label || ''
+    );
   }
 
   /**
@@ -210,26 +333,135 @@ export class BrandDashboardComponent implements OnInit {
     }
   };
 
+  // ── Indexing ────────────────────────────────────────────────────────────
+
+  /**
+   * Bucket the fact table by date and build the day axis it spans.
+   *
+   * The axis is FILLED between the first and last day that has data, so a day where
+   * nothing was sent is a real zero on the chart rather than a missing x position.
+   * It ends at the newest day WITH data, not at today — a trailing run of zeros
+   * because the last sync was yesterday would squash the whole plot.
+   */
+  private __indexTrend(): void {
+    this.rowsByDate.clear();
+    this.dates = [];
+
+    const rows = this.stats?.trend || [];
+    if (!rows.length) return;
+
+    for (const row of rows) {
+      const bucket = this.rowsByDate.get(row.date);
+      if (bucket) bucket.push(row);
+      else this.rowsByDate.set(row.date, [row]);
+    }
+
+    const stamps = rows.map((r) => this.__dayStart(r.date).getTime());
+    const cursor = new Date(Math.min(...stamps));
+    const last = Math.max(...stamps);
+
+    while (cursor.getTime() <= last) {
+      this.dates.push(this.__isoDate(cursor));
+      cursor.setDate(cursor.getDate() + 1);
+    }
+  }
+
+  /** Parse an ISO date as LOCAL midnight — bare `new Date('YYYY-MM-DD')` is UTC. */
+  private __dayStart(iso: string): Date {
+    return new Date(`${iso}T00:00:00`);
+  }
+
+  private __isoDate(d: Date): string {
+    const m = `${d.getMonth() + 1}`.padStart(2, '0');
+    const day = `${d.getDate()}`.padStart(2, '0');
+    return `${d.getFullYear()}-${m}-${day}`;
+  }
+
   // ── Recompute ───────────────────────────────────────────────────────────
   private __recompute(): void {
     if (!this.stats) return;
 
-    const all = this.stats.trend;
-    const n = Math.min(this.selectedDays, all.length);
-    this.visibleTrend = all.slice(-n);
-    this.previousTrend = all.slice(Math.max(0, all.length - n * 2), all.length - n);
+    const axis = this.dates;
+    const n = Math.min(this.selectedDays, axis.length);
+    const curDates = axis.slice(-n);
+    const prevDates = axis.slice(Math.max(0, axis.length - n * 2), axis.length - n);
+
+    this.visibleRows = this.__scopedRows(curDates);
+    const prevRows = this.__scopedRows(prevDates);
+
+    this.visibleTrend = this.__daily(curDates, this.visibleRows);
+    this.previousTrend = this.__daily(prevDates, prevRows);
+    this.scopedSent = this.__sum(this.visibleTrend, 'sent');
+
+    this.scopeChips = (this.stats.campaigns || [])
+      .filter((c) => this.selectedCampaignIds.has(c.id))
+      .map((c) => ({ id: c.id, title: c.title }));
 
     this.__buildTiles();
     this.__buildChart();
     this.__buildFunnel();
     this.__buildDelivery();
     this.__buildHeat();
+    this.__buildTopLinks();
+    this.__buildEngagedContacts();
+    this.__buildActivity();
     // Insights read the tiles AND the heatmap, so it runs last.
     this.__buildInsights();
-    this.__applySort();
+    this.__buildCampaignRows();
   }
 
-  private __sum(rows: IDashboardTrendPoint[], k: MetricKey): number {
+  /** Rows for these dates that are inside the campaign scope. */
+  private __scopedRows(dates: string[]): IDashboardCampaignTrendPoint[] {
+    const all = this.isAllCampaigns;
+    const out: IDashboardCampaignTrendPoint[] = [];
+
+    for (const date of dates) {
+      const rows = this.rowsByDate.get(date);
+      if (!rows) continue;
+      for (const row of rows) {
+        if (all || this.selectedCampaignIds.has(row.campaignId)) out.push(row);
+      }
+    }
+    return out;
+  }
+
+  /**
+   * Collapse campaign-day rows into one point per day, aligned to `dates` so the
+   * series has no holes and index N is always the Nth day of the window.
+   */
+  private __daily(
+    dates: string[],
+    rows: IDashboardCampaignTrendPoint[],
+  ): IDashboardTrendPoint[] {
+    const index = new Map<string, IDashboardTrendPoint>();
+    const points = dates.map((date) => {
+      const p: IDashboardTrendPoint = {
+        date,
+        sent: 0,
+        opens: 0,
+        clicks: 0,
+        replies: 0,
+        unsubscribes: 0,
+        bounces: 0,
+      };
+      index.set(date, p);
+      return p;
+    });
+
+    for (const row of rows) {
+      const p = index.get(row.date);
+      if (!p) continue;
+      p.sent += row.sent;
+      p.opens += row.opens;
+      p.clicks += row.clicks;
+      p.replies += row.replies;
+      p.unsubscribes += row.unsubscribes;
+      p.bounces += row.bounces;
+    }
+    return points;
+  }
+
+  private __sum(rows: IDashboardTrendPoint[], k: keyof IDashboardTrendPoint): number {
     return rows.reduce((acc, p) => acc + (p[k] as number), 0);
   }
 
@@ -317,7 +549,6 @@ export class BrandDashboardComponent implements OnInit {
     const peak = Math.max(...curVals, ...prevVals, 1);
     this.chartMax = this.__niceMax(peak);
 
-    const stepX = 100 / (cur.length - 1);
     const pts = (vals: number[]) =>
       vals
         .map((v, i) => {
@@ -382,6 +613,22 @@ export class BrandDashboardComponent implements OnInit {
    */
   private __buildInsights(): void {
     const out: IInsight[] = [];
+
+    // An empty scope has nothing to say about rates, and saying it anyway ("reply
+    // rate 0%") would read as a regression rather than as an absence of data.
+    if (!this.scopedSent) {
+      this.insights = [
+        {
+          tone: 'info',
+          icon: 'fa-info-circle',
+          text: this.isAllCampaigns
+            ? `Nothing was sent in the last ${this.selectedDays} days.`
+            : `No sends in the last ${this.selectedDays} days for ${this.scopeLabel.toLowerCase()}. Clear the filter or widen the range.`,
+        },
+      ];
+      return;
+    }
+
     const reply = this.tiles.find((t) => t.key === 'replies');
     const open = this.tiles.find((t) => t.key === 'opens');
     const sent = this.tiles.find((t) => t.key === 'sent');
@@ -415,7 +662,7 @@ export class BrandDashboardComponent implements OnInit {
       });
     }
 
-    const bounceRate = this.__pct(this.stats.totals.bounces, this.stats.totals.emailsSent);
+    const bounceRate = this.__pct(this.__sum(this.visibleTrend, 'bounces'), this.scopedSent);
     if (bounceRate >= 2) {
       out.push({
         tone: 'warn',
@@ -440,24 +687,21 @@ export class BrandDashboardComponent implements OnInit {
   deliveredPct = 0;
 
   private __buildDelivery(): void {
-    const t = this.stats.totals;
+    const sent = this.scopedSent;
+    const bounces = this.__sum(this.visibleTrend, 'bounces');
+    const unsubscribes = this.__sum(this.visibleTrend, 'unsubscribes');
     // `delivered` is derived, not stored: sent minus bounces, so it can never
     // contradict the other two numbers.
-    const delivered = Math.max(t.emailsSent - t.bounces, 0);
-    this.deliveredPct = this.__pct(delivered, t.emailsSent);
+    const delivered = Math.max(sent - bounces, 0);
+    this.deliveredPct = this.__pct(delivered, sent);
 
     this.delivery = [
       { label: 'Delivered', value: delivered, pct: this.deliveredPct, tone: 'good' },
-      {
-        label: 'Bounced',
-        value: t.bounces,
-        pct: this.__pct(t.bounces, t.emailsSent),
-        tone: 'warn',
-      },
+      { label: 'Bounced', value: bounces, pct: this.__pct(bounces, sent), tone: 'warn' },
       {
         label: 'Unsubscribed',
-        value: t.unsubscribes,
-        pct: this.__pct(t.unsubscribes, t.emailsSent),
+        value: unsubscribes,
+        pct: this.__pct(unsubscribes, sent),
         tone: 'neutral',
       },
     ];
@@ -470,25 +714,54 @@ export class BrandDashboardComponent implements OnInit {
   heatMaxRate = 0;
 
   /**
-   * Reply rate per weekday × time bucket. Sequential ONE-hue ramp: this is
-   * magnitude, so intensity carries the value and a legend states the range.
+   * Reply rate per weekday × time bucket, accumulated from the same rows the chart
+   * uses — so it follows the range and the campaign scope for free. Sequential
+   * ONE-hue ramp: this is magnitude, so intensity carries the value and a legend
+   * states the range.
    */
   private __buildHeat(): void {
-    const cells = this.stats.sendWindows || [];
-    const rates = cells.map((c) => (c.sent ? (c.replies / c.sent) * 100 : 0));
-    this.heatMaxRate = Math.max(...rates, 1);
+    const grid = new Map<string, { sent: number; replies: number }>();
 
-    this.heatCells = cells.map((c, i) => {
-      const rate = Math.round(rates[i] * 10) / 10;
-      return {
-        dow: c.dow,
-        bucket: c.bucket,
-        rate,
-        sent: c.sent,
-        intensity: rates[i] / this.heatMaxRate,
-        title: `${HEAT_DAYS[c.dow]} ${HEAT_BUCKETS[c.bucket]}h — ${rate}% reply rate from ${c.sent} sent`,
-      };
-    });
+    for (const row of this.visibleRows) {
+      const dow = this.__dayStart(row.date).getDay();
+      row.buckets.forEach((b, bucket) => {
+        if (!b.sent && !b.replies) return;
+        const key = `${dow}-${bucket}`;
+        const cell = grid.get(key);
+        if (cell) {
+          cell.sent += b.sent;
+          cell.replies += b.replies;
+        } else {
+          grid.set(key, { sent: b.sent, replies: b.replies });
+        }
+      });
+    }
+
+    // Emit every combination, including the empty ones, so the grid always renders
+    // as a full rectangle rather than losing cells.
+    const cells: IHeatCellView[] = [];
+    let max = 0;
+    for (let dow = 0; dow < HEAT_DAYS.length; dow++) {
+      for (let bucket = 0; bucket < HEAT_BUCKETS.length; bucket++) {
+        const cell = grid.get(`${dow}-${bucket}`) || { sent: 0, replies: 0 };
+        const rateExact = cell.sent ? (cell.replies / cell.sent) * 100 : 0;
+        max = Math.max(max, rateExact);
+        cells.push({
+          dow,
+          bucket,
+          rate: Math.round(rateExact * 10) / 10,
+          sent: cell.sent,
+          intensity: rateExact, // rescaled below, once the max is known
+          title: cell.sent
+            ? `${HEAT_DAYS[dow]} ${HEAT_BUCKETS[bucket]}h — ${Math.round(rateExact * 10) / 10}% reply rate from ${cell.sent} sent`
+            : `${HEAT_DAYS[dow]} ${HEAT_BUCKETS[bucket]}h — nothing sent`,
+        });
+      }
+    }
+
+    this.heatMaxRate = Math.max(max, 1);
+    for (const c of cells) c.intensity = c.intensity / this.heatMaxRate;
+    this.heatCells = cells;
   }
 
   cellAt = (dow: number, bucket: number): IHeatCellView =>
@@ -500,10 +773,103 @@ export class BrandDashboardComponent implements OnInit {
     return `rgba(9, 93, 209, ${(0.1 + intensity * 0.85).toFixed(3)})`;
   };
 
+  // ── Top clicked links ───────────────────────────────────────────────────
+  topLinks: IDashboardLinkCount[] = [];
+  topLinkPeak = 0;
+
+  /** Clicks per destination for the window and campaign scope on screen. */
+  private __buildTopLinks(): void {
+    const totals = new Map<string, number>();
+
+    for (const row of this.visibleRows) {
+      for (const link of row.links) {
+        totals.set(link.key, (totals.get(link.key) || 0) + link.count);
+      }
+    }
+
+    this.topLinks = [...totals.entries()]
+      .map(([key, count]) => ({ key, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5);
+    this.topLinkPeak = this.topLinks[0]?.count || 0;
+  }
+
+  // ── Activity feed ───────────────────────────────────────────────────────
+  visibleActivity: IDashboardActivity[] = [];
+
+  /**
+   * Scoped by CAMPAIGN but deliberately not by the date range: this is an unbounded
+   * "latest events" feed, and a feed that empties out when you narrow the range to 7
+   * days reads as broken rather than as filtered.
+   */
+  private __buildActivity(): void {
+    const all = this.isAllCampaigns;
+    this.visibleActivity = (this.stats.recentActivity || []).filter(
+      (a) => all || this.selectedCampaignIds.has(a.campaignId),
+    );
+  }
+
+  // ── Most engaged contacts ───────────────────────────────────────────────
+
+  /**
+   * Roll the per-contact fact rows up to one row per contact, then rank by the
+   * selected metric. Ranking by opens, clicks and replies deliberately gives
+   * different answers — a contact who opens everything and never replies is a
+   * different kind of lead from one who replies twice and never opens again.
+   *
+   * Called on its own by the segmented control (no window or scope change means the
+   * underlying sums are unchanged, so only the ordering needs redoing) and from
+   * `__recompute` when either does change.
+   */
+  private __buildEngagedContacts(): void {
+    const windowDates = new Set(this.visibleTrend.map((p) => p.date));
+    const all = this.isAllCampaigns;
+    const rolled = new Map<number, IEngagedContactRow>();
+
+    for (const row of this.stats.contactEngagement || []) {
+      if (!windowDates.has(row.date)) continue;
+      if (!all && !this.selectedCampaignIds.has(row.campaignId)) continue;
+
+      const existing = rolled.get(row.contactId);
+      if (existing) {
+        existing.opens += row.opens;
+        existing.clicks += row.clicks;
+        existing.replies += row.replies;
+        if (row.date > existing.lastActivity) existing.lastActivity = row.date;
+      } else {
+        rolled.set(row.contactId, {
+          contactId: row.contactId,
+          name: row.name,
+          email: row.email,
+          opens: row.opens,
+          clicks: row.clicks,
+          replies: row.replies,
+          lastActivity: row.date,
+          barPct: 0,
+        });
+      }
+    }
+
+    const metric = this.selectedEngagementMetric;
+    const rows = [...rolled.values()]
+      // Drop contacts with none of the ranked metric — a leaderboard of zeros is
+      // noise, and their other counts are still visible under the other tabs.
+      .filter((r) => r[metric] > 0)
+      .sort((a, b) => b[metric] - a[metric] || b.replies - a.replies)
+      .slice(0, 8);
+
+    const peak = rows[0]?.[metric] || 0;
+    for (const r of rows) r.barPct = peak ? Math.round((r[metric] / peak) * 100) : 0;
+    this.engagedContacts = rows;
+  }
+
+  /** Emphasise whichever count column the list is currently ranked by. */
+  isRankedBy = (key: EngagementMetricKey): boolean => this.selectedEngagementMetric === key;
+
   // ── Sortable campaign table ─────────────────────────────────────────────
   sortKey: keyof IDashboardCampaignRow = 'sent';
   sortDir: 'asc' | 'desc' = 'desc';
-  sortedCampaigns: IDashboardCampaignRow[] = [];
+  campaignRows: IDashboardCampaignRow[] = [];
 
   sortBy = (key: keyof IDashboardCampaignRow): void => {
     if (this.sortKey === key) {
@@ -515,18 +881,61 @@ export class BrandDashboardComponent implements OnInit {
     this.__applySort();
   };
 
+  /**
+   * Each campaign's figures for the window on screen, summed from the same rows as
+   * everything else — so the row you click to filter by always agrees with the tiles
+   * you get after clicking it. A DRAFT campaign has no rows and correctly reads 0.
+   *
+   * These are NOT scoped by the campaign selection: the table is how you change that
+   * selection, so hiding the unselected rows would make it a one-way door.
+   */
+  private __buildCampaignRows(): void {
+    const byCampaign = new Map<number, { sent: number; opens: number; clicks: number; replies: number }>();
+
+    for (const point of this.visibleTrend) {
+      for (const row of this.rowsByDate.get(point.date) || []) {
+        const acc = byCampaign.get(row.campaignId);
+        if (acc) {
+          acc.sent += row.sent;
+          acc.opens += row.opens;
+          acc.clicks += row.clicks;
+          acc.replies += row.replies;
+        } else {
+          byCampaign.set(row.campaignId, {
+            sent: row.sent,
+            opens: row.opens,
+            clicks: row.clicks,
+            replies: row.replies,
+          });
+        }
+      }
+    }
+
+    this.campaignRows = (this.stats.campaigns || []).map((meta) => {
+      const t = byCampaign.get(meta.id);
+      const sent = t?.sent || 0;
+      return {
+        ...meta,
+        sent,
+        openRate: this.__pct(t?.opens || 0, sent),
+        clickRate: this.__pct(t?.clicks || 0, sent),
+        replyRate: this.__pct(t?.replies || 0, sent),
+        selected: this.selectedCampaignIds.has(meta.id),
+      };
+    });
+    this.__applySort();
+  }
+
   private __applySort(): void {
-    const rows = [...(this.stats?.campaigns || [])];
     const k = this.sortKey;
     const dir = this.sortDir === 'asc' ? 1 : -1;
 
-    rows.sort((a, b) => {
+    this.campaignRows = [...this.campaignRows].sort((a, b) => {
       const av = a[k];
       const bv = b[k];
       if (typeof av === 'number' && typeof bv === 'number') return (av - bv) * dir;
       return String(av).localeCompare(String(bv)) * dir;
     });
-    this.sortedCampaigns = rows;
   }
 
   /** Funnel = magnitude → one hue, light to dark. Steps, never a rainbow. */

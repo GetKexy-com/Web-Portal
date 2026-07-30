@@ -5,11 +5,13 @@
         Scrolls away with the content rather than pinning to the top.-->
     <header class="toolbar">
       <div class="tb-text">
-        <h1 class="tb-title">Dashboard</h1>
+        <h1 class="tb-title">{{ greeting }}</h1>
+        <!--The name moved up into the heading, so it is NOT repeated here.-->
         <p class="tb-sub">
-          <span *ngIf="userName">{{ userName }}</span>
-          <span class="tb-dot" *ngIf="userName">·</span>
           Last {{ selectedDays }} days vs previous {{ selectedDays }}
+          <!--The scope is stated here as well as in the chip bar, so no figure on the
+              page is ever ambiguous about what it counts.-->
+          <span class="tb-dot">·</span>{{ scopeLabel }}
           <span *ngIf="lastUpdated" class="tb-stamp">· updated {{ lastUpdated | date: 'h:mm a' }}</span>
         </p>
       </div>
@@ -40,6 +42,9 @@
         </div>
         <div class="sk-chart"><span class="sk sk-block"></span></div>
       </div>
+      <div class="mini-row">
+        <div class="panel sk-mini" *ngFor="let i of [1,2,3,4]"><span class="sk sk-lg"></span></div>
+      </div>
       <div class="mid-grid">
         <div class="panel"><span class="sk sk-sm"></span><span class="sk sk-block short"></span></div>
         <div class="panel"><span class="sk sk-sm"></span><span class="sk sk-block short"></span></div>
@@ -47,6 +52,31 @@
     </ng-container>
 
     <ng-container *ngIf="!isLoading && stats">
+
+      <!--══════════ Campaign scope ══════════
+          Only rendered when a filter is actually on. Removable tokens rather than a
+          "N campaigns selected" pill, so it is always clear WHICH campaigns the whole
+          page is currently counting — same pattern as the contacts page's filter
+          chips. Selection itself happens in the campaign table below.-->
+      <section class="scope-bar" *ngIf="!isAllCampaigns">
+        <span class="scope-lead">
+          <i class="fa fa-filter" aria-hidden="true"></i>
+          Comparing
+        </span>
+        <button
+          type="button"
+          class="scope-chip"
+          *ngFor="let c of scopeChips"
+          (click)="toggleCampaign(c.id)"
+          [attr.aria-label]="'Remove ' + c.title + ' from the comparison'"
+        >
+          <span class="scope-chip-text">{{ c.title }}</span>
+          <i class="fa fa-times" aria-hidden="true"></i>
+        </button>
+        <button type="button" class="link-btn scope-clear" (click)="clearCampaignScope()">
+          Clear
+        </button>
+      </section>
 
       <!--══════════ Derived insights ══════════
           Computed from the data, never authored — only material swings surface, so
@@ -153,22 +183,88 @@
             <div class="x-axis" aria-hidden="true">
               <span *ngFor="let t of xTicks" class="x-tick" [style.left.%]="t.pct">{{ t.label }}</span>
             </div>
+
+            <!--A flat line along the baseline is indistinguishable from a broken
+                chart, so an empty scope says so in words instead.-->
+            <div class="chart-empty" *ngIf="!scopedSent">
+              <i class="fa fa-inbox" aria-hidden="true"></i>
+              <p>No emails were sent in this window for the selected campaigns.</p>
+              <button type="button" class="link-btn" *ngIf="!isAllCampaigns" (click)="clearCampaignScope()">
+                Show all campaigns
+              </button>
+            </div>
           </div>
         </div>
+      </section>
+
+      <!--══════════ Reach summary ══════════
+          Four clickable totals that double as navigation into the records behind
+          them. These are STOCK figures (how much audience exists right now), not
+          the range-scoped flow metrics above, which is why they sit in their own
+          row rather than in the metric strip.-->
+      <section class="mini-row">
+        <button type="button" class="mini-card" (click)="goTo(brand.MANAGE_CONTACTS)">
+          <span class="mini-icon"><i class="fa fa-address-book-o" aria-hidden="true"></i></span>
+          <span class="mini-text">
+            <span class="mini-value">{{ stats.totals.contacts | number }}</span>
+            <span class="mini-label">Contacts</span>
+          </span>
+          <i class="fa fa-angle-right mini-go" aria-hidden="true"></i>
+        </button>
+        <button type="button" class="mini-card" (click)="goTo(brand.MANAGE_LIST)">
+          <span class="mini-icon"><i class="fa fa-table" aria-hidden="true"></i></span>
+          <span class="mini-text">
+            <span class="mini-value">{{ stats.totals.lists | number }}</span>
+            <span class="mini-label">Lists</span>
+          </span>
+          <i class="fa fa-angle-right mini-go" aria-hidden="true"></i>
+        </button>
+        <button type="button" class="mini-card" (click)="goTo(brand.LIST_DRIP_CAMPAIGN)">
+          <span class="mini-icon"><i class="fa fa-bullhorn" aria-hidden="true"></i></span>
+          <span class="mini-text">
+            <span class="mini-value">{{ stats.totals.dripCampaigns | number }}</span>
+            <span class="mini-label">Campaigns</span>
+          </span>
+          <i class="fa fa-angle-right mini-go" aria-hidden="true"></i>
+        </button>
+        <button type="button" class="mini-card" (click)="goTo(brand.LIST_DRIP_CAMPAIGN)">
+          <span class="mini-icon is-live"><i class="fa fa-paper-plane-o" aria-hidden="true"></i></span>
+          <span class="mini-text">
+            <span class="mini-value">{{ stats.totals.activeCampaigns | number }}</span>
+            <span class="mini-label">Active now</span>
+          </span>
+          <i class="fa fa-angle-right mini-go" aria-hidden="true"></i>
+        </button>
       </section>
 
       <!--══════════ Campaign performance + Activity (60/40) ══════════-->
       <section class="perf-grid">
         <article class="panel">
           <div class="panel-head">
-            <h2 class="panel-title">Campaign performance</h2>
-            <button type="button" class="link-btn" (click)="goTo(brand.LIST_DRIP_CAMPAIGN)">View all</button>
+            <div>
+              <h2 class="panel-title">Campaign performance</h2>
+              <!--States the mechanism where the mechanism is, rather than hiding it
+                  behind a bare column of checkboxes.-->
+              <p class="panel-sub">
+                Tick campaigns to scope the whole dashboard to them
+                <span *ngIf="!isAllCampaigns"> · {{ scopeLabel }}</span>
+              </p>
+            </div>
+            <div class="head-actions">
+              <button type="button" class="link-btn" *ngIf="!isAllCampaigns" (click)="clearCampaignScope()">
+                Clear
+              </button>
+              <button type="button" class="link-btn" (click)="goTo(brand.LIST_DRIP_CAMPAIGN)">View all</button>
+            </div>
           </div>
 
           <div class="table-scroll">
-            <table class="dash-table">
+            <table class="dash-table selectable">
               <thead>
                 <tr>
+                  <!--Not a select-all: "nothing ticked" already means every campaign,
+                      so a header checkbox would have no state to express.-->
+                  <th class="pick-col" aria-label="Compare"></th>
                   <!--Sortable headers: a performance table you can't reorder is a
                       report, not a tool.-->
                   <th class="sortable" [class.sorted]="sortKey === 'title'" (click)="sortBy('title')">
@@ -190,7 +286,27 @@
                 </tr>
               </thead>
               <tbody>
-                <tr *ngFor="let c of sortedCampaigns">
+                <!--The whole row toggles for convenience, and the cell also holds a
+                    real button so the control is reachable and announceable by
+                    keyboard rather than being a click handler on a <tr>.-->
+                <tr
+                  *ngFor="let c of campaignRows"
+                  class="pick-row"
+                  [class.is-selected]="c.selected"
+                  (click)="toggleCampaign(c.id)"
+                >
+                  <td class="pick-col">
+                    <button
+                      type="button"
+                      class="checkbox-icon"
+                      [class.selected]="c.selected"
+                      [attr.aria-pressed]="c.selected"
+                      [attr.aria-label]="(c.selected ? 'Remove ' : 'Add ') + c.title + ' to the comparison'"
+                      (click)="$event.stopPropagation(); toggleCampaign(c.id)"
+                    >
+                      <i class="fa" [ngClass]="campaignCheckboxIcon(c.id)" aria-hidden="true"></i>
+                    </button>
+                  </td>
                   <td>
                     <span class="c-title" [title]="c.title">{{ c.title }}</span>
                     <span class="c-meta">{{ c.numberOfEmails }} emails · {{ c.createdAt | date: 'MMM y' }}</span>
@@ -211,7 +327,7 @@
             <button type="button" class="link-btn" (click)="goTo(brand.PROSPECTING_CONV_ALL)">Inbox</button>
           </div>
           <ul class="activity">
-            <li *ngFor="let a of stats.recentActivity">
+            <li *ngFor="let a of visibleActivity">
               <i class="fa act-ic" [ngClass]="activityIcon(a.type)" aria-hidden="true"></i>
               <span class="act-body">
                 <span class="act-line"><strong>{{ a.contactName }}</strong> {{ a.type }}</span>
@@ -220,69 +336,99 @@
               <span class="act-time">{{ a.occurredAt | date: 'MMM d, h:mm a' }}</span>
             </li>
           </ul>
+          <div class="table-state" *ngIf="!visibleActivity.length">
+            No recent activity for the selected campaigns.
+          </div>
         </article>
       </section>
 
-      <!--══════════ Audience · Activity · Links ══════════-->
+      <!--══════════ Most engaged contacts ══════════
+          A leaderboard, not a funnel: the point is that ranking by opens, clicks and
+          replies gives DIFFERENT people, so the segmented control is the feature and
+          all three counts stay visible whichever one is ranked. Full width because
+          it carries a contact identity plus four numbers per row.-->
+      <section class="engaged-row">
+        <article class="panel">
+          <div class="panel-head">
+            <div>
+              <h2 class="panel-title">Most engaged contacts</h2>
+              <p class="panel-sub">
+                Ranked by {{ engagementMetricLabel | lowercase }} over the last {{ selectedDays }} days · {{ scopeLabel | lowercase }}
+              </p>
+            </div>
+            <div class="head-actions">
+              <div class="range-switch" role="group" aria-label="Rank contacts by">
+                <button
+                  type="button"
+                  *ngFor="let m of engagementMetrics"
+                  class="range-btn"
+                  [class.active]="isRankedBy(m.key)"
+                  [attr.aria-pressed]="isRankedBy(m.key)"
+                  (click)="selectEngagementMetric(m.key)"
+                >{{ m.label }}</button>
+              </div>
+              <button type="button" class="link-btn" (click)="goTo(brand.MANAGE_CONTACTS)">All contacts</button>
+            </div>
+          </div>
+
+          <div class="table-scroll" *ngIf="engagedContacts.length">
+            <table class="dash-table engaged">
+              <thead>
+                <tr>
+                  <th class="e-rank-col">#</th>
+                  <th>Contact</th>
+                  <th class="num" [class.is-ranked]="isRankedBy('opens')">Opens</th>
+                  <th class="num" [class.is-ranked]="isRankedBy('clicks')">Clicks</th>
+                  <th class="num" [class.is-ranked]="isRankedBy('replies')">Replies</th>
+                  <!--The bar shows the ranked metric, so its header names it rather
+                      than saying something vague like "Engagement".-->
+                  <th class="e-bar-col">{{ engagementMetricLabel }} share</th>
+                  <th class="num">Last seen</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let c of engagedContacts; let i = index">
+                  <td class="e-rank">{{ i + 1 }}</td>
+                  <td>
+                    <span class="c-title" [title]="c.name">{{ c.name }}</span>
+                    <span class="c-meta" [title]="c.email">{{ c.email }}</span>
+                  </td>
+                  <td class="num" [class.is-ranked]="isRankedBy('opens')">{{ c.opens | number }}</td>
+                  <td class="num" [class.is-ranked]="isRankedBy('clicks')">{{ c.clicks | number }}</td>
+                  <td class="num" [class.is-ranked]="isRankedBy('replies')">{{ c.replies | number }}</td>
+                  <td class="e-bar">
+                    <span class="f-track">
+                      <span class="f-fill step-3" [style.width.%]="c.barPct"></span>
+                    </span>
+                  </td>
+                  <td class="num e-seen">{{ c.lastActivity | date: 'MMM d' }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="table-state" *ngIf="!engagedContacts.length">
+            No {{ engagementMetricLabel | lowercase }} recorded in this window for the selected campaigns.
+          </div>
+        </article>
+      </section>
+
+      <!--══════════ PARKED: funnel · links · deliverability · send windows ══════════
+          Gated off behind `showSecondaryPanels` rather than deleted or commented out:
+          these four are coming back, the markup here contains its own comments (which
+          cannot nest inside another comment), and a flag keeps the templates
+          type-checked and the bindings honest while they are off screen. Flip the
+          field in the component to bring all four back.-->
+      <ng-container *ngIf="showSecondaryPanels">
+
+      <!--══════════ Engagement funnel + Links ══════════
+          The Audience panel that used to sit here was the SAME four totals with the
+          same navigation targets as the reach cards above, so it went with them
+          rather than being shown twice. The funnel moved up beside Top clicked links
+          in its place: both answer "what did recipients do", the funnel by stage and
+          the links by destination, so they read together — and neither wants a
+          full-width row.-->
       <section class="lower-grid">
-        <article class="panel">
-          <div class="panel-head"><h2 class="panel-title">Audience</h2></div>
-          <ul class="reach-list">
-            <li>
-              <button type="button" (click)="goTo(brand.MANAGE_CONTACTS)">
-                <span class="r-label">Contacts</span>
-                <span class="r-value">{{ stats.totals.contacts | number }}</span>
-                <i class="fa fa-angle-right" aria-hidden="true"></i>
-              </button>
-            </li>
-            <li>
-              <button type="button" (click)="goTo(brand.MANAGE_LIST)">
-                <span class="r-label">Lists</span>
-                <span class="r-value">{{ stats.totals.lists | number }}</span>
-                <i class="fa fa-angle-right" aria-hidden="true"></i>
-              </button>
-            </li>
-            <li>
-              <button type="button" (click)="goTo(brand.LIST_DRIP_CAMPAIGN)">
-                <span class="r-label">Campaigns</span>
-                <span class="r-value">{{ stats.totals.dripCampaigns | number }}</span>
-                <i class="fa fa-angle-right" aria-hidden="true"></i>
-              </button>
-            </li>
-            <li>
-              <button type="button" (click)="goTo(brand.LIST_DRIP_CAMPAIGN)">
-                <span class="r-label">Active now <span class="live-dot" aria-hidden="true"></span></span>
-                <span class="r-value">{{ stats.totals.activeCampaigns | number }}</span>
-                <i class="fa fa-angle-right" aria-hidden="true"></i>
-              </button>
-            </li>
-          </ul>
-        </article>
-
-        <article class="panel">
-          <div class="panel-head"><h2 class="panel-title">Top clicked links</h2></div>
-          <table class="dash-table links">
-            <tbody>
-              <tr *ngFor="let l of stats.topLinks; let i = index">
-                <td class="l-rank">{{ i + 1 }}</td>
-                <td><span class="l-key" [title]="l.key">{{ l.key }}</span></td>
-                <td class="l-bar">
-                  <span class="f-track">
-                    <span
-                      class="f-fill step-3"
-                      [style.width.%]="stats.topLinks[0].count ? (l.count / stats.topLinks[0].count) * 100 : 0"
-                    ></span>
-                  </span>
-                </td>
-                <td class="num strong">{{ l.count | number }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </article>
-      </section>
-
-      <!--══════════ Funnel · Deliverability · Send windows ══════════-->
-      <section class="tri-grid">
         <article class="panel">
           <div class="panel-head">
             <h2 class="panel-title">Engagement funnel</h2>
@@ -310,6 +456,37 @@
           </table>
         </article>
 
+        <article class="panel">
+          <div class="panel-head">
+            <h2 class="panel-title">Top clicked links</h2>
+            <span class="panel-note" *ngIf="topLinkPeak">clicks</span>
+          </div>
+          <table class="dash-table links" *ngIf="topLinks.length">
+            <tbody>
+              <tr *ngFor="let l of topLinks; let i = index">
+                <td class="l-rank">{{ i + 1 }}</td>
+                <td><span class="l-key" [title]="l.key">{{ l.key }}</span></td>
+                <td class="l-bar">
+                  <span class="f-track">
+                    <span
+                      class="f-fill step-3"
+                      [style.width.%]="topLinkPeak ? (l.count / topLinkPeak) * 100 : 0"
+                    ></span>
+                  </span>
+                </td>
+                <td class="num strong">{{ l.count | number }}</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="table-state" *ngIf="!topLinks.length">
+            No link clicks in this window for the selected campaigns.
+          </div>
+        </article>
+      </section>
+
+      <!--══════════ Deliverability · Send windows ══════════
+          The sending-health pair, now that the funnel has moved up beside the links.-->
+      <section class="duo-grid">
         <article class="panel">
           <div class="panel-head">
             <h2 class="panel-title">Deliverability</h2>
@@ -368,6 +545,9 @@
           </div>
         </article>
       </section>
+
+      </ng-container>
+      <!--══════════ end PARKED ══════════-->
     </ng-container>
   </div>
 </brand-layout>

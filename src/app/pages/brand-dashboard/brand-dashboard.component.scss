@@ -93,6 +93,64 @@ $kx-red-bg: #fdeaea;
     &.tone-info { border-left-color: $kx-primary; i { color: $kx-primary-deep; } }
   }
 
+  // ── Campaign scope bar ──────────────────────────────────────────────────
+  // Removable tokens, so the active filter is legible at a glance and undoable in
+  // one click. Sits above everything it affects.
+  .scope-bar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+    padding: 10px 12px;
+    border: 1px solid $kx-border;
+    border-radius: 10px;
+    background: #fff;
+
+    .scope-lead {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 11.5px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: $kx-faint;
+
+      i { font-size: 10.5px; }
+    }
+
+    .scope-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      max-width: 260px;
+      padding: 4px 9px;
+      border: 1px solid #cfe3fb;
+      border-radius: 7px;
+      background: $kx-info-bg;
+      font-size: 12px;
+      color: $kx-primary-deep;
+      cursor: pointer;
+      transition: border-color 0.12s ease, background 0.12s ease;
+
+      &:hover {
+        border-color: $kx-primary;
+        background: #e2eefd;
+      }
+
+      .scope-chip-text {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      i { font-size: 10px; opacity: 0.7; }
+    }
+
+    .scope-clear { margin-left: auto; }
+  }
+
   // ── Skeletons ───────────────────────────────────────────────────────────
   .sk {
     display: block;
@@ -125,6 +183,12 @@ $kx-red-bg: #fdeaea;
     }
   }
   .sk-chart { padding: 16px 20px; }
+  // Placeholder for one reach card — same height as the real thing (38px icon +
+  // 14px padding either side) so the row below it doesn't jump when data lands.
+  .sk-mini {
+    padding: 14px 16px;
+    .sk-lg { width: 60%; height: 38px; margin: 0; }
+  }
 
   // Segmented control — flat, hairline, no gradient. The active step is a plain
   // ink fill, which is what Stripe/Linear/Vercel all do.
@@ -168,6 +232,9 @@ $kx-red-bg: #fdeaea;
       display: flex;
       align-items: center;
       justify-content: space-between;
+      // Wraps rather than squeezing: the leaderboard head carries a two-line title
+      // block plus a three-step segmented control and a link.
+      flex-wrap: wrap;
       gap: 14px;
       margin-bottom: 16px;
 
@@ -182,6 +249,30 @@ $kx-red-bg: #fdeaea;
       .panel-note {
         font-size: 11.5px;
         color: $kx-faint;
+      }
+
+      // Second line under a panel title — used where a panel has a control whose
+      // effect needs stating (the campaign picker, the leaderboard's ranking).
+      .panel-sub {
+        margin: 3px 0 0;
+        font-size: 11.5px;
+        line-height: 1.35;
+        color: $kx-muted;
+      }
+
+      // Right-hand cluster when a panel head carries more than one control.
+      .head-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-shrink: 0;
+
+        // The shared segmented control, one step down — a panel head is a tighter
+        // space than the page toolbar it was sized for.
+        .range-switch .range-btn {
+          padding: 5px 10px;
+          font-size: 11.5px;
+        }
       }
     }
 
@@ -340,6 +431,39 @@ $kx-red-bg: #fdeaea;
   .chart-frame {
     position: relative;
     padding-left: $y-gutter;
+  }
+
+  // Covers the plot area (not the axes) when the scope has no sends. An overlay
+  // rather than a swapped-out chart, so the frame doesn't change height and the page
+  // below it doesn't jump when a filter is applied.
+  .chart-empty {
+    position: absolute;
+    left: $y-gutter;
+    right: 0;
+    top: 0;
+    height: $plot-h;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 0 16px;
+    // Near-opaque rather than solid: the gridlines stay faintly visible, which reads
+    // as "this chart has no data" instead of "this chart is missing".
+    background: rgba(255, 255, 255, 0.9);
+    text-align: center;
+
+    i {
+      font-size: 19px;
+      color: #cbd5e1;
+    }
+
+    p {
+      margin: 0;
+      max-width: 340px;
+      font-size: 12.5px;
+      color: $kx-muted;
+    }
   }
 
   // Axis TEXT is HTML, never SVG: the plot is non-uniformly scaled to be
@@ -501,9 +625,11 @@ $kx-red-bg: #fdeaea;
   // reordering. Their child panels drop their own margin, since the grid `gap`
   // already spaces them.
   .mid-grid,
-  .tri-grid,
+  .duo-grid,
   .perf-grid,
-  .lower-grid {
+  .lower-grid,
+  .engaged-row,
+  .mini-row {
     display: grid;
     gap: 16px;
     margin-bottom: 16px;
@@ -511,12 +637,17 @@ $kx-red-bg: #fdeaea;
     > .panel { margin-bottom: 0; }
   }
 
+  // One panel, full width: the leaderboard carries a contact identity plus four
+  // numbers per row, so it wants the room a half-column can't give it.
+  .engaged-row { grid-template-columns: minmax(0, 1fr); }
+
   .mid-grid { grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); }
   // Campaign performance / Activity at 60/40. `3fr 2fr` IS 60/40, and minmax(0,…)
   // stops the table's own content from forcing the column wider than its share.
   .perf-grid { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); }
-  // Funnel · deliverability · send windows.
-  .tri-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  // Deliverability · send windows. Even split: the heatmap wants the width, and the
+  // delivery bars read fine at half.
+  .duo-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 
   // ── Deliverability ──────────────────────────────────────────────────────
   .delivery {
@@ -687,67 +818,85 @@ $kx-red-bg: #fdeaea;
     &.step-4 { background: $kx-primary-deep; }
   }
 
-  .reach-list {
-    list-style: none;
-    margin: 0;
-    padding: 0;
+  // ── Reach cards ─────────────────────────────────────────────────────────
+  // Four equal cards that are BUTTONS, so each one is both a figure and the way
+  // into the records behind it. Column count is fixed at 4 (not auto-fit) so the
+  // row always reads as one set rather than reflowing into an uneven grid.
+  // Layout only — the shared grid rule above owns display/gap/margins.
+  .mini-row {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
 
-    li + li { border-top: 1px solid $kx-hairline; }
+  .mini-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    background: #fff;
+    border: 1px solid $kx-border;
+    // Matches `.panel`'s radius so the row sits in the same card language as the
+    // sections above and below it.
+    border-radius: 12px;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    cursor: pointer;
+    text-align: left;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
 
-    button {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      width: 100%;
-      padding: 11px 2px;
-      border: none;
-      background: transparent;
-      cursor: pointer;
-      text-align: left;
+    &:hover {
+      border-color: $kx-primary;
+      box-shadow: 0 6px 18px -10px rgba(9, 93, 209, 0.4);
 
-      &:hover {
-        .r-label { color: $kx-ink; }
-        .fa { color: $kx-primary-deep; transform: translateX(2px); }
-      }
+      .mini-go { color: $kx-primary-deep; transform: translateX(2px); }
     }
 
-    .r-label {
+    .mini-icon {
+      flex-shrink: 0;
+      width: 38px;
+      height: 38px;
       display: inline-flex;
       align-items: center;
-      gap: 7px;
-      font-size: 13px;
-      color: $kx-muted;
-      transition: color 0.12s ease;
-    }
-
-    .r-value {
-      margin-left: auto;
+      justify-content: center;
+      border-radius: 11px;
+      background: rgba(18, 165, 244, 0.12);
+      color: $kx-primary-deep;
       font-size: 15px;
+
+      // "Active now" is a live state → the reserved good/positive step. The label
+      // beside it says so too, so the colour is never carrying it alone.
+      &.is-live { background: $kx-good-bg; color: $kx-good; }
+    }
+
+    .mini-text {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    // Standalone figures, not a column of them, so proportional digits.
+    .mini-value {
+      font-size: 19px;
       font-weight: 700;
+      line-height: 1.15;
       color: $kx-ink;
-      font-variant-numeric: tabular-nums;
     }
 
-    .fa {
+    .mini-label {
+      font-size: 12px;
+      color: $kx-muted;
+    }
+
+    .mini-go {
+      margin-left: auto;
       color: #cbd5e1;
-      font-size: 16px;
-      transition: all 0.12s ease;
-    }
-
-    // "Active now" is a live state → reserved good/positive step, with the label
-    // right beside it.
-    .live-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: $kx-good;
-      box-shadow: 0 0 0 3px $kx-good-bg;
+      font-size: 18px;
+      transition: color 0.15s ease, transform 0.15s ease;
     }
   }
 
   // ── Lower grid ──────────────────────────────────────────────────────────
-  // Layout only — the shared rule above owns display/gap/margins. Two columns now
-  // that Activity has moved up beside Campaign performance.
+  // Layout only — the shared rule above owns display/gap/margins. Engagement funnel
+  // beside Top clicked links; the links table gets the wider column since its keys
+  // are URLs, while the funnel's row labels are short words.
   .lower-grid {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr);
   }
@@ -832,6 +981,80 @@ $kx-red-bg: #fdeaea;
       color: $kx-faint;
     }
 
+    // ── Selectable rows (campaign picker) ─────────────────────────────────
+    // The whole row toggles, so it advertises that with a pointer and a hover tint,
+    // and a selected row carries a brand left-accent — the same cue the contacts
+    // table uses, so "picked" means the same thing across the app.
+    &.selectable {
+      .pick-col {
+        width: 34px;
+        padding-left: 2px;
+        padding-right: 4px;
+      }
+
+      .pick-row {
+        cursor: pointer;
+
+        &.is-selected td {
+          background: $kx-info-bg;
+        }
+        // Only the first cell draws the bar, so it reads as one accent down the row
+        // rather than a dashed line under every column.
+        &.is-selected td:first-child {
+          box-shadow: inset 3px 0 0 $kx-primary;
+        }
+        &.is-selected:hover td { background: #e6f0fd; }
+      }
+
+      // Gmail-style icon checkbox: grey outline, DARK-GREY mark when checked (not
+      // blue) — matches the contacts and lists tables.
+      .checkbox-icon {
+        display: inline-flex;
+        padding: 2px;
+        border: none;
+        background: transparent;
+        color: #80868b;
+        font-size: 15px;
+        line-height: 1;
+        cursor: pointer;
+
+        &.selected { color: #3c4043; }
+      }
+    }
+
+    // ── Contact leaderboard ───────────────────────────────────────────────
+    &.engaged {
+      .e-rank-col { width: 30px; }
+
+      .e-rank {
+        width: 30px;
+        font-size: 11px;
+        font-weight: 700;
+        color: $kx-faint;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .e-bar-col,
+      .e-bar { width: 26%; }
+
+      .e-seen { color: $kx-muted; }
+
+      // The ranked column is the one the order is based on, so it gets the ink; the
+      // other two stay present but recessive. Weight and colour carry this, never
+      // colour alone.
+      th.is-ranked { color: $kx-ink; }
+      td.is-ranked { font-weight: 700; }
+      td:not(.is-ranked).num { color: $kx-muted; }
+
+      .c-title { max-width: 220px; }
+      .c-meta {
+        max-width: 260px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+    }
+
     &.links {
       .l-rank {
         width: 26px;
@@ -851,6 +1074,15 @@ $kx-red-bg: #fdeaea;
 
       .l-bar { width: 34%; }
     }
+  }
+
+  // Empty state for a panel whose data a filter can legitimately reduce to nothing.
+  // States the reason, so an empty panel reads as an answer rather than a failure.
+  .table-state {
+    padding: 22px 4px;
+    font-size: 12.5px;
+    color: $kx-muted;
+    text-align: center;
   }
 
   .status-badge {
@@ -928,16 +1160,14 @@ $kx-red-bg: #fdeaea;
   }
 }
 
-@media (max-width: 1400px) {
-  .dashboard-page .tri-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
-
 @media (max-width: 1200px) {
   .dashboard-page {
     .metric-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .metric-strip .metric-tile:nth-child(2) { border-right: none; }
+    // Reach cards break 4 → 2 with the metric strip, so the two rows stay aligned.
+    .mini-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .mid-grid,
-    .tri-grid,
+    .duo-grid,
     .perf-grid,
     .lower-grid { grid-template-columns: minmax(0, 1fr); }
   }
@@ -947,6 +1177,7 @@ $kx-red-bg: #fdeaea;
   .dashboard-page {
     .metric-strip { grid-template-columns: minmax(0, 1fr); }
     .metric-strip .metric-tile { border-right: none; border-bottom: 1px solid $kx-hairline; }
+    .mini-row { grid-template-columns: minmax(0, 1fr); }
   }
 }
 
@@ -956,8 +1187,9 @@ $kx-red-bg: #fdeaea;
     .link-btn,
     .metric-tile,
     .f-fill,
-    .reach-list button,
-    .reach-list .fa,
+    .mini-card,
+    .mini-go,
+    .scope-chip,
     .sortable,
     .s-ic { transition: none; }
 
