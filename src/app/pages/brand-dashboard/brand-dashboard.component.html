@@ -58,6 +58,17 @@
       </div>
     </ng-container>
 
+    <!--══════════ Load failure ══════════
+        An empty dashboard and a failed request look identical, so the failure says so
+        explicitly rather than leaving the user to read zeros as real numbers.-->
+    <div class="panel load-error" *ngIf="!isLoading && loadError">
+      <i class="fa fa-exclamation-triangle" aria-hidden="true"></i>
+      <div>
+        <p class="le-title">Couldn't load your dashboard</p>
+        <p class="le-detail">{{ loadError }}</p>
+      </div>
+    </div>
+
     <ng-container *ngIf="!isLoading && stats">
 
       <!--══════════ Campaign scope ══════════
@@ -389,7 +400,21 @@
             </div>
           </div>
 
-          <div class="table-scroll" *ngIf="engagedContacts.length">
+          <!--This is the ONE panel whose data is fetched per range/scope change (it is
+              ranked server-side), so it is also the one that needs its own loading and
+              error states rather than relying on the page-level skeleton.-->
+          <div class="table-state" *ngIf="engagedLoading && !engagedContacts.length">
+            <i class="fa fa-circle-o-notch fa-spin" aria-hidden="true"></i> Ranking contacts…
+          </div>
+          <div class="table-state is-error" *ngIf="engagedError && !engagedLoading">
+            {{ engagedError }}
+          </div>
+
+          <div
+            class="table-scroll"
+            [class.is-refreshing]="engagedLoading"
+            *ngIf="engagedContacts.length"
+          >
             <table class="dash-table engaged">
               <thead>
                 <tr>
@@ -425,7 +450,10 @@
             </table>
           </div>
 
-          <div class="table-state" *ngIf="!engagedContacts.length">
+          <div
+            class="table-state"
+            *ngIf="!engagedContacts.length && !engagedLoading && !engagedError"
+          >
             No {{ engagementMetricLabel | lowercase }} recorded in this window for the selected campaigns.
           </div>
         </article>
@@ -508,7 +536,11 @@
         <article class="panel">
           <div class="panel-head">
             <h2 class="panel-title">Deliverability</h2>
-            <span class="panel-note">{{ deliveredPct }}% delivered</span>
+            <!--Only stated when bounces are actually measured; see `bouncesTracked`.
+                Otherwise there is no delivered figure, and printing 100% would be a
+                claim the data can't support.-->
+            <span class="panel-note" *ngIf="deliveredPct !== null">{{ deliveredPct }}% delivered</span>
+            <span class="panel-note" *ngIf="deliveredPct === null">delivery not tracked</span>
           </div>
 
           <ul class="delivery">

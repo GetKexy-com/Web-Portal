@@ -15,6 +15,7 @@ import {
   IDashboardActivity,
   IDashboardCampaignRow,
   IDashboardCampaignTrendPoint,
+  IDashboardEngagedContacts,
   IDashboardLinkCount,
   IDashboardStats,
   IDashboardTrendPoint,
@@ -118,8 +119,19 @@ export class BrandDashboardComponent implements OnInit {
   readonly showSecondaryPanels = false;
 
   isLoading = true;
+  /** Set when the stats request fails, so the page can say so instead of looking empty. */
+  loadError = '';
   stats: IDashboardStats;
+  /** From the auth token's `supplier_id`. Every dashboard query is scoped to it. */
+  companyId: number = null;
   userName = '';
+
+  /**
+   * The widest window the range switch offers, and therefore the ONE window fetched.
+   * Derived from `ranges` rather than typed as 90, so adding a range can't leave the
+   * fetch short of what the UI lets the user select.
+   */
+  readonly maxRangeDays = Math.max(...DASHBOARD_RANGES.map((r) => r.days));
   /**
    * Page heading. A FIELD, not a getter: it is settled once in `ngOnInit` and a
    * getter would rebuild the string on every change-detection pass.
@@ -206,13 +218,30 @@ export class BrandDashboardComponent implements OnInit {
     // their employer is worse than greeting them by nothing.
     this.userName = (user.firstName || user.first_name || '').trim();
     if (this.userName) this.greeting = `Welcome back, ${this.userName}`;
+    this.companyId = user.supplier_id;
+
+    if (!this.companyId) {
+      // Every dashboard query is company-scoped, so without a company there is
+      // nothing to ask for — say so rather than showing an empty dashboard that
+      // looks like a company with no activity.
+      this.loadError = 'No company is associated with this account.';
+      this.isLoading = false;
+      return;
+    }
 
     this.isLoading = true;
     try {
-      this.stats = await this.dashboardService.getStats();
+      // Fetch the LARGEST range once; the 7/30 day views are slices of it, so the
+      // range switch stays a local operation.
+      this.stats = await this.dashboardService.getStats(this.companyId, this.maxRangeDays);
       this.lastUpdated = new Date();
       this.__indexTrend();
       this.__recompute();
+      // Not awaited: the leaderboard is one panel, and blocking the whole page on it
+      // would delay the chart for no reason. It renders its own loading state.
+      this.__loadEngagedContacts();
+    } catch (error: any) {
+      this.loadError = error?.message || 'Could not load dashboard data.';
     } finally {
       this.isLoading = false;
     }
@@ -223,6 +252,9 @@ export class BrandDashboardComponent implements OnInit {
     this.selectedDays = days;
     this.hoverIndex = -1;
     this.__recompute();
+    // The leaderboard is ranked server-side, so unlike every other panel it cannot be
+    // re-derived from data already on the client.
+    this.__loadEngagedContacts();
   };
 
   selectMetric = (key: MetricKey): void => {
@@ -259,6 +291,7 @@ export class BrandDashboardComponent implements OnInit {
 
     this.hoverIndex = -1;
     this.__recompute();
+    this.__loadEngagedContacts();
   };
 
   clearCampaignScope = (): void => {
@@ -266,6 +299,7 @@ export class BrandDashboardComponent implements OnInit {
     this.selectedCampaignIds.clear();
     this.hoverIndex = -1;
     this.__recompute();
+    this.__loadEngagedContacts();
   };
 
   isCampaignSelected = (id: number): boolean => this.selectedCampaignIds.has(id);
@@ -285,6 +319,10 @@ export class BrandDashboardComponent implements OnInit {
   // ── Contact leaderboard ─────────────────────────────────────────────────
   selectedEngagementMetric: EngagementMetricKey = 'clicks';
   engagedContacts: IEngagedContactRow[] = [];
+  /** The last leaderboard response — holds all three rankings, so tabs are free. */
+  engaged: IDashboardEngagedContacts = null;
+  engagedLoading = false;
+  engagedError = '';
 
   selectEngagementMetric = (key: EngagementMetricKey): void => {
     if (key === this.selectedEngagementMetric) return;
@@ -349,33 +387,74 @@ export class BrandDashboardComponent implements OnInit {
   // ── Indexing ────────────────────────────────────────────────────────────
 
   /**
-   * Bucket the fact table by date and build the day axis it spans.
+   * Bucket the fact table by date and build the day axis.
    *
-   * The axis is FILLED between the first and last day that has data, so a day where
-   * nothing was sent is a real zero on the chart rather than a missing x position.
-   * It ends at the newest day WITH data, not at today — a trailing run of zeros
-   * because the last sync was yesterday would squash the whole plot.
+   * The axis comes from the SERVER's `meta.from`/`meta.to`, not from the min and max
+   * row dates. Two reasons: the response omits days with no activity, so deriving the
+   * axis from the rows would silently shorten the window and make "last 7 days" mean
+   * "the last 7 days that happened to have sends"; and the bounds were computed by the
+   * DB's own clock, which is the only clock that agrees with how the rows were grouped.
+   * Filling the gaps means a quiet day is a real zero on the chart rather than a
+   * missing x position.
    */
   private __indexTrend(): void {
     this.rowsByDate.clear();
     this.dates = [];
 
-    const rows = this.stats?.trend || [];
-    if (!rows.length) return;
-
-    for (const row of rows) {
+    for (const row of this.stats?.trend || []) {
       const bucket = this.rowsByDate.get(row.date);
       if (bucket) bucket.push(row);
       else this.rowsByDate.set(row.date, [row]);
     }
 
-    const stamps = rows.map((r) => this.__dayStart(r.date).getTime());
-    const cursor = new Date(Math.min(...stamps));
-    const last = Math.max(...stamps);
+    const meta = this.stats?.meta;
+    if (!meta?.from || !meta?.to) return;
 
-    while (cursor.getTime() <= last) {
+    const cursor = this.__dayStart(meta.from);
+    const last = this.__dayStart(meta.to).getTime();
+
+    // Guard against a malformed window rather than looping forever on it.
+    while (cursor.getTime() <= last && this.dates.length <= 400) {
       this.dates.push(this.__isoDate(cursor));
       cursor.setDate(cursor.getDate() + 1);
+    }
+  }
+
+  // ── Contact leaderboard fetch ───────────────────────────────────────────
+  /** In-flight token, so a slow response can't overwrite a newer one. */
+  private engagedRequestId = 0;
+
+  /**
+   * Re-fetch the leaderboard for the current range and campaign scope.
+   *
+   * Called on load and whenever the range or scope changes — NOT when the metric tab
+   * changes, because all three rankings arrive together. Responses are sequence-checked:
+   * clicking through 7 → 30 → 90 quickly leaves three requests racing, and without the
+   * token the slowest could land last and show the wrong window's leaderboard.
+   */
+  private async __loadEngagedContacts(): Promise<void> {
+    if (!this.companyId) return;
+
+    const requestId = ++this.engagedRequestId;
+    this.engagedLoading = true;
+    this.engagedError = '';
+
+    try {
+      const res = await this.dashboardService.getEngagedContacts(
+        this.companyId,
+        this.selectedDays,
+        [...this.selectedCampaignIds],
+      );
+      if (requestId !== this.engagedRequestId) return; // superseded
+      this.engaged = res;
+      this.__buildEngagedContacts();
+    } catch (error: any) {
+      if (requestId !== this.engagedRequestId) return;
+      this.engaged = null;
+      this.engagedContacts = [];
+      this.engagedError = error?.message || 'Could not load engaged contacts.';
+    } finally {
+      if (requestId === this.engagedRequestId) this.engagedLoading = false;
     }
   }
 
@@ -453,15 +532,7 @@ export class BrandDashboardComponent implements OnInit {
   ): IDashboardTrendPoint[] {
     const index = new Map<string, IDashboardTrendPoint>();
     const points = dates.map((date) => {
-      const p: IDashboardTrendPoint = {
-        date,
-        sent: 0,
-        opens: 0,
-        clicks: 0,
-        replies: 0,
-        unsubscribes: 0,
-        bounces: 0,
-      };
+      const p: IDashboardTrendPoint = { date, sent: 0, opens: 0, clicks: 0, replies: 0 };
       index.set(date, p);
       return p;
     });
@@ -473,10 +544,20 @@ export class BrandDashboardComponent implements OnInit {
       p.opens += row.opens;
       p.clicks += row.clicks;
       p.replies += row.replies;
-      p.unsubscribes += row.unsubscribes;
-      p.bounces += row.bounces;
     }
     return points;
+  }
+
+  /**
+   * Unsubscribes in the visible window. Company-wide by necessity — the suppression
+   * list records who unsubscribed but not which campaign prompted it, so this figure
+   * follows the date range and deliberately IGNORES the campaign scope.
+   */
+  private __scopedUnsubscribes(): number {
+    const windowDates = new Set(this.visibleTrend.map((p) => p.date));
+    return (this.stats?.unsubscribes || [])
+      .filter((u) => windowDates.has(u.date))
+      .reduce((acc, u) => acc + u.count, 0);
   }
 
   private __sum(rows: IDashboardTrendPoint[], k: keyof IDashboardTrendPoint): number {
@@ -695,13 +776,19 @@ export class BrandDashboardComponent implements OnInit {
       });
     }
 
-    const bounceRate = this.__pct(this.__sum(this.visibleTrend, 'bounces'), this.scopedSent);
-    if (bounceRate >= 2) {
-      out.push({
-        tone: 'warn',
-        icon: 'fa-exclamation-triangle',
-        text: `Bounce rate is ${bounceRate}% — above the 2% threshold that puts sender reputation at risk.`,
-      });
+    // The bounce-rate warning is GONE, not zeroed: the backend records no delivery
+    // failures at all (`meta.bouncesTracked` is false — there is an SES SNS DTO but no
+    // route consuming it), so "bounce rate is 0%" would be a claim the data cannot
+    // support. It comes back on its own once bounce tracking exists.
+    if (this.bouncesTracked) {
+      const bounceRate = this.__pct(this.bounces, this.scopedSent);
+      if (bounceRate >= 2) {
+        out.push({
+          tone: 'warn',
+          icon: 'fa-exclamation-triangle',
+          text: `Bounce rate is ${bounceRate}% — above the 2% threshold that puts sender reputation at risk.`,
+        });
+      }
     }
 
     if (!out.length && sent) {
@@ -721,27 +808,55 @@ export class BrandDashboardComponent implements OnInit {
 
   // ── Deliverability ──────────────────────────────────────────────────────
   delivery: IDeliveryRow[] = [];
-  deliveredPct = 0;
+  /** Null when bounces aren't tracked — there is then no delivered figure to state. */
+  deliveredPct: number | null = null;
+
+  /**
+   * True only when the backend actually measures delivery failures. Today it does not,
+   * so the bounce row and the delivered percentage are OMITTED rather than shown as
+   * zero: "0% bounced / 100% delivered" reads as perfect deliverability when the truth
+   * is that nothing was measured. The unsubscribe row is real either way.
+   */
+  get bouncesTracked(): boolean {
+    return !!this.stats?.meta?.bouncesTracked;
+  }
+
+  /** Placeholder until bounce tracking exists; see `bouncesTracked`. */
+  private readonly bounces = 0;
 
   private __buildDelivery(): void {
     const sent = this.scopedSent;
-    const bounces = this.__sum(this.visibleTrend, 'bounces');
-    const unsubscribes = this.__sum(this.visibleTrend, 'unsubscribes');
-    // `delivered` is derived, not stored: sent minus bounces, so it can never
-    // contradict the other two numbers.
-    const delivered = Math.max(sent - bounces, 0);
-    this.deliveredPct = this.__pct(delivered, sent);
+    const unsubscribes = this.__scopedUnsubscribes();
+    const rows: IDeliveryRow[] = [];
 
-    this.delivery = [
-      { label: 'Delivered', value: delivered, pct: this.deliveredPct, tone: 'good' },
-      { label: 'Bounced', value: bounces, pct: this.__pct(bounces, sent), tone: 'warn' },
-      {
-        label: 'Unsubscribed',
-        value: unsubscribes,
-        pct: this.__pct(unsubscribes, sent),
-        tone: 'neutral',
-      },
-    ];
+    if (this.bouncesTracked) {
+      // `delivered` is derived, not stored: sent minus bounces, so it can never
+      // contradict the other two numbers.
+      const delivered = Math.max(sent - this.bounces, 0);
+      this.deliveredPct = this.__pct(delivered, sent);
+      rows.push(
+        { label: 'Delivered', value: delivered, pct: this.deliveredPct, tone: 'good' },
+        {
+          label: 'Bounced',
+          value: this.bounces,
+          pct: this.__pct(this.bounces, sent),
+          tone: 'warn',
+        },
+      );
+    } else {
+      this.deliveredPct = null;
+      // What IS known: how many went out. Not labelled "delivered", because whether
+      // they arrived is exactly the thing that isn't measured.
+      rows.push({ label: 'Sent', value: sent, pct: sent ? 100 : 0, tone: 'good' });
+    }
+
+    rows.push({
+      label: 'Unsubscribed',
+      value: unsubscribes,
+      pct: this.__pct(unsubscribes, sent),
+      tone: 'neutral',
+    });
+    this.delivery = rows;
   }
 
   // ── Send-window heatmap ─────────────────────────────────────────────────
@@ -849,52 +964,39 @@ export class BrandDashboardComponent implements OnInit {
   // ── Most engaged contacts ───────────────────────────────────────────────
 
   /**
-   * Roll the per-contact fact rows up to one row per contact, then rank by the
-   * selected metric. Ranking by opens, clicks and replies deliberately gives
-   * different answers — a contact who opens everything and never replies is a
-   * different kind of lead from one who replies twice and never opens again.
+   * Read the ranking for the selected metric out of the fetched response.
    *
-   * Called on its own by the segmented control (no window or scope change means the
-   * underlying sums are unchanged, so only the ordering needs redoing) and from
-   * `__recompute` when either does change.
+   * The server ranks and truncates — each of the three lists is its own
+   * `ORDER BY … LIMIT`, so every metric's top-N is exactly right rather than being
+   * re-sorted from one shared list (which would miss a contact who is 3rd by replies
+   * but 200th by opens). Ranking by opens, clicks and replies deliberately gives
+   * different people: a contact who opens everything and never replies is a different
+   * kind of lead from one who replies twice and never opens again.
+   *
+   * All this does locally is pick the right list and scale the bar — which is why the
+   * metric tabs cost no request.
    */
   private __buildEngagedContacts(): void {
-    const windowDates = new Set(this.visibleTrend.map((p) => p.date));
-    const all = this.isAllCampaigns;
-    const rolled = new Map<number, IEngagedContactRow>();
-
-    for (const row of this.stats.contactEngagement || []) {
-      if (!windowDates.has(row.date)) continue;
-      if (!all && !this.selectedCampaignIds.has(row.campaignId)) continue;
-
-      const existing = rolled.get(row.contactId);
-      if (existing) {
-        existing.opens += row.opens;
-        existing.clicks += row.clicks;
-        existing.replies += row.replies;
-        if (row.date > existing.lastActivity) existing.lastActivity = row.date;
-      } else {
-        rolled.set(row.contactId, {
-          contactId: row.contactId,
-          name: row.name,
-          email: row.email,
-          opens: row.opens,
-          clicks: row.clicks,
-          replies: row.replies,
-          lastActivity: row.date,
-          barPct: 0,
-        });
-      }
-    }
-
     const metric = this.selectedEngagementMetric;
-    const rows = [...rolled.values()]
-      // Drop contacts with none of the ranked metric — a leaderboard of zeros is
-      // noise, and their other counts are still visible under the other tabs.
-      .filter((r) => r[metric] > 0)
-      .sort((a, b) => b[metric] - a[metric] || b.replies - a.replies)
-      .slice(0, 8);
+    const source =
+      metric === 'opens'
+        ? this.engaged?.byOpens
+        : metric === 'clicks'
+          ? this.engaged?.byClicks
+          : this.engaged?.byReplies;
 
+    const rows: IEngagedContactRow[] = (source || []).map((c) => ({
+      contactId: c.contactId,
+      name: c.name || c.email || 'Unknown contact',
+      email: c.email,
+      opens: c.opens,
+      clicks: c.clicks,
+      replies: c.replies,
+      lastActivity: c.lastActivity,
+      barPct: 0,
+    }));
+
+    // The list is already sorted by the ranked metric, so the leader is row 0.
     const peak = rows[0]?.[metric] || 0;
     for (const r of rows) r.barPct = peak ? Math.round((r[metric] / peak) * 100) : 0;
     this.engagedContacts = rows;

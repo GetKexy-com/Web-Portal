@@ -1090,6 +1090,48 @@ $kx-red-bg: #fdeaea;
     font-size: 12.5px;
     color: $kx-muted;
     text-align: center;
+
+    i { margin-right: 6px; }
+
+    // A failed request is NOT an empty result — it wears the error tone so the two
+    // can't be mistaken for each other.
+    &.is-error { color: $kx-red; }
+  }
+
+  // A panel refreshing in place (the leaderboard, when the range or scope changes).
+  // Dimmed rather than replaced by a spinner: the previous ranking stays readable and
+  // the panel doesn't collapse and re-expand on every filter click.
+  .table-scroll.is-refreshing {
+    opacity: 0.55;
+    pointer-events: none;
+    transition: opacity 0.12s ease;
+  }
+
+  // ── Load failure ────────────────────────────────────────────────────────
+  .load-error {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    border-left: 3px solid $kx-red;
+
+    > i {
+      margin-top: 2px;
+      font-size: 15px;
+      color: $kx-red;
+    }
+
+    .le-title {
+      margin: 0;
+      font-size: 13.5px;
+      font-weight: 700;
+      color: $kx-ink;
+    }
+
+    .le-detail {
+      margin: 3px 0 0;
+      font-size: 12.5px;
+      color: $kx-muted;
+    }
   }
 
   .status-badge {
