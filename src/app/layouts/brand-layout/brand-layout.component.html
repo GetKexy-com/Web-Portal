@@ -56,12 +56,15 @@
         [navigateTo]="brand.MANAGE_CONTACTS"
         label="Manage Contacts"
       ></nav-item>
-      <nav-item
-        [isDropDown]="true"
-        icon="fa-search"
-        [navigateTo]="brand.FIND_LEADS"
-        label="Find Leads"
-      ></nav-item>
+      <!--Find Leads: hidden from the nav for now. Commented out rather than deleted —
+          the route, the page and the sidebar entry are all still here, so restoring it
+          is uncommenting these five lines. Same treatment as Launch Campaign below.-->
+<!--      <nav-item-->
+<!--        [isDropDown]="true"-->
+<!--        icon="fa-search"-->
+<!--        [navigateTo]="brand.FIND_LEADS"-->
+<!--        label="Find Leads"-->
+<!--      ></nav-item>-->
     </nav-item-dropdown>
 
     <nav-item
