@@ -38,7 +38,6 @@ export class DripCampaignService {
   public selectedLaunchDripCampaignType;
   private dripCampaign: DripCampaign = DripCampaign.empty();
   public emailProspects = [];
-  public insightApiPostData;
   public suppressionListApiPostData;
 
   constructor(

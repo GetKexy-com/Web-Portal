@@ -20,7 +20,9 @@ import { DripCampaignCardComponent } from '../drip-campaign-card/drip-campaign-c
 import { CampaignLayoutBottmBtnsComponent } from '../campaign-layout-bottm-btns/campaign-layout-bottm-btns.component';
 import { KexyToastifyComponent } from '../kexy-toastify/kexy-toastify.component';
 import { SendEmailDetailsContentComponent } from '../send-email-details-content/send-email-details-content.component';
-import { EmailInsightsContentComponent } from '../email-insights-content/email-insights-content.component';
+import {
+  CampaignInsightsContentComponent,
+} from '../campaign-insights-content/campaign-insights-content.component';
 import { DelayDetailsContentComponent } from '../delay-details-content/delay-details-content.component';
 import {
   ActiveContactsInCampaignComponent,
@@ -31,7 +33,6 @@ import {
 import { CommonModule } from '@angular/common';
 import { PageUiService } from '../../services/page-ui.service';
 import { Contact, IRawContact } from '../../models/Contact';
-import { CsvHelper } from '../../helpers/CSVHelper';
 import { PreviewDripEmailContentComponent } from '../preview-drip-email-content/preview-drip-email-content.component';
 import { LeadMagnetService } from '../../services/lead-magnet.service';
 import { CAMPAIGN_STATUS, DripCampaign } from '../../models/DripCampaign';
@@ -418,15 +419,49 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
     this.__createRightSideSlide(PreviewDripEmailContentComponent, 'email-content');
   };
 
+  /**
+   * Insights for the WHOLE campaign, as opposed to `insightsBtnClick`'s one email.
+   *
+   * The campaign id goes on the instance rather than through the service the way the
+   * per-email drawer does it: that pattern (`dripCampaignService.insightApiPostData`)
+   * is a global handoff with no types on it, and there is no reason to add a second
+   * user of it for a single number.
+   */
+  campaignInsightsBtnClick = () => {
+    const ref = this.ngbOffcanvas.open(CampaignInsightsContentComponent, {
+      panelClass: 'campaign-insights',
+      position: 'end',
+      scroll: false,
+    });
+    ref.componentInstance.campaignId = parseInt(this.dripCampaignId);
+    // Seeds the header so it names the campaign on the first frame instead of
+    // showing "Loading…" until the request lands.
+    ref.componentInstance.campaignTitle = this.dripCampaign?.details?.title?.title || '';
+  };
+
+  /**
+   * Insights for ONE email — the same drawer as `campaignInsightsBtnClick`, scoped by
+   * `emailId`.
+   *
+   * It used to open a separate `EmailInsightsContentComponent` backed by
+   * `GET drip-campaigns/:id/insights`, which 400'd on every call: that route reads the
+   * insights table through the TypeORM repository, which `SELECT`s the entity's
+   * `email_notification_sent` column, and the live table has no such column. The
+   * analytics endpoint aggregates in scoped raw SQL and is immune to that drift.
+   */
   insightsBtnClick = (email) => {
-    const insightApiPostData = {
-      drip_campaign_id: parseInt(this.dripCampaignId),
-      drip_campaign_email_id: email.id,
-      supplier_id: this.userData.supplier_id,
-      email,
-    };
-    this.dripCampaignService.insightApiPostData = insightApiPostData;
-    this.__createRightSideSlide(EmailInsightsContentComponent, 'email-insights');
+    const ref = this.ngbOffcanvas.open(CampaignInsightsContentComponent, {
+      panelClass: 'campaign-insights',
+      position: 'end',
+      scroll: false,
+    });
+    ref.componentInstance.campaignId = parseInt(this.dripCampaignId);
+    ref.componentInstance.campaignTitle = this.dripCampaign?.details?.title?.title || '';
+    ref.componentInstance.emailId = email.id;
+    // Seeded so the summary names the email on the first frame rather than after the
+    // request lands; the response confirms both.
+    ref.componentInstance.emailSequence = email.emailSequence;
+    ref.componentInstance.emailSubject = email.emailSubject || '';
   };
 
   showEmailDelayBtnClick = (email) => {
@@ -863,169 +898,10 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
     }
   };
 
-  exportInsights = async () => {
-    const swal = this.pageUiService.showSweetAlertLoading();
-    try {
-      const insightsPromises = this.emails.map(async (email) => {
-        const postData = {
-          drip_campaign_id: parseInt(this.dripCampaignId),
-          drip_campaign_email_id: email.id,
-          supplier_id: this.userData.supplier_id,
-        };
-
-        const insightsData = await this.dripCampaignService.insights(postData);
-        return insightsData['insights'] || [];
-      });
-
-      const allInsights = await Promise.all(insightsPromises);
-      const insightsArray = allInsights
-        .filter(insights => insights.length > 0)
-        .map((insights, index) =>
-          this.processInsights(insights, this.emails[index]),
-        );
-
-      await this.exportCSV(insightsArray);
-
-    } finally {
-      swal.close();
-    }
-  };
-
-  processInsights = (insights, email: any) => {
-    const { clickedInsights, openedInsights } = this.categorizeInsights(insights, email);
-
-    const topClickedContacts = this.aggregateContacts(clickedInsights);
-    const topOpenedContacts = this.aggregateContacts(openedInsights);
-
-    return this.mergeContacts(topOpenedContacts, topClickedContacts);
-  };
-
-  categorizeInsights = (insights, email: any) => {
-    const clickedInsights = [];
-    const openedInsights = [];
-    const repliedInsights = [];
-
-    insights.forEach(insight => {
-      const enrichedInsight = {
-        ...insight,
-        emailSequence: email.emailSequence,
-        emailSubject: email.emailSubject,
-      };
-
-      switch (insight.insightType) {
-        case constants.CLICK:
-          clickedInsights.push(enrichedInsight);
-          break;
-        case constants.OPEN:
-          openedInsights.push(enrichedInsight);
-          break;
-        case constants.REPLY:
-          repliedInsights.push(enrichedInsight);
-          break;
-      }
-    });
-
-    return { clickedInsights, openedInsights, repliedInsights };
-  };
-
-  aggregateContacts = (insights) => {
-    const contactsMap = {};
-
-    insights.forEach(insight => {
-      const contact = insight.contact;
-      if (!contact) return;
-
-      const contactId = contact.id;
-      if (contactsMap[contactId]) {
-        contactsMap[contactId].count += 1;
-      } else {
-        contactsMap[contactId] = {
-          ...contact,
-          emailSequence: insight.emailSequence!,
-          emailSubject: insight.emailSubject!,
-          createdAt: insight.createdAt,
-          count: 1,
-        };
-      }
-    });
-
-    return Object.values(contactsMap).sort((a, b) => b['count'] - a['count']);
-  };
-
-  mergeContacts = (
-    openedContacts,
-    clickedContacts,
-  ) => {
-    const mergedContacts = {};
-
-    openedContacts.forEach(contact => {
-      mergedContacts[contact.id] = {
-        ...contact,
-        openCount: contact.count,
-        clickCount: 0,
-      };
-    });
-
-    clickedContacts.forEach(contact => {
-      if (mergedContacts[contact.id]) {
-        mergedContacts[contact.id].clickCount = contact.count;
-      } else {
-        mergedContacts[contact.id] = {
-          ...contact,
-          clickCount: contact.count,
-          openCount: 0,
-        };
-      }
-    });
-
-    return mergedContacts;
-  };
-
-  exportCSV = async (contactsData) => {
-    const headers = [
-      'First Name', 'Last Name', 'Email Number in Campaign',
-      'Email Subject Line', 'Number of Opens', 'Number of Clicks',
-      'Email', 'Job Title', 'Company Name', 'Phone Number',
-      'Linkedin Url', 'City', 'State', 'Country', 'Date/Time Clicked',
-    ].join(',');
-
-    const rows = contactsData.flatMap(contacts =>
-      Object.values(contacts).map(contact => {
-        const details = JSON.parse(contact['details']) as {
-          first_name?: string;
-          last_name?: string;
-          email?: string;
-          organization?: { phone?: string };
-          linkedin_url?: string;
-          city?: string;
-          state?: string;
-          country?: string;
-        };
-
-        const escapeCsv = (value: any) =>
-          value?.toString().replace(/,/g, ' ') || '';
-
-        return [
-          escapeCsv(details['first_name']),
-          escapeCsv(details['last_name']),
-          escapeCsv(contact['emailSequence']),
-          escapeCsv(contact['emailSubject']),
-          escapeCsv(contact['openCount']),
-          escapeCsv(contact['clickCount']),
-          escapeCsv(details.email),
-          escapeCsv(contact['jobTitle']),
-          escapeCsv(contact['companyName']),
-          escapeCsv(details.organization?.phone),
-          escapeCsv(details.linkedin_url),
-          escapeCsv(details.city),
-          escapeCsv(details.state),
-          escapeCsv(details.country),
-          escapeCsv(contact['createdAt']),
-        ].join(',');
-      }),
-    ).join('\n');
-
-    await CsvHelper.download('insights.csv', `${headers}\n${rows}`);
-  };
+  // NOTE: `exportInsights` and its helpers (`processInsights`, `categorizeInsights`,
+  // `aggregateContacts`, `mergeContacts`, `exportCSV`) were removed along with the
+  // "Export Insights" button in the sequence header. Per-email contact exports now
+  // come from the Insights drawer, which exports the same list from an endpoint that
+  // aggregates server-side — see `insightsBtnClick`.
   protected readonly CAMPAIGN_STATUS = CAMPAIGN_STATUS;
 }

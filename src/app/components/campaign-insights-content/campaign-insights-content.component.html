@@ -1,0 +1,339 @@
+<div class="canvas-content-wrap">
+  <div class="head-area">
+    <!--One drawer, two scopes — the title says which one you opened.-->
+    <div class="head-text">
+      <p class="head-title">{{ isEmailScope ? 'Email insights' : 'Campaign insights' }}</p>
+      <span class="head-subtitle">
+        {{ campaignTitle || 'Loading…' }}
+        <span *ngIf="isEmailScope && emailSequence"> · email {{ emailSequence }}</span>
+        <span *ngIf="data"> · {{ data.meta.from }} – {{ data.meta.to }}</span>
+      </span>
+    </div>
+
+    <div class="head-actions">
+      <!--Range lives in the header beside Export because it governs EVERY figure in
+          the drawer. Inside the body it would look like it belonged to whichever
+          panel it sat above.-->
+      <div class="range-switch" role="group" aria-label="Date range">
+        <button
+          type="button"
+          *ngFor="let r of ranges"
+          class="range-btn"
+          [class.active]="selectedDays === r.days"
+          [attr.aria-pressed]="selectedDays === r.days"
+          [disabled]="isLoading"
+          (click)="selectRange(r.days)"
+        >{{ r.label }}</button>
+      </div>
+
+      <app-kexy-button
+        (click)="exportCSV()"
+        label="Export"
+        iconLeft="fa-cloud-download"
+        [disabled]="isLoading || !canExport"
+        bgColor="#ffffff"
+        textColor="#095dd1"
+        borderColor="#e2e8f0"
+        radius="10px"
+      ></app-kexy-button>
+
+      <!--Export is a content action, Close dismisses the drawer — the rule keeps
+          them from reading as one cluster.-->
+      <span class="head-divider" aria-hidden="true"></span>
+      <button type="button" class="close-btn" aria-label="Close" (click)="activeCanvas.dismiss('Cross click')">
+        <i class="fa fa-times" aria-hidden="true"></i>
+      </button>
+    </div>
+  </div>
+
+  <!--Read-only drawer: no form and no docked footer — Export lives in the header.-->
+  <div class="canvas-body">
+
+    <!--Layout-shaped skeleton rather than a spinner, so the drawer doesn't reflow
+        when the numbers land.-->
+    <ng-container *ngIf="isLoading">
+      <div class="ins-panel sk-summary"><span class="sk sk-lg"></span></div>
+      <div class="kpi-row">
+        <div class="ins-panel sk-tile" *ngFor="let i of [1,2,3]"><span class="sk sk-md"></span></div>
+      </div>
+      <div class="ins-panel sk-chart"><span class="sk sk-block"></span></div>
+    </ng-container>
+
+    <div class="ins-panel ins-state is-error" *ngIf="!isLoading && loadError">
+      {{ loadError }}
+    </div>
+
+    <ng-container *ngIf="!isLoading && !loadError && data">
+
+      <!--Identity + the ONE hero figure for the view. What is being described changes
+          with the scope: the campaign, or the email inside it.-->
+      <div class="summary-section">
+        <div class="summary-text" *ngIf="!isEmailScope">
+          <p class="email-eyebrow">
+            {{ data.campaign.status }} · {{ data.campaign.numberOfEmails }} emails
+          </p>
+          <p class="email-subject">{{ data.campaign.title }}</p>
+        </div>
+        <div class="summary-text" *ngIf="isEmailScope">
+          <p class="email-eyebrow">Email #{{ emailSequence }} · {{ data.campaign.title }}</p>
+          <p class="email-subject">{{ emailSubject || '(no subject)' }}</p>
+        </div>
+        <div class="hero-stat">
+          <span class="hero-label">Sent</span>
+          <span class="hero-value">{{ data.totals.sent | number }}</span>
+          <span class="hero-delta">
+            <!--A null delta means there was no baseline to divide by, which is a
+                different statement from "no change" — so it gets its own label
+                rather than being rounded into a flat trend.-->
+            <span class="is-none" *ngIf="sentDelta === null">no prior period</span>
+            <span
+              *ngIf="sentDelta !== null"
+              [class.up]="sentDelta > 0"
+              [class.down]="sentDelta < 0"
+            >
+              <i class="fa" [class.fa-caret-up]="sentDelta > 0" [class.fa-caret-down]="sentDelta < 0"
+                 aria-hidden="true"></i>
+              {{ sentDelta === 0 ? 'no change' : (sentDelta > 0 ? '+' : '') + sentDelta + '%' }}
+              vs previous
+            </span>
+          </span>
+        </div>
+      </div>
+
+      <!--Rate tiles: same metric family, so they share one treatment (no per-tile
+          hue). Same component the per-email drawer uses.-->
+      <div class="kpi-row">
+        <insights-statistics-card cardTitle="Open rate" [insightRate]="openRate" />
+        <insights-statistics-card cardTitle="Click rate" [insightRate]="clickRate" />
+        <insights-statistics-card cardTitle="Reply rate" [insightRate]="replyRate" />
+      </div>
+
+      <!--══════════ Trend ══════════-->
+      <div class="ins-panel">
+        <div class="ins-panel-head">
+          <h3 class="ins-panel-title">Over time</h3>
+          <div class="range-switch" role="tablist" aria-label="Metric">
+            <button
+              type="button"
+              *ngFor="let m of engagementMetrics"
+              class="range-btn"
+              role="tab"
+              [class.active]="selectedMetric === m.key"
+              [attr.aria-selected]="selectedMetric === m.key"
+              (click)="selectMetric(m.key)"
+            >{{ m.label }}</button>
+          </div>
+        </div>
+
+        <div class="chart-frame" *ngIf="chartPoints.length">
+          <div class="y-axis" aria-hidden="true">
+            <span *ngFor="let t of yTicks" class="y-tick" [style.bottom.%]="t.pct">{{ t.label }}</span>
+          </div>
+
+          <div class="plot" (mousemove)="onChartMove($event)" (mouseleave)="clearHover()">
+            <svg
+              class="plot-svg"
+              viewBox="0 0 100 100"
+              preserveAspectRatio="none"
+              role="img"
+              [attr.aria-label]="selectedMetric + ' over the last ' + selectedDays + ' days'"
+            >
+              <line
+                *ngFor="let t of yTicks"
+                class="grid" x1="0" x2="100"
+                [attr.y1]="100 - t.pct" [attr.y2]="100 - t.pct"
+              />
+              <polygon class="area" [attr.points]="chartArea" />
+              <polyline class="line" [attr.points]="chartLine" />
+              <line
+                *ngIf="hoverPoint"
+                class="crosshair"
+                [attr.x1]="hoverPoint.x" [attr.x2]="hoverPoint.x" y1="0" y2="100"
+              />
+            </svg>
+
+            <span
+              *ngIf="hoverPoint"
+              class="hover-dot"
+              [style.left.%]="hoverPoint.x" [style.top.%]="hoverPoint.y"
+              aria-hidden="true"
+            ></span>
+
+            <div
+              *ngIf="hoverPoint"
+              class="chart-tip"
+              [style.left.%]="hoverPoint.x"
+              [class.flip]="hoverPoint.x > 70"
+            >
+              <p class="tip-date">{{ hoverPoint.date }}</p>
+              <p class="tip-row">{{ selectedMetric }} <strong>{{ hoverPoint.value | number }}</strong></p>
+            </div>
+          </div>
+
+          <div class="x-axis" aria-hidden="true">
+            <span *ngFor="let t of xTicks" class="x-tick" [style.left.%]="t.pct">{{ t.label }}</span>
+          </div>
+        </div>
+
+        <!--A flat line along the baseline is indistinguishable from a broken chart,
+            so an empty window says so in words instead.-->
+        <div class="ins-state" *ngIf="!data.totals.sent">
+          Nothing was sent in this window.
+        </div>
+      </div>
+
+      <!--══════════ Per-email performance ══════════
+          The reason this drawer exists rather than a campaign filter on the
+          dashboard: which STEP of the sequence is carrying the campaign, and which
+          one is losing it.
+
+          CAMPAIGN SCOPE ONLY — scoped to one email there is no comparison left to
+          make, and the server returns `perEmail` empty to match.-->
+      <div class="ins-panel" *ngIf="!isEmailScope">
+        <div class="ins-panel-head">
+          <h3 class="ins-panel-title">Performance by email</h3>
+          <span class="ins-panel-note">rates are share of that email's sends</span>
+        </div>
+
+        <div class="ins-table-scroll" *ngIf="perEmail.length">
+          <table class="ins-table">
+            <thead>
+              <tr>
+                <th class="seq-col">#</th>
+                <th>Subject</th>
+                <th class="num">Sent</th>
+                <th class="num">Open</th>
+                <th class="num">Click</th>
+                <th class="num">Reply</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!--Emails with no sends are kept, dimmed: "step 4 has gone to nobody"
+                  is a finding, and dropping the row would hide it.-->
+              <tr *ngFor="let e of perEmail" [class.is-unsent]="!e.sent">
+                <td class="seq-col">{{ e.sequence }}</td>
+                <td>
+                  <span class="e-subject" [title]="e.subject">{{ e.subject || '(no subject)' }}</span>
+                </td>
+                <td class="num">{{ e.sent | number }}</td>
+                <td class="num"><span *ngIf="e.sent">{{ e.openRate }}%</span><span *ngIf="!e.sent" class="dash">—</span></td>
+                <td class="num"><span *ngIf="e.sent">{{ e.clickRate }}%</span><span *ngIf="!e.sent" class="dash">—</span></td>
+                <td class="num strong"><span *ngIf="e.sent">{{ e.replyRate }}%</span><span *ngIf="!e.sent" class="dash">—</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="ins-state" *ngIf="!perEmail.length">
+          This campaign has no emails yet.
+        </div>
+      </div>
+
+      <div class="insights-grid">
+        <!--══════════ Funnel ══════════-->
+        <div class="ins-panel">
+          <div class="ins-panel-head">
+            <h3 class="ins-panel-title">Engagement funnel</h3>
+            <span class="ins-panel-note">step conversion</span>
+          </div>
+
+          <table class="funnel-table">
+            <tbody>
+              <tr *ngFor="let s of funnel">
+                <th scope="row">{{ s.label }}</th>
+                <td class="f-bar">
+                  <span class="f-track">
+                    <span class="f-fill" [ngClass]="s.step" [style.width.%]="s.pct"></span>
+                  </span>
+                </td>
+                <td class="f-num">{{ s.value | number }}</td>
+                <td class="f-step">
+                  <span *ngIf="s.stepPct !== null">{{ s.stepPct }}%</span>
+                  <span *ngIf="s.stepPct === null" class="dash">—</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!--══════════ Top clicked links ══════════-->
+        <div class="ins-panel">
+          <div class="ins-panel-head">
+            <h3 class="ins-panel-title">Top clicked links</h3>
+            <span class="ins-panel-note" *ngIf="linkPeak">clicks</span>
+          </div>
+
+          <table class="ins-table links" *ngIf="data.topLinks.length">
+            <tbody>
+              <tr *ngFor="let l of data.topLinks; let i = index">
+                <td class="l-rank">{{ i + 1 }}</td>
+                <td><span class="l-key" [title]="l.key">{{ l.key }}</span></td>
+                <td class="l-bar">
+                  <span class="f-track">
+                    <span class="f-fill step-3" [style.width.%]="linkPeak ? (l.count / linkPeak) * 100 : 0"></span>
+                  </span>
+                </td>
+                <td class="num strong">{{ l.count | number }}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="ins-state" *ngIf="!data.topLinks.length">
+            No link clicks in this window.
+          </div>
+        </div>
+      </div>
+
+      <!--══════════ Most engaged contacts ══════════
+          All three counts stay visible whichever one is ranked: the point is that
+          ranking by opens, clicks and replies gives DIFFERENT people.-->
+      <div class="ins-panel">
+        <div class="ins-panel-head">
+          <h3 class="ins-panel-title">Most engaged contacts</h3>
+          <div class="range-switch" role="group" aria-label="Rank contacts by">
+            <button
+              type="button"
+              *ngFor="let m of engagementMetrics"
+              class="range-btn"
+              [class.active]="engagementMetric === m.key"
+              [attr.aria-pressed]="engagementMetric === m.key"
+              (click)="selectEngagementMetric(m.key)"
+            >{{ m.label }}</button>
+          </div>
+        </div>
+
+        <div class="ins-table-scroll" *ngIf="engagedContacts.length">
+          <table class="ins-table">
+            <thead>
+              <tr>
+                <th class="seq-col">#</th>
+                <th>Contact</th>
+                <th class="num" [class.is-ranked]="engagementMetric === 'opens'">Opens</th>
+                <th class="num" [class.is-ranked]="engagementMetric === 'clicks'">Clicks</th>
+                <th class="num" [class.is-ranked]="engagementMetric === 'replies'">Replies</th>
+                <th class="num">Last seen</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let c of engagedContacts; let i = index">
+                <td class="seq-col">{{ i + 1 }}</td>
+                <td>
+                  <span class="e-subject" [title]="c.name">{{ c.name || c.email }}</span>
+                  <span class="e-meta" [title]="c.email">{{ c.email }}</span>
+                </td>
+                <td class="num" [class.is-ranked]="engagementMetric === 'opens'">{{ c.opens | number }}</td>
+                <td class="num" [class.is-ranked]="engagementMetric === 'clicks'">{{ c.clicks | number }}</td>
+                <td class="num" [class.is-ranked]="engagementMetric === 'replies'">{{ c.replies | number }}</td>
+                <td class="num e-seen">{{ c.lastActivity | date: 'MMM d' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="ins-state" *ngIf="!engagedContacts.length">
+          No {{ engagementMetric }} recorded in this window.
+        </div>
+      </div>
+    </ng-container>
+  </div>
+</div>

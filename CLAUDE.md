@@ -791,6 +791,56 @@ cards — they're their own `.pc-*` markup.
   truncated description, and edit/delete icon buttons; edit opens
   `company-description-canvas`.
 
+## Insights drawer — ONE component, two scopes
+
+`campaign-insights-content` (panel class `campaign-insights`) serves both:
+
+| Scope | Opened from | Call |
+|---|---|---|
+| Whole campaign | Insights button beside Settings | `getCampaignAnalytics(id, days)` |
+| One email | Insights on an email row | `getCampaignAnalytics(id, days, limit, emailId)` |
+
+Set `emailId` on the component instance for the email scope; `isEmailScope` keys
+everything that differs (title, summary card, the per-email panel, which CSV Export
+produces).
+
+**There used to be a separate `email-insights-content`, and it was BROKEN.** It called
+`GET drip-campaigns/:id/insights`, which read the insights table through the TypeORM
+repository — that `SELECT`s the entity's `email_notification_sent` column, which the
+live table does not have, so every call 400'd with `Unknown column`. It also re-derived
+rates, rankings and link counts in the browser from raw rows. It was folded into this
+component rather than repaired: both scopes ask the same questions of the same data,
+so they are one report with a filter. `email-insights-content`,
+`insights-contacts-or-links` and the `.email-insights` panel class were deleted with it.
+
+- **Chrome lives in `components/_insights-drawer.scss`** (the `pages/_auth-form.scss`
+  precedent): tokens, the read-only slide-over layout, summary/hero card, rate-tile
+  row, two-up grid, `.ins-panel`, `.ins-state`. One consumer today — kept as a partial
+  because it was extracted when there were two and it is where this chrome belongs if
+  a third scope appears.
+- **`insights-statistics-card` is still shared** (the rate tiles). The drawer's tables
+  are purpose-built: the endpoint returns clean rows and needs an opens/clicks/replies
+  triple the old list component couldn't show.
+- **Exactly ONE hero figure** (`.hero-stat`, 48px); the rate tiles stay a size down so
+  the hero remains the entry point.
+- **`perEmail` is campaign-scope only** — scoped to one email there is no comparison
+  left to make, and the server returns it empty to match.
+- **Export follows the scope**: campaign → the per-email league table; email → the
+  engaged-contacts list (what the old drawer exported, and what people chase up).
+  `contact.companyName` / `jobTitle` are carried on the API rows for that reason.
+- **The campaign Insights button is hidden until `dripCampaignId` exists** — a
+  brand-new campaign has no send history to report on.
+- **Everything derived is a FIELD, not a getter** (`__recompute`). The chart's hover
+  layer runs change detection on every mouse move.
+- The chart uses the dashboard's approach: a `0 0 100 100` viewBox so coordinates ARE
+  percentages, `vector-effect: non-scaling-stroke` so stretching doesn't fatten the
+  line, and axis labels in HTML because `preserveAspectRatio="none"` would distort text
+  inside the SVG.
+- **The "Export Insights" button in the sequence header was removed** along with
+  `exportInsights` and its helpers (`processInsights`, `categorizeInsights`,
+  `aggregateContacts`, `mergeContacts`, `exportCSV`) — ~165 lines. It hit the same
+  broken endpoint, and the drawer's export replaces it.
+
 ## Campaign builder — two paths, one component
 
 `brand-drip-campaign` is a two-step wizard (campaign content → generate emails) that is

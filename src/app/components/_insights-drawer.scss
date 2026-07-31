@@ -1,0 +1,286 @@
+// ══════════════════════════════════════════════════════════════════════════════
+// Chrome for the INSIGHTS drawer, `campaign-insights-content`, which serves both
+// scopes — a whole campaign, or one email in its sequence.
+//
+// It is the READ-ONLY variant of the app's slide-over design: no `<form>` and no
+// docked `.buttons` footer, because nothing in it is edited. Its actions (Export, the
+// range switch) live in `.head-actions` beside the close button, which is why the
+// header owns an actions row here and not in the form drawers.
+//
+// Kept as a PARTIAL, on the `pages/_auth-form.scss` precedent, even though there is
+// currently one consumer: it was extracted when a SECOND insights drawer existed
+// (`email-insights-content`, since folded into this one), and it is the natural home
+// for this chrome if a third scope ever appears. The drawer's own stylesheet holds
+// what is specific to it — the chart, the tables, the funnel.
+//
+// The wider slide-over design (form variants: prospecting-contacts, lead-magnet-form,
+// company-description-canvas, add-suppression, delay-details-content,
+// send-email-details-content, email-time-settings-content, dashboard-layout-drawer)
+// still duplicates its own copy — restyle those together with this one.
+// ══════════════════════════════════════════════════════════════════════════════
+
+// ── Tokens (match the form drawers) ──────────────────────────────────────────
+$kx-primary: #12a5f4;
+$kx-primary-deep: #095dd1;
+$kx-ink: #0f172a;
+$kx-muted: #64748b;
+$kx-faint: #94a3b8;
+$kx-border: #e2e8f0;
+$kx-hairline: #f1f5f9;
+$kx-field-bg: #f7f9fc;
+$kx-good: #047857;
+$kx-red: #dc2626;
+$kx-red-bg: #fdeaea;
+
+.canvas-content-wrap {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  height: 100vh;
+  background: #f4f6fb;
+
+  // ── Header ────────────────────────────────────────────────────────────
+  .head-area {
+    flex-shrink: 0;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 22px 28px;
+    background: #ffffff;
+    border-bottom: 1px solid $kx-border;
+
+    .head-title {
+      margin: 0;
+      font-weight: 700;
+      font-size: 20px;
+      line-height: 1.2;
+      color: $kx-ink;
+    }
+
+    .head-subtitle {
+      display: block;
+      margin-top: 4px;
+      font-size: 13px;
+      color: $kx-muted;
+    }
+
+    // Content actions (Export, range) and Close (dismiss) are separate groups, so
+    // they get a rule between them rather than sitting shoulder to shoulder. The gap
+    // either side of the rule is what buys the breathing room; the rule just makes
+    // the grouping legible instead of looking like a stray gap.
+    .head-actions {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .head-divider {
+      width: 1px;
+      height: 24px;
+      background: $kx-border;
+    }
+
+    .close-btn {
+      flex-shrink: 0;
+      width: 36px;
+      height: 36px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid $kx-border;
+      border-radius: 10px;
+      background: #fff;
+      color: $kx-muted;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+
+      &:hover {
+        background: $kx-red-bg;
+        border-color: $kx-red;
+        color: $kx-red;
+      }
+    }
+  }
+
+  // ── Body (the only scroll region) ──────────────────────────────────────
+  .canvas-body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 22px 28px 28px;
+  }
+
+  // ── Summary card: what these numbers describe + the view's hero figure ──
+  .summary-section {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    background: #ffffff;
+    border: 1px solid $kx-border;
+    border-radius: 14px;
+    padding: 20px 22px;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+
+    .summary-text {
+      min-width: 0;
+    }
+
+    .email-eyebrow {
+      margin: 0 0 6px;
+      font-weight: 600;
+      font-size: 12px;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      color: $kx-muted;
+    }
+
+    // Plain ink text, NOT brand-blue: an earlier revision styled this like a link
+    // (blue + `cursor: pointer`) with no click handler behind it.
+    .email-subject {
+      margin: 0;
+      font-size: 17px;
+      font-weight: 600;
+      line-height: 1.35;
+      color: $kx-ink;
+      overflow-wrap: anywhere;
+    }
+
+    // EXACTLY ONE hero figure per view — the number the drawer leads with. The rate
+    // tiles below stay a size down so this stays the entry point. Proportional (not
+    // tabular) figures: tabular widths make a standalone number look loose this big.
+    .hero-stat {
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 2px;
+
+      .hero-label {
+        font-weight: 600;
+        font-size: 12px;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+        color: $kx-muted;
+      }
+
+      .hero-value {
+        font-size: 48px;
+        font-weight: 600;
+        line-height: 1.05;
+        color: $kx-ink;
+      }
+    }
+  }
+
+  // ── Rate tiles ─────────────────────────────────────────────────────────
+  // Three tiles of the SAME metric family (rates), so they deliberately share one
+  // treatment — a hue per tile would imply a categorical identity that isn't there.
+  // The tiles draw their own card chrome (`insights-statistics-card`), so they are
+  // NOT wrapped in another card here.
+  .kpi-row {
+    flex: 0 0 auto;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+
+    insights-statistics-card {
+      display: block;
+      min-width: 0;
+    }
+  }
+
+  // ── Two-up card grid ───────────────────────────────────────────────────
+  .insights-grid {
+    flex: 0 0 auto;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  // ── Generic panel ──────────────────────────────────────────────────────
+  // For content that isn't one of the child components above (a chart, a table).
+  // Same card language as `.summary-section` so they stack as one system.
+  .ins-panel {
+    flex: 0 0 auto;
+    min-width: 0;
+    background: #ffffff;
+    border: 1px solid $kx-border;
+    border-radius: 14px;
+    padding: 18px 20px;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+
+    .ins-panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .ins-panel-title {
+      margin: 0;
+      font-size: 13.5px;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      color: $kx-ink;
+    }
+
+    .ins-panel-note {
+      font-size: 11.5px;
+      color: $kx-faint;
+    }
+  }
+
+  // Empty / loading / error line inside a panel. One class for all three so a panel
+  // can't say "nothing here" in three different voices.
+  .ins-state {
+    padding: 18px 4px;
+    font-size: 12.5px;
+    color: $kx-muted;
+    text-align: center;
+
+    &.is-error {
+      color: $kx-red;
+    }
+  }
+}
+
+@media (max-width: 1100px) {
+  .canvas-content-wrap .insights-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 820px) {
+  .canvas-content-wrap {
+    .head-area,
+    .canvas-body {
+      padding-left: 18px;
+      padding-right: 18px;
+    }
+
+    .kpi-row {
+      grid-template-columns: 1fr;
+    }
+
+    .summary-section {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 16px;
+
+      .hero-stat {
+        align-items: flex-start;
+      }
+    }
+  }
+}

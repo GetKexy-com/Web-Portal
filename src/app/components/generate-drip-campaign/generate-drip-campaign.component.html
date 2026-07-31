@@ -94,6 +94,21 @@
         </div>
 
         <div class="seq-actions">
+          <!--Campaign-level insights, as opposed to the per-email Insights on each
+              email row below. Needs a saved campaign to have anything to report, so
+              it is hidden until there is an id — on a brand-new campaign there is no
+              send history to open.-->
+          <app-kexy-button
+            *ngIf="dripCampaignId"
+            (click)="campaignInsightsBtnClick()"
+            label="Insights"
+            [disabled]="isContentLoading || isSendEmailLoading"
+            iconLeft="fa-bar-chart"
+            radius="10px"
+            bgColor="#ffffff"
+            textColor="#095dd1"
+            borderColor="#e2e8f0"
+          ></app-kexy-button>
           <app-kexy-button
             (click)="openSettingsCanvas()"
             label="Settings"
@@ -114,16 +129,6 @@
             borderColor="#e2e8f0"
             radius="10px"
             (click)="openTestEmailPopUp(sendTestEmailModal)"
-          ></app-kexy-button>
-          <app-kexy-button
-            (click)="exportInsights()"
-            label="Export Insights"
-            [iconLeft]="'fa-cloud-download'"
-            [disabled]="isContentLoading || isSendEmailLoading"
-            radius="10px"
-            bgColor="#ffffff"
-            textColor="#095dd1"
-            borderColor="#e2e8f0"
           ></app-kexy-button>
         </div>
       </div>

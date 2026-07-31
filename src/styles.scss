@@ -437,10 +437,14 @@ button[disabled] {
   width: 520px !important;
 }
 
-.email-insights {
+
+// Campaign-level insights. Wider than the per-email drawer it sits beside: it carries
+// a per-email league table and a contact leaderboard, both six columns, on top of the
+// same tiles and cards. `220px` rather than `300px` leaves just enough of the page
+// behind it to keep the drawer feeling anchored to the campaign it describes.
+.campaign-insights {
   border-radius: 10px 0 0 10px !important;
-  //width: 1000px !important;
-  width: calc(100% - 300px) !important;
+  width: calc(100% - 220px) !important;
 }
 
 .label-offcanvas-backdrop {

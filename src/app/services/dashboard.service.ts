@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpService } from './http.service';
+import { ICampaignAnalytics } from '../models/CampaignAnalytics';
 import {
   IDashboardEngagedContacts,
   IDashboardStats,
@@ -77,6 +78,41 @@ export class DashboardService {
     return new Promise((resolve, reject) => {
       this.httpService
         .get(`dashboard/engaged-contacts?${params.toString()}`)
+        .subscribe({
+          next: (res) => resolve(res.data),
+          error: (err) => reject(err.error ? err.error : err),
+        });
+    });
+  };
+
+  /**
+   * Everything the campaign Insights drawer draws, for ONE campaign.
+   *
+   * The deliberate opposite of `getStats`: scoped server-side, so this DOES cost a
+   * request per range change. That is the right trade here — the drawer is opened
+   * occasionally over the campaign you are editing, and the alternative is
+   * downloading every campaign's history to render one of them.
+   *
+   * No `companyId`: the campaign row carries its owner and the API checks the caller
+   * against that, so there is no company id here to get wrong.
+   *
+   * `emailId` narrows every figure to ONE email in the sequence — the same report at a
+   * smaller scope, which is what backs the per-email Insights drawer. It replaced
+   * `drip-campaigns/:id/insights`, which read the insights table through the TypeORM
+   * repository and 400'd on a column that no longer exists (`email_notification_sent`).
+   */
+  getCampaignAnalytics = (
+    campaignId: number,
+    days = 30,
+    limit = 10,
+    emailId?: number,
+  ): Promise<ICampaignAnalytics> => {
+    const params = new URLSearchParams({ days: String(days), limit: String(limit) });
+    if (emailId) params.set('emailId', String(emailId));
+
+    return new Promise((resolve, reject) => {
+      this.httpService
+        .get(`dashboard/campaigns/${campaignId}?${params.toString()}`)
         .subscribe({
           next: (res) => resolve(res.data),
           error: (err) => reject(err.error ? err.error : err),
