@@ -3,6 +3,8 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import Swal from 'sweetalert2';
+import { CACHE_SCOPE, CacheVersionService } from '../../services/cache-version.service';
+import { IDripCampaignListCacheEntry } from '../../services/drip-campaign.service';
 import { constants } from 'src/app/helpers/constants';
 import { routeConstants } from 'src/app/helpers/routeConstants';
 import { DripCampaignService } from 'src/app/services/drip-campaign.service';
@@ -15,6 +17,7 @@ import { KexyButtonComponent } from '../../components/kexy-button/kexy-button.co
 import {
   ListOfDripCampaignTableComponent,
 } from '../../components/list-of-drip-campaign-table/list-of-drip-campaign-table.component';
+import { TimeAgoComponent } from '../../components/time-ago/time-ago.component';
 import { DripCampaign } from '../../models/DripCampaign';
 
 @Component({
@@ -24,8 +27,7 @@ import { DripCampaign } from '../../models/DripCampaign';
     BrandLayoutComponent,
     KexyButtonComponent,
     ListOfDripCampaignTableComponent,
-    BrandLayoutComponent,
-    KexyButtonComponent,
+    TimeAgoComponent,
   ],
   templateUrl: './brand-list-of-drip-campaigns.component.html',
   styleUrl: './brand-list-of-drip-campaigns.component.scss',
@@ -39,6 +41,7 @@ export class BrandListOfDripCampaignsComponent implements OnInit {
   private httpService = inject(HttpService);
   private pageUiService = inject(PageUiService);
   private destroyRef = inject(DestroyRef);
+  private cacheVersions = inject(CacheVersionService);
 
   // State signals
   isWaitingFlag = signal(false);
@@ -54,28 +57,127 @@ export class BrandListOfDripCampaignsComponent implements OnInit {
   totalRecordsCount = signal(0);
   selectedDripCampaigns = signal<any[]>([]);
   selectedAllDripCampaigns = signal(false);
+  /**
+   * A revalidation is in flight while rows are ALREADY on screen.
+   *
+   * Distinct from `isWaitingFlag`, which blanks the table for a skeleton. This one
+   * only dims the refresh button, because replacing a populated table with a skeleton
+   * to fetch data the user is already looking at is the exact jank this page had.
+   */
+  isRefreshing = signal(false);
+  /**
+   * When the rows on screen were fetched. Rendered beside the refresh button.
+   *
+   * This is what makes the freshness window honest rather than a hidden staleness bug:
+   * a table that is quietly seconds behind is broken, a table that says when it was
+   * taken is a snapshot, and the refresh control is then the obvious remedy. It is the
+   * ingredient that makes the AWS-console pattern work.
+   */
+  lastUpdatedAt = signal<number | null>(null);
+
+  /**
+   * How long a snapshot is reused without asking the server again.
+   *
+   * Bounds every kind of staleness the local write-tracking cannot see: another user's
+   * changes, another tab's, and backend-driven status flips (a campaign going
+   * `active` -> `complete` when its sequence finishes). A user's OWN writes bypass this
+   * entirely — see `CacheInvalidationInterceptor`.
+   */
+  private static readonly STALE_AFTER_MS = 15_000;
 
   // Constants
   protected readonly constants = constants;
 
+  /**
+   * The list is a SNAPSHOT, with its age on display and a refresh control — the
+   * pattern the AWS console uses for its resource tables.
+   *
+   * This page is re-created on every navigation, so it used to blank the table and
+   * refetch on every return, including the list -> campaign -> list trip users make
+   * constantly. Now a snapshot younger than `STALE_AFTER_MS` is simply reused and no
+   * request is made at all, which is the only lever available that avoids the database
+   * query entirely (a conditional GET still runs it and merely declines to send the
+   * bytes).
+   *
+   * Three things keep that honest:
+   *  - the user's OWN writes bypass the window completely, via the version bumped by
+   *    `CacheInvalidationInterceptor` — otherwise renaming a campaign and coming back
+   *    would show the old name, which reads as data loss;
+   *  - everything the local tracking cannot see (other users, other tabs, the backend
+   *    flipping a campaign to `complete`) is bounded by the window;
+   *  - `lastUpdatedAt` is rendered, so the age is disclosed rather than hidden.
+   */
   async ngOnInit() {
     document.title = 'List of Drip Campaign - KEXY Brand Portal';
-    this.isWaitingFlag.set(true);
     this.userData.set(this.authService.userTokenValue);
 
     const limit = localStorage.getItem(constants.BRAND_DRIP_CAMPAIGN_PAGE_LIMIT);
     this.setPageLimit(limit ? parseInt(limit) : this.limit());
 
+    const cached = this.dripCampaignService.peekListOfDripCampaigns(
+      this.userData()?.supplier_id,
+      this.limit(),
+      this.page(),
+      this.filterStatus(),
+    );
+    if (cached) {
+      this.__applyDripCampaigns(cached.data);
+      this.lastUpdatedAt.set(cached.at);
+    }
+
+    // The subscription must be established either way — it is a BehaviorSubject, so
+    // it replays the last titles immediately. Only the FETCH behind it is skippable.
+    this.__subscribeToDripCampaignTitles();
+
+    if (this.__canReuseSnapshot(cached)) {
+      this.initialLoads.set(false);
+      return;
+    }
+
+    // Skeleton only when there is nothing to show; otherwise revalidate underneath the
+    // rows already on screen.
+    this.isWaitingFlag.set(!cached);
+    this.isRefreshing.set(!!cached);
+
     await Promise.all([
-      this.getAndSetDripCampaignTitleSubscription(),
+      this.dripCampaignService.getAllDripCampaignTitle({
+        supplier_id: this.userData().supplier_id,
+      }),
       this.getListOfDripCampaigns(),
       // this.getLabels()
     ]);
-    console.log('dripCampaignList', this.dripCampaignList());
 
     this.isWaitingFlag.set(false);
+    this.isRefreshing.set(false);
     this.initialLoads.set(false);
   }
+
+  /**
+   * True when the cached snapshot can stand in for a fetch.
+   *
+   * Both conditions are required. The version check alone would show stale rows after
+   * anyone else's change; the age check alone would show stale rows after the user's
+   * own edit, within the window — which is the common flow and the worse bug.
+   */
+  private __canReuseSnapshot(cached: IDripCampaignListCacheEntry | null): boolean {
+    if (!cached) return false;
+    if (cached.version !== this.cacheVersions.version(CACHE_SCOPE.DRIP_CAMPAIGNS)) return false;
+    return Date.now() - cached.at < BrandListOfDripCampaignsComponent.STALE_AFTER_MS;
+  }
+
+  /**
+   * Refetch on demand. The rows stay on screen throughout — the button's own spinner
+   * is the feedback, so pressing refresh never costs you the table you were reading.
+   */
+  refresh = async () => {
+    if (this.isRefreshing() || this.isWaitingFlag()) return;
+    this.isRefreshing.set(true);
+    try {
+      await this.getListOfDripCampaigns();
+    } finally {
+      this.isRefreshing.set(false);
+    }
+  };
 
   async getLabels() {
     await this.prospectingService.getLists({ supplier_id: this.userData().supplier_id });
@@ -87,18 +189,32 @@ export class BrandListOfDripCampaignsComponent implements OnInit {
       this.limit(),
       this.page(),
       this.filterStatus(),
+      // Cache scope — see the service. Without it the business switcher would show
+      // the previous company's campaigns for one round trip.
+      this.userData()?.supplier_id,
+      this.cacheVersions.version(CACHE_SCOPE.DRIP_CAMPAIGNS),
     );
 
+    this.__applyDripCampaigns(data);
+    this.lastUpdatedAt.set(Date.now());
+  };
+
+  /** Shared by the cached read and the live response so the two can't diverge. */
+  private __applyDripCampaigns = (data: any) => {
     this.dripCampaignList.set(data['dripCampaigns']);
     this.totalPageCounts.set(data['totalPageCounts']);
     this.totalRecordsCount.set(data['totalRecordsCount']);
   };
 
-  getAndSetDripCampaignTitleSubscription = async () => {
-    await this.dripCampaignService.getAllDripCampaignTitle({
-      supplier_id: this.userData().supplier_id,
-    });
-
+  /**
+   * Subscribe only — the fetch is a separate call in `ngOnInit`, because it is
+   * skippable while this is not.
+   *
+   * `dripCampaignTitles` is a BehaviorSubject, so subscribing replays the last titles
+   * immediately. That is what lets a reused snapshot render with its titles intact
+   * without a request.
+   */
+  private __subscribeToDripCampaignTitles = () => {
     this.dripCampaignService.dripCampaignTitles
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(titles => {

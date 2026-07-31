@@ -15,6 +15,24 @@
       ></prospecting-common-card>
     </section>
 
+    <!--This page has no toolbar of its own (the card owns its actions), so the
+        snapshot controls get a slim row between the info card and the table. Must be
+        flex-shrink: 0 — the section below it is the flex child that fills the
+        remaining height and scrolls internally.-->
+    <div class="snapshot-bar">
+      <app-time-ago class="updated-stamp" [value]="lastUpdatedAt" />
+      <button
+        type="button"
+        class="refresh-btn"
+        (click)="refresh()"
+        [disabled]="isRefreshing || isWaitingFlag || isLoading"
+        title="Refresh contacts"
+        aria-label="Refresh contacts"
+      >
+        <i class="fa" [class.fa-refresh]="true" [class.fa-spin]="isRefreshing" aria-hidden="true"></i>
+      </button>
+    </div>
+
     <section>
       <contact-list-card
         #contactCard

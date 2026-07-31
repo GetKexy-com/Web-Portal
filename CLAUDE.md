@@ -921,6 +921,108 @@ so they are one report with a filter. `email-insights-content`,
   `aggregateContacts`, `mergeContacts`, `exportCSV`) — ~165 lines. It hit the same
   broken endpoint, and the drawer's export replaces it.
 
+## List tables are SNAPSHOTS, not live views
+
+**Manage Campaigns, Manage Lists, Contacts and List Contacts** all follow the
+AWS-console pattern: reuse a recent snapshot, show its age, offer a refresh control.
+Each page is re-created on every navigation, so all four previously blanked their table
+and refetched on every return — including the list → detail → list trip users make
+constantly.
+
+A snapshot younger than **15s** is reused and **no request is made**. That matters
+because a conditional GET does *not* help: the API's ETag saves bytes but still runs the
+query, so skipping the request is the only lever that avoids the database.
+
+**The freshness check lives in the SERVICE, not the pages** —
+`ProspectingService.isSnapshotUsable` / `SNAPSHOT_MAX_AGE_MS`, and the equivalent in
+`DripCampaignService`. That is not tidiness: pagination calls `getContacts(false)`
+directly, so with the check only in a page's `ngOnInit`, clicking back to a page you had
+already visited replayed its snapshot **no matter how old it was**. That was a live bug
+on `brand-list-contacts` before this. Any new caller passing `overwrite = false` now
+inherits the rule for free.
+
+Cache keys are the WHOLE request payload, so `listIds`, `page`, `limit` and sort each
+get their own snapshot. `brand-list-contacts` keeps `page` in the URL, so returning to a
+deep link lands on the same page and hits the same key.
+
+Three things keep it honest, and removing any one reintroduces a bug:
+
+1. **The user's own writes bypass the window.** `CacheInvalidationInterceptor` bumps a
+   `CacheVersionService` counter on any successful non-GET; each cache entry records the
+   version it was fetched at, and a mismatch forces a refetch. Without this, renaming a
+   campaign or importing contacts and going back shows the old data — the most common
+   flow, and it reads as data loss.
+2. **The window bounds what the counter can't see** — other users, other tabs, and
+   backend-driven changes like a campaign flipping to `complete`.
+3. **`<app-time-ago>` renders the age** beside the refresh button ("Last updated 2
+   minutes ago"). A table quietly seconds behind is a bug; one that states its age is a
+   snapshot. Relative, not a clock time, because the reader's question is "how stale is
+   this", not "what time is it".
+
+**Scopes invalidate across resources**, because these tables are derived from each
+other: writing contacts changes list SIZES, and writing lists changes which lists a
+contact belongs to — a contacts-table column. So `/contacts` bumps both `CONTACTS` and
+`LISTS`, and `/lists` does the same. Over-invalidating costs a refetch; the opposite
+costs wrong data.
+
+**Invalidation lives in the interceptor, not the services.** Calling `bump()` from each
+mutating method is correct the day it is written and silently wrong the first time
+someone adds another. One transport-layer rule covers endpoints that don't exist yet.
+
+**Counter, not a boolean flag.** A boolean needs clearing by whoever reads it, so a
+second consumer of the same scope never sees the mutation.
+
+**`<app-time-ago>` owns its own 30s timer** and calls `markForCheck()` — it is OnPush,
+and a timer callback does not mark a view dirty, so without that the text freezes at
+whatever it said when the input last changed.
+
+Two latent bugs were fixed on the way: the contacts cache was keyed on `page`+`limit`
+only, so a filtered and unfiltered page 1 shared an entry (callers were papering over it
+by always passing `overwrite = true`); and `manage-list` re-subscribed to the lists
+subject inside `getLabels`, which is called on every pagination change, leaking a
+subscription each time.
+
+### Manage Campaigns specifics
+
+The list follows the AWS-console pattern: reuse a recent snapshot, show its age, offer
+a refresh control. The page is re-created on every navigation, so it previously blanked
+the table and refetched on every return — including the list → campaign → list trip
+users make constantly.
+
+A snapshot younger than **`STALE_AFTER_MS` (15s)** is reused and **no request is made
+at all**. That matters specifically because a conditional GET does *not* help here: the
+API's ETag saves bytes but still runs the query, so skipping the request is the only
+lever that avoids the database.
+
+Three things keep it honest, and removing any one reintroduces a bug:
+
+1. **The user's own writes bypass the window.** `CacheInvalidationInterceptor` bumps a
+   `CacheVersionService` counter on any successful non-GET to a `drip-campaigns` or
+   `titles` URL; the cache entry records the version it was fetched at, and a mismatch
+   forces a refetch. Without this, renaming a campaign and going back shows the old
+   name — the most common flow on the page, and it reads as data loss.
+2. **The window bounds everything the counter can't see** — other users, other tabs,
+   and the backend flipping a campaign to `complete` when its sequence finishes.
+3. **`lastUpdatedAt` is rendered** beside the refresh button. A table quietly seconds
+   behind is a bug; one that states when it was taken is a snapshot, and the refresh
+   control is then the obvious remedy. This is the ingredient that makes the pattern
+   legitimate rather than a hidden staleness cliff.
+
+**Invalidation lives in the interceptor, not the services.** The alternative was
+calling `bump()` from each of ~12 mutating methods in `DripCampaignService` — correct
+on the day it is written, and silently wrong the first time someone adds a thirteenth.
+One transport-layer rule covers endpoints that don't exist yet. It over-invalidates a
+little (`send-test-email` bumps the scope but changes no list data); that costs one
+refetch, where the opposite error costs wrong data on screen.
+
+**Counter, not a boolean flag.** A boolean needs clearing by whoever reads it, so a
+second consumer of the same scope never sees the mutation. A version compares without
+mutating.
+
+Note the titles subscription is established on every visit but its FETCH is skipped
+with the snapshot — `dripCampaignTitles` is a `BehaviorSubject` and replays the last
+value immediately.
+
 ## Campaign builder — two paths, one component
 
 `brand-drip-campaign` is a two-step wizard (campaign content → generate emails) that is

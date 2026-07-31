@@ -3,6 +3,21 @@
     <div class="top-btns">
       <!--Buttons for large screen-->
       <div class="buttons-for-large-screen">
+        <!--The table is a snapshot; its age is stated so the freshness window is
+            disclosed rather than a hidden staleness bug, and the refresh beside it is
+            then the obvious remedy.-->
+        <app-time-ago class="updated-stamp" [value]="lastUpdatedAt" />
+        <app-kexy-button
+          (click)="refresh()"
+          style="margin-right: 10px"
+          label=""
+          [iconLeft]="isRefreshing ? 'fa-refresh fa-spin' : 'fa-refresh'"
+          [disabled]="isRefreshing || isWaitingFlag || isLoading"
+          title="Refresh contacts"
+          bgColor="#e7f6fe"
+          textColor="#2847cc"
+          radius="8px"
+        ></app-kexy-button>
         <app-kexy-button
           *ngIf="selectedContacts.length"
           [disabled]="isWaitingFlag || isLoading || selectAllContacts"

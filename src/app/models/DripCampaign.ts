@@ -50,18 +50,24 @@ export class DripCampaign {
         ...rawData.details.companyDescription,
       },
     };
-    this.emails = rawData.emails.map(email => {
+    // `?? []` on the relations, because `GET /drip-campaigns?view=summary` omits
+    // `emails` and `settings` — a list view reads neither, and each email row carries
+    // three copies of its body. Without this the constructor throws
+    // `Cannot read properties of undefined (reading 'map')` the moment anyone points a
+    // consumer of this model at the summary shape. Absent relation and empty relation
+    // are treated alike on purpose: neither tells you anything a caller can act on.
+    this.emails = (rawData.emails ?? []).map(email => {
       return {
         ...email,
         delayBetweenPreviousEmail: JSON.parse(email.delayBetweenPreviousEmail),
       };
     });
-    this.settings = rawData.settings.map(setting => ({
+    this.settings = (rawData.settings ?? []).map(setting => ({
       ...setting,
       settingsValue: JSON.parse(setting.settingsValue),
     }));
 
-    this.lists = [...rawData.lists];
+    this.lists = [...(rawData.lists ?? [])];
     this.leadMagnet = rawData.leadMagnet;
 
   }

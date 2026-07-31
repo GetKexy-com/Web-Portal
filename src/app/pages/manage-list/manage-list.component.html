@@ -32,6 +32,20 @@
           textColor="#2847cc"
           radius="8px"
         ></app-kexy-button>
+        <!--The list is a snapshot; saying when it was taken is what keeps the
+            freshness window honest rather than a hidden staleness bug.-->
+        <app-time-ago class="updated-stamp" [value]="lastUpdatedAt" />
+        <app-kexy-button
+          (click)="refresh()"
+          style="margin-right: 10px"
+          label=""
+          [iconLeft]="isRefreshing ? 'fa-refresh fa-spin' : 'fa-refresh'"
+          [disabled]="isRefreshing || isWaitingFlag"
+          title="Refresh lists"
+          bgColor="#e7f6fe"
+          textColor="#2847cc"
+          radius="8px"
+        ></app-kexy-button>
         <app-kexy-button
           (click)="addLabelBtnClick()"
           label="Add List"

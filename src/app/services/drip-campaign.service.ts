@@ -6,6 +6,15 @@ import { SseService } from './sse.service';
 import { DripCampaign, IRawDripCampaign } from '../models/DripCampaign';
 import { EnrollmentTriggers, IRawEnrollmentTrigger } from '../models/EnrollmentTriggers';
 
+/** A snapshot of the campaign list, with everything needed to judge its freshness. */
+export interface IDripCampaignListCacheEntry {
+  data: any;
+  /** When the snapshot was taken — drives both the freshness window and the UI stamp. */
+  at: number;
+  /** `CacheVersionService` value at fetch time; a mismatch means a write since. */
+  version: number;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -371,11 +380,56 @@ export class DripCampaignService {
     return this.editDripCampaignTitleItem;
   };
 
-  getListOfDripCampaigns = async (limit = 10, page = 1, status: string) => {
-    console.log({ status });
-    let tempDealList = [];
+  /**
+   * Last successful response per (company, page, limit, status).
+   *
+   * Backs a stale-while-revalidate read on the Manage Campaigns page: it paints the
+   * previous rows immediately on return, then replaces them with the live response.
+   * The cache is only ever a HEAD START — every visit still refetches, so nothing
+   * here can serve stale data for longer than one round trip. See `peekListOfDripCampaigns`.
+   *
+   * Keyed by company because this service is `providedIn: 'root'` and survives the
+   * business switcher; without it, switching business would show the previous
+   * company's campaigns for that one round trip.
+   */
+  private dripCampaignListCache = new Map<string, IDripCampaignListCacheEntry>();
+
+  private __dripListCacheKey = (scope: any, limit: number, page: number, status: string) =>
+    `${scope ?? 'anon'}|${limit}|${page}|${status}`;
+
+  /**
+   * The cached entry for these exact inputs, or null. Synchronous by design.
+   *
+   * Returns the ENTRY, not just the payload: the caller needs `at` to decide whether
+   * the snapshot is still fresh enough to skip a refetch, and to tell the user when it
+   * was taken. `version` is compared against `CacheVersionService` to detect a write
+   * that happened since.
+   */
+  peekListOfDripCampaigns = (
+    scope: any,
+    limit = 10,
+    page = 1,
+    status = '',
+  ): IDripCampaignListCacheEntry | null =>
+    this.dripCampaignListCache.get(this.__dripListCacheKey(scope, limit, page, status)) ?? null;
+
+  getListOfDripCampaigns = async (
+    limit = 10,
+    page = 1,
+    status: string,
+    scope: any = null,
+    version = 0,
+  ) => {
     return new Promise(async (resolve, reject) => {
-      const url = `drip-campaigns?limit=${limit}&page=${page}&status=${status}`;
+      // `view=summary` drops the `emails` and `settings` relations. The table reads
+      // neither — `numberOfEmails` is a column on `details`, not a count of the
+      // relation — and each email row carries three copies of its body
+      // (`emailContent`, `rawEditorContent`, `aiRawData`), so a 25-row page was
+      // downloading ~125 full emails to render a number.
+      //
+      // NOT applied to `getListOfDripCampaignsWithoutPagination`, which hits the same
+      // endpoint but feeds `new DripCampaign(...)` for the campaign pickers.
+      const url = `drip-campaigns?limit=${limit}&page=${page}&status=${status}&view=summary`;
       this.httpService.get(url).subscribe({
         next: (res) => {
           let totalPageCounts = Math.ceil(res.data.total / limit);
@@ -388,7 +442,17 @@ export class DripCampaignService {
             return a1 < b1 ? 1 : -1;
           });
 
-          resolve({ dripCampaigns: res.data.dripCampaigns, totalPageCounts, totalRecordsCount });
+          const payload = {
+            dripCampaigns: res.data.dripCampaigns,
+            totalPageCounts,
+            totalRecordsCount,
+          };
+          this.dripCampaignListCache.set(this.__dripListCacheKey(scope, limit, page, status), {
+            data: payload,
+            at: Date.now(),
+            version,
+          });
+          resolve(payload);
         },
         error: (err) => {
           if (err.error) {

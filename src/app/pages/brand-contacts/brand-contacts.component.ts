@@ -29,6 +29,8 @@ import {
   AddContactsToDripCampaignComponent,
 } from '../../components/add-contacts-to-drip-campaign/add-contacts-to-drip-campaign.component';
 import { CommonModule } from '@angular/common';
+import { CACHE_SCOPE, CacheVersionService } from '../../services/cache-version.service';
+import { TimeAgoComponent } from '../../components/time-ago/time-ago.component';
 import { Contact, ContactOrganization } from '../../models/Contact';
 import { PageUiService } from '../../services/page-ui.service';
 import freeEmailDomains from 'free-email-domains';
@@ -42,6 +44,7 @@ import freeEmailDomains from 'free-email-domains';
     UploadFileModalContentComponent,
     SearchContactModalContentComponent,
     CommonModule,
+    TimeAgoComponent,
   ],
   templateUrl: './brand-contacts.component.html',
   styleUrl: './brand-contacts.component.scss',
@@ -97,6 +100,7 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private router: Router,
     private cdr: ChangeDetectorRef,
+    private cacheVersions: CacheVersionService,
   ) {
     // override the route reuse strategy
     this.router.routeReuseStrategy.shouldReuseRoute = function() {
@@ -121,8 +125,18 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
     if (this.addToDrip && this.contactId) {
       await this.getAContact();
     } else {
-      await this.getContacts(true);
+      // Subscribe FIRST: a reused snapshot is replayed through this subject, so a
+      // subscription established afterwards would miss it.
       this.setContactSubscription();
+
+      // Skeleton only with nothing to show; otherwise the rows stay up while the
+      // service decides for itself whether the snapshot still stands (see
+      // `isSnapshotUsable` — it applies to pagination too, not just this entry point).
+      const cached = this.prospectingService.peekContacts(this.getContactsApiPostData());
+      this.isWaitingFlag = !cached;
+      this.isRefreshing = !!cached;
+      await this.getContacts();
+      this.isRefreshing = false;
     }
     // this.setContactSubscription();
 
@@ -175,12 +189,35 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
     };
   };
 
+  /** Revalidating with rows already on screen — dims the refresh button only. */
+  isRefreshing = false;
+  /** When the rows on screen were fetched; rendered beside the refresh control. */
+  lastUpdatedAt: number | null = null;
+
+  /** Refetch on demand; rows stay on screen and the button's spinner is the feedback. */
+  refresh = async () => {
+    if (this.isRefreshing || this.isWaitingFlag || this.isLoading) return;
+    this.isRefreshing = true;
+    try {
+      await this.getContacts(true);
+    } finally {
+      this.isRefreshing = false;
+    }
+  };
+
   getContacts = async (overwrite = false) => {
     const postData = this.getContactsApiPostData();
     if (this.contactIds) {
       postData['ids'] = this.contactIds;
     }
-    await this.prospectingService.getContacts(postData, overwrite);
+    await this.prospectingService.getContacts(
+      postData,
+      overwrite,
+      this.cacheVersions.version(CACHE_SCOPE.CONTACTS),
+    );
+    // Read the age back off the cache rather than assuming a fetch happened — the
+    // service may have replayed a snapshot, in which case the stamp must not move.
+    this.lastUpdatedAt = this.prospectingService.peekContacts(postData)?.at ?? Date.now();
   };
 
   getAContact = async () => {

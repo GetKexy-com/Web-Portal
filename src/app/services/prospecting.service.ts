@@ -64,6 +64,15 @@ export class ProspectingService {
   public manageListCurrentPage: number = 1;
   public manageListLimit: number = 100;
   public allContacts;
+  /**
+   * How long a cached page is reused before the server is asked again.
+   *
+   * Lives HERE rather than in the pages, so every caller is covered — including
+   * pagination. With the check only in a page's `ngOnInit`, clicking back to a page you
+   * had already visited replayed its snapshot no matter how old it was.
+   */
+  public static readonly SNAPSHOT_MAX_AGE_MS = 15_000;
+
   public cachedContactPages = {};
   public cachedLabels = {};
   public cachedLabelsOnly = {};
@@ -653,17 +662,42 @@ export class ProspectingService {
     });
   };
 
-  getContacts = async (postData, overwrite = false) => {
-    const { page, limit } = postData;
+  /**
+   * Cache key for a contacts page.
+   *
+   * Built from the WHOLE request, not `page` + `limit` as it was. Those two alone
+   * collide across filter sets: a search for "acme" on page 1 and the unfiltered page 1
+   * shared a key, so clearing the search could replay the filtered rows. Callers were
+   * papering over it by passing `overwrite = true` on every filter change.
+   */
+  private __contactsCacheKey = (postData: any): string =>
+    JSON.stringify(
+      Object.keys(postData ?? {})
+        .sort()
+        .map((k) => [k, postData[k]]),
+    );
+
+  /** The cached page for this exact request, or null. Synchronous by design. */
+  peekContacts = (postData: any) => this.cachedContactPages[this.__contactsCacheKey(postData)] ?? null;
+
+  /**
+   * A cached entry may stand in for a fetch only if it predates no write and no more
+   * than the snapshot window. Both matter: the version alone ignores the clock (so
+   * another user's change never lands), the clock alone ignores this user's own edits.
+   */
+  isSnapshotUsable = (entry: any, version: number): boolean =>
+    !!entry &&
+    entry.version === version &&
+    Date.now() - entry.at < ProspectingService.SNAPSHOT_MAX_AGE_MS;
+
+  getContacts = async (postData, overwrite = false, version = 0) => {
     if (!overwrite) {
-      if (Object.keys(this.cachedContactPages).length) {
-        const key = `${page}${limit}`;
-        if (this.cachedContactPages[key]) {
-          setTimeout(() => {
-            this._contactRes.next(this.cachedContactPages[key]);
-          }, 0);
-          return null;
-        }
+      const hit = this.cachedContactPages[this.__contactsCacheKey(postData)];
+      if (this.isSnapshotUsable(hit, version)) {
+        setTimeout(() => {
+          this._contactRes.next(hit.data);
+        }, 0);
+        return null;
       }
     }
     if (overwrite) {
@@ -685,11 +719,16 @@ export class ProspectingService {
           res.data.contacts.forEach((contact: IRawContact) => {
             contacts.push(new Contact(contact));
           });
-          if (!overwrite) {
-            const key = `${page}${limit}`;
-            this.cachedContactPages[key] = { contacts, total: res.data.totalContacts };
-          }
-          this._contactRes.next({ contacts, total: res.data.totalContacts });
+          const payload = { contacts, total: res.data.totalContacts };
+          // Stored on EVERY fetch, not just non-overwrite ones: `overwrite` means
+          // "ignore what is cached", not "do not cache the result" — and the snapshot
+          // the page reuses on its next visit has to come from somewhere.
+          this.cachedContactPages[this.__contactsCacheKey(postData)] = {
+            data: payload,
+            at: Date.now(),
+            version,
+          };
+          this._contactRes.next(payload);
           resolve(true);
         },
         error: (err) => {
@@ -811,18 +850,22 @@ export class ProspectingService {
     });
   };
 
-  getLists = async (postData, overwrite = true) => {
+  private __listsCacheKey = (page: any, limit: any): string =>
+    `${page ?? this.manageListCurrentPage}|${limit ?? this.manageListLimit}`;
+
+  /** The cached page of lists for these inputs, or null. Synchronous by design. */
+  peekLists = (page: any, limit: any) => this.cachedLabels[this.__listsCacheKey(page, limit)] ?? null;
+
+  getLists = async (postData, overwrite = true, version = 0) => {
     const { page, limit } = postData;
     if (page) this.manageListCurrentPage = page;
     if (limit) this.manageListLimit = limit;
 
     if (!overwrite) {
-      if (Object.keys(this.cachedLabels).length) {
-        const key = `${page}${limit}`;
-        if (this.cachedLabels[key]) {
-          this._labels.next(this.cachedLabels[key]['data']);
-          return null;
-        }
+      const hit = this.cachedLabels[this.__listsCacheKey(page, limit)];
+      if (this.isSnapshotUsable(hit, version)) {
+        this._labels.next(hit.data);
+        return null;
       }
     }
 
@@ -831,8 +874,11 @@ export class ProspectingService {
       this.httpService.get(url).subscribe({
         next: (res) => {
           let labels = res.data.lists;
-          const key = `${page ? page : this.manageListCurrentPage}${limit ? limit : this.manageListLimit}`;
-          this.cachedLabels[key] = { data: labels };
+          this.cachedLabels[this.__listsCacheKey(page, limit)] = {
+            data: labels,
+            at: Date.now(),
+            version,
+          };
           this.totalListCount = res.total;
           this._labels.next(labels);
           resolve(true);

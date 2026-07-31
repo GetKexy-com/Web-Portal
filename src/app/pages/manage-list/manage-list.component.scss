@@ -1,4 +1,14 @@
 .manage-list-page {
+  // Snapshot age beside the refresh control. Quiet on purpose — it is provenance, not
+  // an action, and should not compete with the buttons around it.
+  .updated-stamp {
+    align-self: center;
+    margin-right: 10px;
+    font-size: 11.5px;
+    color: #94a3b8;
+    white-space: nowrap;
+  }
+
   .content-area {
     padding: 24px;
     // The card owns its own horizontal scroll now (sticky header + frozen

@@ -2,6 +2,8 @@ import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/co
 import { ProspectingService } from 'src/app/services/prospecting.service';
 import { Subscription } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
+import { CACHE_SCOPE, CacheVersionService } from '../../services/cache-version.service';
+import { TimeAgoComponent } from '../../components/time-ago/time-ago.component';
 import { constants } from 'src/app/helpers/constants';
 import { AuthService } from 'src/app/services/auth.service';
 import { routeConstants } from 'src/app/helpers/routeConstants';
@@ -35,6 +37,7 @@ import freeEmailDomains from 'free-email-domains';
     ContactListCardComponent,
     UploadFileModalContentComponent,
     CommonModule,
+    TimeAgoComponent,
   ],
   templateUrl: './brand-list-contacts.component.html',
   styleUrl: './brand-list-contacts.component.scss',
@@ -78,8 +81,25 @@ export class BrandListContactsComponent implements OnInit, OnDestroy {
     private modal: NgbModal,
     private _authService: AuthService,
     private pageUiService: PageUiService,
+    private cacheVersions: CacheVersionService,
   ) {
   }
+
+  /** Revalidating with rows already on screen — dims the refresh button only. */
+  isRefreshing = false;
+  /** When the rows on screen were fetched; rendered beside the refresh control. */
+  lastUpdatedAt: number | null = null;
+
+  /** Refetch on demand; rows stay on screen and the button's spinner is the feedback. */
+  refresh = async () => {
+    if (this.isRefreshing || this.isWaitingFlag || this.isLoading) return;
+    this.isRefreshing = true;
+    try {
+      await this.getContacts(true);
+    } finally {
+      this.isRefreshing = false;
+    }
+  };
 
   async ngOnInit() {
     document.title = 'List Contacts - KEXY Brand Portal';
@@ -102,7 +122,20 @@ export class BrandListContactsComponent implements OnInit, OnDestroy {
     });
 
     await this.getLists();
-    await this.getContacts(true);
+
+    // Skeleton only with nothing to show. The cache key is the WHOLE request payload,
+    // which includes `listIds`, `page`, `limit` and the sort — so each page of each
+    // list is its own snapshot, and `page` comes from the URL, so returning to a deep
+    // link lands on the same one rather than resetting to page 1.
+    //
+    // `getContacts()` (no overwrite) lets the service decide replay vs fetch; that
+    // check lives there so pagination gets it too, not just this entry point.
+    const cached = this.prospectingService.peekContacts(this.getContactApiPostData());
+    this.isWaitingFlag = !cached;
+    this.isRefreshing = !!cached;
+    await this.getContacts();
+    this.isRefreshing = false;
+
     this.setContactSubscription();
     this.isWaitingFlag = false;
   }
@@ -167,7 +200,14 @@ export class BrandListContactsComponent implements OnInit, OnDestroy {
 
   getContacts = async (overwrite = false) => {
     const postData = this.getContactApiPostData();
-    await this.prospectingService.getContacts(postData, overwrite);
+    await this.prospectingService.getContacts(
+      postData,
+      overwrite,
+      this.cacheVersions.version(CACHE_SCOPE.CONTACTS),
+    );
+    // Read the age back off the cache rather than assuming a fetch happened — the
+    // service may have replayed a snapshot, in which case the stamp must not move.
+    this.lastUpdatedAt = this.prospectingService.peekContacts(postData)?.at ?? Date.now();
   };
 
   setContactSubscription = () => {

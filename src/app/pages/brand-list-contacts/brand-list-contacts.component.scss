@@ -13,6 +13,39 @@
     flex-shrink: 0;
   }
 
+  // Snapshot age + refresh. `flex-shrink: 0` because the section beneath it is the
+  // one that fills the remaining height; letting this row shrink would squeeze it
+  // instead of the table.
+  .snapshot-bar {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    padding-bottom: 10px;
+
+    .updated-stamp {
+      font-size: 11.5px;
+      color: #94a3b8;
+      white-space: nowrap;
+    }
+
+    .refresh-btn {
+      width: 30px;
+      height: 30px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: #2847cc;
+      background: #e7f6fe;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+
+      &:disabled { opacity: 0.5; cursor: not-allowed; }
+    }
+  }
+
   // The section wrapping <contact-list-card> takes the remaining height.
   section:not(.card-area-wrap) {
     flex: 1;

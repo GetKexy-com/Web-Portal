@@ -51,6 +51,26 @@
           />
         }
 
+        <!--The list is a snapshot, so it says when it was taken. Without this the
+            freshness window is a hidden staleness bug; with it, the table is honestly
+            a point-in-time view and the refresh control beside it is the remedy.-->
+        <app-time-ago class="updated-stamp" [value]="lastUpdatedAt()" />
+
+        <!--Covers what the snapshot window cannot: something changing server-side
+            while you sit on the page — another user, or a campaign finishing a send.
+            Icon-only because it is a utility, not one of the row actions.-->
+        <app-kexy-button
+          (click)="refresh()"
+          style="margin-right: 10px"
+          label=""
+          [iconLeft]="isRefreshing() ? 'fa-refresh fa-spin' : 'fa-refresh'"
+          [disabled]="isRefreshing() || isWaitingFlag()"
+          title="Refresh campaigns"
+          bgColor="#e7f6fe"
+          textColor="#2847cc"
+          radius="8px"
+        />
+
         <!--LAST, so it sits at the far right of this right-aligned bar and keeps the
             same position whatever is selected: the buttons above are contextual and
             push in from the left as they appear. Without it the bar is empty until

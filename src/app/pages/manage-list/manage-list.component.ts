@@ -15,6 +15,8 @@ import {
   AddOrDeleteContactLabelComponent,
 } from '../../components/add-or-delete-contact-label/add-or-delete-contact-label.component';
 import { CommonModule } from '@angular/common';
+import { TimeAgoComponent } from '../../components/time-ago/time-ago.component';
+import { CACHE_SCOPE, CacheVersionService } from '../../services/cache-version.service';
 
 @Component({
   selector: 'manage-list',
@@ -23,6 +25,7 @@ import { CommonModule } from '@angular/common';
     KexyButtonComponent,
     LabelListCardComponent,
     CommonModule,
+    TimeAgoComponent,
   ],
   templateUrl: './manage-list.component.html',
   styleUrl: './manage-list.component.scss',
@@ -40,6 +43,11 @@ export class ManageListComponent implements OnInit, OnDestroy {
   totalPage;
   labelOptionsSubscription: Subscription;
   contactLabelsSubscription: Subscription;
+  /** Revalidating with rows already on screen — dims the refresh button only. */
+  isRefreshing = false;
+  /** When the rows on screen were fetched; rendered beside the refresh control. */
+  lastUpdatedAt: number | null = null;
+
 
   constructor(
     private _authService: AuthService,
@@ -47,6 +55,7 @@ export class ManageListComponent implements OnInit, OnDestroy {
     private dripCampaignService: DripCampaignService,
     private ngbOffcanvas: NgbOffcanvas,
     private pageUiService: PageUiService,
+    private cacheVersions: CacheVersionService,
   ) {
   }
 
@@ -66,14 +75,35 @@ export class ManageListComponent implements OnInit, OnDestroy {
       this.page = this.prospectingService.manageListCurrentPage;
     }
 
-    // get lists
-    await this.getLabels(true);
+    // Subscribe once. This used to live inside `getLabels`, which is called again on
+    // every pagination change — so each one added another subscription to the same
+    // subject and only the last was ever unsubscribed.
+    this.__subscribeToLists();
+
+    // Skeleton only with nothing to show. `getLabels(false)` lets the service decide
+    // whether the snapshot still stands — see `isSnapshotUsable`.
+    const cached = this.prospectingService.peekLists(this.page, this.limit);
+    this.isWaitingFlag = !cached;
+    this.isRefreshing = !!cached;
+    await this.getLabels(false);
+    this.isRefreshing = false;
 
     // get all drip campaign titles
     await this.getDripCampaignTitles();
 
     this.isWaitingFlag = false;
   }
+
+  /** Refetch on demand; rows stay on screen and the button's spinner is the feedback. */
+  refresh = async () => {
+    if (this.isRefreshing || this.isWaitingFlag) return;
+    this.isRefreshing = true;
+    try {
+      await this.getLabels(true);
+    } finally {
+      this.isRefreshing = false;
+    }
+  };
 
   ngOnDestroy() {
     if (this.labelOptionsSubscription) this.labelOptionsSubscription.unsubscribe();
@@ -83,14 +113,22 @@ export class ManageListComponent implements OnInit, OnDestroy {
 
 
   getLabels = async (overwrite = true) => {
-    // Get Label
     const postData = {
       page: this.page,
       limit: this.limit,
     };
-    await this.prospectingService.getLists(postData, overwrite);
+    await this.prospectingService.getLists(
+      postData,
+      overwrite,
+      this.cacheVersions.version(CACHE_SCOPE.LISTS),
+    );
+    // Read the age back off the cache — the service may have replayed a snapshot, in
+    // which case the stamp must not move.
+    this.lastUpdatedAt = this.prospectingService.peekLists(this.page, this.limit)?.at ?? Date.now();
+  };
 
-    // Set Label Subscription
+  /** Subscribed ONCE, from `ngOnInit` — see the note there. */
+  private __subscribeToLists = () => {
     this.contactLabelsSubscription = this.prospectingService.lists.subscribe((labels) => {
       this.labelOptions = labels;
       this.totalContactsCount = this.prospectingService.totalListCount;
