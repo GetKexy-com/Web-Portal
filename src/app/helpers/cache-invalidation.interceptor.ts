@@ -20,6 +20,18 @@ import { CACHE_SCOPE, CacheVersionService } from '../services/cache-version.serv
  * Over-invalidating costs a refetch. Under-invalidating costs wrong data on screen, so
  * every uncertain case is resolved toward the former.
  */
+/**
+ * Endpoints that are READS wearing a POST, because their filter payload is too big for
+ * a query string. They change nothing, so bumping a scope for them costs a refetch of
+ * every contacts and lists table for no reason — `contacts/getDripCampaigns` fires
+ * whenever the contact drawer opens, and `contacts/searches` / `contacts/apollo-searches`
+ * on every prospecting search.
+ *
+ * Matched BEFORE `SCOPE_BY_URL`. Keep this list tight: a write mistakenly listed here
+ * shows stale rows, which is the expensive kind of wrong.
+ */
+const READ_SHAPED_WRITES = /\/contacts\/(getDripCampaigns|searches|apollo-searches)\b/;
+
 const SCOPE_BY_URL: { pattern: RegExp; scopes: string[] }[] = [
   { pattern: /\/(drip-campaigns|titles)\b/, scopes: [CACHE_SCOPE.DRIP_CAMPAIGNS] },
   { pattern: /\/contacts\b/, scopes: [CACHE_SCOPE.CONTACTS, CACHE_SCOPE.LISTS] },
@@ -48,6 +60,7 @@ export class CacheInvalidationInterceptor implements HttpInterceptor {
   intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     // Reads never invalidate. Checked before the pipe so GETs pay nothing at all.
     if (request.method === 'GET') return next.handle(request);
+    if (READ_SHAPED_WRITES.test(request.url)) return next.handle(request);
 
     return next.handle(request).pipe(
       tap((event) => {

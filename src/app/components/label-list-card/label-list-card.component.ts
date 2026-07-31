@@ -74,8 +74,11 @@ export class LabelListCardComponent implements OnInit, OnDestroy, AfterViewInit 
 
   ngOnInit(): void {
     this.userData = this._authService.userTokenValue;
-    // Clear the previous cached contacts
-    this.prospectingService.cachedContactPages = {};
+    // Deliberately does NOT clear `cachedContactPages`. It used to, which meant merely
+    // OPENING Manage Lists blanked the Contacts table on the next visit — this card
+    // renders on a page that shows no contacts, so it has nothing to say about their
+    // freshness. Writes that actually change contacts bump the CONTACTS scope through
+    // `CacheInvalidationInterceptor`, which is what invalidates them.
     this.getListViewData();
     this.calcWidth();
   }

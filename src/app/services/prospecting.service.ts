@@ -700,7 +700,8 @@ export class ProspectingService {
     Date.now() - entry.at < (scope ? maxAgeForScope(scope) : SNAPSHOT_MAX_AGE_MS);
 
   getContacts = async (postData, overwrite = false, version = 0) => {
-    const hit = this.cachedContactPages[this.__contactsCacheKey(postData)];
+    const cacheKey = this.__contactsCacheKey(postData);
+    const hit = this.cachedContactPages[cacheKey];
 
     if (!overwrite) {
       // Fresh enough to stand alone: replay it and make no request at all.
@@ -721,8 +722,16 @@ export class ProspectingService {
       }
     }
 
+    // `overwrite` means "ignore what is cached FOR THIS REQUEST" — it drops this one
+    // key, not the whole map. Clearing everything was the main reason Manage Contacts
+    // showed a skeleton at random: every contacts screen shares this map, so a refresh
+    // on List Contacts, a save in the contact drawer, an import or a delete evicted the
+    // page-1 snapshot Manage Contacts reuses on entry, and each of those callers then
+    // stored a DIFFERENT key. Other keys do not need evicting: a write bumps the
+    // CONTACTS scope, so their recorded version no longer matches and they refetch —
+    // while still rendering their stale rows instead of blanking.
     if (overwrite) {
-      this.cachedContactPages = {};
+      delete this.cachedContactPages[cacheKey];
     }
 
     const contacts: Contact[] = [];
@@ -744,7 +753,7 @@ export class ProspectingService {
           // Stored on EVERY fetch, not just non-overwrite ones: `overwrite` means
           // "ignore what is cached", not "do not cache the result" — and the snapshot
           // the page reuses on its next visit has to come from somewhere.
-          this.cachedContactPages[this.__contactsCacheKey(postData)] = {
+          this.cachedContactPages[cacheKey] = {
             data: payload,
             at: Date.now(),
             version,

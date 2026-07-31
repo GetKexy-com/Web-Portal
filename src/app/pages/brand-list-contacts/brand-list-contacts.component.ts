@@ -311,10 +311,10 @@ export class BrandListContactsComponent implements OnInit, OnDestroy {
       this.sortType = constants.DESENDING.toLowerCase();
     }
 
+    // No cache clear afterwards: sort order is part of the cache key, so the fetch
+    // above stores its own entry. Wiping the map here deleted that snapshot — and
+    // every other page's too, including Manage Contacts'.
     await this.getPaginatedContacts();
-
-    // Clear contact cache
-    this.prospectingService.cachedContactPages = {};
   };
 
   navigateSpecificPage = async (page) => {

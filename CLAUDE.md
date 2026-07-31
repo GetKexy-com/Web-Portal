@@ -992,6 +992,33 @@ rather than only on page entry. `brand-list-of-drip-campaigns` achieves the same
 by applying `cached.data` directly, since it holds its rows in a signal rather than
 behind a subject.
 
+**Never clear the whole cache map — that is what produces a random skeleton.** Every
+contacts screen shares `cachedContactPages`, so a blanket `cachedContactPages = {}`
+evicts the page-1 snapshot Manage Contacts reuses on entry, and the table blanks on a
+visit that had nothing to do with the write. Three of these existed and were the actual
+cause of "sometimes it loads, sometimes it doesn't":
+
+- `label-list-card.ngOnInit` cleared it, so merely OPENING Manage Lists guaranteed a
+  skeleton on the next Contacts visit. That card's page shows no contacts at all.
+- Both contacts pages cleared it immediately AFTER `handleSortByCreatedAt` awaited its
+  fetch — deleting the entry that call had just stored. Sort order is part of the key,
+  so the fetch already gets its own entry; there is nothing to clean up.
+- `getContacts` cleared it on `overwrite`. `overwrite` means "ignore what is cached for
+  THIS request", so it now deletes only its own key. Callers with a different payload
+  (`prospecting-contacts`' save, `add-contacts-to-drip-campaign`, List Contacts'
+  refresh) were flushing everyone else's snapshot and then storing a key nobody reads.
+
+Other keys never need manual eviction: a write bumps the scope, their recorded version
+stops matching, and they refetch on next read while still showing their stale rows.
+Reach for the version counter, not the map.
+
+**Read-shaped POSTs are exempt from invalidation.** `contacts/getDripCampaigns`,
+`contacts/searches` and `contacts/apollo-searches` are reads that POST because their
+filter payload won't fit a query string. `READ_SHAPED_WRITES` in the interceptor skips
+them — otherwise opening the contact drawer or running a prospecting search bumped
+`CONTACTS` + `LISTS` and forced a refetch of every table. Keep that list tight; a real
+write listed there shows stale rows.
+
 **Peek and set `isWaitingFlag` BEFORE any `await`.** `isWaitingFlag` starts `true`, so
 anything awaited ahead of the peek keeps the table blanked and the snapshot buys
 nothing — the user still watches a skeleton. Both contacts pages had exactly this: they

@@ -385,10 +385,10 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
     } else {
       this.sortType = constants.DESENDING.toLowerCase();
     }
+    // No cache clear afterwards: sort order is part of the cache key, so the fetch
+    // above stores its own entry. Wiping the map here deleted the snapshot that call
+    // had just written, so every later return to this page refetched from scratch.
     await this.getPaginatedContacts(true);
-
-    // Clear contact cache
-    this.prospectingService.cachedContactPages = {};
   };
 
   importBtnClick = (content) => {
