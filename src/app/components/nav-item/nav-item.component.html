@@ -7,10 +7,14 @@
 
 @if (navigateTo) {
   <li class="nav-item">
+    <!--`[class.active]` rather than the `routerLinkActive` directive: an item can be
+        active for routes OTHER than the one it links to (see `alsoActiveFor`), which
+        the directive has no way to express. The two must not be combined — they would
+        both own the same class and fight over it.-->
     <a
       [class.nav-dropdown]="isDropDown"
+      [class.active]="active()"
       [routerLink]="resolvedNavigateTo"
-      routerLinkActive="active"
       [attr.data-label]="label"
       [attr.title]="label"
     >

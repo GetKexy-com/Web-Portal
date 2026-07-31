@@ -214,6 +214,14 @@ export class BrandListOfDripCampaignsComponent implements OnInit {
     }
   };
 
+  /**
+   * Start a new campaign. No query params — an `id` is what makes the builder open an
+   * EXISTING campaign, so passing none is what distinguishes create from edit.
+   */
+  redirectToCreatePage = () => {
+    this.router.navigate([routeConstants.BRAND.CREATE_DRIP_CAMPAIGN]);
+  };
+
   redirectToEditPage = (duplicate = false) => {
     const queryParams: any = {
       id: this.selectedDripCampaigns()[0]?.id,
@@ -223,7 +231,13 @@ export class BrandListOfDripCampaignsComponent implements OnInit {
       queryParams.action = 'duplicate';
     }
 
-    this.router.navigate([routeConstants.BRAND.CREATE_DRIP_CAMPAIGN], { queryParams });
+    // Duplicating lands on CREATE, editing on EDIT. A duplicate makes a NEW campaign
+    // out of the one named by `id`, so `create?id=…&action=duplicate` is the accurate
+    // URL — and the sidebar highlighting "Create Campaign" is then correct too.
+    this.router.navigate(
+      [duplicate ? routeConstants.BRAND.CREATE_DRIP_CAMPAIGN : routeConstants.BRAND.EDIT_DRIP_CAMPAIGN],
+      { queryParams },
+    );
   };
 
   setBtnLabelBasedOnCampaignStatus = () => {

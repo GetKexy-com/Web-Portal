@@ -42,6 +42,7 @@
           selectedDripCampaigns()[0]?.status === constants.PAUSE)) {
           <app-kexy-button
             (click)="pauseOrResumeOrDeleteDripCampaign()"
+            style="margin-right: 10px"
             [label]="setBtnLabelBasedOnCampaignStatus()"
             [iconLeft]="setBtnIconBasedOnCampaignStatus()"
             bgColor="#e7f6fe"
@@ -49,6 +50,26 @@
             radius="8px"
           />
         }
+
+        <!--LAST, so it sits at the far right of this right-aligned bar and keeps the
+            same position whatever is selected: the buttons above are contextual and
+            push in from the left as they appear. Without it the bar is empty until
+            something is ticked, which left the page's primary action reachable only
+            from the sidebar.
+
+            "New Campaign", not "Create Campaign": the + icon already carries the verb,
+            and this is the label the destination then repeats as its breadcrumb leaf
+            (`Manage Campaigns › New Campaign`). The sidebar item keeps the longer
+            "Create Campaign" — it names a task in a list of destinations, where a bare
+            "New Campaign" reads oddly.-->
+        <app-kexy-button
+          (click)="redirectToCreatePage()"
+          label="New Campaign"
+          iconLeft="fa-plus"
+          bgColor="#e7f6fe"
+          textColor="#2847cc"
+          radius="8px"
+        />
       </div>
     </div>
 

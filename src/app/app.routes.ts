@@ -57,7 +57,22 @@ export const routes: Routes = [
   },
   {
     path: routeConstants.BRAND.CREATE_DRIP_CAMPAIGN,
-    data: { title: 'Create Campaign' },
+    // Fallback only — the page passes a `Manage Campaigns › <name>` breadcrumb trail,
+    // which takes precedence. Kept per the convention above so the route names itself.
+    data: { title: 'Campaign Builder' },
+    loadComponent: () =>
+      import('./pages/brand-drip-campaign/brand-drip-campaign.component').then(
+        (m) => m.BrandDripCampaignComponent,
+      ),
+    canActivate: [AuthGuard],
+  },
+  {
+    // The SAME component as CREATE above — see the note on `EDIT_DRIP_CAMPAIGN`. Two
+    // paths onto one screen so the URL and the sidebar highlight tell the truth about
+    // which of the two things you are doing. `create?id=…` still works, so older
+    // bookmarks and any link built before this split keep loading the campaign.
+    path: routeConstants.BRAND.EDIT_DRIP_CAMPAIGN,
+    data: { title: 'Campaign Builder' },
     loadComponent: () =>
       import('./pages/brand-drip-campaign/brand-drip-campaign.component').then(
         (m) => m.BrandDripCampaignComponent,

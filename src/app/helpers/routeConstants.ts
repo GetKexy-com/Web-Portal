@@ -54,6 +54,13 @@ export const routeConstants = {
     PROSPECTING_SALES_LEAD: BRAND + PROSPECTING + "sales-lead",
     PROSPECTING_SELECT_CONTACT: BRAND + PROSPECTING + "select-contact",
     CREATE_DRIP_CAMPAIGN: BRAND + DRIP_CAMPAIGN + "create",
+    // Same component as CREATE — opening an existing campaign by `?id=` is the same
+    // two-step screen. It gets its own path so the URL doesn't say "create" while you
+    // are editing, and so the sidebar's "Create Campaign" item stops lighting up:
+    // `routerLinkActive` ignores query params by default, so `create?id=5` matched the
+    // create link. DUPLICATE still uses CREATE — a duplicate makes a new campaign from
+    // an existing one, so `create?id=5&action=duplicate` is the accurate URL.
+    EDIT_DRIP_CAMPAIGN: BRAND + DRIP_CAMPAIGN + "edit",
     LIST_DRIP_CAMPAIGN: BRAND + DRIP_CAMPAIGN + "list",
     LAUNCH_DRIP_CAMPAIGN: BRAND + DRIP_CAMPAIGN + "launch",
     IMPORT_CONTACTS_IN_SENDY: BRAND + "push-contacts-in-sendy",

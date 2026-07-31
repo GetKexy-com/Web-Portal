@@ -238,7 +238,7 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
     const queryParams: any = {
       id: dripCampaign.id,
     };
-    this.router.navigate([routeConstants.BRAND.CREATE_DRIP_CAMPAIGN], {
+    this.router.navigate([routeConstants.BRAND.EDIT_DRIP_CAMPAIGN], {
       queryParams,
     }).then(r => {
       this.activeCanvas.dismiss('Cross click');

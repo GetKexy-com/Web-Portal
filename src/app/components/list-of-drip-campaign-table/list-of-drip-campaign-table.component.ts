@@ -159,7 +159,7 @@ export class ListOfDripCampaignTableComponent implements OnInit, AfterViewChecke
     const queryParams: any = {
       id: dripCampaign.id,
     };
-    this.router.navigate([routeConstants.BRAND.CREATE_DRIP_CAMPAIGN], {
+    this.router.navigate([routeConstants.BRAND.EDIT_DRIP_CAMPAIGN], {
       queryParams,
     });
   };

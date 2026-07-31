@@ -40,10 +40,14 @@
     </nav-item-dropdown>
 
     <nav-item-dropdown icon="fa-users" [label]="constants.CONTACTS" [expand]="expandContactsDropdown" [collapsed]="railCollapsed">
+      <!--A list's contacts page is a SIBLING path, not a child, so it can't light this
+          item up by prefix — see `alsoActiveFor`. Staying lit matches the header's
+          `Manage Lists › <list name>` trail.-->
       <nav-item
         [isDropDown]="true"
         icon="fa-table"
         [navigateTo]="brand.MANAGE_LIST"
+        [alsoActiveFor]="[brand.LIST_CONTACTS]"
         label="Manage Lists"
       ></nav-item>
       <nav-item
@@ -81,10 +85,14 @@
 <!--        [navigateTo]="brand.LAUNCH_DRIP_CAMPAIGN"-->
 <!--        label="Launch Campaign"-->
 <!--      ></nav-item>-->
+      <!--Editing a campaign stays under Manage Campaigns. Only the EDIT path — a new
+          or duplicated campaign is on `…/create`, where "Create Campaign" above is the
+          item that should be lit.-->
       <nav-item
         [isDropDown]="true"
         icon="fa-tasks"
         [navigateTo]="brand.LIST_DRIP_CAMPAIGN"
+        [alsoActiveFor]="[brand.EDIT_DRIP_CAMPAIGN]"
         label="Manage Campaigns"
       ></nav-item>
     </nav-item-dropdown>

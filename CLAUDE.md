@@ -791,6 +791,40 @@ cards — they're their own `.pc-*` markup.
   truncated description, and edit/delete icon buttons; edit opens
   `company-description-canvas`.
 
+## Campaign builder — two paths, one component
+
+`brand-drip-campaign` is a two-step wizard (campaign content → generate emails) that is
+both the CREATE and the EDIT surface for a drip campaign. It is reachable on **two
+routes that load the same component**:
+
+| Path | When | Sidebar |
+|---|---|---|
+| `brand/drip-campaign/create` | new campaign, **and duplicating** (`?id=&action=duplicate`) | "Create Campaign" lit |
+| `brand/drip-campaign/edit?id=` | opening an existing campaign | nothing lit |
+
+The split exists because everything used to run through `…/create`, so editing campaign
+#5 showed `create?id=5` in the address bar and lit up "Create Campaign" in the sidebar —
+`routerLinkActive` **ignores query params by default**, so `create?id=5` matched the
+create link. Don't "simplify" this back to one route.
+
+- **Duplicating stays on CREATE** — it makes a NEW campaign out of the one named by
+  `id`, so `create?id=5&action=duplicate` is accurate and the create highlight is
+  correct. `brand-list-of-drip-campaigns.redirectToEditPage(duplicate)` picks the path.
+- **Four `redirectToEditPage` call sites** go to EDIT: `list-of-drip-campaign-table`,
+  `list-of-landing-page-table`, `prospecting-contacts`, and the non-duplicate branch of
+  `brand-list-of-drip-campaigns`.
+- **`…/create?id=` still works** — the component reads `id` on either path, so older
+  bookmarks and any link built before the split still load the campaign.
+- **`basePath` is load-bearing.** The wizard re-navigates to ITSELF when advancing a
+  step, so it must target the path it is already on; a hardcoded CREATE would throw an
+  edit session back to `…/create` mid-edit. Two things depend on getting this right:
+  - `shouldReuseRoute` is overridden to always return falsy, so **the component is
+    destroyed and rebuilt even on that self-navigation**.
+  - `ngOnDestroy` therefore bails out when the next URL is still this screen, or it
+    would wipe the in-progress campaign. **Both paths must be listed in that guard** —
+    a miss clears the campaign right before step 2 renders it.
+- **Header is a breadcrumb**, not a static title — see the Breadcrumbs section above.
+
 ## Brand dashboard — customisable card layout
 
 `brand-dashboard` lets the user reorder, resize and hide its cards. Order and width
@@ -992,14 +1026,30 @@ exposed as `pageTitle`.
 **Breadcrumbs** — a page that is a CHILD of another passes
 `[breadcrumbs]="[{label, link?}, …]"` instead of a title, and the header renders the
 trail. The last entry is the current page and becomes the `<h1>`; earlier entries with a
-`link` are router links. Currently only `brand-list-contacts` (`Manage Lists › <list
-name>`), where a bare "Contacts" gave no clue where you'd come from. That page has
-**no `[showBackButton]`** — the "Manage Lists" crumb IS the way back, and showing both
-would be the same action twice. `brand-price` is now the only page using the back button. The trail is passed WHOLE rather than per-crumb because the page owns the data (it
-knows the list's name; the layout doesn't), and it's a FIELD rebuilt by
+`link` are router links. Two pages use it:
+
+- `brand-list-contacts` — `Manage Lists › <list name>`, where a bare "Contacts" gave no
+  clue where you'd come from.
+- `brand-drip-campaign` — `Manage Campaigns › <campaign name>`. This page is BOTH the
+  create and the edit surface for a campaign (`list-of-drip-campaign-table` and
+  `prospecting-contacts` route here with an `id`), so its old static "Create Campaign"
+  title was wrong half the time and could never say WHICH campaign was open. Leaf is
+  `New Campaign` when there's no `id` **or** when duplicating — a duplicate starts a new
+  campaign, so the source's name would label a campaign the page isn't editing.
+
+Neither page sets `[showBackButton]` — the parent crumb IS the way back, and showing
+both would be the same action twice. `brand-price` is now the only page using the back
+button. The trail is passed WHOLE rather than per-crumb because the page owns the data
+(it knows the record's name; the layout doesn't), and it's a FIELD rebuilt by
 `__setBreadcrumbs()` — a getter would allocate a new array every CD pass and re-render
-the `*ngFor`. The leaf crumb is only appended once the name has actually loaded; a blank
-crumb is worse than briefly showing just the parent.
+the `*ngFor`.
+
+**Whether a leaf crumb exists while the name loads differs between the two, on purpose.**
+`brand-list-contacts` omits it (a blank crumb is worse than briefly showing just the
+parent). `brand-drip-campaign` always renders one, falling back to `Campaign Builder`,
+because with a single crumb the layout would make "Manage Campaigns" the `<h1>` — which
+reads as being on the list page rather than inside a campaign. Both routes keep a
+`data.title` as the no-breadcrumb fallback.
 
 **Full-height divider.** A 1px `.header-divider` sits between the toggle and the page
 identity. `align-self: stretch` alone only reaches the 36px control row (that row IS the
@@ -1045,6 +1095,32 @@ load (rail flashed open then snapped collapsed). The transition now lives on
 in `ngAfterViewInit` (`setTimeout`) — so the rail renders at its final width instantly
 on mount, and only user toggles animate. Same "gate the transition after first paint"
 trick the nav dropdowns use.
+
+### Nav highlighting — `nav-item` computes `active` itself
+
+`nav-item` does **NOT** use `routerLinkActive`. It sets `[class.active]` from an
+`active` signal recomputed on `NavigationEnd`, using `router.isActive(url,
+NAV_ACTIVE_MATCH)` where `NAV_ACTIVE_MATCH` spells out exactly what the directive's
+default `{ exact: false }` applies (`paths: 'subset'`, `queryParams: 'subset'`, matrix
+and fragment ignored). Keep that constant in step with the directive's default if you
+touch it — every sidebar item's highlighting rides on it.
+
+The reason is **`@Input() alsoActiveFor: string[]`**: extra routes that should light an
+item up. Detail pages here live at SIBLING paths, not under their section, so subset
+matching can never reach them:
+
+| Item | `navigateTo` | `alsoActiveFor` |
+|---|---|---|
+| Manage Lists | `…/contacts/manage-list` | `…/contacts/list-contacts` |
+| Manage Campaigns | `…/drip-campaign/list` | `…/drip-campaign/edit` |
+
+Without it, opening a list's contacts or editing a campaign left the sidebar with
+nothing lit. The section that OWNS the record stays lit while you are inside one of its
+records, which is also what the header's breadcrumb trail says.
+
+**Do not combine `[class.active]` with `routerLinkActive`** — both own the same class
+and would fight over it. Campaign EDIT is listed, not CREATE: a new or duplicated
+campaign sits on `…/create`, where "Create Campaign" is the item that should be lit.
 
 ### Nav = static section groups (NOT accordions)
 
