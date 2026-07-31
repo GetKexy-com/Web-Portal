@@ -1,4 +1,15 @@
-import { AfterViewChecked, Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  ElementRef,
+  EventEmitter,
+  Input,
+  OnDestroy,
+  OnInit,
+  Output,
+} from '@angular/core';
 import { constants } from '../../helpers/constants';
 import { routeConstants } from '../../helpers/routeConstants';
 import { Router } from '@angular/router';
@@ -22,9 +33,13 @@ import { DripCampaign } from '../../models/DripCampaign';
     CommonModule,
   ],
   templateUrl: './list-of-drip-campaign-table.component.html',
+  // OnPush: these tables render hundreds of cells, and under the default
+  // strategy every one of them was re-checked on every event anywhere in the app.
+  // Every async boundary in here therefore has to markForCheck() explicitly.
+  changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrl: './list-of-drip-campaign-table.component.scss',
 })
-export class ListOfDripCampaignTableComponent implements OnInit, AfterViewChecked, OnDestroy {
+export class ListOfDripCampaignTableComponent implements OnInit, AfterViewInit, OnDestroy {
   @Input() tableHeaderBg;
   @Input() tableHeaderColor;
   @Input() cardData: DripCampaign[] = [];
@@ -58,7 +73,7 @@ export class ListOfDripCampaignTableComponent implements OnInit, AfterViewChecke
   dripCampaignStatuses = constants.DRIP_CAMPAIGN_STATUS;
   selectedStatusKey = constants.DRIP_CAMPAIGN_STATUS[0];
 
-  constructor(private router: Router, private modal: NgbModal, private prospectingService: ProspectingService, private host: ElementRef) {
+  constructor(private router: Router, private modal: NgbModal, private prospectingService: ProspectingService, private host: ElementRef, private cdr: ChangeDetectorRef) {
   }
 
   ngOnInit(): void {
@@ -66,18 +81,45 @@ export class ListOfDripCampaignTableComponent implements OnInit, AfterViewChecke
     this.contactLabelsSubscription = this.prospectingService.lists.subscribe((labels) => {
       // Set label dropdown options
       this.labelOptions = labels;
+      // OnPush: a service emission is not an event on this view, so nothing marks it
+      // dirty and the dropdown would keep rendering the previous options.
+      this.cdr.markForCheck();
     });
     this.getListViewData();
     this.calcWidth();
   }
 
   ngOnDestroy(): void {
+    this.__widthObserver?.disconnect();
     if (this.contactLabelsSubscription) this.contactLabelsSubscription.unsubscribe();
   }
 
-  ngAfterViewChecked() {
+  /**
+   * Measure ONCE the view exists, then only when the wrapper actually resizes.
+   *
+   * This used to be `ngAfterViewInit() { this.calcWidth(); }`. `calcWidth` reads
+   * `clientWidth`, which forces the browser to flush layout synchronously — so every
+   * change-detection pass triggered a reflow, on the app's biggest tables. A
+   * ResizeObserver fires only on real geometry changes and catches the cases a
+   * `window:resize` listener misses, notably the sidebar collapsing.
+   */
+  ngAfterViewInit() {
     this.calcWidth();
+    this.cdr.markForCheck();
+
+    const wrapper = this.host?.nativeElement?.querySelector('.new-table-wrapper');
+    if (!wrapper || typeof ResizeObserver === 'undefined') return;
+    this.__widthObserver = new ResizeObserver(() => {
+      const before = this.browserWidthForTable;
+      this.calcWidth();
+      // Only re-render when the number actually moved; the observer also fires for
+      // height changes, which nothing here depends on.
+      if (before !== this.browserWidthForTable) this.cdr.markForCheck();
+    });
+    this.__widthObserver.observe(wrapper);
   }
+
+  private __widthObserver?: ResizeObserver;
 
   onStatusSelect = (status, index = null, rowIndex = null) => {
     console.log(status);

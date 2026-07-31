@@ -1,6 +1,7 @@
 import {
-  AfterViewChecked,
   AfterViewInit,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Component,
   ElementRef,
   EventEmitter,
@@ -31,6 +32,10 @@ import {
     CommonModule,
   ],
   templateUrl: './label-list-card.component.html',
+  // OnPush: these tables render hundreds of cells, and under the default
+  // strategy every one of them was re-checked on every event anywhere in the app.
+  // Every async boundary in here therefore has to markForCheck() explicitly.
+  changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrl: './label-list-card.component.scss',
 })
 export class LabelListCardComponent implements OnInit, OnDestroy, AfterViewInit {
@@ -64,7 +69,7 @@ export class LabelListCardComponent implements OnInit, OnDestroy, AfterViewInit 
   public userData;
   public loadingSubscription: Subscription;
 
-  constructor(private _authService: AuthService, private modal: NgbModal, private router: Router, private prospectingService: ProspectingService, private pageUiService: PageUiService, private host: ElementRef) {
+  constructor(private _authService: AuthService, private modal: NgbModal, private router: Router, private prospectingService: ProspectingService, private pageUiService: PageUiService, private host: ElementRef, private cdr: ChangeDetectorRef) {
   }
 
   ngOnInit(): void {
@@ -76,16 +81,36 @@ export class LabelListCardComponent implements OnInit, OnDestroy, AfterViewInit 
   }
 
   ngOnDestroy(): void {
+    this.__widthObserver?.disconnect();
     if (this.loadingSubscription) this.loadingSubscription.unsubscribe();
   }
 
+  /**
+   * Measure ONCE the view exists, then only when the wrapper actually resizes.
+   *
+   * This used to be `ngAfterViewInit() { this.calcWidth(); }`. `calcWidth` reads
+   * `clientWidth`, which forces the browser to flush layout synchronously — so every
+   * change-detection pass triggered a reflow, on the app's biggest tables. A
+   * ResizeObserver fires only on real geometry changes and catches the cases a
+   * `window:resize` listener misses, notably the sidebar collapsing.
+   */
   ngAfterViewInit() {
     this.calcWidth();
+    this.cdr.markForCheck();
+
+    const wrapper = this.host?.nativeElement?.querySelector('.new-table-wrapper');
+    if (!wrapper || typeof ResizeObserver === 'undefined') return;
+    this.__widthObserver = new ResizeObserver(() => {
+      const before = this.browserWidthForTable;
+      this.calcWidth();
+      // Only re-render when the number actually moved; the observer also fires for
+      // height changes, which nothing here depends on.
+      if (before !== this.browserWidthForTable) this.cdr.markForCheck();
+    });
+    this.__widthObserver.observe(wrapper);
   }
 
-  ngAfterViewChecked() {
-    this.calcWidth();
-  }
+  private __widthObserver?: ResizeObserver;
 
   getListViewData = () => {
     let columnList: any;

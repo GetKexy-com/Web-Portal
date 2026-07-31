@@ -720,6 +720,47 @@ footer). Kept the select-all header checkbox + "Select all N records" link. The 
 dropped `overflow-x: scroll` on `.content-area` so the card's `.list-wrapper` owns
 horizontal scroll.
 
+### The three big tables are `OnPush` — every async path must `markForCheck()`
+
+`contact-list-card`, `list-of-drip-campaign-table` and `label-list-card` use
+`ChangeDetectionStrategy.OnPush`. They render hundreds of cells and were being
+re-checked on every event anywhere in the app.
+
+**What still triggers a render on its own:** an event bound in the card's OWN template
+(all the selection clicks, including the select-all banner, whose buttons live inside
+the card), and an `@Input` whose bound value/reference changes.
+
+**What does NOT, and needs an explicit `this.cdr.markForCheck()`:**
+
+- **Timer callbacks.** `contact-list-card`'s validation and import polls tick every
+  few seconds and drive a live progress %. Without the call the banner renders once
+  and freezes while the numbers move in memory.
+- **Anything after an `await`.** The click that started it was handled long ago.
+- **Methods the PARENT calls in via `@ViewChild`** — `validateList`, `beginImport`,
+  `cancelImport`, `startImportPolling`. The event was in the parent's template, so
+  the parent is marked dirty and the card is not. `brand-contacts` renders its own
+  "Validate Emails" button in `.top-btns` and calls in this way.
+- **Service subscriptions.** `list-of-drip-campaign-table` subscribes to
+  `prospectingService.lists` for its dropdown options.
+
+**In-place mutation is the trap to watch.** The parents mutate `contact.isSelected`
+directly rather than replacing the array. That is safe *only* because every path that
+does it is invoked from inside the card. If you add a selection control to a PAGE
+template, it will mutate silently with no re-render — reassign the array
+(`this.contactList = [...this.contactList]`) or call in and `markForCheck`.
+
+### Table width is measured by `ResizeObserver`, not `ngAfterViewChecked`
+
+All three tables used to run `calcWidth()` from `ngAfterViewChecked`. `calcWidth` reads
+`clientWidth`, which forces the browser to flush layout synchronously — so **every
+change-detection pass caused a reflow** on the app's biggest tables. They now measure
+once in `ngAfterViewInit` and then only when a `ResizeObserver` reports the wrapper
+actually changed size, which also catches the sidebar collapsing (a `window:resize`
+listener would not). The observer is disconnected in `ngOnDestroy`.
+
+`active-contacts-table`, `list-of-landing-page-table`, `kexy-scrollable-table` and
+`drip-campaign-promotions-table` still have the old `ngAfterViewChecked` pattern.
+
 ### Footer pager stays on screen — cards flex-fill a bounded area
 
 `contact-list-card` and `suppression-list-card` no longer set a fixed

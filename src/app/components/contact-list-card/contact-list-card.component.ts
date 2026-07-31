@@ -1,6 +1,7 @@
 import {
-  AfterViewChecked,
   AfterViewInit,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Component,
   ElementRef,
   EventEmitter,
@@ -36,6 +37,10 @@ import Swal from 'sweetalert2';
     CommonModule,
   ],
   templateUrl: './contact-list-card.component.html',
+  // OnPush: these tables render hundreds of cells, and under the default
+  // strategy every one of them was re-checked on every event anywhere in the app.
+  // Every async boundary in here therefore has to markForCheck() explicitly.
+  changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrl: './contact-list-card.component.scss',
 })
 export class ContactListCardComponent implements OnInit, OnChanges, OnDestroy, AfterViewInit {
@@ -98,11 +103,7 @@ export class ContactListCardComponent implements OnInit, OnChanges, OnDestroy, A
   public jumping: boolean = false;
   public loadingSubscription: Subscription;
 
-  constructor(private _authService: AuthService, private modal: NgbModal, private prospectingService: ProspectingService, private pageUiService: PageUiService, private host: ElementRef) {
-  }
-
-  ngAfterViewInit() {
-    this.getListViewData();
+  constructor(private _authService: AuthService, private modal: NgbModal, private prospectingService: ProspectingService, private pageUiService: PageUiService, private host: ElementRef, private cdr: ChangeDetectorRef) {
   }
 
   ngOnInit(): void {
@@ -127,14 +128,39 @@ export class ContactListCardComponent implements OnInit, OnChanges, OnDestroy, A
   }
 
   ngOnDestroy(): void {
+    this.__widthObserver?.disconnect();
     if (this.loadingSubscription) this.loadingSubscription.unsubscribe();
     this.stopValidationPolling();
     this.stopImportPolling();
   }
 
-  ngAfterViewChecked() {
+  /**
+   * Measure ONCE the view exists, then only when the wrapper actually resizes.
+   *
+   * This used to be `ngAfterViewInit() { this.calcWidth(); }`. `calcWidth` reads
+   * `clientWidth`, which forces the browser to flush layout synchronously — so every
+   * change-detection pass triggered a reflow, on the app's biggest tables. A
+   * ResizeObserver fires only on real geometry changes and catches the cases a
+   * `window:resize` listener misses, notably the sidebar collapsing.
+   */
+  ngAfterViewInit() {
+    this.getListViewData();
     this.calcWidth();
+    this.cdr.markForCheck();
+
+    const wrapper = this.host?.nativeElement?.querySelector('.new-table-wrapper');
+    if (!wrapper || typeof ResizeObserver === 'undefined') return;
+    this.__widthObserver = new ResizeObserver(() => {
+      const before = this.browserWidthForTable;
+      this.calcWidth();
+      // Only re-render when the number actually moved; the observer also fires for
+      // height changes, which nothing here depends on.
+      if (before !== this.browserWidthForTable) this.cdr.markForCheck();
+    });
+    this.__widthObserver.observe(wrapper);
   }
+
+  private __widthObserver?: ResizeObserver;
 
   getListViewData = () => {
     let columnList: any;
@@ -257,6 +283,12 @@ export class ContactListCardComponent implements OnInit, OnChanges, OnDestroy, A
       await Swal.fire('Error', e.message);
     } finally {
       this.validationLoading = false;
+      // OnPush: this runs after an await, and the click that started it was handled
+      // long ago — nothing marks this view dirty, so the banner would never appear.
+      // Note the trigger can also be the PARENT's own button (brand-contacts renders
+      // its own "Validate Emails" in .top-btns and calls in via @ViewChild), which
+      // marks the parent dirty and not this card.
+      this.cdr.markForCheck();
     }
   };
 
@@ -291,6 +323,9 @@ export class ContactListCardComponent implements OnInit, OnChanges, OnDestroy, A
         // Ignore transient errors and keep polling.
       }
       if (!this.isValidationProgress()) this.stopValidationPolling();
+      // Timer callback: the live progress % is the whole point of this poll, and
+      // under OnPush it would tick in memory while the banner sat frozen.
+      this.cdr.markForCheck();
     };
 
     poll();
@@ -354,16 +389,22 @@ export class ContactListCardComponent implements OnInit, OnChanges, OnDestroy, A
   // Show the progress banner IMMEDIATELY (before the importId is known) so it
   // appears the moment the preview modal closes. startImportPolling() then takes
   // over once POST contacts responds; cancelImport() clears it if that POST fails.
+  // Called by the parent via @ViewChild, so the event that triggered it marked the
+  // PARENT dirty, not this card — hence the explicit markForCheck.
   beginImport = () => {
     this.importId = null;
     this.importStatus = 'in_queue';
     this.importProgress = 0;
+    this.cdr.markForCheck();
   };
 
+  // Called by the parent via @ViewChild, so the event that triggered it marked the
+  // PARENT dirty, not this card — hence the explicit markForCheck.
   cancelImport = () => {
     this.stopImportPolling();
     this.importStatus = null;
     this.importProgress = 0;
+    this.cdr.markForCheck();
   };
 
   // Called by the parent page right after POST contacts returns an importId.
@@ -372,6 +413,7 @@ export class ContactListCardComponent implements OnInit, OnChanges, OnDestroy, A
     this.importId = importId;
     this.importStatus = 'in_queue';
     this.importProgress = 0;
+    this.cdr.markForCheck();
     if (this.importPoll) return;
     this.importLastProgress = -1;
     this.importSameCount = 0;
@@ -414,6 +456,9 @@ export class ContactListCardComponent implements OnInit, OnChanges, OnDestroy, A
       }
       if (this.isImportProgress()) scheduleNext();
       else this.stopImportPolling();
+      // Timer callback — see the validation poll. Without this the import banner
+      // renders once at 0% and never moves.
+      this.cdr.markForCheck();
     };
 
     poll();
