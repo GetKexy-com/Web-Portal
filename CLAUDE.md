@@ -1202,6 +1202,48 @@ are **data, not markup**.
   line, since neither a mouse drag nor a keyboard move emits anything on its own. The
   visible position number on each row exists for the same reason.
 
+## Route chunks are preloaded in the background
+
+Every route in `app.routes.ts` is a `loadComponent`, so each page ships as its own lazy
+chunk. `provideRouter` had no preloading strategy, which meant the chunk was fetched
+only when someone CLICKED the nav item — and because the router swaps nothing until the
+component resolves, the previous page sat there for the length of a round trip and the
+click looked ignored. First visit to a page paid, every visit after was instant, and a
+deploy reset it for everyone: exactly the "sometimes it takes a second" report.
+
+`withPreloading(IdleRoutePreloadStrategy)` (`helpers/route-preload.strategy.ts`) fixes
+it. Angular 19's `RouterPreloader` does cover `loadComponent` routes, and `canActivate`
+does not block preloading (only `canLoad` would), so the app needed nothing but a
+strategy.
+
+Why not `PreloadAllModules`, which is one import and no file:
+
+- It starts every chunk the instant the first navigation ends, competing with the API
+  calls of the page that just opened. This one waits `HEAD_START_MS` (2s) before the
+  first chunk, then `requestIdleCallback` between each, and loads them ONE AT A TIME.
+  The idle wait alone is not enough — the thread is idle *because* it is waiting on the
+  page's own XHRs, which is the moment you least want 30 downloads.
+- It has no opt-out. `data: { preload: false }` on a route skips it; set on
+  `LANDING_PAGE_NO_AUTH`, the biggest chunk in the build and unreachable from the nav.
+  (Whatever it shares with the rich editor still arrives via the campaign builder.)
+
+Details that are load-bearing if you touch that file: the router's component loader is a
+`refCount`ed `ConnectableObservable`, so unsubscribing early **cancels** the download —
+hold the subscription until it completes. Preload failures must be swallowed, or the
+error reaches the preloader's own subscriber and kills preloading for the session.
+`preload()` returns `EMPTY` rather than the queue, because `setUpPreloading` `concatMap`s
+the passes and returning the queue would make every navigation wait for the remaining
+chunks; the `queued` WeakSet is what then prevents a re-enqueue on the next pass.
+
+Not fixed, related: several pages assign `this.router.routeReuseStrategy.shouldReuseRoute`
+in their CONSTRUCTOR (`brand-contacts`, `lead-magnets`, `brand-drip-campaign`,
+`landing-page-create`). That mutates the ROUTER, not the component — it outlives the page
+and applies app-wide for the rest of the session. Two of them bind a side-effecting method
+(`resetDripCampaignData`, `resetFormData`) as the predicate, so those run on every
+navigation anywhere in the app once that page has been opened once. `brand-drip-campaign`
+genuinely depends on not being reused (see its section above), so this needs a real
+per-route `RouteReuseStrategy` rather than a deletion.
+
 ## Page background
 
 App page background is unified to **`#f4f6fb`**: it's the `brand-layout`

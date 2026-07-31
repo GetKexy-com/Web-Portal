@@ -266,6 +266,10 @@ export const routes: Routes = [
   },
   {
     path: routeConstants.BRAND.LANDING_PAGE_NO_AUTH,
+    // `preload: false` — the biggest chunk in the build, and it is the public page a
+    // brand's own visitors land on, unreachable from the portal's nav. Nobody using the
+    // portal benefits from having it in memory. See `IdleRoutePreloadStrategy`.
+    data: { preload: false },
     loadComponent: () =>
       import('./pages/public-landing-page/public-landing-page.component').then(
         (m) => m.PublicLandingPageComponent,
