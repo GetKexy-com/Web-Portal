@@ -3,7 +3,11 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import Swal from 'sweetalert2';
-import { CACHE_SCOPE, CacheVersionService } from '../../services/cache-version.service';
+import {
+  CACHE_SCOPE,
+  CacheVersionService,
+  SNAPSHOT_MAX_AGE_MS,
+} from '../../services/cache-version.service';
 import { IDripCampaignListCacheEntry } from '../../services/drip-campaign.service';
 import { constants } from 'src/app/helpers/constants';
 import { routeConstants } from 'src/app/helpers/routeConstants';
@@ -75,15 +79,6 @@ export class BrandListOfDripCampaignsComponent implements OnInit {
    */
   lastUpdatedAt = signal<number | null>(null);
 
-  /**
-   * How long a snapshot is reused without asking the server again.
-   *
-   * Bounds every kind of staleness the local write-tracking cannot see: another user's
-   * changes, another tab's, and backend-driven status flips (a campaign going
-   * `active` -> `complete` when its sequence finishes). A user's OWN writes bypass this
-   * entirely — see `CacheInvalidationInterceptor`.
-   */
-  private static readonly STALE_AFTER_MS = 15_000;
 
   // Constants
   protected readonly constants = constants;
@@ -94,7 +89,7 @@ export class BrandListOfDripCampaignsComponent implements OnInit {
    *
    * This page is re-created on every navigation, so it used to blank the table and
    * refetch on every return, including the list -> campaign -> list trip users make
-   * constantly. Now a snapshot younger than `STALE_AFTER_MS` is simply reused and no
+   * constantly. Now a snapshot younger than `SNAPSHOT_MAX_AGE_MS` is reused and no
    * request is made at all, which is the only lever available that avoids the database
    * query entirely (a conditional GET still runs it and merely declines to send the
    * bytes).
@@ -162,7 +157,7 @@ export class BrandListOfDripCampaignsComponent implements OnInit {
   private __canReuseSnapshot(cached: IDripCampaignListCacheEntry | null): boolean {
     if (!cached) return false;
     if (cached.version !== this.cacheVersions.version(CACHE_SCOPE.DRIP_CAMPAIGNS)) return false;
-    return Date.now() - cached.at < BrandListOfDripCampaignsComponent.STALE_AFTER_MS;
+    return Date.now() - cached.at < SNAPSHOT_MAX_AGE_MS;
   }
 
   /**

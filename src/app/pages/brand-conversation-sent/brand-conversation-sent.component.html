@@ -81,6 +81,22 @@
         </button>
 
         <div class="rail-pager">
+          <!--Left of the page navigation, and out of `.rail-actions`: refreshing the
+              list is the same KIND of thing as moving through it, whereas the filter
+              and delete icons act on what is selected. New mail arrives outside the
+              app so nothing local can invalidate this list — see `maxAgeForScope` —
+              which makes this the only way to pull it in before the window lapses.-->
+          <button
+            type="button"
+            class="icon-btn sm"
+            [disabled]="isRefreshing || isLoading"
+            title="Refresh sent messages"
+            aria-label="Refresh sent messages"
+            (click)="refresh()"
+          >
+            <i class="fa fa-refresh" [class.fa-spin]="isRefreshing" aria-hidden="true"></i>
+          </button>
+
           <span class="pager-count">
             <span *ngIf="!isPaginationLoading">{{ calculateDisplayedConvRangeNumber() }}</span>
             <span *ngIf="isPaginationLoading"><i class="fa fa-spinner fa-spin" aria-hidden="true"></i></span>

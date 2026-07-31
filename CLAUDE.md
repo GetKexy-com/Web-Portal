@@ -929,9 +929,41 @@ Each page is re-created on every navigation, so all four previously blanked thei
 and refetched on every return — including the list → detail → list trip users make
 constantly.
 
-A snapshot younger than **15s** is reused and **no request is made**. That matters
-because a conditional GET does *not* help: the API's ETag saves bytes but still runs the
-query, so skipping the request is the only lever that avoids the database.
+A snapshot younger than **`SNAPSHOT_MAX_AGE_MS` (10 minutes)** is reused and **no
+request is made**. That matters because a conditional GET does *not* help: the API's
+ETag saves bytes but still runs the query, so skipping the request is the only lever
+that avoids the database.
+
+**ONE definition of the window**, in `cache-version.service.ts`, imported by both
+`ProspectingService` and the campaigns page — it used to be declared twice and could
+drift. Per-scope overrides go through `maxAgeForScope(scope)`.
+
+**Inbox and Sent are on the pattern too**, under the `CONVERSATIONS` scope with a
+**1-hour** window (`MAX_AGE_BY_SCOPE`), refresh in the rail pager rather than beside the
+filter icon. Note the asymmetry that makes this scope different from the others:
+everywhere else the window only bounds changes the app cannot see locally, because the
+user's own writes reset it. An inbox's content arrives from OUTSIDE the app
+(`POST webhook/email/receive` on the API), so no interceptor can see it and the window
+is the *primary* staleness bound, not a safety net. There is no push channel — no
+`EventSource`, no `@Sse` endpoint, no count endpoint — so refresh is the only remedy
+until one exists. A `GET messages/company/:id/head` returning `{ total, latestAt }`,
+polled and used to bump the scope, is the cheap version if that becomes a problem.
+
+Known gap, accepted for now: the refresh button lives inside `.rail-toolbar`, which is
+`*ngIf`'d on a non-empty, unsearched list — so it is hidden on an empty inbox, which is
+exactly when someone might want it.
+
+`conversationCache` was an ARRAY that got `push`ed and read back with `findIndex`, so a
+refetch appended a second entry for the same page and the ORIGINAL kept winning every
+lookup — the cache could only grow, never update. It is keyed now, like the others.
+
+Ten minutes is long because the window only ever bounds what the app **cannot see
+locally**. Anything the user does resets it immediately: the interceptor bumps on any
+successful non-GET, so an add, an update and a delete all invalidate alike, the next
+read misses, and the fresh fetch restarts the clock from that moment. A browser reload
+starts with an empty cache and refetches too. What remains bounded is a colleague's
+change, another tab's, or a backend status flip — up to ten minutes unprompted, with
+the refresh button as the escape hatch and `<app-time-ago>` disclosing the age.
 
 **The freshness check lives in the SERVICE, not the pages** —
 `ProspectingService.isSnapshotUsable` / `SNAPSHOT_MAX_AGE_MS`, and the equivalent in
@@ -944,6 +976,32 @@ inherits the rule for free.
 Cache keys are the WHOLE request payload, so `listIds`, `page`, `limit` and sort each
 get their own snapshot. `brand-list-contacts` keeps `page` in the URL, so returning to a
 deep link lands on the same page and hits the same key.
+
+**A stale snapshot is still SHOWN while it revalidates.** Three states, not two:
+
+| Cache | Behaviour |
+|---|---|
+| Fresh (< 15s, no write since) | replay it, **no request** |
+| Present but stale | **replay it anyway**, then fetch and replace |
+| Absent | skeleton, then fetch |
+
+The middle row is the point: a table that has rows should never blank to a skeleton to
+refresh rows the user is already reading. `getContacts` / `getLists` emit the stale
+entry before fetching, which is why this works for pagination and every other caller
+rather than only on page entry. `brand-list-of-drip-campaigns` achieves the same thing
+by applying `cached.data` directly, since it holds its rows in a signal rather than
+behind a subject.
+
+**Peek and set `isWaitingFlag` BEFORE any `await`.** `isWaitingFlag` starts `true`, so
+anything awaited ahead of the peek keeps the table blanked and the snapshot buys
+nothing — the user still watches a skeleton. Both contacts pages had exactly this: they
+awaited a labels/list fetch first, and `brand-contacts`' asked for up to **9,999,999**
+lists with `overwrite` defaulting to true. Those calls feed a filter dropdown and a
+header card, not the table, so they are no longer awaited and now honour the snapshot
+window themselves.
+
+If a page still flashes a skeleton on return, this is the first thing to check: what is
+awaited between `ngOnInit` starting and the peek.
 
 Three things keep it honest, and removing any one reintroduces a bug:
 
@@ -1535,6 +1593,34 @@ shape as `GET /drip-campaigns/:id`). Two paths:
 The per-drip SMTP selection itself is set on the drip settings screen
 (`email-time-settings-content`) as the `smtp_account` setting
 (`settingsValue: [{ smtpId }]`, single-select).
+
+## Deployment (S3 + CloudFront)
+
+The app is **served from S3 behind CloudFront**, not nginx — `.github/workflows/deploy.yml`
+builds and syncs. There was a `Web-Portal/nginx.conf` in the repo referenced by nothing;
+it was deleted because editing it looks like it would take effect and does not.
+
+- **CI runs `npm run build -- --configuration=production`, NOT `build-prod`.** So
+  `angular.json`'s `outputHashing: 'all'` applies and the bundles are content-hashed.
+  `build-prod` previously passed `--output-hashing none`, which was a no-op for
+  production but made the script lie about what ships; it was removed.
+- **Cache headers are per-object metadata set at upload**, in three passes: hashed build
+  output gets `public, max-age=31536000, immutable`; `assets/` and `favicon.ico` get 5
+  minutes; `index.html` stays `no-cache`.
+- **`assets/` must NOT share the immutable rule.** Angular copies it verbatim, so those
+  194 files keep their names across releases. They previously fell into the one-year
+  bucket, and since a CloudFront invalidation clears the EDGE and not browser caches, a
+  changed asset never reached a returning visitor. Verified live before the fix
+  (`/assets/mixpanel.js` was serving `max-age=31536000`).
+- **Compression is CloudFront's**, and it is on — responses come back `content-encoding:
+  br`. S3 itself never compresses. Brotli means the behaviour uses a cache policy rather
+  than the legacy "Compress objects automatically" toggle, which is gzip-only.
+- **Known issue, not fixed:** the sync uses `--delete`, so old hashed chunks vanish the
+  moment new ones land. A user mid-session on the previous `index.html` then gets a
+  chunk-load error. Dropping `--delete` plus an S3 lifecycle rule is the fix; it is a
+  storage-versus-robustness call.
+- CI pins Node **18.19.1** (EOL) while the Dockerfile uses 22.14.0, and the workflow's
+  actions are on the deprecated Node 16 runner.
 
 ## Conventions
 

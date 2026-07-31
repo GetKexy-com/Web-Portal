@@ -1,4 +1,5 @@
-import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, inject, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { CACHE_SCOPE, CacheVersionService } from '../../services/cache-version.service';
 import { ProspectContact } from 'src/app/models/ProspectContact';
 import { routeConstants } from 'src/app/helpers/routeConstants';
 import { lastValueFrom, Subscription } from 'rxjs';
@@ -78,8 +79,19 @@ export class BrandConversationsComponent implements OnInit, OnDestroy {
       if (this.prospectingService.totalConversationCount) this.totalConversationCount = this.prospectingService.totalConversationCount;
     });
 
-    this.isLoading = true;
-    await this.getAllConversation(true);
+    // Skeleton only with nothing to show. `getAllConversation()` (no overwrite) lets
+    // the service decide replay vs fetch, so pagination inherits the same rule.
+    const cached = this.prospectingService.peekConversations({
+      companyId: this.userData.supplier_id,
+      page: this.page,
+      limit: this.paginationLimit,
+      pin: this.pinedConversation,
+      inbox: true,
+    });
+    this.isLoading = !cached;
+    this.isRefreshing = !!cached;
+    await this.getAllConversation();
+    this.isRefreshing = false;
     this.isLoading = false;
     this.conversationsSubscription = this.prospectingService.allConversation.subscribe(
       (conversations: ProspectContact[]) => {
@@ -167,6 +179,24 @@ export class BrandConversationsComponent implements OnInit, OnDestroy {
   };
 
   totalPage;
+  /** Revalidating with rows already on screen — dims the refresh button only. */
+  private cacheVersions = inject(CacheVersionService);
+
+  isRefreshing = false;
+  /** When the rows on screen were fetched; rendered beside the refresh control. */
+  lastUpdatedAt: number | null = null;
+
+  /** Refetch on demand; rows stay on screen and the button's spinner is the feedback. */
+  refresh = async () => {
+    if (this.isRefreshing || this.isLoading) return;
+    this.isRefreshing = true;
+    try {
+      await this.getAllConversation(true);
+    } finally {
+      this.isRefreshing = false;
+    }
+  };
+
   getAllConversation = async (overWrite = false) => {
     const data = {
       companyId: this.userData.supplier_id,
@@ -177,7 +207,14 @@ export class BrandConversationsComponent implements OnInit, OnDestroy {
     };
 
     try {
-      await this.prospectingService.getAllConversation(data, overWrite);
+      await this.prospectingService.getAllConversation(
+        data,
+        overWrite,
+        this.cacheVersions.version(CACHE_SCOPE.CONVERSATIONS),
+      );
+      // Read the age back off the cache — the service may have replayed a snapshot, in
+      // which case the stamp must not move.
+      this.lastUpdatedAt = this.prospectingService.peekConversations(data)?.at ?? Date.now();
       this.totalConversationCount = this.prospectingService.totalConversationCount;
       this.totalPage = Math.ceil(this.totalConversationCount / this.paginationLimit);
     } catch (e) {

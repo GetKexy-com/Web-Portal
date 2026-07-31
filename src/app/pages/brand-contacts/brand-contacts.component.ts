@@ -121,19 +121,25 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
       this.limit = parseInt(limit);
     }
 
-    await this.getLabels();
+    // Decide the skeleton BEFORE any await. `isWaitingFlag` starts true, so every
+    // awaited call above this line keeps the table blanked — and the contacts snapshot
+    // is worthless if the user stares at a spinner while something else loads.
+    // Everything the cache key depends on (limit, query params) is already resolved.
+    const cached = this.prospectingService.peekContacts(this.getContactsApiPostData());
+    this.isWaitingFlag = !cached;
+
+
+    // Subscribe first: a reused snapshot is replayed through this subject.
+    this.setContactSubscription();
+
+    // NOT awaited. Labels populate a filter dropdown, not the table, and this asks for
+    // up to 9,999,999 lists — blocking the table on it meant the skeleton stayed up for
+    // that whole round trip on every single visit, whatever the contacts cache held.
+    this.getLabels();
+
     if (this.addToDrip && this.contactId) {
       await this.getAContact();
     } else {
-      // Subscribe FIRST: a reused snapshot is replayed through this subject, so a
-      // subscription established afterwards would miss it.
-      this.setContactSubscription();
-
-      // Skeleton only with nothing to show; otherwise the rows stay up while the
-      // service decides for itself whether the snapshot still stands (see
-      // `isSnapshotUsable` — it applies to pagination too, not just this entry point).
-      const cached = this.prospectingService.peekContacts(this.getContactsApiPostData());
-      this.isWaitingFlag = !cached;
       this.isRefreshing = !!cached;
       await this.getContacts();
       this.isRefreshing = false;
@@ -145,6 +151,15 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
     this.prospectingService.brandContactContactLimit = this.limit;
     this.isWaitingFlag = false;
   }
+
+  /**
+   * Labels for the filter dropdown.
+   *
+   * `overwrite = false` so it honours the snapshot window like everything else — these
+   * are the same lists the Manage Lists page caches, and they are invalidated by the
+   * same writes. It used to force a fresh fetch of up to 9,999,999 lists on every
+   * visit to this page.
+   */
 
   ngOnDestroy() {
     if (this.contactListSubscription) this.contactListSubscription.unsubscribe();
@@ -255,7 +270,11 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
 
   getLabels = async () => {
     // Get Label
-    await this.prospectingService.getLists({ companyId: this.supplierId, page: 1, limit: 9999999 });
+    await this.prospectingService.getLists(
+      { companyId: this.supplierId, page: 1, limit: 9999999 },
+      false,
+      this.cacheVersions.version(CACHE_SCOPE.LISTS),
+    );
 
     // Set Label Subscription
     this.contactLabelsSubscription = this.prospectingService.lists.subscribe((labels) => {

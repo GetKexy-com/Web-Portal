@@ -108,7 +108,6 @@ export class ContactListCardComponent implements OnInit, OnChanges, OnDestroy, A
 
   ngOnInit(): void {
     this.userData = this._authService.userTokenValue;
-    console.log(this.contacts);
   }
 
   // Start/stop polling whenever the bound list changes (e.g. a list that's

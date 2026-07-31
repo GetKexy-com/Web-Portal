@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { constants } from '../helpers/constants';
 import { HttpService } from './http.service';
+import { CACHE_SCOPE, SNAPSHOT_MAX_AGE_MS, maxAgeForScope } from './cache-version.service';
 import { ProspectContact } from '../models/ProspectContact';
 import { offPremiseQOrganizationKeywordTags } from '../helpers/campaign-premise-constants';
 import { routeConstants } from '../helpers/routeConstants';
@@ -43,7 +44,7 @@ export class ProspectingService {
   private _loading_all_contacts = new BehaviorSubject(false);
   loadingAllContacts = this._loading_all_contacts.asObservable();
 
-  public conversationCache = [];
+  public conversationCache: Record<string, any> = {};
   private jobTitles = [];
   private selectedProduct;
   private selectedDescriptionData;
@@ -64,15 +65,6 @@ export class ProspectingService {
   public manageListCurrentPage: number = 1;
   public manageListLimit: number = 100;
   public allContacts;
-  /**
-   * How long a cached page is reused before the server is asked again.
-   *
-   * Lives HERE rather than in the pages, so every caller is covered — including
-   * pagination. With the check only in a page's `ngOnInit`, clicking back to a page you
-   * had already visited replayed its snapshot no matter how old it was.
-   */
-  public static readonly SNAPSHOT_MAX_AGE_MS = 15_000;
-
   public cachedContactPages = {};
   public cachedLabels = {};
   public cachedLabelsOnly = {};
@@ -318,14 +310,27 @@ export class ProspectingService {
     });
   };
 
-  getAllConversation = async (postData, overWrite = false) => {
+  /** The cached conversations page for this exact request, or null. */
+  peekConversations = (postData: any) =>
+    this.conversationCache[this.__contactsCacheKey(postData)] ?? null;
+
+  getAllConversation = async (postData, overWrite = false, version = 0) => {
+    // Computed BEFORE the `delete postData.companyId` below, which mutates the object
+    // the key is derived from — take it after and the store and the peek disagree.
+    const cacheKey = this.__contactsCacheKey(postData);
+
     return new Promise(async (resolve, reject) => {
-      if (this.conversationCache.length && !overWrite) {
-        const index = this.conversationCache.findIndex((i) => i.page === postData.page);
-        if (index > -1) {
-          this._conversation.next(this.conversationCache[index].data);
+      const hit = this.conversationCache[cacheKey];
+
+      if (!overWrite) {
+        // Fresh enough to stand alone: replay it, make no request.
+        if (this.isSnapshotUsable(hit, version, CACHE_SCOPE.CONVERSATIONS)) {
+          this._conversation.next(hit.data);
           return resolve(true);
         }
+        // Stale but present: show it while the request runs rather than blanking the
+        // list for a round trip.
+        if (hit) this._conversation.next(hit.data);
       }
 
       const companyId = postData.companyId;
@@ -344,11 +349,15 @@ export class ProspectingService {
         next: (res) => {
           this.prospectContactConversations = res.data.conversations;
           this.totalConversationCount = res.data.total;
-          const cacheObj = {
-            page: postData.page,
+          // Keyed, not PUSHED. It used to append `{page, data}` to an array and read
+          // it back with `findIndex`, so a refetch left the ORIGINAL entry first in the
+          // array and winning every subsequent lookup — the cache could never be
+          // updated, only grown.
+          this.conversationCache[cacheKey] = {
             data: this.prospectContactConversations,
+            at: Date.now(),
+            version,
           };
-          this.conversationCache.push(cacheObj);
           this._conversation.next(this.prospectContactConversations);
           resolve(true);
         },
@@ -685,21 +694,33 @@ export class ProspectingService {
    * than the snapshot window. Both matter: the version alone ignores the clock (so
    * another user's change never lands), the clock alone ignores this user's own edits.
    */
-  isSnapshotUsable = (entry: any, version: number): boolean =>
+  isSnapshotUsable = (entry: any, version: number, scope?: string): boolean =>
     !!entry &&
     entry.version === version &&
-    Date.now() - entry.at < ProspectingService.SNAPSHOT_MAX_AGE_MS;
+    Date.now() - entry.at < (scope ? maxAgeForScope(scope) : SNAPSHOT_MAX_AGE_MS);
 
   getContacts = async (postData, overwrite = false, version = 0) => {
+    const hit = this.cachedContactPages[this.__contactsCacheKey(postData)];
+
     if (!overwrite) {
-      const hit = this.cachedContactPages[this.__contactsCacheKey(postData)];
+      // Fresh enough to stand alone: replay it and make no request at all.
       if (this.isSnapshotUsable(hit, version)) {
         setTimeout(() => {
           this._contactRes.next(hit.data);
         }, 0);
         return null;
       }
+
+      // Present but STALE (or invalidated by a write). Show it anyway while the
+      // request runs, so the table keeps the rows it had instead of blanking to a
+      // skeleton for a round trip. The fetch below replaces them when it lands.
+      if (hit) {
+        setTimeout(() => {
+          this._contactRes.next(hit.data);
+        }, 0);
+      }
     }
+
     if (overwrite) {
       this.cachedContactPages = {};
     }
@@ -863,10 +884,14 @@ export class ProspectingService {
 
     if (!overwrite) {
       const hit = this.cachedLabels[this.__listsCacheKey(page, limit)];
+      // Fresh: replay and make no request.
       if (this.isSnapshotUsable(hit, version)) {
         this._labels.next(hit.data);
         return null;
       }
+      // Stale but present: show it while the request runs, rather than blanking the
+      // table to a skeleton for a round trip.
+      if (hit) this._labels.next(hit.data);
     }
 
     return new Promise(async (resolve, reject) => {

@@ -121,22 +121,30 @@ export class BrandListContactsComponent implements OnInit, OnDestroy {
       }
     });
 
-    await this.getLists();
-
-    // Skeleton only with nothing to show. The cache key is the WHOLE request payload,
-    // which includes `listIds`, `page`, `limit` and the sort — so each page of each
-    // list is its own snapshot, and `page` comes from the URL, so returning to a deep
-    // link lands on the same one rather than resetting to page 1.
+    // Decide the skeleton BEFORE any await. `isWaitingFlag` starts true, so anything
+    // awaited ahead of this keeps the table blanked and the snapshot buys nothing.
+    // Everything the key depends on — `listId`, `page` (both from the URL) and `limit`
+    // — is already resolved above.
     //
-    // `getContacts()` (no overwrite) lets the service decide replay vs fetch; that
-    // check lives there so pagination gets it too, not just this entry point.
+    // The key is the WHOLE request payload, so each page of each list is its own
+    // snapshot, and because `page` lives in the URL a deep link lands on the same one
+    // rather than resetting to page 1.
     const cached = this.prospectingService.peekContacts(this.getContactApiPostData());
     this.isWaitingFlag = !cached;
+
+    this.setContactSubscription();
+
+    // NOT awaited. This resolves the list's own name/metadata for the header card; the
+    // table does not depend on it, and blocking on it kept the skeleton up for a whole
+    // round trip on every visit.
+    this.getLists();
+
+    // `getContacts()` (no overwrite) lets the service decide replay vs fetch — that
+    // check lives there so pagination inherits it too, not just this entry point.
     this.isRefreshing = !!cached;
     await this.getContacts();
     this.isRefreshing = false;
 
-    this.setContactSubscription();
     this.isWaitingFlag = false;
   }
 
