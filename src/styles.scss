@@ -430,6 +430,13 @@ button[disabled] {
   width: 800px !important;
 }
 
+// Narrower than the form drawers on purpose: this one holds a list of card titles,
+// not fields, and the extra width would only stretch the rows.
+.dashboard-layout-slider {
+  border-radius: 10px 0 0 10px !important;
+  width: 520px !important;
+}
+
 .email-insights {
   border-radius: 10px 0 0 10px !important;
   //width: 1000px !important;

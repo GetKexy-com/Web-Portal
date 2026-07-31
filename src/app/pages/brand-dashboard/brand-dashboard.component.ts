@@ -1,11 +1,20 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { NgbOffcanvas } from '@ng-bootstrap/ng-bootstrap';
 import { Router } from '@angular/router';
 import { BrandLayoutComponent } from '../../layouts/brand-layout/brand-layout.component';
+import { DashboardLayoutDrawerComponent } from '../../components/dashboard-layout-drawer/dashboard-layout-drawer.component';
 import { AuthService } from '../../services/auth.service';
 import { DashboardService } from '../../services/dashboard.service';
+import { DashboardLayoutService } from '../../services/dashboard-layout.service';
 import { routeConstants } from '../../helpers/routeConstants';
 import { constants } from '../../helpers/constants';
+import {
+  IDashboardLayout,
+  IDashboardWidgetState,
+  defaultDashboardLayout,
+  layoutsEqual,
+} from '../../models/DashboardLayout';
 import {
   DASHBOARD_RANGES,
   ENGAGEMENT_METRICS,
@@ -101,22 +110,11 @@ interface IEngagedContactRow {
   templateUrl: './brand-dashboard.component.html',
   styleUrl: './brand-dashboard.component.scss',
 })
-export class BrandDashboardComponent implements OnInit {
+export class BrandDashboardComponent implements OnInit, OnDestroy {
   readonly ranges = DASHBOARD_RANGES;
   readonly engagementMetrics = ENGAGEMENT_METRICS;
   readonly constants = constants;
   readonly brand = routeConstants.BRAND;
-
-  /**
-   * Parks the Engagement funnel, Top clicked links, Deliverability and Best send
-   * windows panels — kept for later, off screen for now. Set to `true` to bring all
-   * four back; nothing else needs changing.
-   *
-   * Their numbers are still COMPUTED while hidden, on purpose and cheaply: the
-   * insight strip's "best send window" callout reads the heatmap, so skipping the
-   * heat build would silently drop the one actionable line off the top of the page.
-   */
-  readonly showSecondaryPanels = false;
 
   isLoading = true;
   /** Set when the stats request fails, so the page can say so instead of looking empty. */
@@ -124,7 +122,33 @@ export class BrandDashboardComponent implements OnInit {
   stats: IDashboardStats;
   /** From the auth token's `supplier_id`. Every dashboard query is scoped to it. */
   companyId: number = null;
+  /** Only used to key the layout cache per user; the API scopes preferences by JWT. */
+  userId: number = null;
   userName = '';
+
+  // ── Customisable layout ─────────────────────────────────────────────────
+  // Order and width of the cards are user data, not markup — see `DashboardLayout`
+  // for the model and `DashboardLayoutService` for how it is stored. The template
+  // renders one loop over `renderedWidgets`; nothing below this line knows or cares
+  // where a panel ended up.
+  //
+  // The ARRANGING happens in `DashboardLayoutDrawerComponent`, not here: this page
+  // stays a plain, fully working dashboard at all times, and the drawer hands back a
+  // finished layout. See that component for why a list of titles beats dragging the
+  // panels themselves.
+  //
+  // Note every panel's numbers are still COMPUTED while it is hidden, on purpose and
+  // cheaply: the insight strip's "best send window" callout reads the heatmap, so
+  // skipping the heat build for a hidden panel would silently drop the one actionable
+  // line off the top of the page.
+  layout: IDashboardLayout = defaultDashboardLayout();
+  /**
+   * What the template actually loops over — the visible cards, in order. A FIELD
+   * rebuilt by `__applyLayout`, not a getter: a getter would allocate a new array on
+   * every change-detection pass and re-run the `@for`, and this page runs CD on every
+   * chart hover.
+   */
+  renderedWidgets: IDashboardWidgetState[] = [];
 
   /**
    * The widest window the range switch offers, and therefore the ONE window fetched.
@@ -206,8 +230,16 @@ export class BrandDashboardComponent implements OnInit {
   constructor(
     private dashboardService: DashboardService,
     private authService: AuthService,
+    private layoutService: DashboardLayoutService,
+    private offcanvas: NgbOffcanvas,
     private router: Router,
   ) {}
+
+  ngOnDestroy(): void {
+    // Belt and braces: `openLayoutDrawer` already flushes on save, but the service
+    // debounces its writes and an unflushed one must not be lost on navigation.
+    this.layoutService.flush();
+  }
 
   async ngOnInit(): Promise<void> {
     const user: any = this.authService.userTokenValue || {};
@@ -219,6 +251,21 @@ export class BrandDashboardComponent implements OnInit {
     this.userName = (user.firstName || user.first_name || '').trim();
     if (this.userName) this.greeting = `Welcome back, ${this.userName}`;
     this.companyId = user.supplier_id;
+    this.userId = user.id ?? null;
+
+    // Layout first, and SYNCHRONOUSLY from cache: the page must paint in the user's
+    // arrangement on the first frame. Rendering the default order and reshuffling
+    // once a request lands reads as a bug on every single load.
+    this.layout = this.layoutService.readCache(this.userId) ?? defaultDashboardLayout();
+    this.__applyLayout();
+    // Then reconcile with the server, which is authoritative — the cache may predate
+    // a rearrangement made in another browser. Not awaited: it must not hold up the
+    // data fetch below, and it resolves to a usable layout even when the call fails.
+    this.layoutService.fetch(this.userId).then((serverLayout) => {
+      if (layoutsEqual(serverLayout, this.layout)) return;
+      this.layout = serverLayout;
+      this.__applyLayout();
+    });
 
     if (!this.companyId) {
       // Every dashboard query is company-scoped, so without a company there is
@@ -272,6 +319,41 @@ export class BrandDashboardComponent implements OnInit {
 
   get activeTile(): IMetricTile {
     return this.tiles.find((t) => t.key === this.selectedMetric) || this.tiles[0];
+  }
+
+  // ── Layout customisation ────────────────────────────────────────────────
+
+  /**
+   * Open the arranging drawer. It edits a COPY and resolves with the finished layout
+   * on Save; a dismiss (Cancel, the X, Esc, the backdrop) rejects, and nothing here
+   * changes — which is why the page needs no draft state of its own.
+   */
+  openLayoutDrawer = (): void => {
+    const ref = this.offcanvas.open(DashboardLayoutDrawerComponent, {
+      panelClass: 'dashboard-layout-slider',
+      position: 'end',
+      scroll: false,
+    });
+    ref.componentInstance.layout = this.layout;
+
+    ref.result.then(
+      (updated: IDashboardLayout) => {
+        if (!updated || layoutsEqual(updated, this.layout)) return;
+        this.layout = updated;
+        this.__applyLayout();
+        this.layoutService.save(this.userId, this.layout);
+        // The user pressed Save and expects it saved — don't leave the write sitting
+        // in the service's debounce window while they navigate away.
+        this.layoutService.flush();
+      },
+      // Dismissal is the normal Cancel path, not an error. Without a rejection
+      // handler it surfaces as an unhandled promise rejection in the console.
+      () => {},
+    );
+  };
+
+  private __applyLayout(): void {
+    this.renderedWidgets = this.layout.items.filter((w) => !w.hidden);
   }
 
   // ── Campaign segmentation ───────────────────────────────────────────────

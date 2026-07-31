@@ -1,0 +1,114 @@
+<div class="canvas-content-wrap">
+  <div class="head-area">
+    <div class="head-text">
+      <p class="head-title">Customize dashboard</p>
+      <span class="head-subtitle">Reorder, resize and hide the cards on your dashboard.</span>
+    </div>
+    <button type="button" class="close-btn" aria-label="Close" (click)="activeCanvas.dismiss('Cross click')">
+      <i class="fa fa-times" aria-hidden="true"></i>
+    </button>
+  </div>
+
+  <!--No <form>: there is nothing to submit and no field to validate. The footer keeps
+      the shared drawer's docked-actions shape all the same, so Save and Cancel stay
+      reachable however long the list gets.-->
+  <div class="canvas-form">
+    <div class="canvas-body">
+      <div class="form-section">
+        <div class="section-head">
+          <i class="fa fa-th-large section-icon" aria-hidden="true"></i>
+          <span class="section-title">Cards</span>
+          <span class="section-count">{{ visibleCount }} of {{ draft.items.length }} shown</span>
+        </div>
+
+        <p class="section-note">
+          Drag a card by its handle to change where it appears, or focus a handle and
+          use the arrow keys. Nothing changes on the dashboard until you save.
+        </p>
+
+        <ul class="widget-list" cdkDropList (cdkDropListDropped)="drop($event)">
+          @for (w of draft.items; track w.id) {
+            <li class="wl-row" [class.is-off]="w.hidden" cdkDrag cdkDragLockAxis="y">
+              <!--The CDK's default placeholder is a clone, which is right here: rows
+                  are uniform and cheap, so it is exactly the size of the gap it
+                  stands in and the sorter measures it correctly.-->
+              <div class="wl-preview" *cdkDragPreview>
+                <i class="fa fa-bars" aria-hidden="true"></i>{{ title(w) }}
+              </div>
+
+              <div class="wl-main">
+                <!--A real <button>, so reordering is reachable by keyboard.-->
+                <button
+                  type="button"
+                  class="wl-grip"
+                  cdkDragHandle
+                  [attr.aria-label]="'Reorder ' + title(w) + '. Use the arrow keys to move it.'"
+                  (keydown.arrowup)="$event.preventDefault(); move(w, -1)"
+                  (keydown.arrowdown)="$event.preventDefault(); move(w, 1)"
+                >
+                  <i class="fa fa-bars" aria-hidden="true"></i>
+                </button>
+
+                <span class="wl-order" aria-hidden="true">{{ $index + 1 }}</span>
+                <span class="wl-title">{{ title(w) }}</span>
+
+                <button
+                  type="button"
+                  class="wl-eye"
+                  [class.is-off]="w.hidden"
+                  (click)="toggleHidden(w)"
+                  [title]="w.hidden ? 'Show this card' : 'Hide this card'"
+                  [attr.aria-label]="(w.hidden ? 'Show ' : 'Hide ') + title(w)"
+                  [attr.aria-pressed]="!w.hidden"
+                >
+                  <i class="fa" [ngClass]="w.hidden ? 'fa-eye-slash' : 'fa-eye'" aria-hidden="true"></i>
+                </button>
+              </div>
+
+              <!--Width is meaningless for a card that isn't on the page, so a hidden
+                  row says so instead of offering a control with no effect.-->
+              @if (w.hidden) {
+                <p class="wl-off-note">Hidden — not shown on your dashboard.</p>
+              } @else {
+                <div class="wl-widths" role="group" [attr.aria-label]="title(w) + ' width'">
+                  @for (s of spansFor(w); track s) {
+                    <button
+                      type="button"
+                      class="wl-width"
+                      [class.active]="w.span === s"
+                      [attr.aria-pressed]="w.span === s"
+                      (click)="setSpan(w, s)"
+                    >{{ spanLabels[s] }}</button>
+                  }
+                </div>
+              }
+            </li>
+          }
+        </ul>
+
+        <p class="field-hint">
+          Widths apply to wide screens. On smaller screens cards stack to keep their
+          tables and charts readable.
+        </p>
+      </div>
+
+      <button type="button" class="reset-btn" (click)="resetToDefault()">
+        <i class="fa fa-undo" aria-hidden="true"></i>
+        Reset to default arrangement
+      </button>
+
+      <p class="sr-only" aria-live="polite">{{ announcement }}</p>
+    </div>
+
+    <div class="buttons">
+      <button class="blue-border-white-bg-button" type="button" (click)="activeCanvas.dismiss('Cross click')">
+        Cancel
+      </button>
+      <!--Disabled until something actually changed: a Save that writes the layout it
+          already has is a request and a "saved" for no reason.-->
+      <button class="blue-button" type="button" [disabled]="!isDirty" (click)="save()">
+        Save
+      </button>
+    </div>
+  </div>
+</div>

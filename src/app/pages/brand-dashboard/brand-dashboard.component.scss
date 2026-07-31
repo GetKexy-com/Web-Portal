@@ -61,6 +61,45 @@ $kx-red-bg: #fdeaea;
       .tb-dot { margin: 0 4px; color: #cbd5e1; }
       .tb-stamp { color: $kx-faint; }
     }
+
+    // Range switch + Customize. Wraps as a unit so the two never end up on
+    // different lines from each other on a narrow viewport.
+    .tb-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    // Quiet by default — this is chrome, and it must not compete with the range
+    // switch beside it, which people actually use every visit. It goes solid only
+    // while the mode is ON, where it doubles as the way out.
+    .customize-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 13px;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: $kx-muted;
+      background: #fff;
+      border: 1px solid $kx-border;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+
+      &:hover {
+        color: $kx-ink;
+        border-color: #cbd5e1;
+      }
+
+      // There is nothing to arrange until the cards exist, so the drawer can't be
+      // opened over the skeleton or the load error.
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+    }
   }
 
   // ── Insight strip ───────────────────────────────────────────────────────
@@ -627,15 +666,60 @@ $kx-red-bg: #fdeaea;
     }
   }
 
-  // ── Grids ───────────────────────────────────────────────────────────────
-  // Every section grid carries the SAME bottom margin, so vertical rhythm survives
-  // reordering. Their child panels drop their own margin, since the grid `gap`
-  // already spaces them.
+  // ── The card canvas ─────────────────────────────────────────────────────
+  // ONE grid for every card, replacing the five bespoke row grids this file used to
+  // carry (`.perf-grid` at 3fr/2fr, `.duo-grid` at 1fr/1fr, `.engaged-row` full
+  // width, and so on). Under those, a card's width came from the ROW it sat in — so
+  // a card could not be moved without silently resizing it, which is exactly what
+  // made the layout un-customisable.
+  //
+  // Six columns because the useful widths are thirds, halves and two-thirds, and six
+  // states all of them in whole numbers.
+  .dash-canvas {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .dash-widget {
+    // A grid item's default `min-width: auto` lets a wide table push its column past
+    // its share; `minmax(0, 1fr)` above and this together are what keep a card inside
+    // the width it was given.
+    min-width: 0;
+    // Column, so the card body stretches to the tallest card in its row and cards
+    // sitting side by side line up at the bottom.
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    > .panel,
+    > .mini-row {
+      flex: 1;
+      // The canvas `gap` owns the spacing now, so the panel's own margin would
+      // double it.
+      margin-bottom: 0;
+    }
+
+    // The reach card keeps its four-up reading at the width it defaults to, but it
+    // can now be narrowed to a third of the canvas — where a hard `repeat(4)` gives
+    // four 75px cards. `auto-fit` wraps them instead, so the choice degrades rather
+    // than breaks. (The skeleton's `.mini-row` is outside a widget and keeps the
+    // fixed four columns; it has a known width.)
+    > .mini-row { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+  }
+
+  // Width classes rather than an inline `grid-column`: inline styles can only be
+  // beaten with `!important`, and the responsive collapse below needs to override
+  // these cleanly.
+  .dw-span-2 { grid-column: span 2; }
+  .dw-span-3 { grid-column: span 3; }
+  .dw-span-4 { grid-column: span 4; }
+  .dw-span-6 { grid-column: span 6; }
+
+  // ── Skeleton grids ──────────────────────────────────────────────────────
+  // The loading skeleton is NOT a widget — it stands in for the canvas before any
+  // data (or layout) is known, so it keeps its own fixed two- and four-up rows.
   .mid-grid,
-  .duo-grid,
-  .perf-grid,
-  .lower-grid,
-  .engaged-row,
   .mini-row {
     display: grid;
     gap: 16px;
@@ -644,17 +728,7 @@ $kx-red-bg: #fdeaea;
     > .panel { margin-bottom: 0; }
   }
 
-  // One panel, full width: the leaderboard carries a contact identity plus four
-  // numbers per row, so it wants the room a half-column can't give it.
-  .engaged-row { grid-template-columns: minmax(0, 1fr); }
-
   .mid-grid { grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); }
-  // Campaign performance / Activity at 60/40. `3fr 2fr` IS 60/40, and minmax(0,…)
-  // stops the table's own content from forcing the column wider than its share.
-  .perf-grid { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); }
-  // Deliverability · send windows. Even split: the heatmap wants the width, and the
-  // delivery bars read fine at half.
-  .duo-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 
   // ── Deliverability ──────────────────────────────────────────────────────
   .delivery {
@@ -898,14 +972,6 @@ $kx-red-bg: #fdeaea;
       font-size: 18px;
       transition: color 0.15s ease, transform 0.15s ease;
     }
-  }
-
-  // ── Lower grid ──────────────────────────────────────────────────────────
-  // Layout only — the shared rule above owns display/gap/margins. Engagement funnel
-  // beside Top clicked links; the links table gets the wider column since its keys
-  // are URLs, while the funnel's row labels are short words.
-  .lower-grid {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr);
   }
 
   .table-scroll { overflow-x: auto; }
@@ -1209,16 +1275,31 @@ $kx-red-bg: #fdeaea;
   }
 }
 
+// ── Responsive ──────────────────────────────────────────────────────────────
+// The saved spans are a preference for a WIDE canvas. Below these widths they are
+// overridden rather than honoured: a user-chosen third of a 700px viewport is 230px,
+// which is not a column, it is a scrollbar. The rules out-specify the `.dw-span-*`
+// classes on element count alone, so no `!important` is needed — which is the reason
+// spans are classes and not an inline `grid-column`.
 @media (max-width: 1200px) {
   .dashboard-page {
     .metric-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .metric-strip .metric-tile:nth-child(2) { border-right: none; }
     // Reach cards break 4 → 2 with the metric strip, so the two rows stay aligned.
     .mini-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .mid-grid,
-    .duo-grid,
-    .perf-grid,
-    .lower-grid { grid-template-columns: minmax(0, 1fr); }
+    .mid-grid { grid-template-columns: minmax(0, 1fr); }
+
+    // Thirds and two-thirds collapse to halves; halves and full widths hold.
+    .dash-canvas > .dw-span-2,
+    .dash-canvas > .dw-span-4 { grid-column: span 3; }
+  }
+}
+
+@media (max-width: 900px) {
+  .dashboard-page {
+    // One card per row. Every card on this page carries either a table or a chart,
+    // and none of them reads at half of a 900px viewport.
+    .dash-canvas > .dash-widget { grid-column: span 6; }
   }
 }
 

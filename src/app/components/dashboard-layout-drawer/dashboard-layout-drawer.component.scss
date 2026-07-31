@@ -1,0 +1,386 @@
+// ── Tokens (match delay-details-content / lead-magnet-form / add-suppression) ──
+$kx-primary: #12a5f4;
+$kx-primary-deep: #095dd1;
+$kx-ink: #0f172a;
+$kx-muted: #64748b;
+$kx-faint: #94a3b8;
+$kx-border: #e2e8f0;
+$kx-hairline: #f1f5f9;
+$kx-field-bg: #f7f9fc;
+$kx-red: #dc2626;
+$kx-red-bg: #fdeaea;
+
+// Modern slide-over: header / scrollable body / docked footer as flex-column
+// siblings. Shared with prospecting-contacts, lead-magnet-form,
+// company-description-canvas, add-suppression, delay-details-content,
+// send-email-details-content and email-time-settings-content — restyle them together.
+//
+// This copy has NO <form> (nothing to submit, nothing to validate), so `.canvas-form`
+// is a plain div here. It is kept anyway: it is what wraps body + footer so the
+// footer stays docked, and dropping it would break that in a way that only shows up
+// on a short viewport.
+.canvas-content-wrap {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  height: 100vh;
+  background: #f4f6fb;
+
+  .canvas-form {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+  }
+
+  // ── Header ────────────────────────────────────────────────────────────
+  .head-area {
+    flex-shrink: 0;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 22px 28px;
+    background: #ffffff;
+    border-bottom: 1px solid $kx-border;
+
+    .head-title {
+      margin: 0;
+      font-weight: 700;
+      font-size: 20px;
+      line-height: 1.2;
+      color: $kx-ink;
+    }
+
+    .head-subtitle {
+      display: block;
+      margin-top: 4px;
+      font-size: 13px;
+      color: $kx-muted;
+    }
+
+    .close-btn {
+      flex-shrink: 0;
+      width: 36px;
+      height: 36px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid $kx-border;
+      border-radius: 10px;
+      background: #fff;
+      color: $kx-muted;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+
+      &:hover {
+        background: $kx-red-bg;
+        border-color: $kx-red;
+        color: $kx-red;
+      }
+    }
+  }
+
+  // ── Body (the only scroll region) ──────────────────────────────────────
+  .canvas-body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 22px 28px 28px;
+
+    .form-section {
+      background: #ffffff;
+      border: 1px solid $kx-border;
+      border-radius: 14px;
+      padding: 20px 22px;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+
+      .section-head {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        margin-bottom: 18px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid $kx-hairline;
+
+        .section-icon {
+          flex-shrink: 0;
+          width: 28px;
+          height: 28px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 8px;
+          background: linear-gradient(135deg, $kx-primary, $kx-primary-deep);
+          color: #fff;
+          font-size: 13px;
+        }
+
+        .section-title {
+          font-weight: 700;
+          font-size: 14px;
+          letter-spacing: 0.01em;
+          color: $kx-ink;
+        }
+
+        // Pushed to the right edge: a running count of what the draft would show,
+        // so hiding the last card can't happen unnoticed.
+        .section-count {
+          margin-left: auto;
+          font-size: 12px;
+          color: $kx-faint;
+        }
+      }
+
+      .section-note {
+        margin: -4px 0 16px;
+        font-size: 13px;
+        line-height: 1.5;
+        color: $kx-muted;
+      }
+    }
+
+    .field-hint {
+      margin: 14px 0 0;
+      font-size: 12.5px;
+      line-height: 1.5;
+      color: $kx-muted;
+    }
+  }
+
+  // ── The card list ───────────────────────────────────────────────────────
+  // Uniform rows in one dimension — the reason this drawer exists instead of
+  // dragging the panels themselves around a grid of different-sized cards.
+  .widget-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .wl-row {
+    padding: 11px 12px;
+    background: $kx-field-bg;
+    border: 1px solid $kx-border;
+    border-radius: 11px;
+
+    &.is-off {
+      background: #fbfcfe;
+      border-style: dashed;
+
+      .wl-title { color: $kx-muted; }
+    }
+
+    // Lifted out of the list while held, so it reads as picked up rather than as a
+    // row that has simply changed colour.
+    &.cdk-drag-dragging {
+      box-shadow: 0 14px 30px -16px rgba(15, 23, 42, 0.5);
+    }
+  }
+
+  .wl-main {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .wl-grip {
+    flex-shrink: 0;
+    width: 30px;
+    height: 30px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: $kx-faint;
+    background: #fff;
+    border: 1px solid $kx-border;
+    border-radius: 8px;
+    cursor: grab;
+    transition: color 0.15s ease, border-color 0.15s ease;
+
+    &:hover {
+      color: $kx-ink;
+      border-color: #cbd5e1;
+    }
+
+    &:active { cursor: grabbing; }
+  }
+
+  // The position number, so a keyboard reorder is visible and not only announced.
+  .wl-order {
+    flex-shrink: 0;
+    min-width: 18px;
+    font-size: 11.5px;
+    font-weight: 700;
+    color: $kx-faint;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .wl-title {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: $kx-ink;
+  }
+
+  .wl-eye {
+    flex-shrink: 0;
+    width: 30px;
+    height: 30px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: $kx-muted;
+    background: #fff;
+    border: 1px solid $kx-border;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    &:hover {
+      color: $kx-ink;
+      border-color: #cbd5e1;
+    }
+
+    &.is-off {
+      color: $kx-faint;
+      background: $kx-hairline;
+    }
+  }
+
+  // Segmented width control. Options below the card's minimum are absent, not
+  // disabled — see `spansFor` in the component.
+  .wl-widths {
+    display: flex;
+    // Wraps rather than shrinking: four labels don't fit one line on a narrow
+    // drawer, and squeezed-to-nothing buttons are worse than a second row.
+    flex-wrap: wrap;
+    gap: 5px;
+    // Clears the grip + number so the widths line up under the title.
+    margin: 9px 0 0 58px;
+  }
+
+  .wl-width {
+    padding: 4px 10px;
+    font-size: 11.5px;
+    font-weight: 600;
+    color: $kx-muted;
+    background: #fff;
+    border: 1px solid $kx-border;
+    border-radius: 7px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    &:hover { color: $kx-ink; }
+
+    &.active {
+      color: #fff;
+      background: $kx-primary-deep;
+      border-color: $kx-primary-deep;
+    }
+  }
+
+  .wl-off-note {
+    margin: 9px 0 0 58px;
+    font-size: 11.5px;
+    color: $kx-faint;
+  }
+
+  .cdk-drag-placeholder {
+    opacity: 0.3;
+    filter: grayscale(1);
+  }
+
+  .cdk-drop-list-dragging .wl-row:not(.cdk-drag-placeholder) {
+    transition: transform 200ms cubic-bezier(0, 0, 0.2, 1);
+  }
+
+  // Separated from the card list by being outside the section card: it undoes
+  // everything above it, so it should not read as one more row in the list.
+  .reset-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 16px;
+    padding: 9px 14px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: $kx-muted;
+    background: #fff;
+    border: 1px solid $kx-border;
+    border-radius: 9px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    &:hover {
+      color: $kx-ink;
+      border-color: #cbd5e1;
+    }
+  }
+
+  // ── Footer action bar (always visible) ──────────────────────────────────
+  .buttons {
+    flex-shrink: 0;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 16px 28px;
+    background: #ffffff;
+    border-top: 1px solid $kx-border;
+
+    .blue-button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  button:focus-visible {
+    outline: 2px solid $kx-primary;
+    outline-offset: 2px;
+  }
+}
+
+// ── Drag preview ──────────────────────────────────────────────────────────────
+// A chip rather than a clone of the row: a full-width copy under the cursor covers
+// the gaps you are aiming between.
+//
+// This rule is at the TOP LEVEL, NOT nested inside `.canvas-content-wrap`, and that
+// is load-bearing: the CDK reparents the preview to `<body>`, so any selector with an
+// ancestor inside this component stops matching and the chip renders unstyled.
+// Emulated encapsulation still scopes it — the element comes from this component's
+// template, so it keeps the `_ngcontent` attribute wherever the CDK moves it.
+.wl-preview {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 14px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #fff;
+  background: #095dd1;
+  border-radius: 9px;
+  box-shadow: 0 12px 28px -12px rgba(9, 93, 209, 0.75);
+  // Above the offcanvas panel, which the CDK's body-level preview would otherwise
+  // render behind.
+  z-index: 1060;
+}

@@ -468,7 +468,16 @@ restyled, and that is the point of the component:
   with no handlers (they carry `cursor: pointer` for realism). Intentional here,
   unlike the insights subject line that was fixed.
 
-So there are now nine copies of this drawer — restyle them together.
+**`dashboard-layout-drawer`** (Customize dashboard, 520px `dashboard-layout-slider`
+panel, opened from `brand-dashboard`) is the **narrowest** copy and the only one with
+**no `<form>`** — it edits no fields, so `.canvas-form` is a plain `div` kept purely to
+wrap body + footer and keep the footer docked. Body is one `.form-section` holding a
+CDK `cdkDropList` of uniform `.wl-row`s (grip / position number / title / eye, with a
+segmented width control beneath), plus a `.reset-btn` deliberately placed OUTSIDE the
+section card since it undoes everything inside it. Footer is Cancel / Save with Save
+disabled until `isDirty`. See "Brand dashboard — customisable card layout" below.
+
+So there are now ten copies of this drawer — restyle them together.
 
 ---
 
@@ -781,6 +790,66 @@ cards — they're their own `.pc-*` markup.
   (`.pc-thead`/`.pc-row`, columns `56px 220px 1fr 108px`): index badge, company name,
   truncated description, and edit/delete icon buttons; edit opens
   `company-description-canvas`.
+
+## Brand dashboard — customisable card layout
+
+`brand-dashboard` lets the user reorder, resize and hide its cards. Order and width
+are **data, not markup**.
+
+- **One canvas, not five row grids.** The page used to hold `.perf-grid` (`3fr 2fr`),
+  `.duo-grid`, `.lower-grid`, `.engaged-row` and `.mini-row`, so a card's width came
+  from the ROW it sat in — moving a card silently resized it, which is what made the
+  layout un-customisable. There is now a single `.dash-canvas` at
+  `repeat(6, minmax(0, 1fr))`, and each `.dash-widget` carries a `dw-span-{2,3,4,6}`
+  class. Six columns expresses thirds/halves/two-thirds in whole numbers; 4+2 IS the
+  old 60/40. `.mid-grid`/`.mini-row` survive **only for the loading skeleton**, which
+  is not a widget.
+- **Spans are CLASSES, not an inline `grid-column`** — deliberately. The responsive
+  rules (`≤1200px` thirds→halves, `≤900px` everything full width) override the saved
+  preference by out-specifying `.dw-span-*` on element count; against an inline style
+  they would each need `!important`.
+- **Card markup lives in `ng-template`s** (`#tplMetrics`, `#tplReach`, …) at the ROOT
+  of the template, rendered through `@switch` + `ngTemplateOutlet` in the canvas loop.
+  They are outside the `*ngIf="stats"` so the loop can reach them by name, but only
+  ever instantiated inside it, so bindings still run with data loaded. **No card sets
+  its own width or outer margin** — that is the canvas's job.
+- **The model is `models/DashboardLayout.ts`.** `DASHBOARD_WIDGETS` array order IS the
+  default order. `reconcileDashboardLayout()` is the whole compatibility story and is
+  why shipping a new card needs no migration: unknown ids dropped, missing ids spliced
+  in at their **catalog index** (not appended), spans clamped to `minSpan`, anything
+  structurally wrong falls back to defaults instead of throwing.
+- **`showSecondaryPanels` is gone.** Funnel / Top links / Deliverability / Send
+  windows are now `defaultHidden: true` widgets a user can switch on — no longer a
+  constant only a developer can flip. Their numbers are still computed while hidden:
+  the insight strip's "best send window" line reads the heatmap.
+- **Persistence is server-first with a localStorage cache** — `DashboardLayoutService`
+  over `UserPreferenceService` (`users/preferences/dashboard.layout.v1`). `readCache()`
+  is **synchronous and called in `ngOnInit`** because the page must paint in the user's
+  arrangement on the first frame; rendering defaults and reshuffling after a round trip
+  reads as a bug every load. The server copy follows and wins. Writes cache immediately
+  and debounce the PUT 800ms (customising is a burst of small edits); `flush()` runs on
+  leaving customise mode and in `ngOnDestroy`. Every failure path degrades to a working
+  dashboard — a card arrangement is never worth an error banner. Cache key includes the
+  user id so two people on one browser don't inherit each other's layout.
+- **The page itself has NO drag and no customise mode.** Arranging happens entirely in
+  `components/dashboard-layout-drawer` (see the drawer section above); `brand-dashboard`
+  only renders `renderedWidgets` and opens the drawer. An earlier revision dragged the
+  panels in place, which required a page-wide mode that switched off every sortable
+  header, campaign checkbox and clickable row inside them, plus per-card tool bars that
+  moved the layout while you were judging it. Dragging different-sized cards around a
+  reflowing grid is also the awkward case — the drop target you want is usually under
+  the card you are holding. **Don't reintroduce it.** A list of uniform rows reorders in
+  one dimension, reaches the hidden cards too, and leaves the dashboard usable
+  throughout.
+- **The drawer edits a DRAFT** (`cloneDashboardLayout`) and resolves with it on Save;
+  dismiss means cancel. That is what makes "Reset to default" safe to offer inline — it
+  is an edit to the draft, undone by cancelling, not an immediate destructive write.
+  The opener must pass a **rejection handler** to `ref.result`: a dismissal is the
+  normal Cancel path and otherwise logs an unhandled promise rejection.
+- **Keyboard reorder is hand-rolled** (arrow keys on the `.wl-grip` button) because the
+  CDK has no keyboard drag; changes are announced through an `aria-live` `.sr-only`
+  line, since neither a mouse drag nor a keyboard move emits anything on its own. The
+  visible position number on each row exists for the same reason.
 
 ## Page background
 
