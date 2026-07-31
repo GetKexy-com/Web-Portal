@@ -17,13 +17,16 @@
         <div class="section-head">
           <i class="fa fa-sliders section-icon" aria-hidden="true"></i>
           <span class="section-title">Email settings</span>
+          <!--Draft campaigns only — see `canGenerateEmail`. Once a campaign is running
+              or paused some prospects have already had this email, so regenerating it
+              would silently give later recipients different copy.-->
           <app-kexy-button
-            *ngIf="this.dripEmail.templateOptions !== 'template'"
+            *ngIf="canGenerateEmail"
             class="section-action"
-            [label]="isLoading ? 'Please wait...' : 'Generate Email' "
+            [label]="isLoading ? 'Generating…' : 'Generate Email'"
             [disabled]="generateEmailOrSaveDisabled()"
             [title]="disableTitle"
-            [iconLeft]="isLoading ? 'fa-refresh fa-spin' : 'fa-refresh'"
+            [iconLeft]="isLoading ? 'fa-spinner fa-spin' : 'fa-envelope-o'"
             (click)="generateEmailContent()"
           ></app-kexy-button>
         </div>

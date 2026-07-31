@@ -147,6 +147,10 @@ export class SendEmailDetailsContentComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    // `dripCampaignStatus` is a long-lived subject on the service, so an un-torn-down
+    // subscription here outlives the drawer and leaks one per open. The other three
+    // were already cleaned up; this one was missed.
+    if (this.dripCampaignStatusSubscription) this.dripCampaignStatusSubscription.unsubscribe();
     if (this.singleEmailLoadingSubscription) this.singleEmailLoadingSubscription.unsubscribe();
     if (this.singleEmailContentSubscription) this.singleEmailContentSubscription.unsubscribe();
     if (this.singleEmailSubjectSubscription) this.singleEmailSubjectSubscription.unsubscribe();
@@ -157,6 +161,31 @@ export class SendEmailDetailsContentComponent implements OnInit, OnDestroy {
     console.log({ selectedValue });
     this.selectedEmailLength = selectedValue;
   };
+
+  /**
+   * Whether to offer AI generation for this email at all.
+   *
+   * Two conditions, both about whether regenerating the body could do harm:
+   *
+   * - **The campaign must be a DRAFT.** `inactive` is the never-sent state
+   *   (`DripCampaignsService` assigns it on creation and on save-as-draft); `active`
+   *   is running and `pause` is was-running-now-stopped, and in both of those some
+   *   prospects have already received this sequence. Regenerating a live email means
+   *   later recipients get different copy from earlier ones, with no record of the
+   *   change — so the action is withdrawn rather than merely disabled.
+   * - **The email must not be template-driven.** A `template` email's body comes from
+   *   the chosen template, so generating over it would discard the template.
+   *
+   * Distinct from `generateEmailOrSaveDisabled`, which greys the button out for
+   * transient reasons (already generating, this one email already sent). Those are
+   * "not right now"; this is "not on this campaign".
+   */
+  get canGenerateEmail(): boolean {
+    return (
+      this.dripCampaignStatus === constants.INACTIVE &&
+      this.dripEmail?.templateOptions !== constants.TEMPLATE_KEY
+    );
+  }
 
   generateEmailOrSaveDisabled = () => {
     // this.disableTitle = "This email has already been sent out to public and can not be deleted.";
