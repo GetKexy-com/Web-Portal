@@ -1,6 +1,25 @@
 .kexy-dropdown {
   position: relative;
 
+  // ── Stacking, while open ────────────────────────────────────────────────
+  // `z-index` on the panel alone is not enough. Unpositioned and `z-index: auto`
+  // elements paint in DOM order, so a section AFTER this one in the markup renders on
+  // top of the panel — which is exactly what happens when the panel flips upward over
+  // content that follows it in the document.
+  //
+  // Lifting the WRAP into the positive-z-index layer while open fixes that: the whole
+  // control, panel included, now paints above later siblings. It also has to be scoped
+  // to `.is-open` — a permanent z-index here would make every dropdown on a page
+  // out-stack whatever came after it, including modals and drawers.
+  //
+  // This cannot beat an ancestor that clips (`overflow: hidden`) or that sits in a
+  // lower stacking context itself. If a dropdown is still hidden somewhere, look for
+  // an `overflow` or `z-index` on a wrapper between it and the viewport — see the
+  // note on `.form-card` in `drip-campaign-content`.
+  &.is-open {
+    z-index: 1040;
+  }
+
   .dropdown-input-box {
     position: relative;
 
@@ -97,8 +116,14 @@
     // If is it more than 1060 then, it will show above the bootstrap modal.
     z-index: 1040;
 
+    // Flipped above the input when the panel won't fit below — see `__placeDropdown`.
+    //
+    // The `bottom` offset is set INLINE from a measurement, not here. It used to be a
+    // hardcoded `38px`, which assumed a fixed input height and no label above; the
+    // input actually grows as selected tags wrap onto more lines, so the panel would
+    // overlap it. Leaving the wrong constant here as a "fallback" would be worse than
+    // none: without it the panel simply sits where it would have unflipped.
     &.top {
-      bottom: 38px;
       box-shadow: 0 0 5px 0 #d9d9d9;
     }
 

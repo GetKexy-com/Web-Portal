@@ -1,4 +1,4 @@
-<div class="kexy-dropdown">
+<div class="kexy-dropdown" [class.is-open]="isOpen">
   <!--LABEL: This the label of the dropdown-->
   @if (label) {
     <div class="d-flex kexy-drop-label-wrap non-hide-from-toggle">
@@ -16,7 +16,7 @@
   <!--END LABEL: This the label of the dropdown-->
 
   <!--INPUT: The main INPUT of the dropdown-->
-  <div class="dropdown-input-box">
+  <div #inputBox class="dropdown-input-box">
     <div #scrollMe [scrollTop]="scrollMe.scrollHeight" class="custom-input-and-tag">
       <div class="d-flex flex-wrap" *ngIf="showPlaceholder()" style="padding-right: 10px">
 
@@ -82,12 +82,18 @@
   <!--END INPUT: The main INPUT of the dropdown-->
 
   <!--DropDown Open Section-->
+  <!--`.top` flips the panel above the input when it won't fit below — see
+      `__placeDropdown`. The inline `bottom` overrides the stylesheet's fixed fallback
+      with a measured one, since the input grows as selected tags wrap and an assumed
+      offset would overlap it.-->
   <div
+    #dropdownPanel
     *ngIf="isOpen"
     class="kexy-dropdown-items"
     [class.non-outline]="dropdownStyle === nonOutline"
     [class.outline]="dropdownStyle !== nonOutline"
     [class.top]="!dropdownPositionBottom"
+    [style.bottom.px]="flipOffsetPx"
   >
     <ng-container *ngIf="selectAllBtn && !queryString">
       <div class="select-all-btn non-hide-from-toggle">

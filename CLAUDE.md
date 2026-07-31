@@ -791,6 +791,45 @@ cards — they're their own `.pc-*` markup.
   truncated description, and edit/delete icon buttons; edit opens
   `company-description-canvas`.
 
+## `kexy-select-dropdown` — flip-up positioning
+
+The panel opens downward and **flips above the input when it won't fit below**, like a
+native `<select>`. `dropdownPositionBottom`, `minGapFromBottom` and the
+`.kexy-dropdown-items.top` CSS all existed for this but nothing ever set the flag, so it
+always opened downward and ran off the bottom of the screen.
+
+- **`__placeDropdown()` measures after render, before paint.** The panel is behind
+  `*ngIf`, so its height is unknowable until it exists: it renders downward, measures,
+  and flips — all in ONE synchronous task via `detectChanges()`. The browser paints at
+  the end of the task, so the intermediate position is never seen. Moving any of it to
+  `setTimeout`/`requestAnimationFrame` reintroduces a visible flicker.
+- Called on the **closed→open transition only**, from both `toggleDropdown()` and the
+  document-click handler. That handler fires on every document click; re-measuring on
+  each would re-render the panel under the pointer mid-interaction.
+- **The flip offset is measured, not assumed.** `.top` used to hardcode `bottom: 38px`,
+  which assumes a fixed input height and no label above — but the input grows as
+  selected tags wrap. It is now computed from the input's real top edge and bound
+  inline; the constant was removed rather than left as a wrong fallback.
+- **Scroll uses a capture-phase `document` listener**, not `window:scroll`. These
+  dropdowns mostly live in scrolling containers (drawer `.canvas-body`, page content
+  areas) and those scrolls don't bubble to window — a window listener misses the exact
+  case that puts a dropdown at the bottom of the viewport.
+- **No room either way → stays downward.** Flipping up would run under the fixed
+  header; downward at least scrolls its own list.
+
+**Stacking: `.kexy-dropdown.is-open` gets `z-index: 1040`.** The panel's own z-index
+isn't enough — `z-index: auto` elements paint in DOM order, so a section *after* the
+dropdown renders over a panel that has flipped upward. Scoped to `.is-open` on purpose;
+a permanent z-index would make every dropdown out-stack modals and drawers.
+
+**This cannot beat a clipping ancestor.** If a panel is still hidden, look for
+`overflow: hidden` or a low stacking context on a wrapper between it and the viewport.
+`drip-campaign-content`'s `.form-card` had one ("to keep row dividers inside the rounded
+corners" — but dividers are `border-top` BETWEEN rows and never reach a corner), and it
+clipped every dropdown in that form. The drawers' `.canvas-content-wrap { overflow:
+hidden }` is load-bearing and must stay — a dropdown should not escape its drawer, and
+the flip is what keeps it usable there.
+
 ## Insights drawer — ONE component, two scopes
 
 `campaign-insights-content` (panel class `campaign-insights`) serves both:

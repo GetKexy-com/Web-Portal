@@ -100,7 +100,15 @@ $kx-red: #dc2626;
     border: 1px solid $kx-border;
     border-radius: 14px;
     box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
-    overflow: hidden; // keeps the row dividers inside the rounded corners
+    // NO `overflow: hidden` here. It used to carry one "to keep the row dividers
+    // inside the rounded corners", but the dividers are `border-top` BETWEEN rows —
+    // they never reach a corner, so it was clipping nothing it needed to. What it did
+    // clip was every `kexy-select-dropdown` panel in this form: the last row's
+    // dropdowns were cut off at the card's bottom edge, and once they gained the
+    // ability to flip upward, the first row's were cut off at the top.
+    //
+    // A dropdown panel has to be able to leave its card. Any ancestor between one and
+    // the viewport that clips or creates a low stacking context will hide it.
   }
 
   // Description on the left, fields on the right — the Stripe/GitHub settings row.

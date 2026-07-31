@@ -17,7 +17,7 @@ import { CommonModule } from '@angular/common';
   templateUrl: './kexy-select-dropdown.component.html',
   styleUrl: './kexy-select-dropdown.component.scss',
 })
-export class KexySelectDropdownComponent {
+export class KexySelectDropdownComponent implements OnInit, OnDestroy {
   @Input() allOptions: any[];
   @Input() options: any[];
   @Input() onAddNewClick: any;
@@ -57,8 +57,23 @@ export class KexySelectDropdownComponent {
   outline = 'outline';
   nonOutline = 'non-outline';
   areSelectedAll = false;
+  /** False flips the panel above the input. Decided by `__placeDropdown`. */
   dropdownPositionBottom = true;
+  /** Breathing room kept between the panel and the viewport edge, in px. */
   minGapFromBottom = 2;
+  /**
+   * `bottom` for the flipped panel, measured rather than assumed.
+   *
+   * The panel is absolutely positioned against `.kexy-dropdown`, which also contains
+   * the label — and the input box has no fixed height, it grows as selected tags wrap
+   * onto more lines. So the distance from the wrap's bottom edge up to the input's top
+   * is not a constant, and the stylesheet's `bottom: 38px` fallback overlaps the input
+   * the moment either of those varies.
+   */
+  flipOffsetPx: number | null = null;
+
+  @ViewChild('dropdownPanel') dropdownPanel?: ElementRef<HTMLElement>;
+  @ViewChild('inputBox') inputBox?: ElementRef<HTMLElement>;
 
   constructor(
     private eRef: ElementRef,
@@ -67,6 +82,20 @@ export class KexySelectDropdownComponent {
   }
 
   ngOnInit(): void {
+    // Capture phase, because these dropdowns mostly live inside scrolling containers
+    // (the drawers' `.canvas-body`, the page content area) and a scroll inside one of
+    // those does NOT bubble to window. A `window:scroll` HostListener would miss the
+    // very case that makes a bottom-of-screen dropdown go off-screen.
+    document.addEventListener('scroll', this.__reposition, { capture: true, passive: true });
+  }
+
+  ngOnDestroy(): void {
+    document.removeEventListener('scroll', this.__reposition, { capture: true });
+  }
+
+  @HostListener('window:resize')
+  onWindowResize(): void {
+    this.__reposition();
   }
 
   getSelectedAll() {
@@ -126,8 +155,13 @@ export class KexySelectDropdownComponent {
       labelClicked = event.target.className.includes('kexy-drop-label-wrap');
     }
     if (this.eRef.nativeElement.contains(event.target) && !labelClicked) {
+      // Only place on the closed -> open transition. This handler runs on EVERY
+      // document click, and re-measuring on each in-panel click would re-render the
+      // panel under the pointer mid-interaction.
+      const wasOpen = this.isOpen;
       this.isOpen = true;
       this.getSelectedAll();
+      if (!wasOpen) this.__placeDropdown();
     } else {
       if (this.isOpen) {
         this.isOpen = false;
@@ -138,7 +172,59 @@ export class KexySelectDropdownComponent {
 
   toggleDropdown() {
     this.isOpen = !this.isOpen;
+    if (this.isOpen) this.__placeDropdown();
   }
+
+  /**
+   * Decide whether the panel opens downward or flips above the input — what a native
+   * `<select>` does, and what this component previously only had the CSS for:
+   * `dropdownPositionBottom` and `.kexy-dropdown-items.top` both existed, but nothing
+   * ever set the flag, so the panel always opened downward and ran off the bottom of
+   * the screen for any dropdown near it.
+   *
+   * ── Measured after render, but before paint ───────────────────────────────
+   * The panel is behind `*ngIf`, so its height cannot be known until it exists. This
+   * therefore renders it downward, measures, and flips if needed — all inside ONE
+   * synchronous task via `detectChanges()`. The browser paints at the end of the task,
+   * so it never shows the intermediate position and there is no flicker. Deferring any
+   * of it to a `setTimeout` or `requestAnimationFrame` WOULD flicker.
+   */
+  private __placeDropdown(): void {
+    // Reset first: a stale flip from the last open would be measured as the truth.
+    this.dropdownPositionBottom = true;
+    this.flipOffsetPx = null;
+    this.cdRef.detectChanges();
+
+    const panel = this.dropdownPanel?.nativeElement;
+    const input = this.inputBox?.nativeElement;
+    if (!panel || !input) return;
+
+    const inputRect = input.getBoundingClientRect();
+    const panelHeight = panel.offsetHeight;
+    const spaceBelow = window.innerHeight - inputRect.bottom - this.minGapFromBottom;
+    const spaceAbove = inputRect.top - this.minGapFromBottom;
+
+    // Flip only when it genuinely helps: if there is no room either way, opening
+    // downward is the better failure — the panel scrolls its own list and the page can
+    // scroll to it, whereas upward it would run off the top under the fixed header.
+    if (spaceBelow >= panelHeight || spaceAbove <= spaceBelow) return;
+
+    this.dropdownPositionBottom = false;
+    // Distance from the wrap's bottom edge up to the input's top, so the panel sits
+    // directly on top of the input however tall the input has grown.
+    const wrapRect = this.eRef.nativeElement.getBoundingClientRect();
+    this.flipOffsetPx = Math.max(0, Math.round(wrapRect.bottom - inputRect.top));
+    this.cdRef.detectChanges();
+  }
+
+  /**
+   * Re-evaluate while open. An arrow function so it can be added and removed as a
+   * document listener without binding gymnastics.
+   */
+  private __reposition = (): void => {
+    if (!this.isOpen) return;
+    this.__placeDropdown();
+  };
 
   onSelectItem(option: any, index, ev) {
     ev.preventDefault();
