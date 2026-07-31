@@ -1,21 +1,11 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ErrorMessageCardComponent } from '../error-message-card/error-message-card.component';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { KexyRichEditorComponent } from '../kexy-rich-editor/kexy-rich-editor.component';
-import { KexySelectDropdownComponent } from '../kexy-select-dropdown/kexy-select-dropdown.component';
-import { ModalComponent } from '../modal/modal.component';
 import { CommonModule, NgIf } from '@angular/common';
 import { NgbActiveOffcanvas, NgbModal, NgbOffcanvas } from '@ng-bootstrap/ng-bootstrap';
 import { AuthService } from '../../services/auth.service';
-import { DripCampaignService } from '../../services/drip-campaign.service';
-import { SseService } from '../../services/sse.service';
 import Swal from 'sweetalert2';
-import { constants } from '../../helpers/constants';
-import { Contact, ContactDetails } from '../../models/Contact';
-import { Subscription } from 'rxjs';
 import { ProspectingService } from '../../services/prospecting.service';
-import { PageUiService } from '../../services/page-ui.service';
-import { AddOrDeleteContactLabelComponent } from '../add-or-delete-contact-label/add-or-delete-contact-label.component';
 
 @Component({
   selector: 'app-company-description-canvas',
