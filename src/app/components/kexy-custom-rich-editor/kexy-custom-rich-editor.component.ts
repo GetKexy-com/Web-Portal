@@ -189,6 +189,9 @@ export class KexyCustomRichEditorComponent implements AfterViewInit, OnDestroy {
     this.toolbarRef.canvas = this.editorCanvasRef;
     this.inspectorRef.canvas = this.editorCanvasRef;
 
+    // This is default and should load as the first mode when the component is loaded.
+    this.switchMode('design');
+
     // Register the subject field so the toolbar's merge-tag picker can target it
     this.editorCanvasRef.registerSubject(this.subjectFieldRef.nativeElement);
     if (this.subject != null) this.editorCanvasRef.setSubjectContent(this.subject);
