@@ -32,7 +32,7 @@
     // is in normal flow now, sized like the real content, so the page does not jump
     // when the campaign arrives.
     .page-loading {
-      max-width: 980px;
+      //max-width: 980px;
       margin: 18px auto 0;
       padding: 0 24px;
 
@@ -70,6 +70,8 @@
 
       .sk-body {
         padding: 20px;
+        margin: 18px auto 0;
+        max-width: 750px;
       }
 
       .sk {
