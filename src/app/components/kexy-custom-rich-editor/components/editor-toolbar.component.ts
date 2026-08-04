@@ -348,16 +348,16 @@ export class EditorToolbarComponent implements AfterViewInit, OnDestroy {
    */
   private readonly GROUPS: ReadonlyArray<ToolbarGroup> = [
     { id: 'source',     priority: 90 },
-    { id: 'lists',      priority: 70 },
-    { id: 'align',      priority: 50 },
-    { id: 'history',    priority: 75 },
-    { id: 'insert',     priority: 60 },
-    { id: 'paragraph',  priority: 40 },
-    { id: 'fontFamily', priority: 30 },
-    { id: 'fontSize',   priority: 25 },
-    { id: 'textFormat', priority: 85 },
+    { id: 'history',    priority: 85 },
+    { id: 'align',      priority: 80 },
+    { id: 'paragraph',  priority: 75 },
+    { id: 'fontFamily', priority: 70 },
+    { id: 'fontSize',   priority: 65 },
+    { id: 'textFormat', priority: 60 },
+    { id: 'color',      priority: 55 },
+    { id: 'insert',     priority: 50 },
+    { id: 'lists',      priority: 45 },
     // Secondary tools: shown in the strip when there's room, first to collapse.
-    { id: 'color',      priority: 20 },
     { id: 'video',      priority: 15 },
     { id: 'mergeTag',   priority: 10 },
     // Highest priority → last cluster to collapse into the ⋮ menu, so the
