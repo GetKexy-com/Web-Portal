@@ -17,19 +17,22 @@
   </div>
 
   <!-- Status banner -->
-  <div class="cm-banner" [class.all-good]="emailMappedCount === 1" [class.has-issues]="emailMappedCount !== 1">
+  <div class="cm-banner" [class.all-good]="!missingRequiredFields.length" [class.has-issues]="missingRequiredFields.length">
     <span class="cm-banner-ic">
-      <i class="fa" [class.fa-check-circle]="emailMappedCount === 1" [class.fa-exclamation-triangle]="emailMappedCount !== 1" aria-hidden="true"></i>
+      <i class="fa" [class.fa-check-circle]="!missingRequiredFields.length" [class.fa-exclamation-triangle]="missingRequiredFields.length" aria-hidden="true"></i>
     </span>
     <div class="cm-banner-main">
-      <p class="cm-banner-title" *ngIf="emailMappedCount === 1">
+      <p class="cm-banner-title" *ngIf="!missingRequiredFields.length">
         {{ mappedCount }} column(s) mapped to KEXY fields, {{ customPropertyCount }} as custom {{ customPropertyCount === 1 ? 'property' : 'properties' }}
       </p>
-      <p class="cm-banner-title" *ngIf="emailMappedCount === 0">Map a column to <b>Email</b> to continue</p>
-      <p class="cm-banner-title" *ngIf="emailMappedCount > 1">Only one column can map to <b>Email</b></p>
+      <p class="cm-banner-title" *ngIf="missingRequiredFields.length">
+        Map a column to
+        <b *ngFor="let f of missingRequiredFields; let last = last">{{ f.label }}{{ last ? '' : ', ' }}</b>
+        to continue
+      </p>
       <p class="cm-banner-sub">
-        Every column is imported: map it to a KEXY field, or leave it as "Custom Property" to
-        save it under its own column name from the file.
+        Every OTHER column is still imported: map it to a KEXY field, or leave it as "Custom
+        Property" to save it under its own column name from the file.
       </p>
     </div>
   </div>
@@ -46,7 +49,7 @@
       </tr>
       </thead>
       <tbody>
-      <tr *ngFor="let row of rows" [class.row-mapped]="row.mappedTo" [class.row-required]="row.mappedTo === 'Email'">
+      <tr *ngFor="let row of rows" [class.row-mapped]="row.mappedTo" [class.row-required]="isRequiredField(row.mappedTo)">
         <td class="col-file-header">{{ row.column }}</td>
         <td class="col-preview">
           <span class="preview-line" *ngFor="let s of row.samples">{{ s }}</span>
@@ -80,7 +83,7 @@
   <div class="cm-footer">
     <p class="cm-footer-note">
       <i class="fa fa-info-circle" aria-hidden="true"></i>
-      <span>* Email is required</span>
+      <span>* Required field</span>
     </p>
     <div class="cm-footer-btns">
       <app-kexy-button

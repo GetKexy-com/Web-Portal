@@ -201,11 +201,21 @@ mapping)` callback closes it and calls `showImportPreview(mapped)`.
   step is the one place that list is defined (`FIELDS` in the component); it must
   stay in sync with `parseCsvDataToContact`'s bracket lookups.
 - **Auto-guessing:** each CSV column is pre-matched to a field via a normalized
-  (lowercase, punctuation-stripped) `ALIASES` map; `Email` must end up mapped to
-  **exactly one** column before "Continue to preview" enables (the only field
-  `ContactDto` actually requires — `KexyApi/src/contacts/dto/create-contact.dto.ts`).
-  A field already claimed by one column can't be picked for another
-  (`isOptionTaken`).
+  (lowercase, punctuation-stripped) `ALIASES` map. A field already claimed by one
+  column can't be picked for another (`isOptionTaken`).
+- **Required fields (a product decision at THIS step, not the backend's):**
+  `Email`, `First Name`, `Last Name`, `Job Title`, `Company Name`, `Phone
+  Number`, `City`, `State`, `Country` each carry `required: true` in `FIELDS`
+  and must be mapped to some column before "Continue to preview" enables — the
+  three URL fields (`Website`, `Linkedin`, `Company Linkedin Url`) stay
+  optional. This is stricter than the API: `ContactDto`
+  (`KexyApi/src/contacts/dto/create-contact.dto.ts`) only truly requires
+  `email` and defaults everything else to `''`. `missingRequiredFields` (a
+  getter, not a template loop) drives both the banner text (lists every unmet
+  field by name) and `canContinue`; `isRequiredField()` drives the amber
+  `.row-required` highlight on any row currently mapped to one. To add/drop a
+  required field, flip its `required` flag in `FIELDS` — nothing else keys off
+  a hardcoded field name.
 - **Custom Property (the non-"don't import" fallback):** any column NOT mapped to
   a known field is still imported — kept under its OWN header text as a custom
   property, not dropped. `handleContinue()` renames known-field columns to their
@@ -374,11 +384,20 @@ Classification section shows; per-contact fields are hidden).
   `customPropertyKeys` and Angular has rendered its `*ngIf`), resets the flag to
   `null` immediately (also cleared in `ngOnDestroy` as a safety net), then after
   a 200ms beat (lets the offcanvas's own slide-in animation finish, or the
-  scroll fights it) calls `scrollIntoView({ behavior: 'smooth', block: 'start'
-  })` on `#customPropertiesSection` and flips `highlightCustomProperties` true
-  for 3s to play the `.highlight-pulse` / `pc-section-pulse` border-glow
-  animation. Opening the canvas any OTHER way (row click, "Edit Contact(s)")
-  leaves the flag `null`, so it opens scrolled to the top as before.
+  scroll fights it) scrolls to `#customPropertiesSection` and flips
+  `highlightCustomProperties` true for 3s to play the `.highlight-pulse` /
+  `pc-section-pulse` border-glow animation. Opening the canvas any OTHER way
+  (row click, "Edit Contact(s)") leaves the flag `null`, so it opens scrolled
+  to the top as before.
+- **The scroll itself is `animateScrollIntoView()`, not
+  `scrollIntoView({ behavior: 'smooth' })`.** The native call has no duration
+  knob — each browser picks its own, and it reads as an abrupt jump rather
+  than a deliberate reveal. The hand-rolled version eases `.canvas-body`'s
+  `scrollTop` (found via `target.closest('.canvas-body')`) from its current
+  position to the target's offset over exactly `duration` ms (currently
+  `1100`, passed at the call site) using `requestAnimationFrame` +
+  ease-in-out-quad. Falls back to native `scrollIntoView` if `.canvas-body`
+  isn't found (defensive only — it's always this canvas's own scroll region).
 - **Email verification badge:** the Email field surfaces the contact's stored
   verification result (`contact.emailStatus` / `contact.details.emailStatus`,
   values `verified`/`invalid`/`catch-all`/`unverified`, same as

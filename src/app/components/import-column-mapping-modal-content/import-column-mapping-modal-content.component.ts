@@ -42,18 +42,20 @@ export class ImportColumnMappingModalContentComponent implements OnInit {
     () => {};
 
   // The exact set of columns parseCsvDataToContact() looks for on each row.
-  // Only Email is required there (@IsEmail, no @IsOptional on the backend DTO);
-  // everything else defaults to '' if absent.
+  // Required here is a PRODUCT decision enforced at this step, not the backend's:
+  // the API itself only truly requires `email` (@IsEmail, no @IsOptional on
+  // ContactDto) and defaults everything else to '' if absent — but every field
+  // below except the URL ones must be mapped to continue past this modal.
   readonly FIELDS: KexyField[] = [
     { key: 'Email', label: 'Email', required: true },
-    { key: 'First Name', label: 'First Name' },
-    { key: 'Last Name', label: 'Last Name' },
-    { key: 'Job Title', label: 'Job Title' },
-    { key: 'Company Name', label: 'Company Name' },
-    { key: 'Phone Number', label: 'Phone Number' },
-    { key: 'City', label: 'City' },
-    { key: 'State', label: 'State' },
-    { key: 'Country', label: 'Country' },
+    { key: 'First Name', label: 'First Name', required: true },
+    { key: 'Last Name', label: 'Last Name', required: true },
+    { key: 'Job Title', label: 'Job Title', required: true },
+    { key: 'Company Name', label: 'Company Name', required: true },
+    { key: 'Phone Number', label: 'Phone Number', required: true },
+    { key: 'City', label: 'City', required: true },
+    { key: 'State', label: 'State', required: true },
+    { key: 'Country', label: 'Country', required: true },
     { key: 'Website', label: 'Website' },
     { key: 'Linkedin', label: 'LinkedIn URL' },
     { key: 'Company Linkedin Url', label: 'Company LinkedIn URL' },
@@ -135,8 +137,15 @@ export class ImportColumnMappingModalContentComponent implements OnInit {
     row.mappedTo = fieldKey;
   };
 
-  get emailMappedCount(): number {
-    return this.rows.filter((r) => r.mappedTo === 'Email').length;
+  isRequiredField = (fieldKey: string) => !!this.FIELDS.find((f) => f.key === fieldKey)?.required;
+
+  // Required fields not currently mapped to any column. `isOptionTaken` already
+  // stops two columns from claiming the same field, so a field is "satisfied"
+  // the moment any one row is mapped to it.
+  get missingRequiredFields(): KexyField[] {
+    return this.FIELDS.filter(
+      (f) => f.required && !this.rows.some((r) => r.mappedTo === f.key),
+    );
   }
 
   // Columns mapped to one of our known fields (excludes custom properties).
@@ -149,7 +158,7 @@ export class ImportColumnMappingModalContentComponent implements OnInit {
   }
 
   get canContinue(): boolean {
-    return this.emailMappedCount === 1 && !this.submitting;
+    return this.missingRequiredFields.length === 0 && !this.submitting;
   }
 
   handleContinue = () => {

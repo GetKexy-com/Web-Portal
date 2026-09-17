@@ -158,13 +158,36 @@ export class ProspectingContactsComponent implements OnInit, AfterViewInit, OnDe
     // A beat for the offcanvas's own slide-in animation to finish, or the
     // scroll fights it and lands in the wrong place.
     setTimeout(() => {
-      this.customPropertiesSectionRef?.nativeElement?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start',
-      });
+      const el = this.customPropertiesSectionRef?.nativeElement;
+      if (el) this.animateScrollIntoView(el, 1100);
       this.highlightCustomProperties = true;
       setTimeout(() => (this.highlightCustomProperties = false), 3000);
     }, 200);
+  }
+
+  // Native `scrollIntoView({ behavior: 'smooth' })` has no way to control its
+  // duration (each browser picks its own, and it's on the fast side) — this
+  // hand-rolled version eases `.canvas-body`'s scrollTop over exactly
+  // `duration` ms so the reveal reads as deliberate rather than a jump-cut.
+  private animateScrollIntoView(target: HTMLElement, duration: number): void {
+    const container = target.closest('.canvas-body') as HTMLElement | null;
+    if (!container) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
+
+    const startTop = container.scrollTop;
+    const delta = target.getBoundingClientRect().top - container.getBoundingClientRect().top;
+    const endTop = startTop + delta;
+    const startTime = performance.now();
+    const easeInOutQuad = (t: number) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
+
+    const step = (now: number) => {
+      const progress = Math.min((now - startTime) / duration, 1);
+      container.scrollTop = startTop + (endTop - startTop) * easeInOutQuad(progress);
+      if (progress < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
   }
 
   ngOnDestroy() {
