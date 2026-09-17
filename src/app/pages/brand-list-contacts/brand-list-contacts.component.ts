@@ -24,6 +24,9 @@ import {
 import {
   ImportPreviewModalContentComponent,
 } from '../../components/import-preview-modal-content/import-preview-modal-content.component';
+import {
+  ImportColumnMappingModalContentComponent,
+} from '../../components/import-column-mapping-modal-content/import-column-mapping-modal-content.component';
 import { ProspectingContactsComponent } from '../../components/prospecting-contacts/prospecting-contacts.component';
 import { CommonModule } from '@angular/common';
 import { Contact } from '../../models/Contact';
@@ -526,10 +529,45 @@ export class BrandListContactsComponent implements OnInit, OnDestroy {
     this.bypassEmailVerification = bypass;
   };
 
-  // EXPERIMENTAL: open the spreadsheet-style preview (review/remove invalid
-  // email/URL rows) before running the actual import.
-  showImportPreview = (data) => {
+  // Raw (unmapped) Papa-parse result from the upload step — kept so "Back" from
+  // the preview can reopen the column-mapping step without re-uploading.
+  private rawImportData: any;
+  // The column->field mapping the user last confirmed — restored when reopening
+  // the mapping step via "Back" so their choices aren't lost.
+  private lastColumnMapping: { column: string; mappedTo: string }[] | undefined;
+
+  // Before the spreadsheet preview, make the user match their CSV's column
+  // headers to our known contact fields (HubSpot-style "Import As"), since
+  // parseCsvDataToContact() reads rows by our exact field names (`Email`,
+  // `First Name`, …) and a real-world file's headers rarely match those verbatim.
+  showColumnMapping = (data) => {
     this.closeModal(); // close the upload modal
+    this.openColumnMapping(data);
+  };
+
+  // Opens the mapping step without touching the upload modal — used both for the
+  // initial upload→mapping transition and for "Back" from the preview step.
+  private openColumnMapping = (data, previousMapping?: { column: string; mappedTo: string }[]) => {
+    this.rawImportData = data;
+    const ref = this.modal.open(ImportColumnMappingModalContentComponent, {
+      size: 'xl',
+      windowClass: 'import-preview-window',
+      backdrop: 'static',
+      keyboard: false,
+    });
+    ref.componentInstance.parsedData = data;
+    ref.componentInstance.previousMapping = previousMapping;
+    ref.componentInstance.closeModal = () => ref.close();
+    ref.componentInstance.proceed = (mapped, mapping) => {
+      ref.close();
+      this.lastColumnMapping = mapping;
+      this.showImportPreview(mapped);
+    };
+  };
+
+  // Open the spreadsheet-style preview (review/remove invalid email/URL rows)
+  // before running the actual import.
+  showImportPreview = (data) => {
     const ref = this.modal.open(ImportPreviewModalContentComponent, {
       size: 'xl',
       windowClass: 'import-preview-window',
@@ -538,6 +576,12 @@ export class BrandListContactsComponent implements OnInit, OnDestroy {
     });
     ref.componentInstance.parsedData = data;
     ref.componentInstance.closeModal = () => ref.close();
+    // Let the user return to the column-mapping step to fix a mistake rather
+    // than restarting the whole import from the file upload.
+    ref.componentInstance.goBack = () => {
+      ref.close();
+      this.openColumnMapping(this.rawImportData, this.lastColumnMapping);
+    };
     // Close the preview immediately; the import-progress banner shows in its place
     // (getImportedFileData calls contactCard.beginImport() right away).
     ref.componentInstance.startImport = (cleaned) => {

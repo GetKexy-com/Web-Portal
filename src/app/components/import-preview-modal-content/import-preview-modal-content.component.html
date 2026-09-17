@@ -197,6 +197,16 @@
       </p>
       <div class="ip-footer-btns">
         <app-kexy-button
+          *ngIf="goBack"
+          (click)="goBack()"
+          label="Back"
+          iconLeft="fa-arrow-left"
+          bgColor="#eef1f6"
+          textColor="#475569"
+          radius="10px"
+          padding="10px 20px"
+        ></app-kexy-button>
+        <app-kexy-button
           (click)="handleImport()"
           [disabled]="!items.length || importing || invalidCount > 0"
           [label]="importing ? 'Importing…' : ('Import ' + items.length + ' contact' + (items.length === 1 ? '' : 's'))"

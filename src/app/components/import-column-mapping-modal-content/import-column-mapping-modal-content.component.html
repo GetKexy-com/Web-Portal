@@ -1,0 +1,98 @@
+<div class="col-map">
+  <!-- Header -->
+  <div class="cm-head">
+    <div class="cm-head-text">
+      <span class="cm-icon-badge"><i class="fa fa-random" aria-hidden="true"></i></span>
+      <div>
+        <h3 class="cm-title">Match your columns</h3>
+        <p class="cm-sub">
+          Match each column from your file to a KEXY contact field. We've pre-filled our
+          best guesses — review them and adjust anything that isn't right.
+        </p>
+      </div>
+    </div>
+    <button type="button" class="cm-close" (click)="closeModal()" aria-label="Close">
+      <i class="fa fa-times" aria-hidden="true"></i>
+    </button>
+  </div>
+
+  <!-- Status banner -->
+  <div class="cm-banner" [class.all-good]="emailMappedCount === 1" [class.has-issues]="emailMappedCount !== 1">
+    <span class="cm-banner-ic">
+      <i class="fa" [class.fa-check-circle]="emailMappedCount === 1" [class.fa-exclamation-triangle]="emailMappedCount !== 1" aria-hidden="true"></i>
+    </span>
+    <div class="cm-banner-main">
+      <p class="cm-banner-title" *ngIf="emailMappedCount === 1">
+        {{ mappedCount }} column(s) mapped to KEXY fields, {{ customPropertyCount }} as custom {{ customPropertyCount === 1 ? 'property' : 'properties' }}
+      </p>
+      <p class="cm-banner-title" *ngIf="emailMappedCount === 0">Map a column to <b>Email</b> to continue</p>
+      <p class="cm-banner-title" *ngIf="emailMappedCount > 1">Only one column can map to <b>Email</b></p>
+      <p class="cm-banner-sub">
+        Every column is imported: map it to a KEXY field, or leave it as "Custom Property" to
+        save it under its own column name from the file.
+      </p>
+    </div>
+  </div>
+
+  <!-- Mapping table -->
+  <div class="cm-table-region">
+    <table class="cm-table">
+      <thead>
+      <tr>
+        <th class="col-file-header">Column Header From File</th>
+        <th class="col-preview">Preview Information</th>
+        <th class="col-mapped">Mapped</th>
+        <th class="col-import-as">Import As</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr *ngFor="let row of rows" [class.row-mapped]="row.mappedTo" [class.row-required]="row.mappedTo === 'Email'">
+        <td class="col-file-header">{{ row.column }}</td>
+        <td class="col-preview">
+          <span class="preview-line" *ngFor="let s of row.samples">{{ s }}</span>
+          <span class="preview-line preview-empty" *ngIf="!row.samples.length">(empty)</span>
+        </td>
+        <td class="col-mapped">
+          <i class="fa fa-check-circle mapped-icon" *ngIf="row.mappedTo" aria-hidden="true"></i>
+        </td>
+        <td class="col-import-as">
+          <select
+            class="cm-select"
+            [ngModel]="row.mappedTo"
+            (ngModelChange)="onMappedToChange(row, $event)"
+          >
+            <option value="">Custom Property</option>
+            <option
+              *ngFor="let field of FIELDS"
+              [value]="field.key"
+              [disabled]="isOptionTaken(row, field.key)"
+            >
+              {{ field.label }}{{ field.required ? ' *' : '' }}
+            </option>
+          </select>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Footer -->
+  <div class="cm-footer">
+    <p class="cm-footer-note">
+      <i class="fa fa-info-circle" aria-hidden="true"></i>
+      <span>* Email is required</span>
+    </p>
+    <div class="cm-footer-btns">
+      <app-kexy-button
+        (click)="handleContinue()"
+        [disabled]="!canContinue"
+        label="Continue to preview"
+        iconLeft="fa-arrow-right"
+        bgColor="#12a5f4"
+        textColor="white"
+        radius="10px"
+        padding="10px 24px"
+      ></app-kexy-button>
+    </div>
+  </div>
+</div>

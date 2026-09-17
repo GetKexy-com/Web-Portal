@@ -35,6 +35,9 @@ export class ImportPreviewModalContentComponent implements OnInit {
   // The raw Papa-parse result ({ data, meta: { fields }, errors }).
   @Input() parsedData: any;
   @Input() closeModal: () => void = () => {};
+  // When set, shows a "Back" control that returns to the column-mapping step
+  // (e.g. the user wants to fix a mapping mistake without redoing the upload).
+  @Input() goBack: (() => void) | null = null;
   // Called with a Papa-like result ({ ...parsedData, data: keptRows }) when the
   // user confirms. The page runs the actual (async) import and closes this modal
   // on success; it should reject/throw on failure so the button can reset.

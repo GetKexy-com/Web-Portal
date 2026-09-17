@@ -73,6 +73,7 @@ export class Contact {
       city: data.city,
       country: data.country,
       notes: data.notes,
+      customProperties: data.customProperties || data.custom_properties || undefined,
       organization: data.organization
         ? {
           name: data.organization.name,
@@ -141,6 +142,7 @@ export class Contact {
         country: contact.details.organization?.country || contact.country || '',
       },
       isLikelyToEngage: contact.details.isLikelyToEngage ?? true,
+      customProperties: contact.details.customProperties || {},
     };
   }
 
@@ -210,6 +212,9 @@ export class Contact {
 
   static parseCsvDataToContact(csvData) {
     const contacts = [];
+    // Columns the "Match your columns" step left as "Custom Property" — kept
+    // under their own header text rather than one of our known fields.
+    const customFields: string[] = csvData.meta?.customFields || [];
     csvData.data.map((contact: any) => {
       const email = contact['Email'].trim();
       let linkedin = contact['Linkedin'] || '';
@@ -254,6 +259,18 @@ export class Contact {
       c.details.organization.country = contact['Country'];
       c.details.organization.linkedinUrl = companyLinkedin.trim();
       c.details.organization.websiteUrl = website;
+
+      if (customFields.length) {
+        const customProperties: Record<string, any> = {};
+        customFields.forEach((field) => {
+          const value = contact[field];
+          if (value !== undefined && value !== null && value !== '') {
+            customProperties[field] = value;
+          }
+        });
+        c.details.customProperties = customProperties;
+      }
+
       contacts.push(Contact.contactPostDto(c));
     });
 
@@ -315,6 +332,10 @@ export interface ContactDetails {
   notes?: string;
   organization?: ContactOrganization;
   isLikelyToEngage?: boolean;
+  // CSV columns imported as "Custom Property" — keyed by the file's own header
+  // text. Persisted server-side in its own column (`Contact.customProperties`),
+  // not nested inside the stored `details` blob.
+  customProperties?: Record<string, any>;
 }
 
 export interface ContactOrganization {
