@@ -159,9 +159,11 @@ POST used to return synchronously.
   `.list-verification-progress` banner ("Importing contacts… N%" + progress bar
   from `importProgress`), and on `complete` emits `@Output() importCompleted`
   with the final body; `failed` shows an error alert. Cleaned up in `ngOnDestroy`.
-- **Page flow:** the upload modal's `(parsedFileData)` now opens the **preview
-  modal** first (see below) via `showImportPreview`, NOT a direct import. When the
-  user confirms in the preview, it calls `getImportedFileData(cleaned)` which calls
+- **Page flow:** the upload modal's `(parsedFileData)` now opens the **column-
+  mapping modal** first (see below) via `showColumnMapping`, NOT the preview
+  directly. Mapping's `proceed` closes it and calls `showImportPreview` with the
+  remapped data. When the user confirms in the preview, it calls
+  `getImportedFileData(cleaned)` which calls
   `addContacts`, stashes the submitted rows in `importedContactsSubmitted`, then
   `contactCard.startImportPolling(res.importId)` (each page has a `#contactCard`
   `@ViewChild`). `(importCompleted)="handleImportCompleted($event)"` then reloads
@@ -183,14 +185,57 @@ POST used to return synchronously.
   Map `skipped[i].contact` by index, falling back to an email match, then read
   those flat fields. `email`/`errors` come from the skipped entry (authoritative).
 
+### Column mapping (before the preview)
+
+`ImportColumnMappingModalContentComponent`
+(`components/import-column-mapping-modal-content`) is a HubSpot-style "match your
+columns" step shown BEFORE the spreadsheet preview. Both pages route the upload
+modal's parsed data into it via `showColumnMapping(data)` → `openColumnMapping`
+(opens `xl`, `backdrop: 'static'`, `keyboard: false`); its `proceed(mapped,
+mapping)` callback closes it and calls `showImportPreview(mapped)`.
+
+- **Why it exists:** `Contact.parseCsvDataToContact()` reads each row by our exact
+  field names (`Email`, `First Name`, `Last Name`, `Job Title`, `Company Name`,
+  `Phone Number`, `City`, `State`, `Country`, `Website`, `Linkedin`, `Company
+  Linkedin Url`) — a real-world file's headers rarely match those verbatim. This
+  step is the one place that list is defined (`FIELDS` in the component); it must
+  stay in sync with `parseCsvDataToContact`'s bracket lookups.
+- **Auto-guessing:** each CSV column is pre-matched to a field via a normalized
+  (lowercase, punctuation-stripped) `ALIASES` map; `Email` must end up mapped to
+  **exactly one** column before "Continue to preview" enables (the only field
+  `ContactDto` actually requires — `KexyApi/src/contacts/dto/create-contact.dto.ts`).
+  A field already claimed by one column can't be picked for another
+  (`isOptionTaken`).
+- **Custom Property (the non-"don't import" fallback):** any column NOT mapped to
+  a known field is still imported — kept under its OWN header text as a custom
+  property, not dropped. `handleContinue()` renames known-field columns to their
+  canonical key and leaves custom columns keyed by their original header, and
+  stamps `meta.customFields` (the list of those original header names) onto the
+  outgoing Papa-like object. `parseCsvDataToContact()` reads `meta.customFields`
+  to know which output keys to bucket into `contactDetails.customProperties`
+  (rather than trying to read them as known fields), and
+  `Contact.contactPostDto()` carries `customProperties` through to the API
+  payload. See "Custom properties (contacts)" below for the storage side.
+- **"Back" from the preview:** `ImportPreviewModalContentComponent` takes an
+  optional `@Input() goBack`; when set it renders a "Back" `<app-kexy-button>` in
+  the FOOTER, immediately before the "Import N contacts" button (not in the
+  header — the header only holds the icon/title/close). Both pages keep
+  `rawImportData` (the original unmapped Papa result) and `lastColumnMapping`
+  (the confirmed `{ column, mappedTo }[]`) as fields so `goBack` can reopen
+  `openColumnMapping(rawImportData, lastColumnMapping)` — the mapping component's
+  `@Input() previousMapping` restores those exact choices (including an explicit
+  Custom Property pick) instead of re-running the auto-guess and losing edits.
+
 ### Pre-import preview (EXPERIMENTAL)
 
 `ImportPreviewModalContentComponent` (`components/import-preview-modal-content`) is
-a spreadsheet-style review step shown BEFORE the import runs. Both pages route the
-upload modal's parsed data into it via `showImportPreview(data)` (opens `xl`,
-`backdrop: 'static'`, `keyboard: false`), whose `startImport` callback closes the
-preview and hands `{ ...parsedData, data: keptRows }` to `getImportedFileData`.
-It closes ONLY via the header X (no Cancel button; backdrop/Esc disabled).
+a spreadsheet-style review step shown BEFORE the import runs, now fed by the
+column-mapping step above rather than the raw upload. It is opened via
+`showImportPreview(data)` (opens `xl`, `backdrop: 'static'`, `keyboard: false`),
+whose `startImport` callback closes the preview and hands
+`{ ...parsedData, data: keptRows }` to `getImportedFileData`. It closes via the
+header X, or via "Back" (see above) when `goBack` is set — no Cancel button;
+backdrop/Esc disabled.
 
 - **Input** is the raw Papa-parse result (`{ data, meta.fields, errors }`).
   Columns come from `meta.fields`, reordered to `First Name, Last Name, Email,
@@ -225,6 +270,33 @@ It closes ONLY via the header X (no Cancel button; backdrop/Esc disabled).
   `runTableUpdate()` (flip `tableBusy` + `markForCheck`, defer the work a tick so
   the spinner paints, `recompute`, then hide). `trackByItem` keeps the `*ngFor`
   cheap.
+
+### Custom properties (contacts)
+
+A CSV column left as "Custom Property" in the mapping step (above) isn't dropped —
+it's saved on the contact, keyed by its own header text, so it survives round-trips
+through editing.
+
+- **Model:** `ContactDetails.customProperties?: Record<string, any>`
+  (`models/Contact.ts`). `convertToCamelCase()` reads it off the parsed `details`
+  blob on GET; `contactPostDto()` sends it back as a top-level `customProperties`
+  key on every write (import AND single-contact edit) — **carrying it through on
+  edit is load-bearing**: since `setAndGetAddOrEditSingleContactApiPayload` mutates
+  the same `contactDetails` object read from the loaded contact, forgetting to
+  read `customProperties` off it would silently wipe a contact's custom fields the
+  first time someone edits and saves it via the offcanvas below.
+- **Backend storage:** persisted to its OWN column, `kexy_contacts.custom_properties`
+  (`text`, JSON-transformer pattern — same as `details` and `user_preferences.pref_value`,
+  chosen over MySQL's native `json` type because it's read/written whole and never
+  queried into; see migration `1782900000000-migration.ts`). It is ALSO nested
+  inside the `details` blob (since `details` stores the whole posted `ContactDto`
+  wholesale) — the dedicated column is for future structured access, not the only
+  copy. `ContactsService` sets it on all three contact-write paths: the CSV-import
+  create path, `__mergeImportedContact` (existing-email merge), and the
+  single-contact `update()` path. `ContactDto.customProperties` is `@IsObject()
+  @IsOptional()`.
+- **Editing:** surfaced in the `prospecting-contacts` offcanvas as a "Custom
+  Properties" section — see below.
 
 ---
 
@@ -274,12 +346,26 @@ Classification section shows; per-contact fields are hidden).
   move it out of the form. Actions are right-aligned, **Cancel then Save**
   (primary on the right).
 - **Fields** are grouped into `.form-section` cards (Classification / Contact
-  details / Location / Drip Campaigns / Notes), each with a gradient icon chip +
-  title, laid out in a 2-col `.fields-grid` (`.field.full` spans both; collapses
-  to 1 col < 640px). Soft-filled inputs + brand-blue focus ring; SCSS has a token
-  block at the top (`$kx-primary #12a5f4` → `$kx-primary-deep #095dd1`). The
-  `kexy-select-dropdown`s (Marketing Status, Lists, Country, State) render their
-  OWN labels — don't add a `.field-label` for those.
+  details / Custom Properties / Location / Drip Campaigns / Notes), each with a
+  gradient icon chip + title, laid out in a 2-col `.fields-grid` (`.field.full`
+  spans both; collapses to 1 col < 640px). Soft-filled inputs + brand-blue focus
+  ring; SCSS has a token block at the top (`$kx-primary #12a5f4` →
+  `$kx-primary-deep #095dd1`). The `kexy-select-dropdown`s (Marketing Status,
+  Lists, Country, State) render their OWN labels — don't add a `.field-label` for
+  those.
+- **Custom Properties card:** single-contact edit only, and only rendered when
+  `customPropertyKeys.length` (i.e. the contact actually has some — this canvas
+  edits existing custom-property VALUES, it doesn't let the user invent new keys).
+  `setPrimaryForm()` reads `Object.keys(contactDetails.customProperties || {})`
+  and adds a nested `customProperties` `FormGroup` to `primaryForm` (one
+  `FormControl` per key, keyed by the CSV's original header text — Angular
+  `FormGroup` keys tolerate spaces fine). The template wraps the card in
+  `formGroupName="customProperties"` and binds each input with
+  `[formControlName]="key"` (a property binding, since the control name is
+  dynamic). On submit, `formData.customProperties` (from
+  `primaryForm.getRawValue()`, which recurses into nested groups) is written
+  straight back onto `contactDetails.customProperties` — see "Custom properties
+  (contacts)" above for how that reaches the API and gets persisted.
 - **Email verification badge:** the Email field surfaces the contact's stored
   verification result (`contact.emailStatus` / `contact.details.emailStatus`,
   values `verified`/`invalid`/`catch-all`/`unverified`, same as

@@ -65,6 +65,10 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
   contactDripCampaigns = [];
   contactLabelsSubscription: Subscription;
   dripCampaignTitlesSubscription: Subscription;
+  // Keys of this contact's custom properties (from an import's "Custom Property"
+  // columns) — drives the dynamic "Custom Properties" section. Editing existing
+  // values only; this canvas doesn't add new custom property keys.
+  customPropertyKeys: string[] = [];
 
   // Email-verification status shown beside the Email field. Computed (not a
   // template getter) so change detection stays cheap; refreshed in
@@ -314,6 +318,20 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
       notes: new FormControl(contactDetails?.notes ? contactDetails.notes : ''),
     });
 
+    // Custom Properties: single-contact edit only, and only when the contact
+    // actually has some (imported via "Custom Property" columns) — this canvas
+    // lets the user fix values, not invent new keys.
+    this.customPropertyKeys = !this.isMultipleContactsSelected
+      ? Object.keys(contactDetails?.customProperties || {})
+      : [];
+    if (this.customPropertyKeys.length) {
+      const customPropertiesGroup: Record<string, FormControl> = {};
+      this.customPropertyKeys.forEach((key) => {
+        customPropertiesGroup[key] = new FormControl(contactDetails.customProperties[key] ?? '');
+      });
+      this.primaryForm.addControl('customProperties', new FormGroup(customPropertiesGroup));
+    }
+
     this.computeEmailStatus();
   };
 
@@ -532,6 +550,10 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
 
     if (formData.websiteUrl) {
       contactDetails.organization.websiteUrl = formData.websiteUrl;
+    }
+
+    if (this.customPropertyKeys.length && formData.customProperties) {
+      contactDetails.customProperties = formData.customProperties;
     }
 
     this.contact.companyName = formData.organizationName;
