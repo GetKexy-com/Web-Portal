@@ -366,6 +366,19 @@ Classification section shows; per-contact fields are hidden).
   `primaryForm.getRawValue()`, which recurses into nested groups) is written
   straight back onto `contactDetails.customProperties` — see "Custom properties
   (contacts)" above for how that reaches the API and gets persisted.
+- **Auto-scroll from the table's "View" button:** `contact-list-card`'s Custom
+  Properties column button sets `prospectingService.focusContactSection =
+  'customProperties'` before calling `editContact` (see that column's own note
+  above). This canvas consumes it in **`ngAfterViewInit`** (`OnInit` isn't
+  enough — the section only exists once `setPrimaryForm()` has set
+  `customPropertyKeys` and Angular has rendered its `*ngIf`), resets the flag to
+  `null` immediately (also cleared in `ngOnDestroy` as a safety net), then after
+  a 200ms beat (lets the offcanvas's own slide-in animation finish, or the
+  scroll fights it) calls `scrollIntoView({ behavior: 'smooth', block: 'start'
+  })` on `#customPropertiesSection` and flips `highlightCustomProperties` true
+  for 3s to play the `.highlight-pulse` / `pc-section-pulse` border-glow
+  animation. Opening the canvas any OTHER way (row click, "Edit Contact(s)")
+  leaves the flag `null`, so it opens scrolled to the top as before.
 - **Email verification badge:** the Email field surfaces the contact's stored
   verification result (`contact.emailStatus` / `contact.details.emailStatus`,
   values `verified`/`invalid`/`catch-all`/`unverified`, same as
@@ -628,6 +641,18 @@ toward a Linear/Stripe/Airtable look. Behavior/bindings/`@Input()`s and the
 - **Status pills with a leading dot**: Email Status (`.email-status`
   green/red/amber + `.status-muted` "Not checked" when `emailStatus` empty) and
   Marketing Status (`.ms-green/-red/-amber`, `pending` → amber).
+- **Custom Properties column** (`key: 'custom_properties'`, sits between
+  Marketing Status and Created): a `View` `.view-custom-props-btn` pill when the
+  contact has any (`hasCustomProperties()`, memoized on the row as
+  `__hasCustomProps` like the avatar helpers), else a muted `.custom-props-empty`
+  "—". Clicking `View` calls `viewCustomProperties($event, contact)`, which
+  `stopPropagation()`s (the whole row already has `(click)="editContact(contact)"`
+  — without it, opening the canvas would double-fire) then calls the same
+  `editContact` `@Input()` to open `prospecting-contacts`, which renders the
+  values in its own "Custom Properties" card (see that section below). This
+  column is a launcher, not a renderer — it doesn't try to show the actual
+  key/value pairs inline since the set is unbounded and variable-shape per
+  contact.
 - **Checkboxes are Font Awesome icons, Gmail-styled** (`.checkbox-icon`):
   `fa-square-o` (empty) / `fa-check-square-o` (checked) / `fa-minus-square-o`
   (header indeterminate). Grey outline `#80868b`, **dark-grey `#3c4043` mark when

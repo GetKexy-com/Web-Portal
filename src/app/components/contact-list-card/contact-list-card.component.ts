@@ -183,6 +183,12 @@ export class ContactListCardComponent implements OnInit, OnChanges, OnDestroy, A
       { name: 'Company Name', key: 'company_name', width: 160 },
       { name: 'Job Title', key: 'title', width: 170 },
       { name: 'Marketing Status', key: 'marketing_status', width: 120 },
+      // Only populated for contacts imported with a "Custom Property" column
+      // (see Web-Portal CLAUDE.md, "Custom properties (contacts)") — the cell
+      // shows a "View" button (opens the edit canvas) when the contact has any,
+      // else a muted dash, so it stays a lightweight column rather than trying
+      // to render an unbounded, variable-shape set of values inline.
+      { name: 'Custom Properties', key: 'custom_properties', width: 140 },
       { name: 'Created', key: 'created', width: 160 },
     ];
     this.columnList = columnList;
@@ -510,6 +516,26 @@ export class ContactListCardComponent implements OnInit, OnChanges, OnDestroy, A
       row.__detailsSrc = row.details;
     }
     return row.__details;
+  };
+
+  // Memoized on the row, same reasoning as getContactInitials/getAvatarClass:
+  // this runs per-row on every CD pass, so it's computed once per details value.
+  hasCustomProperties = (contact: any): boolean => {
+    if (contact && contact.__hasCustomProps !== undefined) return contact.__hasCustomProps;
+    const details = this.getRowDetails(contact);
+    const has = !!(details?.customProperties && Object.keys(details.customProperties).length);
+    if (contact) contact.__hasCustomProps = has;
+    return has;
+  };
+
+  // "View" in the Custom Properties column opens the same edit canvas as a row
+  // click/the Edit action — stopPropagation so the row's own (click)="editContact"
+  // doesn't also fire and open a second canvas. Flags the service so the canvas
+  // scrolls straight to its Custom Properties section instead of opening at top.
+  viewCustomProperties = (event: Event, contact: any) => {
+    this.stopPropagation(event);
+    this.prospectingService.focusContactSection = 'customProperties';
+    this.editContact(contact);
   };
 
   truncate = (value, maxLength = 80) => {

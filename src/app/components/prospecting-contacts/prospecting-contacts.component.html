@@ -157,7 +157,13 @@
 
       <!-- Custom Properties: single contact only, only when the contact has some
            (imported via "Custom Property" columns) -->
-      <div class="form-section" *ngIf="!isMultipleContactsSelected && customPropertyKeys.length" formGroupName="customProperties">
+      <div
+        #customPropertiesSection
+        class="form-section"
+        [class.highlight-pulse]="highlightCustomProperties"
+        *ngIf="!isMultipleContactsSelected && customPropertyKeys.length"
+        formGroupName="customProperties"
+      >
         <div class="section-head">
           <i class="fa fa-list-alt section-icon" aria-hidden="true"></i>
           <span class="section-title">Custom Properties</span>

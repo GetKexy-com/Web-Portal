@@ -96,6 +96,12 @@ $kx-amber-bg: #fef3d9;
       margin-bottom: 18px;
       box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
 
+      // Briefly drawn attention to a section scrolled into view programmatically
+      // (currently: Custom Properties, via the contacts table's "View" button).
+      &.highlight-pulse {
+        animation: pc-section-pulse 3s ease-out;
+      }
+
       .section-head {
         display: flex;
         align-items: center;
@@ -376,5 +382,16 @@ $kx-amber-bg: #fef3d9;
     .canvas-body .fields-grid {
       grid-template-columns: 1fr;
     }
+  }
+}
+
+@keyframes pc-section-pulse {
+  0% {
+    border-color: $kx-primary;
+    box-shadow: 0 0 0 4px rgba(18, 165, 244, 0.18);
+  }
+  100% {
+    border-color: $kx-border;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
   }
 }

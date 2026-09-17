@@ -275,7 +275,7 @@
                 [style.width]="column.width"
               >
                 <span
-                  *ngIf="column.key !== 'action' && column.key !== 'name' && column.key !== 'linkedinUrl' && column.key !== 'label' && column.key !== 'marketing_status' && column.key !== 'email_status' && column.key !== 'created'"
+                  *ngIf="column.key !== 'action' && column.key !== 'name' && column.key !== 'linkedinUrl' && column.key !== 'label' && column.key !== 'marketing_status' && column.key !== 'email_status' && column.key !== 'created' && column.key !== 'custom_properties'"
                   [className]="column.key !== 'email' ? 'text-capitalize' : ''">
                   {{ getCellValueToDisplay(contact, column) || 'N/A' }}
                 </span>
@@ -349,6 +349,18 @@
                     (click)="openShowAllLabelModal($event, contact.lists)">
                     +{{ contact.lists?.length - 1 }} more
                   </span>
+                </span>
+
+                <span *ngIf="column.key === 'custom_properties'">
+                  <button
+                    *ngIf="hasCustomProperties(contact)"
+                    type="button"
+                    class="view-custom-props-btn"
+                    (click)="viewCustomProperties($event, contact)"
+                  >
+                    <i class="fa fa-eye" aria-hidden="true"></i> View
+                  </button>
+                  <span *ngIf="!hasCustomProperties(contact)" class="custom-props-empty">—</span>
                 </span>
 
                 <span *ngIf="column.key === 'action'" class="text-center d-inline-block w-100"

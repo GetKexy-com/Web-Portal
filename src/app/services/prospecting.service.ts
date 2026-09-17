@@ -59,6 +59,11 @@ export class ProspectingService {
   public clickedContactInContactPage = [];
   public selectedContactLabels = [];
   public isAddNewButtonClickedInContactPage = false;
+  // Set right before opening the edit-contact canvas from the "View" button in
+  // the Custom Properties table column, so the canvas can scroll straight to
+  // that section instead of opening at the top. Consumed (reset to null) by
+  // ProspectingContactsComponent as soon as it acts on it.
+  public focusContactSection: 'customProperties' | null = null;
   public selectedLabelForEdit;
   public brandContactCurrentPage = 1;
   public brandContactContactLimit = 100;

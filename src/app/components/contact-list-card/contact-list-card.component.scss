@@ -493,6 +493,31 @@ $st-amber-bg: #fef3d9;
             text-decoration-style: dotted;
           }
 
+          // ── Custom Properties column ────────────────────────────────────
+          .view-custom-props-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 10px;
+            border: none;
+            border-radius: 999px;
+            background: $kx-primary-soft;
+            color: $kx-primary;
+            font-size: 12px;
+            font-weight: 600;
+            line-height: 1.4;
+            cursor: pointer;
+            transition: background 0.15s ease;
+
+            i { font-size: 11px; }
+
+            &:hover { background: rgba(40, 71, 204, 0.16); }
+          }
+
+          .custom-props-empty {
+            color: $kx-faint;
+          }
+
           span {
             font-size: 13.5px;
             display: inline-block;

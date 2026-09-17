@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NgbActiveOffcanvas, NgbOffcanvas } from '@ng-bootstrap/ng-bootstrap';
 import { AuthService } from '../../services/auth.service';
@@ -38,7 +38,7 @@ import { CAMPAIGN_STATUS } from '../../models/DripCampaign';
   templateUrl: './prospecting-contacts.component.html',
   styleUrl: './prospecting-contacts.component.scss',
 })
-export class ProspectingContactsComponent implements OnInit, OnDestroy {
+export class ProspectingContactsComponent implements OnInit, AfterViewInit, OnDestroy {
   primaryForm: FormGroup;
   userData;
   supplierId;
@@ -69,6 +69,10 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
   // columns) — drives the dynamic "Custom Properties" section. Editing existing
   // values only; this canvas doesn't add new custom property keys.
   customPropertyKeys: string[] = [];
+  // Target of the "View" button in the contacts table's Custom Properties
+  // column — scrolled/pulsed into view once, in ngAfterViewInit.
+  @ViewChild('customPropertiesSection') customPropertiesSectionRef?: ElementRef<HTMLElement>;
+  highlightCustomProperties = false;
 
   // Email-verification status shown beside the Email field. Computed (not a
   // template getter) so change detection stays cheap; refreshed in
@@ -142,6 +146,27 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
     this.setPrimaryForm();
   }
 
+  // Scroll to (and briefly highlight) the Custom Properties section when opened
+  // via the contacts table's "View" button. Runs after the view (and its
+  // *ngIf-rendered children) exists, since `customPropertyKeys` — and so the
+  // section itself — is only known once `setPrimaryForm()` ran in ngOnInit.
+  ngAfterViewInit(): void {
+    if (this.prospectingService.focusContactSection !== 'customProperties') return;
+    this.prospectingService.focusContactSection = null;
+    if (!this.customPropertiesSectionRef) return;
+
+    // A beat for the offcanvas's own slide-in animation to finish, or the
+    // scroll fights it and lands in the wrong place.
+    setTimeout(() => {
+      this.customPropertiesSectionRef?.nativeElement?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      });
+      this.highlightCustomProperties = true;
+      setTimeout(() => (this.highlightCustomProperties = false), 3000);
+    }, 200);
+  }
+
   ngOnDestroy() {
     if (this.contactLabelsSubscription) this.contactLabelsSubscription.unsubscribe();
     if (this.dripCampaignTitlesSubscription) this.dripCampaignTitlesSubscription.unsubscribe();
@@ -149,6 +174,7 @@ export class ProspectingContactsComponent implements OnInit, OnDestroy {
     this.prospectingService.clickedContactInContactPage = [];
     this.prospectingService.selectedLabelIdInListContactPage = null;
     this.prospectingService.listIdWhenEditContactFromListContactPage = null;
+    this.prospectingService.focusContactSection = null;
   }
 
   getDripCampaignTitle = async () => {
