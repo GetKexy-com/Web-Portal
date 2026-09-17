@@ -512,14 +512,22 @@ export class ContactListCardComponent implements OnInit, OnChanges, OnDestroy, A
     return row.__details;
   };
 
+  truncate = (value, maxLength = 80) => {
+    const str = String(value ?? '');
+    return str.length > maxLength ? `${str.slice(0, maxLength)}...` : str;
+  };
+
   getCellValue = (row, column) => {
     const details = this.getRowDetails(row);
+    if (column.key === 'title') {
+      return this.truncate(details[column.key], 40);
+    }
 
     if (details[column.key]) {
       return details[column.key];
     }
     if (column.key === 'company_name') {
-      return details.organization?.name || '';
+      return this.truncate(details.organization?.name, 40) || '';
     }
     if (column.key === 'phone_number') {
       return `${details.organization?.phone || ''}`;
