@@ -5,6 +5,7 @@ import { AuthService } from '../../services/auth.service';
 import { Subscription } from 'rxjs';
 import Swal from 'sweetalert2';
 import { DripCampaignService } from '../../services/drip-campaign.service';
+import { DashboardService } from '../../services/dashboard.service';
 import { routeConstants } from '../../helpers/routeConstants';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DripEmail, EmailDelay } from '../../models/DripEmail';
@@ -106,6 +107,7 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
     private modal: NgbModal,
     private sseService: SseService,
     private dripCampaignService: DripCampaignService,
+    private dashboardService: DashboardService,
     private prospectingService: ProspectingService,
     private pageUiService: PageUiService,
     private _authService: AuthService,
@@ -249,6 +251,7 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
     if (this.productsSubscription) this.productsSubscription.unsubscribe();
     if (this.dripCampaignProspectsSubscription) this.dripCampaignProspectsSubscription.unsubscribe();
     if (this.contactListSubscription) this.contactListSubscription.unsubscribe();
+    this.__stopSentCountPolling();
     if (this.dripCampaignStatus !== constants.ACTIVE) {
       this.sseService.removeDripBulkEmailData();
     }
@@ -593,6 +596,25 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
   liveNoticePill = 'Sending';
   liveNoticeFacts: { icon: string; label: string }[] = [];
 
+  /**
+   * Emails this campaign has actually sent, or null while unknown (not fetched
+   * yet, or the request failed).
+   *
+   * Read from the send records — `dashboard/campaigns/:id`'s `totals.sent`, which
+   * counts `prospecting_conversations`, the one row the send sweep writes per
+   * delivered email. It is NOT read off `campaign.emails[].isEmailSent`: that
+   * column exists but nothing in the API ever sets it, so it is `false` forever
+   * and the notice kept saying "queued" after the first emails had gone out.
+   */
+  private sentCount: number | null = null;
+  private sentCountCampaignId: number | null = null;
+  private sentCountTimer: ReturnType<typeof setInterval> | null = null;
+
+  /** The endpoint memoises for 60s server-side, so polling faster gains nothing. */
+  private static readonly SENT_COUNT_POLL_MS = 60_000;
+  /** The API's ceiling for `days`; widest window so a long-running campaign still counts. */
+  private static readonly SENT_COUNT_WINDOW_DAYS = 180;
+
   private __syncCampaignLiveNotice() {
     const campaign = this.dripCampaign;
 
@@ -600,6 +622,7 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
     // inactive one is still being edited.
     if (!campaign?.id || campaign.status !== constants.ACTIVE) {
       this.showLiveNotice = false;
+      this.__stopSentCountPolling();
       return;
     }
 
@@ -614,46 +637,108 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
     // all, which is the bug this replaced.
     if (this.showScrapeProgress && this.scrapeCardVisible) {
       this.showLiveNotice = false;
+      this.__stopSentCountPolling();
       return;
     }
 
     this.showLiveNotice = true;
 
-    // Three honest sub-states — the notice must never claim more than is true.
+    // Four honest sub-states — the notice must never claim more than is true.
     //
     // 1. The card is mounted but silent: research has finished for every
     //    prospect while the CAMPAIGN row still reads PENDING/RUNNING. Nothing
     //    will be sent until the backend marks the campaign complete (the send
     //    sweep requires both statuses SUCCEEDED), so promising a queued send
     //    here would be flatly wrong.
-    // 2. Nothing sent yet: the send window is frequently shut (7:00 AM – 8:00 PM
+    // 2. Send count not known yet (loading, or the request failed): say only
+    //    what is true regardless — that sends follow the schedule.
+    // 3. Known to be zero: the send window is frequently shut (7:00 AM – 8:00 PM
     //    is the common default), so "going out" would be a lie.
-    // 3. Something has been sent.
+    // 4. Known to be non-zero: say how many have really gone out.
     const isFinalising = this.showScrapeProgress && !this.scrapeCardVisible;
-    const hasSent = (campaign.emails || []).some((e: any) => e.isEmailSent);
+    const sent = this.sentCount;
 
     if (isFinalising) {
+      this.__stopSentCountPolling();
       this.liveNoticePill = 'Finishing up';
       this.liveNoticeStatus =
         'Research has finished for every prospect. Sending starts once the campaign is marked complete.';
     } else {
+      this.__startSentCountPolling(campaign.id);
       this.liveNoticePill = 'Sending';
-      this.liveNoticeStatus = hasSent
-        ? 'Emails are going out to your enrolled prospects, on the schedule below.'
-        : 'Your first emails are queued — they go out in the next send window.';
+      if (sent === null) {
+        this.liveNoticeStatus = 'Emails go out to your enrolled prospects, on the schedule below.';
+      } else if (sent === 0) {
+        this.liveNoticeStatus =
+          'No emails have been sent yet — the first ones go out when the next send window opens.';
+      } else {
+        this.liveNoticeStatus = 'Emails are going out to your enrolled prospects, on the schedule below.';
+      }
     }
 
-    this.liveNoticeFacts = [
+    this.liveNoticeFacts = [];
+    if (!isFinalising && sent) {
+      this.liveNoticeFacts.push({
+        icon: 'fa-paper-plane-o',
+        label: `${sent.toLocaleString()} email${sent === 1 ? '' : 's'} sent so far`,
+      });
+    }
+    this.liveNoticeFacts.push(
       {
         icon: 'fa-envelope-o',
         label: `${campaign.details.numberOfEmails} email${campaign.details.numberOfEmails === 1 ? '' : 's'} in sequence`,
       },
       { icon: 'fa-clock-o', label: this.__sendWindowLabel() },
-    ];
+    );
 
     const endsOn = this.__readSetting('turn_off_time')[0]?.day;
     if (endsOn) {
       this.liveNoticeFacts.push({ icon: 'fa-calendar-o', label: `Stops ${endsOn}` });
+    }
+  }
+
+  /**
+   * Fetch the real send count now, then keep it fresh while the notice is on
+   * screen. Idempotent — called on every sync, only starts once per campaign.
+   */
+  private __startSentCountPolling(campaignId: number) {
+    if (this.sentCountCampaignId !== campaignId) {
+      // Different campaign than the count we hold: drop it rather than show it.
+      this.sentCount = null;
+      this.sentCountCampaignId = campaignId;
+      this.__stopSentCountPolling();
+    }
+    if (this.sentCountTimer) return;
+
+    this.__loadSentCount(campaignId);
+    this.sentCountTimer = setInterval(
+      () => this.__loadSentCount(campaignId),
+      GenerateDripCampaignComponent.SENT_COUNT_POLL_MS,
+    );
+  }
+
+  private __stopSentCountPolling() {
+    if (this.sentCountTimer) {
+      clearInterval(this.sentCountTimer);
+      this.sentCountTimer = null;
+    }
+  }
+
+  private async __loadSentCount(campaignId: number) {
+    try {
+      const analytics = await this.dashboardService.getCampaignAnalytics(
+        campaignId,
+        GenerateDripCampaignComponent.SENT_COUNT_WINDOW_DAYS,
+        1,
+      );
+      // The user may have moved to another campaign while this was in flight.
+      if (this.sentCountCampaignId !== campaignId) return;
+      this.sentCount = analytics?.totals?.sent ?? null;
+      this.__syncCampaignLiveNotice();
+    } catch (e) {
+      // Leave the last known value (or unknown) — the neutral copy stays true,
+      // and a failed background check is not worth an error banner.
+      console.error('Could not load the campaign send count', e);
     }
   }
 

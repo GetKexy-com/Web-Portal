@@ -123,11 +123,28 @@ warning disappears there, so the notice has to replace it immediately or the pag
 is left with no status until a reload). Getters would re-run `JSON.parse` on a
 settings row on every change-detection pass.
 
-**The copy never claims more than is true.** Three sub-states: *finishing up*
-(card mounted but silent — see above), *queued* and *sending*, the last two split
-by `emails.some(e => e.isEmailSent)`. Claiming "emails are going out" while the
-send window is shut would be a lie, and it is shut for most of the day
-(`7:00 AM – 8:00 PM` is the common default).
+**The copy never claims more than is true.** Four sub-states: *finishing up*
+(card mounted but silent — see above), then three keyed to the real send count:
+*unknown* (neutral "emails go out … on the schedule below"), *zero* ("No emails
+have been sent yet — the first ones go out when the next send window opens") and
+*non-zero* ("going out", plus an "N emails sent so far" fact). Claiming "emails
+are going out" while the send window is shut would be a lie, and it is shut for
+most of the day (`7:00 AM – 8:00 PM` is the common default).
+
+**The send count comes from `dashboard/campaigns/:id` (`totals.sent`), NEVER from
+`campaign.emails[].isEmailSent`.** That column exists on `drip_campaign_emails` but
+nothing in KexyApi ever writes it, so it is `false` forever — the notice used to
+say "Your first emails are queued" long after they had gone out. `totals.sent` is
+the count of `prospecting_conversations` rows, which the send sweep inserts once
+per delivered email. Requested with `days = 180` (the API max) and `limit = 1`
+through `DashboardService.getCampaignAnalytics`; fetched when the notice first
+shows and re-polled every 60s (the endpoint memoises for 60s server-side) while it
+is on screen, stopped when it hides and in `ngOnDestroy`. A failed request leaves
+the count unknown, which renders the neutral copy — never "queued". The same dead
+flag still gates `drip-campaign-card`'s "already sent, can't delete" check, so that
+guard never fires either; it is not fixed here. If the extra request ever matters,
+the cheaper source is a `sentCount` on `GET drip-campaigns/:id` (one `COUNT(*)`) —
+that is a KexyApi change, so it needs its own commit/PR.
 
 ---
 
