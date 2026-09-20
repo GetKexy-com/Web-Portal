@@ -5,11 +5,11 @@ import Swal from 'sweetalert2';
 import { DripCampaignService } from 'src/app/services/drip-campaign.service';
 import { AuthService } from 'src/app/services/auth.service';
 import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
-import Gleap from 'gleap';
 import { BrandLayoutComponent } from '../../layouts/brand-layout/brand-layout.component';
 import { KexyButtonComponent } from '../../components/kexy-button/kexy-button.component';
 import { CommonModule } from '@angular/common';
 import { PageUiService } from '../../services/page-ui.service';
+import { GleapService } from '../../services/gleap.service';
 import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
@@ -55,6 +55,7 @@ export class BrandEmailAccountSettingsComponent implements OnInit {
     private _authService: AuthService,
     private modal: NgbModal,
     private pageUiService: PageUiService,
+    private gleapService: GleapService,
   ) {}
 
   async ngOnInit() {
@@ -483,7 +484,7 @@ export class BrandEmailAccountSettingsComponent implements OnInit {
   };
 
   support = () => {
-    Gleap.identify(this.userData.id.toString(), {
+    this.gleapService.identify(this.userData.id.toString(), {
       name: this.userData.first_name + ' ' + this.userData.last_name,
       email: this.userData.email,
       customData: {
@@ -491,7 +492,7 @@ export class BrandEmailAccountSettingsComponent implements OnInit {
         supplier_id: this.userData.supplier_id,
       },
     });
-    Gleap.open();
+    this.gleapService.open();
   };
 
   openVideoDialog(content) {

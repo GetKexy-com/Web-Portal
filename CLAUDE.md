@@ -2078,3 +2078,36 @@ it was deleted because editing it looks like it would take effect and does not.
 
 Work happens on feature branches (e.g. `kexy-custom-rich-editor`), not directly on
 `main`. Only commit/push when asked.
+
+## Gleap loads lazily — never import it statically
+
+`AppComponent` used to do `import Gleap from 'gleap'` and call `Gleap.initialize()` at
+**module scope**. That put ~233 kB of minified SDK — about a quarter of the initial
+bundle — in front of first paint, for a support widget most sessions never open, and it
+was what pushed the production build over its 1 MB budget.
+
+It now goes through `services/gleap.service.ts`, which reaches the package only via a
+dynamic `import()`. Initial bundle: **1.00 MB → 763 kB raw, 217 kB → 164 kB transfer.**
+
+- **Never `import ... from 'gleap'` anywhere again.** One static import anywhere in an
+  eagerly-loaded file pulls the whole SDK back into the initial chunk and silently undoes
+  this. Use `GleapService.identify()` / `.open()`.
+- The SDK type is declared **structurally** in the service (`GleapSdk`) rather than
+  imported from the package, so nothing creates a static dependency on it.
+- `load()` is memoised, because the SDK requires `initialize` to run exactly once; a
+  failed load clears the memo so a later call can retry.
+- `preload()` runs from `AppComponent.ngOnInit` on `requestIdleCallback` (2s `setTimeout`
+  fallback for Safari), so the fetch competes with nothing the user is waiting on.
+- **`PageUiService.updateGleapIcon` had to change with it.** It queries
+  `.bb-feedback-button`, a node the SDK creates, and dereferenced the result directly —
+  safe only while the SDK was initialised synchronously. It now awaits
+  `GleapService.whenLoaded()` and null-guards, since a slow, blocked or failed widget must
+  not throw.
+- Every service method swallows its own errors: an unreachable support widget must never
+  break the page it sits on.
+
+**Budgets** (`angular.json`, production): initial `maximumWarning: 800kB`,
+`maximumError: 1MB`. The error threshold is the original one — it was briefly raised to
+1.5 MB to unblock CI and lowered again once this change made it comfortable. The next
+candidate if it ever gets tight is **sweetalert2** (165 kB of source in the initial
+chunk), but it is imported in 44 files and needs a dialog-service wrapper first.

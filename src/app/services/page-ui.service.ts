@@ -1,5 +1,7 @@
 import { Injectable } from "@angular/core";
 import { Router } from "@angular/router";
+
+import { GleapService } from './gleap.service';
 import { ProspectContact } from "../models/ProspectContact";
 import { AbstractControl, ValidatorFn } from "@angular/forms";
 import Swal, { SweetAlertIcon } from 'sweetalert2';
@@ -12,7 +14,10 @@ export class PageUiService {
   private selectedProspectingConv: ProspectContact;
   private prospectingSalesLeadCurrentStep: number = 1;
 
-  constructor(private router: Router) {
+  constructor(
+    private router: Router,
+    private gleap: GleapService,
+  ) {
   }
 
   getCurrentPageUrl = () => {
@@ -99,10 +104,18 @@ export class PageUiService {
   // }
 
   public updateGleapIcon(shouldShow) {
-    setTimeout(() => {
-      const supportDiv = <HTMLElement>document.querySelector(".bb-feedback-button");
-      supportDiv.style.display = shouldShow ? "block" : "none";
-    }, 1000);
+    // `.bb-feedback-button` is created by the Gleap SDK, which no longer loads at
+    // bootstrap — so wait for it before looking, and tolerate it being missing. This used
+    // to dereference the query result directly, which was safe only because the SDK was
+    // initialised synchronously at module scope; with a lazy load it would throw whenever
+    // the widget was slow, blocked or unreachable.
+    this.gleap.whenLoaded().then(() => {
+      setTimeout(() => {
+        const supportDiv = document.querySelector<HTMLElement>(".bb-feedback-button");
+        if (!supportDiv) return;
+        supportDiv.style.display = shouldShow ? "block" : "none";
+      }, 1000);
+    });
   }
 
   public validateUrl(value: string): boolean {

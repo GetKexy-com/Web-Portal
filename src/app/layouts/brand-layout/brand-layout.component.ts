@@ -15,8 +15,8 @@ import {
   PROSPECTING,
   routeConstants,
 } from "../../helpers/routeConstants";
-import Gleap from "gleap";
 import { PageUiService } from "../../services/page-ui.service";
+import { GleapService } from '../../services/gleap.service';
 import { ProspectingService } from "../../services/prospecting.service";
 import { dripCampaignInitialModalData } from "../../helpers/demoData";
 import {
@@ -144,6 +144,7 @@ export class BrandLayoutComponent implements OnInit {
     private route: ActivatedRoute,
     private modal: NgbModal,
     private pageUiService: PageUiService,
+    private gleapService: GleapService,
     private prospectingService: ProspectingService,
   ) {
     this.userTokenSubject = new BehaviorSubject(JSON.parse(localStorage.getItem("userToken")));
@@ -322,7 +323,10 @@ export class BrandLayoutComponent implements OnInit {
 
   support = () => {
     this.userToken.subscribe(user => {
-      Gleap.identify(user.id.toString(), {
+      // Both calls go through GleapService, which loads the SDK on first use — by this
+      // point the idle preload has almost always finished, and if it has not, opening
+      // support is exactly the moment worth waiting for it.
+      this.gleapService.identify(user.id.toString(), {
         name: user.firstName + " " + user.lastName,
         email: user.email,
         customData: {
@@ -330,7 +334,7 @@ export class BrandLayoutComponent implements OnInit {
           supplier_id: user.supplier_id,
         },
       });
-      Gleap.open();
+      this.gleapService.open();
     });
   };
 

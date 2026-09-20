@@ -1,10 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import Gleap from 'gleap';
-import { environment } from "../environments/environment";
 
-// Please make sure to call this method only once!
-Gleap.initialize(environment.GLEAP_KEY);
+import { GleapService } from './services/gleap.service';
 
 @Component({
   selector: 'app-root',
@@ -12,6 +9,15 @@ Gleap.initialize(environment.GLEAP_KEY);
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
   title = 'KEXY - Webportal';
+
+  constructor(private readonly gleap: GleapService) {}
+
+  ngOnInit(): void {
+    // Gleap used to be imported and initialised at module scope here, which put the whole
+    // SDK in the initial bundle and ran it before first paint. It now loads itself once
+    // the browser is idle; `GleapService` guarantees `initialize` still happens only once.
+    this.gleap.preload();
+  }
 }
