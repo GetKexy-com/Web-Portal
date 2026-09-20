@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, Directive, ElementRef, Input, OnDestroy, OnInit } from '@angular/core';
 
 import {
+  IAiPausedState,
   EmailSendFilter,
   EmailSendStatus,
   IEmailSendDetail,
@@ -61,6 +62,32 @@ const STATUS_META: Record<EmailSendStatus, IStatusMeta> = {
   failed: { label: 'Failed', tone: 'bad', busy: false },
   skipped: { label: 'Skipped', tone: 'mute', busy: false },
 };
+
+/** Plain-language name for each failure/skip code; the code itself is still shown beside it. */
+const ERROR_TITLES: Record<string, string> = {
+  ai_api_error: 'AI generation failed',
+  empty_email_content: 'The AI returned no email',
+  contact_not_found: 'Contact not found',
+  smtp_error: 'Sending failed (SMTP)',
+  conversation_create_error: 'Could not record the send',
+  unexpected_error: 'Unexpected error',
+  interrupted: 'Interrupted',
+  suppressed: 'On the suppression list',
+  unsubscribed: 'Unsubscribed',
+};
+
+/**
+ * Failures the sweep retries on its own, up to the queue row's attempt limit. Anything
+ * else is NOT retried by attempts: a missing contact's queue row is deleted outright, and
+ * an SMTP failure pauses the whole campaign (see `retryNote`).
+ */
+const RETRIED_BY_ATTEMPTS = new Set([
+  'ai_api_error',
+  'empty_email_content',
+  'conversation_create_error',
+  'unexpected_error',
+  'interrupted',
+]);
 
 interface ITimelineStep {
   label: string;
@@ -127,6 +154,7 @@ export class EmailSendProgressComponent implements OnInit, OnDestroy {
   readonly pageSize = PAGE_SIZE;
 
   summary: IEmailSendSummary | null = null;
+  aiPaused: IAiPausedState | null = null;
   items: IEmailSendItem[] = [];
   total = 0;
   page = 1;
@@ -178,6 +206,31 @@ export class EmailSendProgressComponent implements OnInit, OnDestroy {
     item.logId ? `log:${item.logId}` : item.conversationId ? `conv:${item.conversationId}` : `email:${item.email}`;
 
   trackByKey = (_: number, item: IEmailSendItem): string => this.rowKey(item);
+
+  /**
+   * Whether a failed prospect will be tried again, so "Failed" never leaves you guessing.
+   * Null when there is nothing useful to say (it will not retry, and the error says why).
+   */
+  retryNote = (item: IEmailSendItem, maxAttempts: number): string | null => {
+    if (item.status !== 'failed') return null;
+    if (item.errorCode === 'smtp_error') return 'retries once the campaign is resumed';
+    if (!RETRIED_BY_ATTEMPTS.has(item.errorCode ?? '')) return null;
+    return item.attempt < maxAttempts
+      ? `will retry · attempt ${item.attempt}/${maxAttempts}`
+      : `gave up after ${maxAttempts} attempts`;
+  };
+
+  /** What went wrong, in words, for an expanded row. The raw text follows it verbatim. */
+  errorTitle = (d: IEmailSendDetail): string =>
+    ERROR_TITLES[d.errorCode ?? ''] ?? (d.status === 'skipped' ? 'Skipped' : 'Failed');
+
+  /**
+   * The AI card shows its raw response when there is no usable email to render — that is
+   * the failure case, and the raw text IS the explanation. Otherwise the Email/Raw switch
+   * decides.
+   */
+  showRaw = (key: string, d: IEmailSendDetail): boolean =>
+    !!d.ai.raw && (!d.ai.formatted || !!this.rawView[key]);
 
   /** A queued or scheduled prospect has nothing to show yet, so its row does not open. */
   canExpand = (item: IEmailSendItem): boolean => item.status !== 'scheduled' && item.status !== 'queued';
@@ -259,6 +312,7 @@ export class EmailSendProgressComponent implements OnInit, OnDestroy {
       if (seq !== this.requestSeq || this.destroyed) return;
 
       this.summary = res.summary;
+      this.aiPaused = res.aiPaused ?? null;
       this.items = res.prospects.items;
       this.total = res.prospects.total;
       this.totalPages = Math.max(1, Math.ceil(res.prospects.total / PAGE_SIZE));

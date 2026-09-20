@@ -59,8 +59,21 @@ export interface IEmailSendItem {
   updatedAt: string | null;
 }
 
+/**
+ * True once the AI email service has failed too many times in a row and the send sweep
+ * has stopped itself. Nothing else explains it — every queued prospect just sits at
+ * "queued". Global, not per campaign.
+ */
+export interface IAiPausedState {
+  paused: boolean;
+  failCount: number;
+  limit: number;
+  since: string | null;
+}
+
 export interface IEmailSendProgress {
   summary: IEmailSendSummary;
+  aiPaused: IAiPausedState;
   prospects: {
     items: IEmailSendItem[];
     page: number;

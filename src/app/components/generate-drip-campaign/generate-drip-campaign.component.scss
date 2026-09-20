@@ -821,6 +821,12 @@ $settings-band: 2;
   }
 }
 
+// The sequence has run its course. Still green — the campaign is healthy and active —
+// but the pulsing dot goes, since "still running" would contradict the copy.
+.campaign-live-notice.is-complete .pill-dot {
+  animation: none;
+}
+
 @keyframes live-pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.3; }

@@ -123,13 +123,33 @@ warning disappears there, so the notice has to replace it immediately or the pag
 is left with no status until a reload). Getters would re-run `JSON.parse` on a
 settings row on every change-detection pass.
 
-**The copy never claims more than is true.** Four sub-states: *finishing up*
-(card mounted but silent — see above), then three keyed to the real send count:
+**The copy never claims more than is true.** Six sub-states: *finishing up*
+(card mounted but silent — see above), then keyed to the real send count:
 *unknown* (neutral "emails go out … on the schedule below"), *zero* ("No emails
-have been sent yet — the first ones go out when the next send window opens") and
-*non-zero* ("going out", plus an "N emails sent so far" fact). Claiming "emails
-are going out" while the send window is shut would be a lie, and it is shut for
-most of the day (`7:00 AM – 8:00 PM` is the common default).
+have been sent yet — the first ones go out when the next send window opens"),
+*non-zero* ("going out", plus an "N emails sent so far" fact), and two **end states**:
+
+- **Complete** — title "Emails sent to all prospects", pill "Complete", check icon, no
+  pulsing dot (`.is-complete`): the LAST email in the sequence is `sent` for **every**
+  enrolled prospect. The campaign is still ACTIVE — this changes the wording, not whether
+  the notice shows, so the copy says so ("the campaign itself is still active").
+- **Finished** — "Sequence finished" / "Finished": nothing is left to send (no scheduled,
+  queued or in-flight prospect for the last email) but not everyone got it, so "sent to
+  all" would be false. Says "reached 1 of 2 prospects — 1 failed or was skipped" and points
+  at that email's Insights.
+
+**How "complete" is decided:** `sequenceState` is the send-progress **summary of the last
+email** (`getEmailSendProgress(id, lastEmailId, { limit: 1 })`, the same endpoint as the
+Prospects section — see "Insights drawer"), fetched alongside the sent count only once
+something has been sent, on the same 60s poll. Complete = `sent === totalProspects`.
+Not `sent ≥ prospects × emails`: that breaks on the first unsubscribe or failure. Not the
+prospects' `emailSequence` either: the queue fill advances it when an email is *queued*,
+not sent. Because it is recomputed every poll, adding a prospect flips the card back to
+"Sending" (they are `scheduled` for the last email) without a reload. A failed lookup keeps
+the last state, which degrades to the plain "going out" copy — never to "complete".
+
+Claiming "emails are going out" while the send window is shut would be a lie, and it is
+shut for most of the day (`7:00 AM – 8:00 PM` is the common default).
 
 **The send count comes from `dashboard/campaigns/:id` (`totals.sent`), NEVER from
 `campaign.emails[].isEmailSent`.** That column exists on `drip_campaign_emails` but
@@ -1204,6 +1224,22 @@ CLAUDE.md, "Send log".
   **last good list** rather than blanking it. `requestSeq` drops a slow, superseded response
   so it cannot overwrite a newer one. The **"Live" badge only shows while `inFlight`** — a
   permanent badge would be a claim about data that isn't moving.
+- **A failed row always says why.** The expanded error box shows a plain-language title
+  (`ERROR_TITLES`) + the code + the API's text **verbatim in a `<pre>`** (SMTP code, command and
+  server response arrive as separate lines). It renders on `errorMessage || errorCode`, so a code
+  with no message still shows — it used to render only on a message, which hid
+  `contact_not_found` entirely.
+- **A failed AI generation shows the AI's raw response by default** (`showRaw`): no usable email
+  means the response *is* the explanation, so it is not tucked behind the Email/Raw switch, and a
+  note says it is exactly what the AI returned. The switch only appears when both exist.
+- **"Will it retry?" depends on the failure** (`retryNote`): AI / empty-content / unexpected /
+  interrupted are retried by attempts (`will retry · attempt n/max`, then `gave up after max
+  attempts`); `smtp_error` pauses the campaign, so it says `retries once the campaign is
+  resumed`; `contact_not_found` and skips say nothing because they never retry. A blanket
+  "will retry" on every failure was wrong for two of the three.
+- **Paused banner (`aiPaused`)**: red banner when the send sweep has stopped itself after repeated
+  AI failures and someone is still unsent. Without it every queued prospect just looks stuck. It
+  is global (all campaigns) and does not clear by itself — see KexyApi CLAUDE.md, "Send log".
 - **An open row re-fetches when its status changes** (`__refreshStaleDetails`), or a row
   opened while "Generating" would keep saying "waiting for the AI" after the email went out.
 - **Email bodies render in `sandbox=""` iframes** through `SrcdocDirective`, not

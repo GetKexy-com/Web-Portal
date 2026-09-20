@@ -16,11 +16,11 @@
 
         Everything shown here comes from the campaign that is already loaded, so
         the banner costs no extra request.-->
-    <div class="campaign-live-notice" *ngIf="showLiveNotice">
-      <i class="fa fa-paper-plane-o" aria-hidden="true"></i>
+    <div class="campaign-live-notice" [class.is-complete]="liveNoticeIsComplete" *ngIf="showLiveNotice">
+      <i class="fa" [ngClass]="liveNoticeIsComplete ? 'fa-check-circle-o' : 'fa-paper-plane-o'" aria-hidden="true"></i>
 
       <div class="text">
-        <p class="title">This campaign is live</p>
+        <p class="title">{{ liveNoticeTitle }}</p>
         <p class="desc">{{ liveNoticeStatus }}</p>
 
         <ul class="facts">

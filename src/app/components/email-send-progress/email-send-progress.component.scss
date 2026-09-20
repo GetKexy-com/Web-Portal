@@ -249,6 +249,17 @@ $kx-red-bg: #fdeaea;
   border-radius: 10px;
 }
 
+// Not the amber "updates paused" note: this one means emails are NOT going out.
+.sp-banner.is-error {
+  align-items: flex-start;
+  color: $kx-red;
+  background: $kx-red-bg;
+
+  i {
+    margin-top: 2px;
+  }
+}
+
 // ── Filters + search ─────────────────────────────────────────────────────────
 .sp-toolbar {
   display: flex;
@@ -558,6 +569,24 @@ $kx-red-bg: #fdeaea;
   border-radius: 10px;
   // Error text is verbatim from the SMTP/AI service and can be one unbroken token.
   overflow-wrap: anywhere;
+}
+
+.sp-error-text {
+  margin: 4px 0 0;
+  padding: 0;
+  font: 12px/1.55 ui-monospace, SFMono-Regular, Menlo, monospace;
+  color: inherit;
+  // Verbatim server text: keep its line breaks, and wrap rather than scroll sideways.
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  background: none;
+  border: none;
+}
+
+.sp-raw-note {
+  margin: 0 0 8px;
+  font-size: 11.5px;
+  color: $kx-muted;
 }
 
 .sp-code {

@@ -6,6 +6,7 @@ import { Subscription } from 'rxjs';
 import Swal from 'sweetalert2';
 import { DripCampaignService } from '../../services/drip-campaign.service';
 import { DashboardService } from '../../services/dashboard.service';
+import { IEmailSendSummary } from '../../models/EmailSendProgress';
 import { routeConstants } from '../../helpers/routeConstants';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DripEmail, EmailDelay } from '../../models/DripEmail';
@@ -592,8 +593,15 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
    * every change-detection pass, and `__readSetting` JSON-parses a settings row.
    */
   showLiveNotice = false;
+  liveNoticeTitle = 'This campaign is live';
   liveNoticeStatus = '';
   liveNoticePill = 'Sending';
+  /**
+   * The sequence has run its course (every prospect reached, or nothing left to send).
+   * Drives the calm styling — the pulsing "still running" dot would contradict the copy.
+   * The CAMPAIGN is still ACTIVE in both cases: this is about the emails, not its status.
+   */
+  liveNoticeIsComplete = false;
   liveNoticeFacts: { icon: string; label: string }[] = [];
 
   /**
@@ -609,6 +617,19 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
   private sentCount: number | null = null;
   private sentCountCampaignId: number | null = null;
   private sentCountTimer: ReturnType<typeof setInterval> | null = null;
+
+  /**
+   * Where the LAST email in the sequence stands across every enrolled prospect — the
+   * send-progress summary for that one email. Null while unknown, or while nothing has
+   * been sent (no point asking).
+   *
+   * Why the last email: prospects move through the sequence in order, so "the last
+   * email reached everyone" is the sequence being complete. It is also the only
+   * question the notice can answer honestly — `sent` totals alone can't say whether
+   * anyone is still waiting, and a count against `prospects × emails` breaks on the first
+   * unsubscribe or failure.
+   */
+  private sequenceState: IEmailSendSummary | null = null;
 
   /** The endpoint memoises for 60s server-side, so polling faster gains nothing. */
   private static readonly SENT_COUNT_POLL_MS = 60_000;
@@ -643,7 +664,7 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
 
     this.showLiveNotice = true;
 
-    // Four honest sub-states — the notice must never claim more than is true.
+    // Honest sub-states — the notice must never claim more than is true.
     //
     // 1. The card is mounted but silent: research has finished for every
     //    prospect while the CAMPAIGN row still reads PENDING/RUNNING. Nothing
@@ -655,8 +676,22 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
     // 3. Known to be zero: the send window is frequently shut (7:00 AM – 8:00 PM
     //    is the common default), so "going out" would be a lie.
     // 4. Known to be non-zero: say how many have really gone out.
+    // 5. The sequence has run its course: the last email is sent to EVERY enrolled
+    //    prospect. The campaign stays ACTIVE (it still accepts new prospects), so this
+    //    changes the wording, not whether the notice shows.
+    // 6. Nothing is left to send but not everyone got the last email (failed/skipped):
+    //    "sent to all" would be false, so say what did happen.
     const isFinalising = this.showScrapeProgress && !this.scrapeCardVisible;
     const sent = this.sentCount;
+    const seq = this.sequenceState;
+    const seqOpen = seq ? seq.scheduled + seq.queued + seq.generating + seq.generated + seq.sending : 0;
+    const allSent = !isFinalising && !!seq && seq.totalProspects > 0 && seq.sent === seq.totalProspects;
+    const finished = !isFinalising && !!seq && !allSent && seq.sent > 0 && seqOpen === 0;
+    const emailCount = campaign.details.numberOfEmails;
+    const plural = (n: number, word: string) => `${n.toLocaleString()} ${word}${n === 1 ? '' : 's'}`;
+
+    this.liveNoticeIsComplete = allSent || finished;
+    this.liveNoticeTitle = 'This campaign is live';
 
     if (isFinalising) {
       this.__stopSentCountPolling();
@@ -666,7 +701,20 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
     } else {
       this.__startSentCountPolling(campaign.id);
       this.liveNoticePill = 'Sending';
-      if (sent === null) {
+      if (allSent) {
+        this.liveNoticeTitle = 'Emails sent to all prospects';
+        this.liveNoticePill = 'Complete';
+        this.liveNoticeStatus =
+          `All ${plural(emailCount, 'email')} in the sequence have been sent to all ` +
+          `${plural(seq.totalProspects, 'prospect')}. The sequence is complete — the campaign itself is still active.`;
+      } else if (finished) {
+        this.liveNoticeTitle = 'Sequence finished';
+        this.liveNoticePill = 'Finished';
+        this.liveNoticeStatus =
+          `Every email has been processed. The last email reached ${seq.sent.toLocaleString()} of ` +
+          `${plural(seq.totalProspects, 'prospect')} — ${(seq.totalProspects - seq.sent).toLocaleString()} ` +
+          `failed or ${seq.totalProspects - seq.sent === 1 ? 'was' : 'were'} skipped. Open that email's Insights to see why.`;
+      } else if (sent === null) {
         this.liveNoticeStatus = 'Emails go out to your enrolled prospects, on the schedule below.';
       } else if (sent === 0) {
         this.liveNoticeStatus =
@@ -680,13 +728,13 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
     if (!isFinalising && sent) {
       this.liveNoticeFacts.push({
         icon: 'fa-paper-plane-o',
-        label: `${sent.toLocaleString()} email${sent === 1 ? '' : 's'} sent so far`,
+        label: `${plural(sent, 'email')} sent${this.liveNoticeIsComplete ? '' : ' so far'}`,
       });
     }
     this.liveNoticeFacts.push(
       {
         icon: 'fa-envelope-o',
-        label: `${campaign.details.numberOfEmails} email${campaign.details.numberOfEmails === 1 ? '' : 's'} in sequence`,
+        label: `${plural(emailCount, 'email')} in sequence`,
       },
       { icon: 'fa-clock-o', label: this.__sendWindowLabel() },
     );
@@ -705,6 +753,7 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
     if (this.sentCountCampaignId !== campaignId) {
       // Different campaign than the count we hold: drop it rather than show it.
       this.sentCount = null;
+      this.sequenceState = null;
       this.sentCountCampaignId = campaignId;
       this.__stopSentCountPolling();
     }
@@ -734,11 +783,41 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
       // The user may have moved to another campaign while this was in flight.
       if (this.sentCountCampaignId !== campaignId) return;
       this.sentCount = analytics?.totals?.sent ?? null;
+
+      // Only worth asking once something has gone out. A failed lookup keeps the last
+      // known state (or none), which falls back to the plain "going out" copy.
+      if (this.sentCount) {
+        const state = await this.__loadSequenceState(campaignId);
+        if (this.sentCountCampaignId !== campaignId) return;
+        this.sequenceState = state ?? this.sequenceState;
+      } else {
+        this.sequenceState = null;
+      }
       this.__syncCampaignLiveNotice();
     } catch (e) {
       // Leave the last known value (or unknown) — the neutral copy stays true,
       // and a failed background check is not worth an error banner.
       console.error('Could not load the campaign send count', e);
+    }
+  }
+
+  /** The last email in the sequence (highest `emailSequence`) that has been saved. */
+  private __lastEmailId(): number | null {
+    const emails = (this.dripCampaign?.emails || []).filter((e: any) => e.id);
+    if (!emails.length) return null;
+    return emails.reduce((a: any, b: any) => (b.emailSequence > a.emailSequence ? b : a)).id;
+  }
+
+  private async __loadSequenceState(campaignId: number): Promise<IEmailSendSummary | null> {
+    const lastEmailId = this.__lastEmailId();
+    if (!lastEmailId) return null;
+    try {
+      // limit 1: only the summary counts are wanted, not the rows.
+      const res = await this.dripCampaignService.getEmailSendProgress(campaignId, lastEmailId, { limit: 1 });
+      return res.summary;
+    } catch (e) {
+      console.error('Could not load the sequence send state', e);
+      return null;
     }
   }
 
