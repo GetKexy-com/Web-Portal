@@ -729,3 +729,118 @@ $settings-band: 2;
     flex-shrink: 0;
   }
 }
+
+// Live notice — the green counterpart to .campaign-paused-warning above. Same
+// box (12px radius, tinted surface, 1px border + 3px accent edge) so an active
+// and a paused campaign put their status in exactly the same place, and the
+// page never silently drops the banner between the two.
+.campaign-live-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  border-left: 3px solid #059669;
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+
+  // Direct child only, so the fact icons below keep their own (muted) colour.
+  > i {
+    color: #059669;
+    font-size: 18px;
+    line-height: 1.4;
+  }
+
+  .text {
+    flex: 1;
+    min-width: 0;
+
+    .title {
+      margin: 0;
+      font-weight: 700;
+      font-size: 14px;
+      color: #065f46;
+    }
+
+    .desc {
+      margin: 2px 0 0;
+      font-size: 13px;
+      color: #047857;
+    }
+  }
+
+  // Facts wrap rather than scroll: the send-window label can get long on a
+  // narrow column, and a clipped schedule is worse than a second line.
+  .facts {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 14px;
+    margin: 10px 0 0;
+    padding: 0;
+  }
+
+  .fact {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #0f766e;
+
+    i {
+      font-size: 12px;
+      opacity: 0.75;
+    }
+  }
+
+  .live-pill {
+    align-self: center;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: #d1fae5;
+    font-size: 12px;
+    font-weight: 700;
+    color: #047857;
+    white-space: nowrap;
+  }
+
+  // The one moving element on the banner. A slow blink says "still running"
+  // without the banner competing with the page for attention.
+  .pill-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    animation: live-pulse 1.8s ease-in-out infinite;
+  }
+}
+
+@keyframes live-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .campaign-live-notice .pill-dot {
+    animation: none;
+  }
+}
+
+@media (max-width: 767px) {
+  .campaign-live-notice {
+    flex-wrap: wrap;
+
+    // Below the text rather than beside it — at this width, keeping it on the
+    // right squeezes the schedule line into a very narrow column.
+    .live-pill {
+      order: 3;
+      align-self: flex-start;
+    }
+  }
+}

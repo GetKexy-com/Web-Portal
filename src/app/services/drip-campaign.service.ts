@@ -72,8 +72,23 @@ export class DripCampaignService {
     }
   };
 
-  getCampaign = async (postData) => {
-    this._loading.next(true);
+  /**
+   * @param postData
+   * @param silent  Skip the shared `loading` subject. `brand-drip-campaign`
+   *   renders a full-page skeleton whenever `loading` is true, so a BACKGROUND
+   *   refresh (the scrape-progress poll) must pass `true` — otherwise every
+   *   poll blanks the whole page for the length of the request and the UI
+   *   visibly flashes. Foreground navigation still wants the skeleton.
+   */
+  getCampaign = async (postData, silent = false) => {
+    if (!silent) {
+      this._loading.next(true);
+    }
+    const setLoading = (value: boolean) => {
+      if (!silent) {
+        this._loading.next(value);
+      }
+    };
     return new Promise(async (resolve, reject) => {
       const url = `drip-campaigns/${postData.drip_campaign_id}`;
       this.httpService.get(url).subscribe({
@@ -85,15 +100,15 @@ export class DripCampaignService {
             this.setDripCampaign(dripCampaign);
             this._dripCampaignStatus.next(campaign.status);
             this.sseService.addToDripBulkEmails(dripCampaign.emails);
-            this._loading.next(false);
+            setLoading(false);
             resolve(campaign);
           } else {
-            this._loading.next(false);
+            setLoading(false);
             reject(false);
           }
         },
         error: (err) => {
-          this._loading.next(false);
+          setLoading(false);
           if (err.error) {
             reject(err.error);
           }

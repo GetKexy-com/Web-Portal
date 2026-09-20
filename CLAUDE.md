@@ -8,6 +8,129 @@ before touching anything in that folder.
 
 ---
 
+## Scrape progress card (`scrape-progress-card`)
+
+Polls `drip-campaigns/:id` + `drip-campaigns/:id/prospects` every 30s while an
+AI ("prospect insights") campaign is being scraped, and renders the two scrape
+passes. Rendered by `generate-drip-campaign` behind `*ngIf="showScrapeProgress"`.
+
+**The polling must stay invisible.** Three separate things made it flash, all
+fixed — keep them in mind before touching this:
+
+1. **`DripCampaignService.getCampaign()` drives a page-level skeleton.** It
+   pushes to the shared `loading` subject, which `brand-drip-campaign` binds to
+   `isWaitingFlag` → `.page-loading` skeleton. A 30s background poll therefore
+   blanked the whole page on every tick. `getCampaign(postData, silent = true)`
+   skips the subject; **every background/polled refresh must pass `silent`.**
+   Foreground navigation keeps the skeleton (the default is `false`, so existing
+   callers are unaffected).
+2. **`startMessageRotation()` stacked intervals.** It is called from
+   `getScrapeStatusDetails()`, which runs on every poll, and had no guard — so
+   each tick added another `setInterval` and the rotating message churned faster
+   and faster. It now returns early if an interval already exists.
+3. **The prospects subscription was created per poll.** `getDripCampaignProspects()`
+   re-subscribed to `dripCampaignProspects` every tick without unsubscribing, so
+   one response was handled N times. Subscribe ONCE in `ngOnInit`, unsubscribe in
+   `ngOnDestroy`.
+
+**The template keeps a stable DOM by design.** The old markup wrapped the status
+block in `*ngIf="… === RUNNING"`, so the card jumped whenever a scraper flipped
+between PENDING and RUNNING. Rows are now always rendered and only swap classes
+(`is-pending` / `is-running` / `is-done`, plus `is-queued` / `is-running` /
+`is-done` on the host). Only colours, widths and text nodes change between polls
+— never a layout box. The ticker has a fixed `min-height` and a single
+ellipsised line because the rotating messages vary a lot in length, and the
+percentage uses `font-variant-numeric: tabular-nums` so digits don't nudge
+neighbours.
+
+**Progress is determinate once anything has completed.** Two passes run per
+prospect (web + map), so completion is `(done web + done map) / (prospects × 2)`
+rather than the worse of the two — the bar then advances steadily instead of
+stalling while the slower pass catches up. `.sc-fill` transitions its width so a
+30s poll reads as progress, not a redraw.
+
+**Never gate the animations on `CAMPAIGN_STATUS.RUNNING`.** The campaign row is
+only RUNNING while a scrape batch is actually in flight; until the scheduler
+first picks the campaign up it stays **PENDING**, and that is exactly the stretch
+right after activation when people are watching the card. An earlier revision
+gated the pulse, the dot, the sheen and the ticker on `phase === 'running'`, and
+with `percentComplete` also at 0 the result was a completely static card. Motion
+is now keyed to `:not(.is-done)`, and while `percentComplete === 0` the track
+switches to an **indeterminate** sweep (`.sc-track.is-indeterminate`, label reads
+"Starting…") so it never renders a zero-width bar. Note `.sc-fill` needs
+`position: relative` or the sheen resolves against the track and spans its full
+width regardless of progress. Animations are disabled under
+`prefers-reduced-motion` (the indeterminate fill then shows solid at reduced
+opacity); state stays legible via colour and the step list.
+
+**Visibility is derived from the CAMPAIGN, not from "did the user just click
+Activate".** `showScrapeProgress` used to be set in exactly one place — the
+activate handler — so reloading the page or navigating back mid-scrape showed
+nothing at all while the scrape was very much still running.
+`__syncScrapeProgressVisibility()` in `generate-drip-campaign` now recomputes it
+from the loaded campaign (AI campaign + ACTIVE + either scrape not SUCCEEDED) and
+runs both on load and after every refresh. Keep any new call site that replaces
+`this.dripCampaign` calling it, or the bug comes straight back.
+
+---
+
+## Campaign status banners (`generate-drip-campaign`)
+
+Three mutually exclusive things can sit at the top of the campaign page, in this
+order, so an activated campaign is **never silent about what it is doing**:
+
+| Banner | Shown when | Nature |
+|---|---|---|
+| `app-scrape-progress-card` | ACTIVE, not a `template` campaign, either scrape not SUCCEEDED | live, polls |
+| `.campaign-live-notice` | ACTIVE and the card is not on screen | informational |
+| `.campaign-paused-warning` | PAUSE | actionable (Resume) |
+
+**The live notice is gated on the card's OWN report, not on the campaign's scrape
+statuses.** `showScrapeProgress` only says the card is MOUNTED; the card decides
+whether to render from per-prospect data the parent never loads, so it can come
+up completely silent. Campaign 736 was exactly that: `status: active`,
+`web/map_scrape_status: RUNNING`, but **0 of 2 prospects still needing a scrape**
+— the card hid itself, a statuses-based gate hid the notice too, and an active
+campaign showed no banner at all. The card now reports through
+`(visibilityChange)` → `onScrapeCardVisibilityChange()`, and `scrapeProgress` has
+a single writer (`__setScrapeProgress`) so no hide/show can bypass it.
+
+That state also gets its own copy: mounted-but-silent means research finished
+while the campaign row never flipped to SUCCEEDED, and **the send sweep requires
+both statuses SUCCEEDED**, so nothing will be sent. The notice says "Finishing
+up" rather than claiming a queued send.
+
+The live notice picks up exactly where the scrape card leaves off: the card
+unmounts when research completes, and before this the page went completely quiet
+at the moment the campaign started doing the thing it was activated for. Only `template`
+campaigns skip scraping (the backend marks both statuses SUCCEEDED at activation
+and both scrapers return early on it), so they go straight to the live notice —
+**`spintax` campaigns are scraped too**, which is why the card's gate is "not
+template" rather than "is prospect_insights"; the narrower gate left a scraping
+spintax campaign with no feedback at all.
+
+**It costs no extra request.** Everything on it comes from the already-loaded
+campaign: the email count, `run_time` for the send window, `turn_off_time` for an
+optional stop date. `run_time` rows store DISPLAY strings
+(`{ type, day: 'Mon - Fri', from: '7:00 AM', to: '8:00 PM' }`, with `from`/`to`
+null unless `type` is `specific_time`), so no lookup table is needed — see
+`onDaySelect` in `email-time-settings-content`.
+
+**State is computed on refresh, not in getters.** `__syncCampaignLiveNotice()`
+fills `showLiveNotice` / `liveNoticeStatus` / `liveNoticeFacts` alongside
+`__syncScrapeProgressVisibility()`, plus after `resumeDripCampaign()` (the paused
+warning disappears there, so the notice has to replace it immediately or the page
+is left with no status until a reload). Getters would re-run `JSON.parse` on a
+settings row on every change-detection pass.
+
+**The copy never claims more than is true.** Three sub-states: *finishing up*
+(card mounted but silent — see above), *queued* and *sending*, the last two split
+by `emails.some(e => e.isEmailSent)`. Claiming "emails are going out" while the
+send window is shut would be a lie, and it is shut for most of the day
+(`7:00 AM – 8:00 PM` is the common default).
+
+---
+
 ## Drip campaign email delays
 
 A drip campaign is an ordered list of `DripEmail`s. Each email carries a

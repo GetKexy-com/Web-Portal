@@ -1,171 +1,434 @@
-.scraper-notification-card {
+/* Scrape progress card.
+   Palette follows the "modern redesign" slate/blue set used by the table cards
+   and the sibling .campaign-paused-warning (12px radius, tinted surface, 1px
+   border + accent edge), so this reads as part of the same page rather than a
+   separate widget.
+
+   Everything that changes between polls is a COLOUR, a WIDTH or a TEXT node —
+   never a layout-affecting box — so a refresh can't make the card jump. */
+
+.scrape-card {
+  --sc-accent: #2563eb;
+  --sc-accent-soft: #dbeafe;
+  --sc-border: #e2e8f0;
+  --sc-text: #0f172a;
+  --sc-muted: #64748b;
+
+  position: relative;
+  margin: 0 0 16px;
+  padding: 18px 20px;
   background: #ffffff;
-  padding: 12px 30px 20px 30px;
-  margin: 0 24px;
-  border-radius: 10px;
-  border: 1px solid #e5e7eb;
-  box-shadow: 0 4px 20px rgba(59, 130, 246, 0.08);
-  text-align: left;
+  border: 1px solid var(--sc-border);
+  border-left: 3px solid var(--sc-accent);
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 24px rgba(37, 99, 235, 0.06);
 
-  .title {
-    font-size: 20px;
-    font-weight: 600;
-    margin-bottom: 6px;
-    color: #1e3a8a; /* deep blue */
+  /* Queued reads calmer than running: the card shouldn't look busy when nothing
+     is happening yet. */
+  &.is-queued {
+    --sc-accent: #64748b;
+    --sc-accent-soft: #e2e8f0;
   }
 
-  .subtitle {
-    font-size: 14px;
-    color: #64748b;
-    margin-bottom: 20px;
+  &.is-done {
+    --sc-accent: #059669;
+    --sc-accent-soft: #d1fae5;
+  }
+}
+
+/* ── Head ─────────────────────────────────────────────────────────────── */
+
+.sc-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.sc-orb {
+  position: relative;
+  flex: 0 0 auto;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--sc-accent-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sc-orb-lens {
+  font-size: 17px;
+  line-height: 1;
+}
+
+/* Hidden by default; the rule below animates it while work is outstanding. */
+.sc-orb-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid var(--sc-accent);
+  opacity: 0;
+}
+
+/* Motion is keyed to "not finished", NOT to the RUNNING status. The campaign row
+   only reads RUNNING while a batch is actually in flight; before the scheduler
+   first picks the campaign up it sits at PENDING, which is precisely the stretch
+   right after activation. Gating the animations on RUNNING left the card looking
+   frozen exactly when users are watching it hardest. */
+.scrape-card:not(.is-done) .sc-orb-ring {
+  animation: sc-pulse 2s ease-out infinite;
+}
+
+.sc-headings {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.sc-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--sc-text);
+  line-height: 1.3;
+}
+
+.sc-subtitle {
+  margin: 2px 0 0;
+  font-size: 13px;
+  color: var(--sc-muted);
+  line-height: 1.4;
+}
+
+.sc-pill {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--sc-accent-soft);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--sc-accent);
+  white-space: nowrap;
+}
+
+.sc-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.scrape-card:not(.is-done) .sc-dot {
+  animation: sc-blink 1.4s ease-in-out infinite;
+}
+
+/* ── Progress ─────────────────────────────────────────────────────────── */
+
+.sc-progress {
+  margin-top: 16px;
+}
+
+.sc-progress-meta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+  font-size: 13px;
+  color: var(--sc-muted);
+
+  strong {
+    color: var(--sc-text);
+    font-weight: 700;
+  }
+}
+
+.sc-pct {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--sc-accent);
+  /* Tabular figures stop the percentage from nudging its neighbours as digits
+     change width between polls. */
+  font-variant-numeric: tabular-nums;
+}
+
+.sc-track {
+  position: relative;
+  height: 8px;
+  background: #eef2f7;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.sc-fill {
+  /* `position: relative` matters: the sheen below is absolutely positioned and
+     must resolve against the FILL, not the track. Without it the highlight
+     stretched across the full track regardless of progress. */
+  position: relative;
+  height: 100%;
+  border-radius: 999px;
+  overflow: hidden;
+  background: linear-gradient(90deg, var(--sc-accent), #60a5fa);
+  /* The bar GROWS to its new value instead of snapping, which is what makes a
+     30s poll feel like progress rather than a redraw. */
+  transition: width 600ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.is-done .sc-fill {
+  background: linear-gradient(90deg, #059669, #34d399);
+}
+
+/* A moving sheen conveys "still working" without the bar having to lie about
+   where it is. Shown whenever work is outstanding. */
+.scrape-card:not(.is-done) .sc-fill::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0.45) 50%,
+      rgba(255, 255, 255, 0) 100%
+  );
+  animation: sc-sheen 1.8s ease-in-out infinite;
+}
+
+/* ── Indeterminate mode ───────────────────────────────────────────────────
+   Nothing has completed yet, so there is no honest percentage to draw. The
+   fill spans the track at low opacity and a segment sweeps across it — the
+   same reassurance the old indeterminate bar gave, without pretending to be
+   at a position it hasn't reached. */
+.sc-track.is-indeterminate {
+  .sc-fill {
+    opacity: 0.25;
+    /* Width is driven to 100% from the template; don't animate that jump. */
+    transition: none;
   }
 
-  .progress-container {
-    position: relative;
-    width: 100%;
-    height: 8px;
-    background: #e2e8f0;
-    border-radius: 999px;
-    overflow: hidden;
-  }
-
-  .progress-bar {
-    position: absolute;
-    height: 100%;
-    width: 40%;
-    background: linear-gradient(90deg, #3b82f6, #60a5fa);
-    border-radius: 999px;
-    animation: loading 1.4s infinite ease-in-out;
-  }
-
-  /* Title layout */
-  .title {
-    font-size: 20px;
-    font-weight: 600;
-    margin-bottom: 10px;
-    color: #1e40af;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-  }
-
-  /* Circle container */
-  .icon-circle {
-    width: 38px;
-    height: 38px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #dbeafe, #eff6ff);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-  }
-
-  /* Soft pulse ring */
-  .icon-circle::before {
-    content: "";
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    border: 2px solid #93c5fd;
-    animation: pulse 1.8s infinite;
-    opacity: 0.6;
-  }
-
-
-  .title {
-    font-size: 20px;
-    font-weight: 600;
-    margin-bottom: 10px;
-    color: #1e40af;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 5px;
-  }
-
-  /* Outer circle */
-  .icon-orbit {
-    width: 42px;
-    height: 42px;
-    border-radius: 50%;
-    //background: linear-gradient(135deg, #dbeafe, #eff6ff);
-    position: relative;
-  }
-
-  /* Orbiting icon */
-  .lens {
-    position: absolute;
-    top: 20%;
-    left: 30%;
-    transform-origin: -8px center;
-    animation: orbit 2.5s linear infinite;
-    font-size: 20px;
-  }
-
-  /* Circular orbit animation */
-  @keyframes orbit {
-    0% {
-      transform: rotate(0deg) translateX(8px) rotate(0deg);
-    }
-    100% {
-      transform: rotate(360deg) translateX(8px) rotate(-360deg);
-    }
-  }
-
-  @keyframes loading {
-    0% {
-      left: -40%;
-    }
-    50% {
-      left: 100%;
-    }
-    100% {
-      left: 100%;
-    }
-  }
-
-  .status {
-    margin-top: 16px;
-    font-size: 14px;
-    color: #475569;
-  }
-
-  .dots::after {
+  &::after {
     content: '';
-    animation: dots 1.5s infinite;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 40%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--sc-accent), #60a5fa);
+    animation: sc-indeterminate 1.6s ease-in-out infinite;
+  }
+}
+
+.sc-eta {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: var(--sc-muted);
+  line-height: 1.5;
+
+  strong {
+    color: var(--sc-text);
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* ── Steps ────────────────────────────────────────────────────────────── */
+
+.sc-steps {
+  list-style: none;
+  margin: 16px 0 0;
+  padding: 12px 0 0;
+  border-top: 1px solid var(--sc-border);
+  display: grid;
+  gap: 8px;
+}
+
+.sc-step {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sc-step-mark {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid #cbd5e1;
+  background: #ffffff;
+  position: relative;
+}
+
+.sc-step.is-running .sc-step-mark {
+  border-color: #2563eb;
+  animation: sc-blink 1.4s ease-in-out infinite;
+}
+
+.sc-step.is-done .sc-step-mark {
+  border-color: #059669;
+  background: #059669;
+
+  /* Checkmark drawn in CSS to avoid an icon swap (and a reflow) on completion. */
+  &::after {
+    content: '';
+    position: absolute;
+    left: 3px;
+    top: 0.5px;
+    width: 4px;
+    height: 7px;
+    border: solid #ffffff;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+  }
+}
+
+.sc-step-body {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.sc-step-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--sc-text);
+  line-height: 1.3;
+}
+
+.sc-step-note {
+  font-size: 12px;
+  color: var(--sc-muted);
+  line-height: 1.4;
+}
+
+.sc-step-state {
+  flex: 0 0 auto;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--sc-muted);
+}
+
+.sc-step.is-running .sc-step-state {
+  color: #2563eb;
+}
+
+.sc-step.is-done .sc-step-state {
+  color: #059669;
+}
+
+/* ── Ticker ───────────────────────────────────────────────────────────── */
+
+.sc-ticker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+  padding: 10px 12px;
+  background: #f8fafc;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #475569;
+
+  /* Fixed height: the rotating message varies a lot in length, and without this
+     a longer line wrapped and pushed the card taller mid-poll. */
+  min-height: 40px;
+
+  &.is-idle {
+    opacity: 0.55;
+  }
+}
+
+.sc-ticker-icon {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+}
+
+.sc-ticker-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  /* One line only — see min-height note above. */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sc-dots::after {
+  content: '';
+  animation: sc-dots 1.5s steps(1, end) infinite;
+}
+
+.is-idle .sc-dots::after {
+  content: '';
+  animation: none;
+}
+
+/* ── Animations ───────────────────────────────────────────────────────── */
+
+@keyframes sc-pulse {
+  0% { transform: scale(1); opacity: 0.7; }
+  100% { transform: scale(1.45); opacity: 0; }
+}
+
+@keyframes sc-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+@keyframes sc-sheen {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+@keyframes sc-indeterminate {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(250%); }
+}
+
+@keyframes sc-dots {
+  0% { content: ''; }
+  25% { content: '.'; }
+  50% { content: '..'; }
+  75% { content: '...'; }
+  100% { content: ''; }
+}
+
+/* Respect users who ask for less motion: the card still communicates state
+   through colour and the step list. */
+@media (prefers-reduced-motion: reduce) {
+  .sc-orb-ring,
+  .sc-dot,
+  .sc-step-mark,
+  .sc-fill::after,
+  .sc-track.is-indeterminate::after,
+  .sc-dots::after {
+    animation: none !important;
   }
 
-  @keyframes dots {
-    0% {
-      content: '';
-    }
-    33% {
-      content: '.';
-    }
-    66% {
-      content: '..';
-    }
-    100% {
-      content: '...';
-    }
+  /* With the sweep disabled, the indeterminate bar would read as empty, so show
+     it as a solid (if unmeasured) fill instead. */
+  .sc-track.is-indeterminate .sc-fill {
+    opacity: 0.5;
   }
 
-  .steps {
-    margin-top: 22px;
-    text-align: left;
-    font-size: 13px;
-    color: #64748b;
+  .sc-fill {
+    transition: none;
+  }
+}
+
+@media (max-width: 767px) {
+  .scrape-card {
+    margin: 0 12px 12px;
+    padding: 16px;
   }
 
-  .step {
-    margin-bottom: 6px;
+  .sc-head {
+    flex-wrap: wrap;
   }
 
-  .step.active {
-    color: #2563eb; /* primary blue */
-    font-weight: 500;
+  .sc-pill {
+    order: 3;
   }
 }

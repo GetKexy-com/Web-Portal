@@ -1,29 +1,94 @@
-<div class="scraper-notification-card" *ngIf="scrapeProgress">
-  <div class="title">
-          <span class="icon-orbit">
-            <span class="lens">🔎</span>
-          </span>
-    {{ scrapeProgressDetails.title }}
-  </div>
-  <div class="subtitle">{{ scrapeProgressDetails.subTitle }}</div>
+<!--The DOM shape here is deliberately STABLE across polls: every 30s refresh
+    rewrites text and widths, but never adds or removes a structural block. The
+    old markup wrapped the whole status area in an *ngIf on RUNNING, so each
+    time a scraper flipped between PENDING and RUNNING the block unmounted and
+    the card visibly jumped. Rows are always rendered and just change class.-->
+<div class="scrape-card" *ngIf="scrapeProgress" [ngClass]="'is-' + phase">
 
-  <div class="progress-container">
-    <div class="progress-bar"></div>
-  </div>
+  <div class="sc-head">
+    <span class="sc-orb" aria-hidden="true">
+      <span class="sc-orb-ring"></span>
+      <span class="sc-orb-lens">🔎</span>
+    </span>
 
-  <div class="status">
-    <div
-      *ngIf="
-        dripCampaign.webScrapeStatus === CAMPAIGN_STATUS.RUNNING ||
-        dripCampaign.mapScrapeStatus === CAMPAIGN_STATUS.RUNNING"
-    >
-      <div>
-        <p class="m-0">Prospect(s) remaining: {{scrapeRemainProspects}} of {{totalProspects}}</p>
-        <p>Estimated time remaining: <strong>{{scrapeRemainProspects * 2}}</strong> minute(s)</p>
-      </div>
-      <img [src]="scrapeProgressDetails.icon" alt="" />
-      {{ scrapeProgressDetails.webText }}<span
-      class="dots"></span>
+    <div class="sc-headings">
+      <p class="sc-title">{{ scrapeProgressDetails.title }}</p>
+      <p class="sc-subtitle">{{ scrapeProgressDetails.subTitle }}</p>
     </div>
+
+    <span class="sc-pill">
+      <span class="sc-dot" aria-hidden="true"></span>
+      <span class="sc-pill-text">
+        {{ phase === 'running' ? 'In progress' : phase === 'queued' ? 'Queued' : 'Complete' }}
+      </span>
+    </span>
+  </div>
+
+  <!--Determinate: we know how many passes are done, so show real progress
+      instead of an indeterminate bar that implies nothing is measurable.-->
+  <div class="sc-progress">
+    <div class="sc-progress-meta">
+      <span class="sc-count">
+        <strong>{{ totalProspects - scrapeRemainProspects }}</strong> of
+        <strong>{{ totalProspects }}</strong> prospects researched
+      </span>
+      <span class="sc-pct">{{ isIndeterminate ? 'Starting…' : percentComplete + '%' }}</span>
+    </div>
+
+    <!--Two modes on ONE element so the bar never remounts: while nothing has
+        completed yet it sweeps (indeterminate), and as soon as the first pass
+        lands it becomes a real percentage.-->
+    <div
+      class="sc-track"
+      [class.is-indeterminate]="isIndeterminate"
+      role="progressbar"
+      [attr.aria-valuenow]="isIndeterminate ? null : percentComplete"
+      aria-valuemin="0"
+      aria-valuemax="100"
+      [attr.aria-label]="scrapeProgressDetails.title"
+    >
+      <div class="sc-fill" [style.width.%]="isIndeterminate ? 100 : percentComplete"></div>
+    </div>
+
+    <p class="sc-eta" *ngIf="phase !== 'done'">
+      About <strong>{{ estimatedMinutes }}</strong> minute{{ estimatedMinutes === 1 ? '' : 's' }}
+      remaining — this runs in the background, so you can safely leave this page.
+    </p>
+  </div>
+
+  <!--The two passes are separate backend jobs with separate statuses. Showing
+      them separately explains WHY the card can sit at "queued" while one has
+      already finished.-->
+  <ul class="sc-steps">
+    <li class="sc-step" [ngClass]="'is-' + webStep">
+      <span class="sc-step-mark" aria-hidden="true"></span>
+      <span class="sc-step-body">
+        <span class="sc-step-name">Company &amp; website research</span>
+        <span class="sc-step-note">News, growth signals, and site content</span>
+      </span>
+      <span class="sc-step-state">
+        {{ webStep === 'done' ? 'Done' : webStep === 'running' ? 'Running' : 'Queued' }}
+      </span>
+    </li>
+
+    <li class="sc-step" [ngClass]="'is-' + mapStep">
+      <span class="sc-step-mark" aria-hidden="true"></span>
+      <span class="sc-step-body">
+        <span class="sc-step-name">Local market intelligence</span>
+        <span class="sc-step-note">Location, nearby activity, and context</span>
+      </span>
+      <span class="sc-step-state">
+        {{ mapStep === 'done' ? 'Done' : mapStep === 'running' ? 'Running' : 'Queued' }}
+      </span>
+    </li>
+  </ul>
+
+  <!--Fixed height, so swapping the rotating message never reflows the card.-->
+  <!--Idle only once finished — while queued the work is still coming, so the
+      ticker keeps running.-->
+  <div class="sc-ticker" [class.is-idle]="phase === 'done'">
+    <img class="sc-ticker-icon" [src]="scrapeProgressDetails.icon" alt="" />
+    <span class="sc-ticker-text">{{ scrapeProgressDetails.webText }}</span>
+    <span class="sc-dots" aria-hidden="true"></span>
   </div>
 </div>

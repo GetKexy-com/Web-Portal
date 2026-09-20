@@ -6,8 +6,36 @@
 
     <app-scrape-progress-card
       *ngIf="showScrapeProgress"
-      [dripCampaignId]="dripCampaignId">
+      [dripCampaignId]="dripCampaignId"
+      (visibilityChange)="onScrapeCardVisibilityChange($event)">
     </app-scrape-progress-card>
+
+    <!--Live notice. Mirrors the paused warning's shape (leading icon, text block,
+        trailing element) so the two read as the same family of banner — one
+        amber and actionable, one green and purely informational.
+
+        Everything shown here comes from the campaign that is already loaded, so
+        the banner costs no extra request.-->
+    <div class="campaign-live-notice" *ngIf="showLiveNotice">
+      <i class="fa fa-paper-plane-o" aria-hidden="true"></i>
+
+      <div class="text">
+        <p class="title">This campaign is live</p>
+        <p class="desc">{{ liveNoticeStatus }}</p>
+
+        <ul class="facts">
+          <li class="fact" *ngFor="let fact of liveNoticeFacts">
+            <i class="fa" [ngClass]="fact.icon" aria-hidden="true"></i>
+            {{ fact.label }}
+          </li>
+        </ul>
+      </div>
+
+      <span class="live-pill">
+        <span class="pill-dot" aria-hidden="true"></span>
+        {{ liveNoticePill }}
+      </span>
+    </div>
 
     <div class="campaign-paused-warning" *ngIf="dripCampaign?.status === constants.PAUSE">
       <i class="fa fa-exclamation-triangle" aria-hidden="true"></i>

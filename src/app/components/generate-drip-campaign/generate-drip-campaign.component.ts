@@ -125,6 +125,11 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
         } else {
           this.selectedEmailTemplate = this.spintaxOptions[0];
         }
+
+        // Show the scrape card on a reload/return, not just right after clicking
+        // Activate.
+        this.__syncScrapeProgressVisibility();
+        this.__syncCampaignLiveNotice();
       }
     });
 
@@ -497,7 +502,204 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
     return enrollList;
   };
 
-  showScrapeProgress = false; // 👈 trigger the card
+  showScrapeProgress = false; // 👈 mount the card
+
+  /**
+   * Whether the mounted scrape card is actually rendering anything, as reported
+   * by its `(visibilityChange)`.
+   *
+   * `showScrapeProgress` only says the card is MOUNTED. The card then decides
+   * for itself from per-prospect data, and can come up silent — every prospect
+   * scraped while the campaign row still reads PENDING, which is exactly what
+   * campaign 736 looked like. Without this report, gating the live notice on the
+   * campaign-level scrape statuses hid that too and the page showed nothing at
+   * all for an active campaign.
+   */
+  private scrapeCardVisible = false;
+
+  onScrapeCardVisibilityChange(visible: boolean) {
+    this.scrapeCardVisible = visible;
+    this.__syncCampaignLiveNotice();
+  }
+
+  /**
+   * Decide whether the scrape card belongs on screen, from the CAMPAIGN rather
+   * than from "did the user just click Activate in this tab".
+   *
+   * This used to be set in one place only — the activate handler — so a reload
+   * or a navigation back to a campaign that was still being scraped showed
+   * nothing at all, even though the scrape was very much still running and the
+   * card is the only feedback that it is.
+   *
+   * Only TEMPLATE campaigns skip scraping — the backend marks both statuses
+   * SUCCEEDED for them at activation and `start()` in both scrapers returns
+   * early on `templateOptions === 'template'`. Prospect-insights AND spintax
+   * campaigns both get scraped, so both get the card; gating on
+   * prospect-insights alone left a scraping spintax campaign with no feedback
+   * at all.
+   */
+  private __syncScrapeProgressVisibility() {
+    const campaign = this.dripCampaign;
+
+    // `DripCampaign.empty()` has id 0 / status inactive, so this also covers the
+    // window before the campaign has loaded.
+    if (!campaign?.id) {
+      this.showScrapeProgress = false;
+      return;
+    }
+
+    const templateOptions = campaign.emails?.[0]?.templateOptions;
+    if (templateOptions === constants.TEMPLATE_KEY) {
+      this.showScrapeProgress = false;
+      return;
+    }
+
+    if (campaign.status === constants.INACTIVE) {
+      this.showScrapeProgress = false;
+      return;
+    }
+
+    const scrapingDone =
+      campaign.webScrapeStatus === CAMPAIGN_STATUS.SUCCEEDED &&
+      campaign.mapScrapeStatus === CAMPAIGN_STATUS.SUCCEEDED;
+
+    // The card itself still decides what (and whether) to render from the
+    // per-prospect data; this only governs whether it is mounted at all.
+    const wasMounted = this.showScrapeProgress;
+    this.showScrapeProgress = !scrapingDone;
+
+    // A fresh mount has not reported yet. Assume it will render (it usually
+    // does) so the live notice doesn't flash underneath it for the one poll it
+    // takes the card to load its prospects.
+    if (this.showScrapeProgress !== wasMounted) {
+      this.scrapeCardVisible = this.showScrapeProgress;
+    }
+  }
+
+  /**
+   * "This campaign is live" notice.
+   *
+   * The scrape card only covers the research stage; once that finishes it
+   * unmounts and the page goes completely quiet, even though the campaign is
+   * now doing the thing the user actually activated it for. This notice covers
+   * everything after research, so an active campaign is never silent about what
+   * it is doing.
+   *
+   * Computed on refresh rather than in getters: the template renders these on
+   * every change-detection pass, and `__readSetting` JSON-parses a settings row.
+   */
+  showLiveNotice = false;
+  liveNoticeStatus = '';
+  liveNoticePill = 'Sending';
+  liveNoticeFacts: { icon: string; label: string }[] = [];
+
+  private __syncCampaignLiveNotice() {
+    const campaign = this.dripCampaign;
+
+    // Only ACTIVE — a paused campaign has its own (louder) warning, and an
+    // inactive one is still being edited.
+    if (!campaign?.id || campaign.status !== constants.ACTIVE) {
+      this.showLiveNotice = false;
+      return;
+    }
+
+    // The scrape card owns the research stage, so step aside while it is
+    // actually on screen — two "in progress" cards stacked read as noise.
+    //
+    // Deliberately keyed to the card's OWN report rather than to
+    // `webScrapeStatus`/`mapScrapeStatus`: a campaign whose prospects have all
+    // been scraped while the campaign row is still PENDING (the backend can
+    // leave it wedged there) makes the card hide itself, and a status-based gate
+    // hid this notice at the same time — an active campaign with no banner at
+    // all, which is the bug this replaced.
+    if (this.showScrapeProgress && this.scrapeCardVisible) {
+      this.showLiveNotice = false;
+      return;
+    }
+
+    this.showLiveNotice = true;
+
+    // Three honest sub-states — the notice must never claim more than is true.
+    //
+    // 1. The card is mounted but silent: research has finished for every
+    //    prospect while the CAMPAIGN row still reads PENDING/RUNNING. Nothing
+    //    will be sent until the backend marks the campaign complete (the send
+    //    sweep requires both statuses SUCCEEDED), so promising a queued send
+    //    here would be flatly wrong.
+    // 2. Nothing sent yet: the send window is frequently shut (7:00 AM – 8:00 PM
+    //    is the common default), so "going out" would be a lie.
+    // 3. Something has been sent.
+    const isFinalising = this.showScrapeProgress && !this.scrapeCardVisible;
+    const hasSent = (campaign.emails || []).some((e: any) => e.isEmailSent);
+
+    if (isFinalising) {
+      this.liveNoticePill = 'Finishing up';
+      this.liveNoticeStatus =
+        'Research has finished for every prospect. Sending starts once the campaign is marked complete.';
+    } else {
+      this.liveNoticePill = 'Sending';
+      this.liveNoticeStatus = hasSent
+        ? 'Emails are going out to your enrolled prospects, on the schedule below.'
+        : 'Your first emails are queued — they go out in the next send window.';
+    }
+
+    this.liveNoticeFacts = [
+      {
+        icon: 'fa-envelope-o',
+        label: `${campaign.details.numberOfEmails} email${campaign.details.numberOfEmails === 1 ? '' : 's'} in sequence`,
+      },
+      { icon: 'fa-clock-o', label: this.__sendWindowLabel() },
+    ];
+
+    const endsOn = this.__readSetting('turn_off_time')[0]?.day;
+    if (endsOn) {
+      this.liveNoticeFacts.push({ icon: 'fa-calendar-o', label: `Stops ${endsOn}` });
+    }
+  }
+
+  /**
+   * The saved send window, e.g. "Mon - Fri, 9:00 AM – 5:00 PM".
+   *
+   * `run_time` holds one row per window as `{ type, day, from, to }`, with the
+   * DISPLAY strings already in `day`/`from`/`to` (see `onDaySelect` in
+   * email-time-settings-content), so nothing here needs a lookup table.
+   * `from`/`to` are null unless the type is `specific_time`.
+   */
+  private __sendWindowLabel(): string {
+    const rows = this.__readSetting('run_time');
+    if (!rows.length) return 'Sending any time';
+
+    const [first] = rows;
+    const day = first?.day || constants.EVERYDAY;
+    const window = first?.from && first?.to ? `${first.from} – ${first.to}` : 'any time';
+    const more = rows.length > 1 ? ` (+${rows.length - 1} more)` : '';
+    return `${day}, ${window}${more}`;
+  }
+
+  /**
+   * One `drip_campaign_settings` row's value as an array.
+   *
+   * Defensive about the string form for the same reason `__getSelectedSmtpId` is:
+   * the backend stores `settingsValue` as a JSON string and not every path
+   * through the app hands it over already parsed.
+   */
+  private __readSetting(settingsType: string): any[] {
+    const setting = (this.dripCampaign?.settings || []).find(
+      (s: any) => s?.settingsType === settingsType,
+    );
+    if (!setting) return [];
+
+    let value = setting.settingsValue;
+    if (typeof value === 'string') {
+      try {
+        value = JSON.parse(value);
+      } catch {
+        return [];
+      }
+    }
+    return Array.isArray(value) ? value : [];
+  }
+
   handleClickNextButton = async () => {
     if (!this.emails.length) {
       await Swal.fire({
@@ -544,9 +746,6 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
       });
 
       await this.__refreshDripCampaign();
-      if (this.selectedEmailTemplate.key === constants.PROSPECT_INSIGHTS_KEY) {
-        this.showScrapeProgress = true;
-      }
     }
   };
 
@@ -557,6 +756,11 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
     };
     await this.dripCampaignService.getCampaign(postData);
     this.dripCampaign = this.dripCampaignService.getDripCampaignContentPageData();
+    // Covers both directions: mount the card once a campaign is activated, and
+    // drop it once both scrapes report SUCCEEDED.
+    this.__syncScrapeProgressVisibility();
+    // Picks up where the scrape card leaves off.
+    this.__syncCampaignLiveNotice();
   };
 
 
@@ -728,6 +932,10 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
       swal.showLoading();
       await this.dripCampaignService.createOrUpdateDripCampaign(payload);
       this.dripCampaign.status = constants.ACTIVE;
+      // The paused warning goes away here, so the live notice has to take its
+      // place immediately — otherwise resuming leaves the page with no status
+      // at all until the next reload.
+      this.__syncCampaignLiveNotice();
     } catch (e) {
       Swal.fire('Error', e.message);
       console.error(e);
