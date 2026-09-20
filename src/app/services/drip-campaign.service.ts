@@ -5,6 +5,11 @@ import { CampaignService } from './campaign.service';
 import { SseService } from './sse.service';
 import { DripCampaign, IRawDripCampaign } from '../models/DripCampaign';
 import { EnrollmentTriggers, IRawEnrollmentTrigger } from '../models/EnrollmentTriggers';
+import {
+  EmailSendFilter,
+  IEmailSendDetail,
+  IEmailSendProgress,
+} from '../models/EmailSendProgress';
 
 /** A snapshot of the campaign list, with everything needed to judge its freshness. */
 export interface IDripCampaignListCacheEntry {
@@ -977,4 +982,51 @@ export class DripCampaignService {
       });
     });
   };
+
+  /**
+   * Prospect-by-prospect progress of ONE email in a campaign's sequence: who is
+   * scheduled, queued, being generated, sending, sent or failed. Polled by the Insights
+   * drawer while a send is running, so it is paginated and carries no email bodies — see
+   * `getEmailSendDetail` for those.
+   */
+  getEmailSendProgress = (
+    campaignId: number,
+    emailId: number,
+    options: { page?: number; limit?: number; status?: EmailSendFilter; search?: string } = {},
+  ): Promise<IEmailSendProgress> => {
+    const params = new URLSearchParams({
+      page: String(options.page ?? 1),
+      limit: String(options.limit ?? 25),
+    });
+    // 'all' is the absence of a filter — the API has no such value.
+    if (options.status && options.status !== 'all') params.set('status', options.status);
+    if (options.search?.trim()) params.set('search', options.search.trim());
+
+    return this.__getData(`drip-campaigns/${campaignId}/emails/${emailId}/send-progress?${params}`);
+  };
+
+  /**
+   * What the AI generated versus what was sent, for one prospect. A row from the send
+   * log is identified by its `logId`; a send from before the send log existed has none
+   * and is read from its conversation instead. Both answer with the same shape.
+   */
+  getEmailSendDetail = (
+    campaignId: number,
+    emailId: number,
+    ref: { logId: number | null; conversationId: number | null },
+  ): Promise<IEmailSendDetail> => {
+    const base = `drip-campaigns/${campaignId}/emails/${emailId}`;
+    if (ref.logId) return this.__getData(`${base}/send-logs/${ref.logId}`);
+    return this.__getData(`${base}/conversations/${ref.conversationId}/content`);
+  };
+
+  private __getData = <T>(url: string): Promise<T> =>
+    new Promise<T>((resolve, reject) => {
+      this.httpService.get(url).subscribe({
+        next: (res) => resolve(res.data),
+        // Unlike most calls in this file, never leave the promise pending: a poll that
+        // silently hangs is indistinguishable from a send that has stalled.
+        error: (err) => reject(err?.error ?? err),
+      });
+    });
 }

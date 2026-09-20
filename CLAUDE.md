@@ -1180,6 +1180,48 @@ so they are one report with a filter. `email-insights-content`,
   `contact.companyName` / `jobTitle` are carried on the API rows for that reason.
 - **The campaign Insights button is hidden until `dripCampaignId` exists** — a
   brand-new campaign has no send history to report on.
+
+### Prospects section (email scope only): live send progress
+
+`email-send-progress` (`components/email-send-progress`) sits between the rate tiles and
+"Over time" in the **per-email** drawer. It lists every enrolled prospect and where THIS
+email is for them — scheduled / queued / generating / generated / sending / sent / failed /
+skipped — and opening a row shows **what the AI generated beside what was actually sent**
+(`Hi [receiver_first_name]` vs `Hi Nick`), a stage timeline with times, and the error if it
+failed. Backed by `KexyApi`'s `send-progress` / `send-logs` endpoints — see that repo's
+CLAUDE.md, "Send log".
+
+- **It is deliberately OUTSIDE both `*ngIf="!isLoading && …"` blocks** in
+  `campaign-insights-content.component.html`. The range switch flips `isLoading` and
+  reloads the analytics; a panel inside that block would be destroyed and rebuilt, closing
+  whichever row you had open while watching a send. It has its own loading state and is
+  **not governed by the date range** (the header says "All time").
+- **Polling is state-driven** (`POLL_*`): 3s while anything is generating/generated/sending,
+  15s while only queued, none once everything has settled (a finished campaign costs one
+  request). Polls are **silent** — three load modes (`initial` shows the skeleton, `user`
+  dims the list, `poll` changes nothing visible until data differs). A hidden tab skips its
+  tick; a failed poll backs off to 15s and shows a "Live updates are paused" banner over the
+  **last good list** rather than blanking it. `requestSeq` drops a slow, superseded response
+  so it cannot overwrite a newer one. The **"Live" badge only shows while `inFlight`** — a
+  permanent badge would be a claim about data that isn't moving.
+- **An open row re-fetches when its status changes** (`__refreshStaleDetails`), or a row
+  opened while "Generating" would keep saying "waiting for the AI" after the email went out.
+- **Email bodies render in `sandbox=""` iframes** through `SrcdocDirective`, not
+  `[srcdoc]="…"`: binding it sends the string through Angular's HTML sanitiser, which strips
+  `<style>` and most of what makes an email look like an email. The directive sets the DOM
+  property directly, as the preview drawer does. The API has already removed the tracking
+  pixel and rewritten tracker/unsubscribe links, so **viewing a row cannot count as an open,
+  a click or an unsubscribe** — don't render `sent.html` anywhere without that guarantee.
+- **Sends from before the send log existed** have a `conversationId` but no `logId`; their
+  content is fetched from the conversation endpoint and looks identical. For a finished send
+  the timeline lists only stages that have times, so old sends don't show greyed-out
+  "Generating…" steps that read as never having happened.
+- Queued and scheduled rows don't expand (nothing to show). The pager is 25/page, the
+  search is debounced 300ms and matches the API's email + stored details.
+- **Verified against the real API by driving headless Chrome over CDP** (seeded a session for
+  the campaign owner, opened the drawer, then changed the log row in the DB while it stayed
+  open): Generating → Generated → Sent updated within one poll and the "Live" badge cleared.
+  A `tsc` pass does not check Angular templates — use `ng build` for that.
 - **Everything derived is a FIELD, not a getter** (`__recompute`). The chart's hover
   layer runs change detection on every mouse move.
 - The chart uses the dashboard's approach: a `0 0 100 100` viewBox so coordinates ARE

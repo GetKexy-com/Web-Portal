@@ -1,0 +1,303 @@
+<section class="sp-panel" aria-labelledby="sp-title">
+
+  <!--══════════ Header: title, live badge, refresh ══════════-->
+  <div class="sp-head">
+    <div class="sp-head-text">
+      <h3 class="sp-title" id="sp-title">Prospects</h3>
+      <span class="sp-note">All time · not affected by the date range</span>
+    </div>
+
+    <div class="sp-head-actions">
+      <!--Only lit while the sweep is actually working — a permanent "Live" would be a
+          claim about data that is not moving.-->
+      <span class="sp-live" *ngIf="isLive && !pollError" role="status">
+        <span class="sp-live-dot" aria-hidden="true"></span>Live
+      </span>
+      <button
+        type="button"
+        class="sp-icon-btn"
+        aria-label="Refresh"
+        title="Refresh"
+        [disabled]="isLoading || isBusy"
+        (click)="refresh()"
+      >
+        <i class="fa fa-refresh" [class.fa-spin]="isBusy" aria-hidden="true"></i>
+      </button>
+    </div>
+  </div>
+
+  <!--══════════ First load: layout-shaped skeleton ══════════-->
+  <ng-container *ngIf="isLoading">
+    <div class="sp-skel sp-skel-bar"></div>
+    <div class="sp-skel sp-skel-row" *ngFor="let i of [1, 2, 3]"></div>
+  </ng-container>
+
+  <div class="sp-state is-error" *ngIf="!isLoading && loadError" role="alert">
+    {{ loadError }}
+    <button type="button" class="sp-link" (click)="refresh()">Try again</button>
+  </div>
+
+  <ng-container *ngIf="!isLoading && !loadError && summary">
+
+    <!--══════════ Progress: one figure, one bar, one sentence ══════════-->
+    <div class="sp-progress">
+      <div class="sp-progress-top">
+        <span class="sp-headline">{{ headline }}</span>
+        <span class="sp-statusline" [class.is-live]="isLive">{{ statusLine }}</span>
+      </div>
+
+      <div
+        class="sp-bar"
+        role="img"
+        [attr.aria-label]="headline"
+        *ngIf="summary.totalProspects"
+      >
+        <span
+          *ngFor="let seg of segments"
+          class="sp-seg"
+          [ngClass]="'seg-' + seg.key"
+          [style.width.%]="seg.pct"
+          [title]="seg.label + ': ' + seg.count"
+        ></span>
+      </div>
+
+      <ul class="sp-legend" *ngIf="segments.length">
+        <li *ngFor="let seg of segments">
+          <span class="sp-swatch" [ngClass]="'seg-' + seg.key" aria-hidden="true"></span>
+          {{ seg.label }} <strong>{{ seg.count | number }}</strong>
+        </li>
+      </ul>
+    </div>
+
+    <!--A failed background poll must not look like "nothing is happening".-->
+    <div class="sp-banner" *ngIf="pollError" role="status">
+      <i class="fa fa-exclamation-triangle" aria-hidden="true"></i>
+      Live updates are paused — the list below may be out of date. Retrying…
+    </div>
+
+    <!--══════════ Filter + search ══════════-->
+    <div class="sp-toolbar" *ngIf="summary.totalProspects || search || filter !== 'all'">
+      <div class="sp-chips" role="group" aria-label="Filter prospects">
+        <button
+          type="button"
+          *ngFor="let c of chips"
+          class="sp-chip"
+          [class.active]="filter === c.key"
+          [attr.aria-pressed]="filter === c.key"
+          (click)="selectFilter(c.key)"
+        >{{ c.label }} <span class="sp-chip-count">{{ c.count | number }}</span></button>
+      </div>
+
+      <label class="sp-search">
+        <i class="fa fa-search" aria-hidden="true"></i>
+        <input
+          type="search"
+          placeholder="Search name, email or company"
+          aria-label="Search prospects"
+          maxlength="100"
+          [value]="search"
+          (input)="onSearch($any($event.target).value)"
+        />
+      </label>
+    </div>
+
+    <!--══════════ Table ══════════-->
+    <div class="sp-table-wrap" [class.is-busy]="isBusy" *ngIf="items.length">
+      <table class="sp-table">
+        <thead>
+          <tr>
+            <th scope="col">Prospect</th>
+            <th scope="col" class="col-status">Status</th>
+            <th scope="col" class="col-subject">Subject</th>
+            <th scope="col" class="col-when">When</th>
+            <th scope="col" class="col-toggle"><span class="sr-only">Details</span></th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <ng-container *ngFor="let item of items; trackBy: trackByKey">
+            <tr
+              class="sp-row"
+              [class.is-open]="expanded[rowKey(item)]"
+              [class.is-static]="!canExpand(item)"
+            >
+              <td>
+                <span class="sp-name" [title]="item.name || item.email">{{ item.name || item.email }}</span>
+                <span class="sp-meta" [title]="item.email">
+                  <ng-container *ngIf="item.name">{{ item.email }}</ng-container>
+                  <ng-container *ngIf="item.company"><ng-container *ngIf="item.name"> · </ng-container>{{ item.company }}</ng-container>
+                </span>
+              </td>
+
+              <td class="col-status">
+                <span class="sp-pill" [ngClass]="'tone-' + statusMeta(item.status).tone">
+                  <i class="fa fa-circle-o-notch fa-spin" *ngIf="statusMeta(item.status).busy" aria-hidden="true"></i>
+                  {{ statusMeta(item.status).label }}
+                </span>
+                <!--A failed row with attempts left will be picked up again next run.-->
+                <span
+                  class="sp-attempt"
+                  *ngIf="item.status === 'failed' && item.attempt && item.attempt < summary.maxAttempts"
+                >will retry · attempt {{ item.attempt }}/{{ summary.maxAttempts }}</span>
+              </td>
+
+              <td class="col-subject">
+                <span class="sp-subject" [title]="item.sentSubject || item.aiSubject || ''">
+                  {{ item.sentSubject || item.aiSubject || '—' }}
+                </span>
+              </td>
+
+              <td class="col-when">
+                <ng-container [ngSwitch]="item.status">
+                  <span *ngSwitchCase="'sent'" [title]="item.sentAt | date: 'medium'">{{ item.sentAt | date: 'MMM d, h:mm a' }}</span>
+                  <span *ngSwitchCase="'failed'" [title]="(item.failedAt || item.updatedAt) | date: 'medium'">{{ item.failedAt || item.updatedAt | date: 'MMM d, h:mm a' }}</span>
+                  <span *ngSwitchCase="'scheduled'" class="sp-dash">—</span>
+                  <span *ngSwitchDefault [title]="item.updatedAt | date: 'medium'">{{ item.updatedAt | date: 'MMM d, h:mm a' }}</span>
+                </ng-container>
+              </td>
+
+              <td class="col-toggle">
+                <button
+                  type="button"
+                  class="sp-toggle"
+                  *ngIf="canExpand(item)"
+                  [attr.aria-expanded]="!!expanded[rowKey(item)]"
+                  [attr.aria-label]="(expanded[rowKey(item)] ? 'Hide' : 'Show') + ' email for ' + (item.name || item.email)"
+                  (click)="toggleRow(item)"
+                >
+                  <i class="fa" [ngClass]="expanded[rowKey(item)] ? 'fa-chevron-up' : 'fa-chevron-down'" aria-hidden="true"></i>
+                </button>
+              </td>
+            </tr>
+
+            <!--══════════ Expanded: timeline, error, AI vs sent ══════════-->
+            <tr class="sp-detail-row" *ngIf="expanded[rowKey(item)]">
+              <td colspan="5">
+                <ng-container *ngIf="details[rowKey(item)] as d">
+
+                  <div class="sp-detail-state" *ngIf="d.state === 'loading'">
+                    <i class="fa fa-circle-o-notch fa-spin" aria-hidden="true"></i> Loading email…
+                  </div>
+
+                  <div class="sp-detail-state is-error" *ngIf="d.state === 'error'" role="alert">
+                    {{ d.error }}
+                    <button type="button" class="sp-link" (click)="retryDetail(item)">Try again</button>
+                  </div>
+
+                  <div class="sp-detail" *ngIf="d.state === 'ready' && d.data as data">
+
+                    <!--Where this prospect's email is in the pipeline, with times.-->
+                    <ol class="sp-steps" aria-label="Progress">
+                      <li *ngFor="let st of d.steps" [ngClass]="'step-' + st.tone">
+                        <span class="sp-step-label">{{ st.label }}</span>
+                        <span class="sp-step-time" *ngIf="st.at">{{ st.at | date: 'MMM d, h:mm:ss a' }}</span>
+                      </li>
+                    </ol>
+
+                    <div class="sp-error" *ngIf="data.errorMessage" role="alert">
+                      <strong>
+                        {{ data.status === 'skipped' ? 'Skipped' : 'Failed' }}
+                        <span class="sp-code" *ngIf="data.errorCode">{{ data.errorCode }}</span>
+                      </strong>
+                      <span>{{ data.errorMessage }}</span>
+                    </div>
+
+                    <div class="sp-compare">
+
+                      <!--What the AI wrote. Saved the moment it was generated, so it is
+                          here even if the send that followed failed.-->
+                      <div class="sp-card">
+                        <div class="sp-card-head">
+                          <h4>Generated by AI</h4>
+                          <div class="sp-mini-switch" *ngIf="data.ai.raw && data.ai.formatted" role="group" aria-label="AI view">
+                            <button type="button" [class.active]="!rawView[rowKey(item)]" (click)="setRawView(rowKey(item), false)">Email</button>
+                            <button type="button" [class.active]="!!rawView[rowKey(item)]" (click)="setRawView(rowKey(item), true)">Raw output</button>
+                          </div>
+                        </div>
+
+                        <div class="sp-subjectline" *ngIf="data.ai.subject">
+                          <span class="sp-label">Subject</span>{{ data.ai.subject }}
+                        </div>
+
+                        <pre class="sp-raw" *ngIf="rawView[rowKey(item)] && data.ai.raw">{{ data.ai.raw }}</pre>
+                        <iframe
+                          *ngIf="!rawView[rowKey(item)] && (data.ai.formatted || data.ai.raw)"
+                          class="sp-frame"
+                          sandbox=""
+                          title="Email generated by the AI"
+                          [kexySrcdoc]="data.ai.formatted || null"
+                        ></iframe>
+
+                        <div class="sp-empty" *ngIf="!data.ai.formatted && !data.ai.raw">
+                          <ng-container *ngIf="data.status === 'generating'">
+                            <i class="fa fa-circle-o-notch fa-spin" aria-hidden="true"></i> The AI is writing this email now…
+                          </ng-container>
+                          <ng-container *ngIf="data.status !== 'generating'">Nothing was generated for this prospect.</ng-container>
+                        </div>
+                      </div>
+
+                      <!--Exactly what went to the prospect: placeholders filled, links
+                          rewritten. The server strips tracking so viewing this here
+                          cannot count as an open, a click or an unsubscribe.-->
+                      <div class="sp-card">
+                        <div class="sp-card-head">
+                          <h4>Sent to prospect</h4>
+                          <span class="sp-card-note" *ngIf="data.status === 'sending'">Sending now…</span>
+                          <span class="sp-card-note" *ngIf="data.status === 'failed' && data.sent.html">Not delivered</span>
+                        </div>
+
+                        <div class="sp-subjectline" *ngIf="data.sent.subject">
+                          <span class="sp-label">Subject</span>{{ data.sent.subject }}
+                        </div>
+
+                        <iframe
+                          *ngIf="data.sent.html"
+                          class="sp-frame"
+                          sandbox=""
+                          title="Email sent to the prospect"
+                          [kexySrcdoc]="data.sent.html"
+                        ></iframe>
+
+                        <div class="sp-empty" *ngIf="!data.sent.html">
+                          <ng-container *ngIf="data.status === 'generating'">Waiting for the AI to finish.</ng-container>
+                          <ng-container *ngIf="data.status === 'generated'">Preparing to send…</ng-container>
+                          <ng-container *ngIf="data.status !== 'generating' && data.status !== 'generated'">Nothing was sent to this prospect.</ng-container>
+                        </div>
+                      </div>
+                    </div>
+
+                  </div>
+                </ng-container>
+              </td>
+            </tr>
+          </ng-container>
+        </tbody>
+      </table>
+    </div>
+
+    <!--══════════ Empty states — each says WHY the list is empty ══════════-->
+    <div class="sp-state" *ngIf="!items.length && !summary.totalProspects && !search && filter === 'all'">
+      No prospects are enrolled in this campaign yet.
+    </div>
+    <div class="sp-state" *ngIf="!items.length && (summary.totalProspects || search || filter !== 'all')">
+      No prospects match{{ search ? ' “' + search + '”' : ' this filter' }}.
+      <button type="button" class="sp-link" (click)="clearFilters()">Clear filters</button>
+    </div>
+
+    <!--══════════ Pager ══════════-->
+    <div class="sp-pager" *ngIf="totalPages > 1">
+      <span class="sp-pager-info">
+        {{ (page - 1) * pageSize + 1 }}–{{ page * pageSize < total ? page * pageSize : total }} of {{ total | number }}
+      </span>
+      <div class="sp-pager-btns">
+        <button type="button" class="sp-icon-btn" aria-label="Previous page" [disabled]="page <= 1 || isBusy" (click)="goToPage(page - 1)">
+          <i class="fa fa-chevron-left" aria-hidden="true"></i>
+        </button>
+        <span class="sp-pager-page">Page {{ page }} of {{ totalPages }}</span>
+        <button type="button" class="sp-icon-btn" aria-label="Next page" [disabled]="page >= totalPages || isBusy" (click)="goToPage(page + 1)">
+          <i class="fa fa-chevron-right" aria-hidden="true"></i>
+        </button>
+      </div>
+    </div>
+  </ng-container>
+</section>

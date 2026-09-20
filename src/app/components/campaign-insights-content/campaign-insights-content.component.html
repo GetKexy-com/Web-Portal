@@ -107,6 +107,20 @@
         <insights-statistics-card cardTitle="Click rate" [insightRate]="clickRate" />
         <insights-statistics-card cardTitle="Reply rate" [insightRate]="replyRate" />
       </div>
+    </ng-container>
+
+    <!--══════════ Prospects: live send progress for THIS email ══════════
+        Email scope only. Deliberately OUTSIDE both `*ngIf` blocks around it: the range
+        switch reloads the analytics (isLoading flips), and a section inside that block
+        would be destroyed and rebuilt — closing whichever row you had open while
+        watching a send. It has its own loading state and is not governed by the range.-->
+    <email-send-progress
+      *ngIf="isEmailScope && campaignId && emailId"
+      [campaignId]="campaignId"
+      [emailId]="emailId"
+    />
+
+    <ng-container *ngIf="!isLoading && !loadError && data">
 
       <!--══════════ Trend ══════════-->
       <div class="ins-panel">

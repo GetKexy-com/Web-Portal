@@ -11,6 +11,7 @@ import {
   ICampaignAnalyticsTrendPoint,
 } from '../../models/CampaignAnalytics';
 import { DashboardService } from '../../services/dashboard.service';
+import { EmailSendProgressComponent } from '../email-send-progress/email-send-progress.component';
 import { InsightsStatisticsCardComponent } from '../insights-statistics-card/insights-statistics-card.component';
 import { KexyButtonComponent } from '../kexy-button/kexy-button.component';
 
@@ -49,7 +50,7 @@ interface IChartPoint {
  */
 @Component({
   selector: 'campaign-insights-content',
-  imports: [CommonModule, InsightsStatisticsCardComponent, KexyButtonComponent],
+  imports: [CommonModule, EmailSendProgressComponent, InsightsStatisticsCardComponent, KexyButtonComponent],
   templateUrl: './campaign-insights-content.component.html',
   styleUrl: './campaign-insights-content.component.scss',
 })
