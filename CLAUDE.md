@@ -1206,7 +1206,7 @@ so they are one report with a filter. `email-insights-content`,
 `email-send-progress` (`components/email-send-progress`) sits between the rate tiles and
 "Over time" in the **per-email** drawer. It lists every enrolled prospect and where THIS
 email is for them — scheduled / queued / generating / generated / sending / sent / failed /
-skipped — and opening a row shows **what the AI generated beside what was actually sent**
+stopped / skipped — and opening a row shows **what the AI generated beside what was actually sent**
 (`Hi [receiver_first_name]` vs `Hi Nick`), a stage timeline with times, and the error if it
 failed. Backed by `KexyApi`'s `send-progress` / `send-logs` endpoints — see that repo's
 CLAUDE.md, "Send log".
@@ -1232,11 +1232,27 @@ CLAUDE.md, "Send log".
 - **A failed AI generation shows the AI's raw response by default** (`showRaw`): no usable email
   means the response *is* the explanation, so it is not tucked behind the Email/Raw switch, and a
   note says it is exactly what the AI returned. The switch only appears when both exist.
-- **"Will it retry?" depends on the failure** (`retryNote`): AI / empty-content / unexpected /
-  interrupted are retried by attempts (`will retry · attempt n/max`, then `gave up after max
-  attempts`); `smtp_error` pauses the campaign, so it says `retries once the campaign is
-  resumed`; `contact_not_found` and skips say nothing because they never retry. A blanket
-  "will retry" on every failure was wrong for two of the three.
+- **"Will it retry?" depends on the failure** (`retryNote`): `ai_generation_error` /
+  empty-content / unexpected / interrupted are retried by attempts (`will retry · attempt
+  n/max`, then `gave up after max attempts`); `smtp_error` pauses the campaign, so it says
+  `retries once the campaign is resumed`; `ai_api_error` is now the AI SERVICE being down,
+  which is not the prospect's fault and refunds their attempt, so it says `retries once the
+  AI service recovers`; `contact_not_found` and skips say nothing because they never retry.
+  A blanket "will retry" on every failure was wrong for most of them.
+- **Two terminal statuses mean "we stopped trying"**, as opposed to `failed`, which means
+  this attempt failed and another may follow. `skipped_after_failures` (attempts exhausted)
+  and `declined_by_ai` (the AI judged the prospect a poor match for the campaign) render as
+  "Gave up" / "AI declined" and are grouped under the **Stopped** filter chip. Before the
+  backend distinguished them, such a prospect silently froze mid-sequence and was
+  indistinguishable in the UI from one still waiting its turn.
+- **`errorClass` says whose fault it was.** `service` prints a line stating the AI service
+  was unavailable and nothing about this prospect caused it — the difference between "fix
+  your list" and "wait". `ERROR_TITLES` reads `ai_api_error` as "AI service unavailable"
+  accordingly; it used to say "AI generation failed", which is now `ai_generation_error`.
+- **`attemptHistory` shows earlier attempts** under the error box, including ones a later
+  success would otherwise have erased — the only way to see that a sent email took two
+  tries and why the first failed. Server-side it is append-only; see `KexyApi/CLAUDE.md`,
+  "AI failure classification".
 - **Paused banner (`aiPaused`)**: red banner when the send sweep has stopped itself after repeated
   AI failures and someone is still unsent. Without it every queued prospect just looks stuck. It
   is global (all campaigns) and does not clear by itself — see KexyApi CLAUDE.md, "Send log".

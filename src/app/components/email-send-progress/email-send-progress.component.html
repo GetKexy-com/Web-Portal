@@ -215,7 +215,26 @@
                         {{ errorTitle(data) }}
                         <span class="sp-code" *ngIf="data.errorCode">{{ data.errorCode }}</span>
                       </strong>
+                      <!--Whose fault it was. "The AI service was down" and "the AI could not
+                          write to this person" call for completely different responses.-->
+                      <p class="sp-error-note" *ngIf="isServiceFailure(data)">
+                        The AI service was unavailable — nothing about this prospect caused it.
+                      </p>
                       <pre class="sp-error-text" *ngIf="data.errorMessage">{{ data.errorMessage }}</pre>
+                    </div>
+
+                    <!--Earlier attempts. Kept even when a later one succeeded, which is the
+                        only way to see that a sent email took two tries and why the first failed.-->
+                    <div class="sp-attempts" *ngIf="data.attemptHistory?.length">
+                      <strong>Earlier attempts</strong>
+                      <ul class="sp-attempt-list">
+                        <li *ngFor="let a of data.attemptHistory">
+                          <span class="sp-attempt-no">Attempt {{ a.attempt }}</span>
+                          <span class="sp-code">{{ a.errorCode }}</span>
+                          <span class="sp-attempt-time">{{ a.at | date: 'MMM d, h:mm:ss a' }}</span>
+                          <span class="sp-attempt-msg" *ngIf="a.message">{{ a.message }}</span>
+                        </li>
+                      </ul>
                     </div>
 
                     <div class="sp-compare">

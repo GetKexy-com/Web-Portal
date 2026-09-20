@@ -583,6 +583,58 @@ $kx-red-bg: #fdeaea;
   border: none;
 }
 
+// Says the AI SERVICE was at fault, not this prospect. Sits inside the error block, so
+// it inherits its colour rather than introducing a second red.
+.sp-error-note {
+  margin: 2px 0 0;
+  font-size: 11.5px;
+  font-weight: 600;
+  opacity: 0.85;
+}
+
+// Failed attempts that a later attempt (or a success) would otherwise have erased.
+// Deliberately quieter than .sp-error: it is history, not the current state.
+.sp-attempts {
+  margin-bottom: 14px;
+  padding: 10px 12px;
+  font-size: 12px;
+  color: $kx-muted;
+  background: $kx-field-bg;
+  border-radius: 10px;
+}
+
+.sp-attempt-list {
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 6px;
+    // Verbatim service text again: wrap rather than scroll the drawer sideways.
+    overflow-wrap: anywhere;
+  }
+}
+
+.sp-attempt-no {
+  font-weight: 600;
+}
+
+.sp-attempt-time {
+  font-size: 11px;
+  opacity: 0.8;
+}
+
+.sp-attempt-msg {
+  flex-basis: 100%;
+  font: 11.5px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
 .sp-raw-note {
   margin: 0 0 8px;
   font-size: 11.5px;

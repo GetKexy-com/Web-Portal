@@ -60,12 +60,16 @@ const STATUS_META: Record<EmailSendStatus, IStatusMeta> = {
   sending: { label: 'Sending', tone: 'live', busy: true },
   sent: { label: 'Sent', tone: 'good', busy: false },
   failed: { label: 'Failed', tone: 'bad', busy: false },
+  skipped_after_failures: { label: 'Gave up', tone: 'bad', busy: false },
+  declined_by_ai: { label: 'AI declined', tone: 'bad', busy: false },
   skipped: { label: 'Skipped', tone: 'mute', busy: false },
 };
 
 /** Plain-language name for each failure/skip code; the code itself is still shown beside it. */
 const ERROR_TITLES: Record<string, string> = {
-  ai_api_error: 'AI generation failed',
+  ai_api_error: 'AI service unavailable',
+  ai_generation_error: 'The AI could not write this email',
+  ai_declined_prospect: 'The AI declined this prospect',
   empty_email_content: 'The AI returned no email',
   contact_not_found: 'Contact not found',
   smtp_error: 'Sending failed (SMTP)',
@@ -82,12 +86,19 @@ const ERROR_TITLES: Record<string, string> = {
  * an SMTP failure pauses the whole campaign (see `retryNote`).
  */
 const RETRIED_BY_ATTEMPTS = new Set([
-  'ai_api_error',
+  'ai_generation_error',
   'empty_email_content',
   'conversation_create_error',
   'unexpected_error',
   'interrupted',
 ]);
+
+/**
+ * Statuses that mean we have STOPPED trying, as opposed to `failed`, which means this
+ * attempt failed and another may follow. Worth saying out loud: a prospect the sweep has
+ * given up on used to look exactly like one still waiting its turn.
+ */
+const TERMINAL_STATUSES = new Set<EmailSendStatus>(['skipped_after_failures', 'declined_by_ai']);
 
 interface ITimelineStep {
   label: string;
@@ -212,7 +223,17 @@ export class EmailSendProgressComponent implements OnInit, OnDestroy {
    * Null when there is nothing useful to say (it will not retry, and the error says why).
    */
   retryNote = (item: IEmailSendItem, maxAttempts: number): string | null => {
+    // Terminal: the server has already decided, so say what it decided rather than
+    // guessing from the attempt count.
+    if (item.status === 'declined_by_ai') return 'skipped — not a match for this campaign';
+    if (item.status === 'skipped_after_failures') {
+      return `skipped after ${item.attempt} failed attempt${item.attempt === 1 ? '' : 's'}`;
+    }
+
     if (item.status !== 'failed') return null;
+    // The AI service being down is not this prospect's problem: their attempt is
+    // refunded and they are retried once sending resumes.
+    if (item.errorCode === 'ai_api_error') return 'retries once the AI service recovers';
     if (item.errorCode === 'smtp_error') return 'retries once the campaign is resumed';
     if (!RETRIED_BY_ATTEMPTS.has(item.errorCode ?? '')) return null;
     return item.attempt < maxAttempts
@@ -220,9 +241,18 @@ export class EmailSendProgressComponent implements OnInit, OnDestroy {
       : `gave up after ${maxAttempts} attempts`;
   };
 
+  /** True when nothing further will happen to this prospect for this email. */
+  isTerminal = (item: IEmailSendItem): boolean => TERMINAL_STATUSES.has(item.status);
+
   /** What went wrong, in words, for an expanded row. The raw text follows it verbatim. */
   errorTitle = (d: IEmailSendDetail): string =>
     ERROR_TITLES[d.errorCode ?? ''] ?? (d.status === 'skipped' ? 'Skipped' : 'Failed');
+
+  /**
+   * Whether the AI SERVICE was at fault rather than anything about this prospect —
+   * worth saying, because it is the difference between "fix your list" and "wait".
+   */
+  isServiceFailure = (d: IEmailSendDetail): boolean => d.errorClass === 'service';
 
   /**
    * The AI card shows its raw response when there is no usable email to render — that is
@@ -435,6 +465,9 @@ export class EmailSendProgressComponent implements OnInit, OnDestroy {
       chip('queued', 'Queued', s.queued),
       chip('scheduled', 'Scheduled', s.scheduled),
       chip('failed', 'Failed', s.failed),
+      // "Stopped" is separated from "Failed" on purpose: a failed prospect may still be
+      // retried, a stopped one never will, and only the second needs the user to act.
+      chip('stopped', 'Stopped', s.skippedAfterFailures + s.declinedByAi),
       chip('skipped', 'Skipped', s.skipped),
       // An empty chip is noise, except the one you are looking at or "All".
     ].filter((c) => c.key === 'all' || c.key === this.filter || c.count > 0);
@@ -451,6 +484,12 @@ export class EmailSendProgressComponent implements OnInit, OnDestroy {
       return `Live · ${parts.join(' · ')}`;
     }
     if (s.queued) return `${s.queued} queued — they go out when the next send run starts.`;
+    if (s.declinedByAi && !inProgress) {
+      return `${s.declinedByAi} skipped — the AI judged them a poor match for this campaign.`;
+    }
+    if (s.skippedAfterFailures && !inProgress) {
+      return `${s.skippedAfterFailures} skipped after repeated failures — open a row to see why.`;
+    }
     if (s.failed && !inProgress) return `${s.failed} failed — open a row to see why.`;
     if (s.scheduled && !s.sent) return 'Nothing has been sent for this email yet.';
     if (s.scheduled) return `${s.scheduled} not reached yet — they follow the campaign schedule.`;

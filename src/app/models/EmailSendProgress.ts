@@ -13,10 +13,26 @@ export type EmailSendStatus =
   | 'sending'
   | 'sent'
   | 'failed'
+  /** This attempt failed; the sweep may try again. */
+  | 'skipped_after_failures'
+  /** Attempts exhausted. Terminal — nothing will retry this prospect for this email. */
+  | 'declined_by_ai'
   | 'skipped';
 
-/** What a progress list can be narrowed to. `in_progress` groups generating/generated/sending. */
-export type EmailSendFilter = 'all' | 'scheduled' | 'queued' | 'in_progress' | 'sent' | 'failed' | 'skipped';
+/**
+ * What a progress list can be narrowed to. `in_progress` groups
+ * generating/generated/sending; `stopped` groups the two terminal failures, which need
+ * the user's attention in a way a retrying `failed` does not.
+ */
+export type EmailSendFilter =
+  | 'all'
+  | 'scheduled'
+  | 'queued'
+  | 'in_progress'
+  | 'sent'
+  | 'failed'
+  | 'stopped'
+  | 'skipped';
 
 export interface IEmailSendSummary {
   totalProspects: number;
@@ -28,6 +44,10 @@ export interface IEmailSendSummary {
   sent: number;
   failed: number;
   skipped: number;
+  /** Attempts exhausted — terminal, will not be retried. */
+  skippedAfterFailures: number;
+  /** The AI refused this prospect — terminal, will not be retried. */
+  declinedByAi: number;
   /** True while the send sweep is actively working on at least one prospect. */
   inFlight: boolean;
   /** Generation attempts a queue row gets before it is parked (for "attempt 1/2"). */
@@ -46,6 +66,10 @@ export interface IEmailSendItem {
   attempt: number;
   errorCode: string | null;
   errorMessage: string | null;
+  /** `service` (the AI API failed) or `prospect` (it could not write to this person). */
+  errorClass: string | null;
+  /** True when this prospect will never be retried for this email. */
+  terminal: boolean;
   aiSubject: string | null;
   sentSubject: string | null;
   hasAiContent: boolean;
@@ -83,6 +107,16 @@ export interface IEmailSendProgress {
   serverTime: string;
 }
 
+/** One recorded failure of one generation attempt. */
+export interface IEmailSendAttempt {
+  attempt: number;
+  at: string;
+  errorCode: string;
+  errorClass: string | null;
+  message: string | null;
+  httpStatus: number | null;
+}
+
 /** One prospect's generated-versus-sent content for an email. */
 export interface IEmailSendDetail {
   logId: number | null;
@@ -92,6 +126,14 @@ export interface IEmailSendDetail {
   attempt: number;
   errorCode: string | null;
   errorMessage: string | null;
+  errorClass: string | null;
+  terminal: boolean;
+  /**
+   * Every failed attempt for this prospect, oldest first — including attempts a later
+   * success would otherwise erase, which is the only way to see that a sent email took
+   * two tries and why the first one failed.
+   */
+  attemptHistory: IEmailSendAttempt[];
   ai: {
     subject: string | null;
     /** The unmodified AI stream (`^^subject$$body[[PARA]]…`). */
