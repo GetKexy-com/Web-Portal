@@ -59,6 +59,7 @@ export class ListOfDripCampaignTableComponent implements OnInit, AfterViewInit, 
   @Input() totalRecordsCount;
   @Input() selectedAllDripCampaigns;
   @Input() toggleSelectAllSelection;
+  @Input() initialStatusKey: string;
   @Output() selectedLimit: EventEmitter<any> = new EventEmitter();
   @Output() selectedStatus: EventEmitter<any> = new EventEmitter();
 
@@ -77,6 +78,11 @@ export class ListOfDripCampaignTableComponent implements OnInit, AfterViewInit, 
   }
 
   ngOnInit(): void {
+    if (this.initialStatusKey) {
+      const matched = this.dripCampaignStatuses.find((s) => s.key === this.initialStatusKey);
+      if (matched) this.selectedStatusKey = matched;
+    }
+
     // Set Label Subscription
     this.contactLabelsSubscription = this.prospectingService.lists.subscribe((labels) => {
       // Set label dropdown options

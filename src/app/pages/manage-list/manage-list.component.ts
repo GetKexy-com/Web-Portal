@@ -234,6 +234,26 @@ export class ManageListComponent implements OnInit, OnDestroy {
       return;
     }
 
+    // A list attached to an active drip campaign is not deletable — the confirm above
+    // says as much. Dropping those can empty the selection completely, and that case
+    // used to fall straight through: `labelIds[0]` was `undefined`, so the page fired
+    // `DELETE /v2/lists/undefined` and showed the user a raw 500. Decided BEFORE the
+    // loading dialog opens, so there is no spinner to unwind on this path.
+    // `selectedLabels` itself is left alone: overwriting it wiped the user's selection
+    // while the row checkboxes stayed ticked.
+    const deletableLabels = this.selectedLabels.filter(
+      label => !label.dripCampaignList?.length,
+    );
+
+    if (!deletableLabels.length) {
+      await Swal.fire(
+        'Nothing to delete',
+        'That list is used by an active drip campaign, so it cannot be deleted.',
+        'info',
+      );
+      return;
+    }
+
     Swal.fire({
       title: '',
       text: 'Please wait...',
@@ -244,14 +264,11 @@ export class ManageListComponent implements OnInit, OnDestroy {
     });
     Swal.showLoading();
 
-    const labelIds = [];
-    // filter out lists that used in drip campaigns
-    console.log('selectedLabels', this.selectedLabels);
-    this.selectedLabels = this.selectedLabels.filter(label => !label.dripCampaignList.length);
-    this.selectedLabels.forEach(i => labelIds.push(i.id));
+    // One id, not a list: `handleContactSelect` clears the selection before adding a
+    // row, so this table is single-select and there is only ever one to delete.
     const postData = {
       supplier_id: this.supplierId,
-      label_ids: labelIds[0],
+      label_ids: deletableLabels[0].id,
     };
     try {
       await this.prospectingService.deleteLabel(postData);

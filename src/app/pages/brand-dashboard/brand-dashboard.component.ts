@@ -22,6 +22,7 @@ import {
   HEAT_BUCKETS,
   HEAT_DAYS,
   IDashboardActivity,
+  IDashboardCampaignMeta,
   IDashboardCampaignRow,
   IDashboardCampaignTrendPoint,
   IDashboardEngagedContacts,
@@ -32,6 +33,13 @@ import {
 
 /** The four selectable metrics. Clicking a tile re-plots the main chart. */
 type MetricKey = 'sent' | 'opens' | 'clicks' | 'replies';
+
+/**
+ * "Campaign performance" is a glance card, not the Manage Campaigns table — it shows
+ * only the most recent ACTIVE campaigns, capped here, with "View all" as the door to
+ * every campaign regardless of status or age.
+ */
+const CAMPAIGN_ROWS_LIMIT = 5;
 
 interface IMetricTile {
   key: MetricKey;
@@ -311,10 +319,10 @@ export class BrandDashboardComponent implements OnInit, OnDestroy {
     this.__buildChart();
   };
 
-  goTo = (path: string): void => {
+  goTo = (path: string, queryParams?: Record<string, string>): void => {
     // Braces on purpose: the expression form would return router.navigate's
     // Promise<boolean>, which doesn't match the declared `void`.
-    this.router.navigate([path]);
+    this.router.navigate([path], queryParams ? { queryParams } : undefined);
   };
 
   get activeTile(): IMetricTile {
@@ -1035,12 +1043,25 @@ export class BrandDashboardComponent implements OnInit, OnDestroy {
    * Scoped by CAMPAIGN but deliberately not by the date range: this is an unbounded
    * "latest events" feed, and a feed that empties out when you narrow the range to 7
    * days reads as broken rather than as filtered.
+   *
+   * ACTIVE campaigns are preferred, same as the performance table above it, but this
+   * is a PRIORITY, not a hard filter: the server already caps the raw list at
+   * `ACTIVITY_LIMIT` (8) latest events, so dropping every non-active one outright could
+   * easily empty the feed on an account whose recent activity happens to sit on a
+   * since-paused/completed campaign — exactly the "reads as broken" case the comment
+   * above already warns about. Active-campaign events sort first (each group keeps the
+   * server's recency order), so the feed leads with what's actionable today but still
+   * fills out with the rest rather than going sparse.
    */
   private __buildActivity(): void {
     const all = this.isAllCampaigns;
-    this.visibleActivity = (this.stats.recentActivity || []).filter(
+    const activeCampaignIds = new Set(this.__activeCampaignMetas().map((c) => c.id));
+    const scoped = (this.stats.recentActivity || []).filter(
       (a) => all || this.selectedCampaignIds.has(a.campaignId),
     );
+    const active = scoped.filter((a) => activeCampaignIds.has(a.campaignId));
+    const others = scoped.filter((a) => !activeCampaignIds.has(a.campaignId));
+    this.visibleActivity = [...active, ...others];
   }
 
   // ── Most engaged contacts ───────────────────────────────────────────────
@@ -1102,6 +1123,11 @@ export class BrandDashboardComponent implements OnInit, OnDestroy {
     this.__applySort();
   };
 
+  /** Campaigns whose current status is ACTIVE — shared by the performance table and the activity feed so the two agree on what "active" means. */
+  private __activeCampaignMetas(): IDashboardCampaignMeta[] {
+    return (this.stats.campaigns || []).filter((c) => c.status === constants.ACTIVE);
+  }
+
   /**
    * Each campaign's figures for the window on screen, summed from the same rows as
    * everything else — so the row you click to filter by always agrees with the tiles
@@ -1109,6 +1135,17 @@ export class BrandDashboardComponent implements OnInit, OnDestroy {
    *
    * These are NOT scoped by the campaign selection: the table is how you change that
    * selection, so hiding the unselected rows would make it a one-way door.
+   *
+   * This is a glance card, not the Manage Campaigns table: ACTIVE campaigns are
+   * PREFERRED, and only the `CAMPAIGN_ROWS_LIMIT` most recently created are shown —
+   * picked by recency BEFORE the user's column sort is applied, so sorting by e.g. Sent
+   * reorders those same few rows rather than pulling in older campaigns. When there
+   * aren't enough active campaigns to fill the quota, the remaining slots backfill with
+   * the next most recent non-active ones (paused/complete/archived/published — drafts
+   * are already excluded server-side) so the card isn't left half-empty just because an
+   * account has few campaigns currently running. Active rows always sort ahead of the
+   * backfilled ones. "View all" (next to the title) is the door to every campaign
+   * regardless of status.
    */
   private __buildCampaignRows(): void {
     const byCampaign = new Map<number, { sent: number; opens: number; clicks: number; replies: number }>();
@@ -1132,7 +1169,14 @@ export class BrandDashboardComponent implements OnInit, OnDestroy {
       }
     }
 
-    this.campaignRows = (this.stats.campaigns || []).map((meta) => {
+    const byRecency = (a: IDashboardCampaignMeta, b: IDashboardCampaignMeta) =>
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    const activeIds = new Set(this.__activeCampaignMetas().map((c) => c.id));
+    const active = this.__activeCampaignMetas().sort(byRecency);
+    const others = (this.stats.campaigns || []).filter((c) => !activeIds.has(c.id)).sort(byRecency);
+    const rowCampaigns = [...active, ...others].slice(0, CAMPAIGN_ROWS_LIMIT);
+
+    this.campaignRows = rowCampaigns.map((meta) => {
       const t = byCampaign.get(meta.id);
       const sent = t?.sent || 0;
       return {

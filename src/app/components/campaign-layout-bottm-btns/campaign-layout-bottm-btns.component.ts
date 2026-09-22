@@ -28,6 +28,7 @@ export class CampaignLayoutBottmBtnsComponent {
   public isWaitingFlag: boolean = false;
   public loadingSubscription: Subscription;
   public dripCampaignLoadingSubscription: Subscription;
+  public dripCampaignActivatingSubscription: Subscription;
   emailContentLoadingSubscription: Subscription;
 
 
@@ -47,11 +48,20 @@ export class CampaignLayoutBottmBtnsComponent {
     this.dripCampaignLoadingSubscription = this.dripCampaignService.loading.subscribe((loading) => {
       this.isWaitingFlag = loading;
     });
+    // `activating` is a SEPARATE signal from `loading`: activating a campaign is
+    // called `silent` on the page (see `generate-drip-campaign.handleClickNextButton`)
+    // so it does not blank the whole page to a skeleton, but the button that was
+    // actually clicked still needs its own "please wait" feedback.
+    this.dripCampaignActivatingSubscription = this.dripCampaignService.activating.subscribe((activating) => {
+      this.isWaitingFlag = activating;
+    });
   }
 
   ngOnDestroy(): void {
     if (this.loadingSubscription) this.loadingSubscription.unsubscribe();
     if (this.emailContentLoadingSubscription) this.emailContentLoadingSubscription.unsubscribe();
+    if (this.dripCampaignLoadingSubscription) this.dripCampaignLoadingSubscription.unsubscribe();
+    if (this.dripCampaignActivatingSubscription) this.dripCampaignActivatingSubscription.unsubscribe();
   }
 
   handleClickRightFirstBtn = () => {

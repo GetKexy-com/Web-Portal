@@ -1,6 +1,6 @@
 import { Component, inject, signal, DestroyRef, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import Swal from 'sweetalert2';
 import {
@@ -40,6 +40,7 @@ export class BrandListOfDripCampaignsComponent implements OnInit {
   // Services
   private authService = inject(AuthService);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
   private dripCampaignService = inject(DripCampaignService);
   private prospectingService = inject(ProspectingService);
   private httpService = inject(HttpService);
@@ -105,6 +106,14 @@ export class BrandListOfDripCampaignsComponent implements OnInit {
   async ngOnInit() {
     document.title = 'List of Drip Campaign - KEXY Brand Portal';
     this.userData.set(this.authService.userTokenValue);
+
+    // A `?status=` query param (e.g. the dashboard's "Active now" card) preselects the
+    // status filter on load. Must run BEFORE the cache peek below, since that reads
+    // `filterStatus()` to key the snapshot lookup.
+    const statusParam = this.route.snapshot.queryParamMap.get('status');
+    if (statusParam && constants.DRIP_CAMPAIGN_STATUS.some((s) => s.key === statusParam)) {
+      this.filterStatus.set(statusParam);
+    }
 
     const limit = localStorage.getItem(constants.BRAND_DRIP_CAMPAIGN_PAGE_LIMIT);
     this.setPageLimit(limit ? parseInt(limit) : this.limit());

@@ -351,6 +351,111 @@ $page-h: calc(100vh - 70px);
   }
 
 
+  // ── Rail empty state ────────────────────────────────────────────────────
+  // Distinct from `.conv-empty`, which fills the right-hand pane. This sits in the
+  // rail, where skeleton rows used to be shown for an empty list — shimmer for a
+  // settled "there is nothing here" reads as a load that never finishes.
+  .rail-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    text-align: center;
+    padding: 28px;
+
+    // Sits in the upper third rather than dead centre: near the search box that
+    // explains it, without hugging the top. The 1:2 flex spacers split the free space
+    // so the block's centre lands on the one-third line at ANY viewport height — no
+    // magic offset to re-tune, and nothing to break when the rail's header changes.
+    &::before,
+    &::after {
+      content: '';
+      flex-shrink: 1;
+    }
+
+    &::before {
+      flex-grow: 1;
+      flex-basis: 0;
+      // Breathing room under the search field on a short viewport, where the spacers
+      // collapse to almost nothing.
+      min-height: 20px;
+    }
+
+    &::after {
+      flex-grow: 2;
+      flex-basis: 0;
+    }
+
+    // Same tinted-disc language as the right pane's `.empty-badge`, scaled for the
+    // rail. The ring keeps it from reading as a tappable button.
+    .rail-empty-badge {
+      width: 64px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: rgba(18, 165, 244, 0.1);
+      box-shadow: 0 0 0 6px rgba(18, 165, 244, 0.05);
+      margin-bottom: 16px;
+
+      .fa {
+        font-size: 24px;
+        color: $kx-primary;
+      }
+
+      // A fruitless search is not an achievement to decorate — drain the brand colour
+      // so it reads as a dead end rather than a milestone.
+      &.searching {
+        background: $kx-field-bg;
+        box-shadow: 0 0 0 6px rgba(226, 232, 240, 0.45);
+
+        .fa { color: $kx-muted; }
+      }
+    }
+
+    .rail-empty-title {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 700;
+      color: $kx-ink;
+    }
+
+    .rail-empty-desc {
+      margin: 6px 0 0;
+      max-width: 240px;
+      font-size: 12.5px;
+      line-height: 1.55;
+      color: $kx-muted;
+      // A long search term must wrap rather than widen the rail.
+      overflow-wrap: anywhere;
+    }
+
+    .rail-empty-action {
+      margin-top: 16px;
+      padding: 7px 16px;
+      border: 1px solid $kx-border;
+      border-radius: 999px;
+      background: #fff;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: $kx-muted;
+      cursor: pointer;
+      transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+
+      &:hover {
+        border-color: $kx-primary;
+        background: rgba(18, 165, 244, 0.06);
+        color: $kx-primary-deep;
+      }
+
+      &:focus-visible {
+        outline: 2px solid $kx-primary;
+        outline-offset: 2px;
+      }
+    }
+  }
+
   // ── Skeleton placeholders ───────────────────────────────────────────────
   .skeleton-row {
     display: flex;

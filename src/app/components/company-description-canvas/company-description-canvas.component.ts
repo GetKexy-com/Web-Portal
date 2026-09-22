@@ -36,8 +36,9 @@ export class CompanyDescriptionCanvasComponent implements OnInit, OnDestroy {
     this.supplierId = this._authService.userTokenValue.supplier_id;
 
 
-    // Set Canvas Title
-    if (this.prospectingService.selectedCompanyDescription) {
+    // Set Canvas Title. `selectedCompanyDescription` is `{}` (still truthy) for a
+    // brand-new description, so this must key off `.id`, not the object itself.
+    if (this.prospectingService.selectedCompanyDescription?.id) {
       this.canvasTitle = 'Edit';
     }
 
@@ -53,7 +54,7 @@ export class CompanyDescriptionCanvasComponent implements OnInit, OnDestroy {
   setPrimaryForm = () => {
     this.primaryForm = new FormGroup({
       companyName: new FormControl(
-        this.prospectingService.selectedCompanyDescription.name || '',
+        this.prospectingService.selectedCompanyDescription.companyName || '',
         Validators.compose([
           Validators.required,
           Validators.minLength(0),

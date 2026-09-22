@@ -33,6 +33,29 @@ fixed — keep them in mind before touching this:
    one response was handled N times. Subscribe ONCE in `ngOnInit`, unsubscribe in
    `ngOnDestroy`.
 
+**Clicking Activate itself used to flash the skeleton twice before this card ever
+mounted** — a fourth source of the same "must stay invisible" bug, this time from the
+CALLER rather than the card. `handleClickNextButton` → `__launchDripCampaign` (POSTs
+`activate`) and then, after the "Congratulations!" dialog, `__refreshDripCampaign`
+(re-fetches the campaign) were each their OWN separate, non-`silent` `loading` toggle —
+two independent blank-then-restore cycles with a sliver of stale content in between,
+which read as a glitch rather than a single load. Both are now called `silent` (`await
+activateDripCampaign(postData, true)`, `await getCampaign(postData, true)`), and
+`__refreshDripCampaign` is unconditionally silent since its OTHER call site (after AI
+email generation finishes) is exactly the same shape — an in-page refresh with its own
+existing loading indicator (`isContentLoading`), not a fresh navigation.
+
+Removing the page skeleton doesn't remove all feedback: the Activate button needs its
+own "please wait" state across the WHOLE activate-then-refresh sequence, which the page
+skeleton used to provide for free. `DripCampaignService.activating` (a `BehaviorSubject`
+separate from `loading`, toggled via `setActivating()`) exists for exactly this — it's
+set around the whole sequence in `handleClickNextButton` (a `try/finally`, so a POST
+failure still clears it), and `campaign-layout-bottm-btns` subscribes to it alongside
+`loading` to drive the SAME `isWaitingFlag` → "Please wait…" spinner it already had. Any
+future in-page action that should feel instant rather than reload-like should follow
+this shape: `silent` on the service calls, a dedicated subject (or reuse `activating`)
+for the specific control that triggered it, never the shared page-wide `loading`.
+
 **The template keeps a stable DOM by design.** The old markup wrapped the status
 block in `*ngIf="… === RUNNING"`, so the card jumped whenever a scraper flipped
 between PENDING and RUNNING. Rows are now always rendered and only swap classes
@@ -904,6 +927,23 @@ prettified); each chip's ✕ calls `removeFilter(key)` which drops that field, r
 the search, and fully resets when it was the last one. A **Clear all** button calls
 `resetSearchData()`.
 
+### Deleting a list: the filtered-to-empty selection sent `DELETE /lists/undefined`
+`manage-list.deleteLabels()` drops lists that are attached to an active drip campaign
+(the confirm dialog promises exactly that) and then deleted `labelIds[0]`. When the only
+selected list was campaign-attached the filter emptied the array, `labelIds[0]` was
+`undefined`, and the page fired `DELETE /v2/lists/undefined` — which the API answered
+with a raw 500. Selecting an in-use list is a normal action, so this was the common path,
+not an edge case.
+
+The empty case is now checked **before** the "Please wait..." loader opens (nothing to
+unwind) and explains itself: *"That list is used by an active drip campaign, so it cannot
+be deleted."* The filter result also goes in a local, not back into `this.selectedLabels`
+— overwriting it wiped the selection while the row checkboxes stayed ticked.
+
+`label_ids` carries one id on purpose: `handleContactSelect` clears the selection before
+adding a row, so this table is single-select. The backend now also rejects a non-numeric
+`:id` with a 400 instead of a 500 (see `KexyApi/CLAUDE.md`).
+
 ### `label-list-card` (manage-list "Lists" table) — same redesign
 
 The Lists table on `manage-list` got the same treatment as `contact-list-card`:
@@ -1121,6 +1161,19 @@ cards — they're their own `.pc-*` markup.
   (`.pc-thead`/`.pc-row`, columns `56px 220px 1fr 108px`): index badge, company name,
   truncated description, and edit/delete icon buttons; edit opens
   `company-description-canvas`.
+  - **The entity/DTO field is `companyName`**, not `name`
+    (`KexyApi/src/company/entities/company-description.entity.ts`, column
+    `company_name`) — the list row already reads `item.companyName` correctly. The
+    canvas's `setPrimaryForm()` was pre-filling from `.name` (always `undefined`), so
+    opening Edit on an existing description showed an empty Company Name field. Any
+    future read of a description object should go through `.companyName`, not `.name`.
+  - **The canvas title ("Add"/"Edit") must key off `.id`, not object truthiness.**
+    `openCreateOrEditCanvas(description = {})` passes `{}` for a brand-new
+    description — still a truthy object — so `if (selectedCompanyDescription)` in the
+    canvas's `ngOnInit` was always true and the header read "Edit Company Description"
+    even when adding. Check `selectedCompanyDescription?.id` instead (mirrors the
+    `.id` check `__createOrUpdateDescription` already uses to decide create vs.
+    update).
 
 ## `kexy-select-dropdown` — flip-up positioning
 
@@ -1160,6 +1213,43 @@ corners" — but dividers are `border-top` BETWEEN rows and never reach a corner
 clipped every dropdown in that form. The drawers' `.canvas-content-wrap { overflow:
 hidden }` is load-bearing and must stay — a dropdown should not escape its drawer, and
 the flip is what keeps it usable there.
+
+**`option.value` is what's rendered — both the closed pill and each open-list row —
+so it must be short.** There is no separate "label" field; whatever a consumer puts in
+`value` is exactly what paints. `drip-campaign-content`'s "Select Company" dropdown
+(`setCompanyOptions()`) used to set `value: item.description`, i.e. the WHOLE company
+description text. `.searched-tag` (the closed pill, `kexy-select-dropdown.component.scss`)
+has no `max-width`/`text-overflow` — nothing constrains its width — so a long value just
+wrapped inside the flex pill and read as a multi-line block sitting in the input box
+instead of a single selected chip.
+
+Fixed by using `value: item.companyName` (already short — it's what the Manage Company
+Descriptions table shows as the row's identity) and moving the description into
+`subText`, a slot the component already renders as a secondary line under the label in
+the OPEN list only (`option.subText`, see the "For Normal Time" branch of the template) —
+never in the closed pill. `__truncateForOption()` caps it at 140 chars for the list row,
+matching the same 140-char preview `prospecting-company-description` already uses for
+this exact field. `selectedCompanyKey` (bound as `[selectedOption]`, and separately used
+as this form's own "is something picked" validation flag) had to move to `companyName`
+too, in both places it's set: `onCompanySelect` picks it up for free since it just reads
+`company.value`, but `setPreviousData()` (restoring a saved campaign) was reading
+`data.companyDescription.description` directly and needed the same swap — otherwise a
+fresh selection would show short but a reopened existing campaign would still show the
+old wrapping pill.
+
+**This bug shape generalizes**: any other consumer building `options`/`selectedOption`
+for this component from long free text should follow the same pattern — short `value`,
+long text (if any) in `subText`, never the other way around.
+
+**`kexy-select-dropdown` itself got one small, general safety net on top of that**: the
+single-selected pill's text now sits in its own `.tag-text` span (`overflow: hidden;
+text-overflow: ellipsis; white-space: nowrap; min-width: 0`), with `.searched-tag`
+capped at `max-width: 100%`, and a `[title]` attribute carrying the untruncated value for
+a native hover tooltip. This does NOT replace the "keep `value` short" rule above — it
+only stops an unexpectedly long `value` (a long company/website name, not a full
+paragraph) from reintroducing the multi-line pill, in whichever consumer hits it next.
+The checkbox multi-tag style (`optionStyle="checkbox"`) is untouched; each of its tags is
+expected to be a short, separate token and was never the thing that broke here.
 
 ## Insights drawer — ONE component, two scopes
 
@@ -1211,6 +1301,17 @@ stopped / skipped — and opening a row shows **what the AI generated beside wha
 failed. Backed by `KexyApi`'s `send-progress` / `send-logs` endpoints — see that repo's
 CLAUDE.md, "Send log".
 
+- **"Generated by AI" is hidden by a flag, not deleted** — `showAiGeneratedCard`
+  (`email-send-progress.component.ts`, `readonly ... = false`). Product decided a brand
+  user doesn't need to see the AI's draft day to day, but a developer still wants to
+  compare it against "Sent to prospect" when debugging a generation issue, so the
+  markup, the `data.ai` fetch/state, `rawView`/`setRawView`/`showRaw` (the Email/Raw
+  output switch) and the raw-response fallback below all stay intact — only the `*ngIf`
+  on the card changes. Flip the flag to `true` locally to bring it back; flip it back
+  before committing. `.sp-compare` gets a `sp-compare-single` modifier
+  (`[class.sp-compare-single]="!showAiGeneratedCard"`) so "Sent to prospect" takes the
+  full row instead of sitting in a half-width column, with a taller `.sp-frame` since
+  the extra width would otherwise go unused.
 - **It is deliberately OUTSIDE both `*ngIf="!isLoading && …"` blocks** in
   `campaign-insights-content.component.html`. The range switch flips `isLoading` and
   reloads the analytics; a panel inside that block would be destroyed and rebuilt, closing
@@ -1316,6 +1417,66 @@ polled and used to bump the scope, is the cheap version if that becomes a proble
 Known gap, accepted for now: the refresh button lives inside `.rail-toolbar`, which is
 `*ngIf`'d on a non-empty, unsearched list — so it is hidden on an empty inbox, which is
 exactly when someone might want it.
+
+**The conversation rail's skeleton rows are for LOADING only.** Both pages used to show
+them on `isLoading || filteredConversations.length === 0`, so an empty inbox or a search
+that matched nothing rendered six shimmering rows forever — indistinguishable from a
+fetch that never returns. They are now `*ngIf="isLoading"`, with a `.rail-empty` block
+(shared, in `_conversation-shell.scss`) for the settled case. Keep the two apart: shimmer
+means "wait", and an empty list is an answer, not a wait.
+
+The empty copy is per-page and per-cause, in BOTH the rail and the right-hand
+`.conv-empty` pane: `brand-conversations` says "No conversations yet / Replies from your
+prospects will show up here", `brand-conversation-sent` says "Nothing sent yet / Emails
+you send to prospects will show up here" (Sent used to inherit the inbox's "replies"
+wording, which is never true there). The rail additionally switches to "No matches" when
+`convSearchText` is set, because a search the user can clear is a different problem from
+a mailbox they cannot fill.
+
+**An empty emission from `allConversation` must be handled, not skipped.** Both pages
+subscribed with `if (conversations.length) { this.setConversation(conversations); }`,
+which dropped the one emission that matters. Two bugs followed, both "fixed by reloading
+the page": deleting the last conversation left the rows *and* the open thread on screen,
+and the right-hand `.conv-empty` pane never appeared because `selectedConversation` was
+still set. `setConversation` now takes the empty array and clears
+`conversations`, `filteredConversations` and `selectedConversation` before returning —
+the early return also keeps `conversationTapped(conversations[0])` from being handed
+`undefined`, which is what the guard was really protecting against (it dereferences
+`conv.receiverDetails`).
+
+Clearing `selectedConversation` matters more than it looks, because **`allConversation`
+is ONE subject shared by Inbox and Sent**. It is a `BehaviorSubject`, so navigating
+between the two replays the previous page's list to the new page before its own fetch
+lands. Left uncleared, the thread on the right could belong to the page you just left.
+That shared-subject design is untouched here; if the pages ever need to diverge further,
+give them separate streams rather than adding more guards.
+
+**A cached conversations page must replay its TOTAL, not just its rows**
+(`__replayConversations`). `totalConversationCount` is ONE field on `ProspectingService`
+shared by Inbox and Sent, while `conversationCache` is keyed per request — so a cache
+hit that only emitted `hit.data` left behind whatever total the last HTTP fetch set.
+Arriving at an empty Inbox from a populated Sent, that stale non-zero total made the
+right-hand pane's `*ngIf="!isLoading && !totalConversationCount"` false and "No
+conversations yet" never rendered. A reload appeared to fix it only because an empty
+cache forces the HTTP path, which does set the total — the classic shape of this bug.
+The total is now stored in the cache entry beside `data`/`at`/`version` and restored on
+both replay paths (fresh snapshot and stale-while-revalidate). It also feeds
+`totalPage`, so pagination was wrong on any cache hit too.
+
+The rail state is built to carry that distinction visually, not just in words:
+- **Icon** — `fa-inbox` / `fa-paper-plane-o` for a genuinely empty list, `fa-search` for
+  a fruitless search. FontAwesome, already used across these templates, so no new asset.
+- **Badge colour** — the brand-tinted disc matches the right pane's `.empty-badge`, but
+  `.searching` drains it to grey. An empty inbox is a normal state worth decorating; a
+  search that found nothing is a dead end and should not look like a milestone.
+- **Positioned in the upper third**, not dead centre — near the search box that explains
+  it, without hugging the top. Done with 1:2 `::before`/`::after` flex spacers rather
+  than a fixed offset, so the block's centre lands on the one-third line at any viewport
+  height and nothing needs re-tuning when the rail header changes. `::before` keeps a
+  20px floor for short viewports.
+- **A "Clear search" button**, search case only. `clearConversationSearch()` restores
+  `filteredConversations` from the already-loaded `conversations` rather than refetching,
+  matching what emptying the input does.
 
 `conversationCache` was an ARRAY that got `push`ed and read back with `findIndex`, so a
 refetch appended a second entry for the same page and the ORIGINAL kept winning every
@@ -1430,6 +1591,66 @@ only, so a filtered and unfiltered page 1 shared an entry (callers were papering
 by always passing `overwrite = true`); and `manage-list` re-subscribed to the lists
 subject inside `getLabels`, which is called on every pagination change, leaking a
 subscription each time.
+
+### Dashboard "Active now" card deep-links into the status filter
+
+`brand-dashboard`'s "Active now" mini-card and its "Campaigns" mini-card both navigate
+to `LIST_DRIP_CAMPAIGN` (`/brand/drip-campaign/list`), but they must not land on the
+same view — clicking "Active now" is a promise to show only active campaigns. The card
+passes `goTo(brand.LIST_DRIP_CAMPAIGN, { status: 'active' })`; `goTo` takes an optional
+`queryParams` object and only calls `router.navigate` with a `NavigationExtras` when
+one is given, so the plain "Campaigns" card (`goTo(brand.LIST_DRIP_CAMPAIGN)`) is
+unaffected.
+
+`brand-list-of-drip-campaigns` reads that `status` query param in `ngOnInit` via
+`ActivatedRoute` (**before** the cache peek, since `peekListOfDripCampaigns` keys its
+lookup on `filterStatus()`) and validates it against `constants.DRIP_CAMPAIGN_STATUS`
+before calling `filterStatus.set(...)` — an unrecognised or missing param leaves the
+existing default (`'all'`) alone. The value is also passed down to
+`list-of-drip-campaign-table` as `[initialStatusKey]`, which seeds `selectedStatusKey`
+in the child's `ngOnInit` so the status `<select>` itself shows "Active" rather than
+silently filtering server-side while the dropdown still reads "All".
+
+If another entry point needs to preselect a status, follow the same shape: a
+`status` query param read once on load, not a shared service or resolver — this list
+has no other consumer of that filter.
+
+### Dashboard "Campaign performance" and "Activity" are glance cards, not full lists
+
+Both used to render everything `GET /dashboard/stats` gave them — every non-draft
+campaign (active, paused, complete, archived, published) in the table, and the
+server's latest-8 events regardless of which campaigns they belonged to. On an
+account with a longer history that read as "the dashboard shows all my campaigns
+instead of what's actually running." ACTIVE campaigns are now **preferred, not a hard
+filter** — an account with few or zero currently-active campaigns must not see an
+empty (or near-empty) card just because nothing is running today.
+
+- **`__activeCampaignMetas()`** (`brand-dashboard.component.ts`) is the ONE place that
+  defines "active" for this page — `stats.campaigns` filtered to
+  `status === constants.ACTIVE`. Both build methods below call it, so the table and the
+  feed can never disagree about which campaigns count as active.
+- **`__buildCampaignRows()`** sorts active campaigns by `createdAt` DESC, then appends
+  every OTHER non-draft campaign (paused/complete/archived/published — drafts are
+  already excluded server-side) sorted the same way, and slices the concatenation to
+  `CAMPAIGN_ROWS_LIMIT` (5) **before** `__applySort()` runs. Active rows always win the
+  slots first; non-active ones only backfill the remainder when there aren't 5 active
+  campaigns. Order matters for a second reason too: picking the 5 rows by recency is
+  what decides WHICH campaigns appear — the user's column sort (default `sent` desc)
+  only reorders whichever 5 got picked, it does not reach back for more. Empty state
+  added (`!campaignRows.length` → "No campaigns yet" + a link to the full list), which
+  can now only fire when the account has literally no non-draft campaigns at all.
+- **`__buildActivity()`** partitions the campaign-scoped events (`all ||
+  selectedCampaignIds.has(...)`, unchanged) into active-campaign events and everything
+  else, then concatenates active-first. Each partition keeps the server's original
+  recency order, so the feed is not a strict global timeline once a non-active event is
+  present — it leads with what's actionable today and fills out with the rest rather
+  than going sparse. The server-side cap (`ACTIVITY_LIMIT = 8` in
+  `KexyApi/src/dashboard/dashboard.service.ts`) is unchanged and is still the only thing
+  bounding how far back "recent" reaches; this only reorders those 8, it never asks for
+  more.
+- **"View all"** on the Campaign performance panel passes `{ status: 'active' }` (see
+  the dashboard-card section above) — that's a link to the full active-filtered list,
+  independent of whichever mix of active/backfilled rows happens to be on the card.
 
 ### Manage Campaigns specifics
 

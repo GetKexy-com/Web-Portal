@@ -27,6 +27,21 @@ export class DripCampaignService {
   private _loading = new BehaviorSubject(false);
   loading = this._loading.asObservable();
 
+  /**
+   * Drives the Activate button's OWN "please wait" spinner
+   * (`campaign-layout-bottm-btns`), independent of `loading` — which drives the
+   * full-page skeleton in `brand-drip-campaign`. Activating a campaign is an
+   * in-page action the user just confirmed via a modal, not a fresh navigation, so
+   * it should give feedback on the button that was clicked, not blank the whole
+   * page. Set/cleared by the caller (`generate-drip-campaign.handleClickNextButton`)
+   * around the WHOLE activate-then-refresh sequence, not inside a single service
+   * call, since both `activateDripCampaign` and the follow-up `getCampaign` are
+   * called `silent` there and would otherwise give no feedback at all.
+   */
+  private _activating = new BehaviorSubject(false);
+  activating = this._activating.asObservable();
+  setActivating = (value: boolean): void => this._activating.next(value);
+
   private _dripCampaignStatus = new BehaviorSubject('');
   dripCampaignStatus = this._dripCampaignStatus.asObservable();
 
@@ -662,18 +677,23 @@ export class DripCampaignService {
     });
   };
 
-  activateDripCampaign = async (postData) => {
-    this._loading.next(true);
+  /**
+   * @param silent  Skip the shared `loading` subject (the full-page skeleton) — see
+   *   `getCampaign`'s own `silent` param for the same reasoning. Existing callers
+   *   keep the skeleton by default.
+   */
+  activateDripCampaign = async (postData, silent = false) => {
+    if (!silent) this._loading.next(true);
     return new Promise(async (resolve, reject) => {
       const url = `drip-campaigns/${postData.drip_campaign_id}/activate`;
       delete postData.drip_campaign_id;
       this.httpService.post(url, postData).subscribe({
         next: () => {
-          this._loading.next(false);
+          if (!silent) this._loading.next(false);
           resolve(true);
         },
         error: (err) => {
-          this._loading.next(false);
+          if (!silent) this._loading.next(false);
           if (err.error) {
             reject(err.error);
           }

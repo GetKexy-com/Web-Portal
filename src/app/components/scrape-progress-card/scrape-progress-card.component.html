@@ -59,29 +59,29 @@
   <!--The two passes are separate backend jobs with separate statuses. Showing
       them separately explains WHY the card can sit at "queued" while one has
       already finished.-->
-  <ul class="sc-steps">
-    <li class="sc-step" [ngClass]="'is-' + webStep">
-      <span class="sc-step-mark" aria-hidden="true"></span>
-      <span class="sc-step-body">
-        <span class="sc-step-name">Company &amp; website research</span>
-        <span class="sc-step-note">News, growth signals, and site content</span>
-      </span>
-      <span class="sc-step-state">
-        {{ webStep === 'done' ? 'Done' : webStep === 'running' ? 'Running' : 'Queued' }}
-      </span>
-    </li>
+<!--  <ul class="sc-steps">-->
+<!--    <li class="sc-step" [ngClass]="'is-' + webStep">-->
+<!--      <span class="sc-step-mark" aria-hidden="true"></span>-->
+<!--      <span class="sc-step-body">-->
+<!--        <span class="sc-step-name">Company &amp; website research</span>-->
+<!--        <span class="sc-step-note">News, growth signals, and site content</span>-->
+<!--      </span>-->
+<!--      <span class="sc-step-state">-->
+<!--        {{ webStep === 'done' ? 'Done' : webStep === 'running' ? 'Running' : 'Queued' }}-->
+<!--      </span>-->
+<!--    </li>-->
 
-    <li class="sc-step" [ngClass]="'is-' + mapStep">
-      <span class="sc-step-mark" aria-hidden="true"></span>
-      <span class="sc-step-body">
-        <span class="sc-step-name">Local market intelligence</span>
-        <span class="sc-step-note">Location, nearby activity, and context</span>
-      </span>
-      <span class="sc-step-state">
-        {{ mapStep === 'done' ? 'Done' : mapStep === 'running' ? 'Running' : 'Queued' }}
-      </span>
-    </li>
-  </ul>
+<!--    <li class="sc-step" [ngClass]="'is-' + mapStep">-->
+<!--      <span class="sc-step-mark" aria-hidden="true"></span>-->
+<!--      <span class="sc-step-body">-->
+<!--        <span class="sc-step-name">Local market intelligence</span>-->
+<!--        <span class="sc-step-note">Location, nearby activity, and context</span>-->
+<!--      </span>-->
+<!--      <span class="sc-step-state">-->
+<!--        {{ mapStep === 'done' ? 'Done' : mapStep === 'running' ? 'Running' : 'Queued' }}-->
+<!--      </span>-->
+<!--    </li>-->
+<!--  </ul>-->
 
   <!--Fixed height, so swapping the rotating message never reflows the card.-->
   <!--Idle only once finished — while queued the work is still coming, so the

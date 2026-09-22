@@ -137,8 +137,10 @@
         </div>
       </div>
 
-      <!--Skeleton placeholders while loading / when there is nothing to list-->
-      <div class="rail-list" *ngIf="isLoading || filteredConversations.length === 0">
+      <!--Skeleton placeholders, shown while LOADING only. An empty list is a settled
+          fact, not a pending one: shimmering rows for it read as "still loading" and
+          never resolve, so the rail looks permanently stuck.-->
+      <div class="rail-list" *ngIf="isLoading">
         <div class="skeleton-row" *ngFor="let s of [1,2,3,4,5,6]">
           <div class="sk-avatar"></div>
           <div class="sk-lines">
@@ -146,6 +148,31 @@
             <div class="sk-line bottom"></div>
           </div>
         </div>
+      </div>
+
+      <!--Nothing to list. A search that matched nothing is a different situation from
+          an empty mailbox - one the user can fix by clearing the search, the other not -
+          so the icon, the wording and the action all differ.-->
+      <div class="rail-list rail-empty" *ngIf="!isLoading && filteredConversations.length === 0">
+        <div class="rail-empty-badge" [class.searching]="convSearchText">
+          <i class="fa" [ngClass]="convSearchText ? 'fa-search' : 'fa-inbox'" aria-hidden="true"></i>
+        </div>
+
+        <p class="rail-empty-title">{{ convSearchText ? 'No matches' : 'No conversations yet' }}</p>
+
+        <p class="rail-empty-desc" *ngIf="!convSearchText">Replies from your prospects will show up here.</p>
+        <p class="rail-empty-desc" *ngIf="convSearchText">
+          Nothing matches &ldquo;{{ convSearchText }}&rdquo;.
+        </p>
+
+        <button
+          type="button"
+          class="rail-empty-action"
+          *ngIf="convSearchText"
+          (click)="clearConversationSearch()"
+        >
+          Clear search
+        </button>
       </div>
     </aside>
 

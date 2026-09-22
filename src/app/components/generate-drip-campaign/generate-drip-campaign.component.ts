@@ -901,24 +901,45 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
     const confirmed = await this.__isConfirmed();
     if (!confirmed) return;
 
-    const isSuccess = await this.__launchDripCampaign();
-    if (isSuccess) {
-      await Swal.fire({
-        title: `Congratulations!`,
-        text: 'Drip campaign is now active.',
-        icon: 'success',
-      });
+    // Both steps below are called `silent` (see their own comments), so neither
+    // touches the shared `loading` subject that drives the full-page skeleton — the
+    // campaign is already fully rendered on screen and the user just confirmed this
+    // via a modal, so blanking the whole page reads as a glitch, not a load. The
+    // Activate button gets its own "please wait" state instead, for the whole
+    // sequence, via `setActivating` — a single call site around both steps rather
+    // than inside either one, since it must stay true across BOTH the activate POST
+    // and the campaign refetch that follows it, not toggle off in between.
+    this.dripCampaignService.setActivating(true);
+    try {
+      const isSuccess = await this.__launchDripCampaign();
+      if (isSuccess) {
+        await Swal.fire({
+          title: `Congratulations!`,
+          text: 'Drip campaign is now active.',
+          icon: 'success',
+        });
 
-      await this.__refreshDripCampaign();
+        await this.__refreshDripCampaign();
+      }
+    } finally {
+      this.dripCampaignService.setActivating(false);
     }
   };
 
+  /**
+   * Called after activation AND after AI email generation finishes — an in-page
+   * refresh in both cases, never a fresh navigation, so it's always `silent`
+   * (skips the full-page skeleton). The email-generation path already has its own
+   * "Generating your emails…" indicator (`isContentLoading`); stacking the page
+   * skeleton on top of that would be the same kind of glitch this was written to
+   * remove from the activate flow.
+   */
   __refreshDripCampaign = async () => {
     const postData = {
       drip_campaign_id: this.dripCampaignId,
       supplier_id: this.userData.supplier_id,
     };
-    await this.dripCampaignService.getCampaign(postData);
+    await this.dripCampaignService.getCampaign(postData, true);
     this.dripCampaign = this.dripCampaignService.getDripCampaignContentPageData();
     // Covers both directions: mount the card once a campaign is activated, and
     // drop it once both scrapes report SUCCEEDED.
@@ -935,7 +956,8 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
         companyId: this.userData.supplier_id,
         // notify: "true",
       };
-      await this.dripCampaignService.activateDripCampaign(postData);
+      // silent: see `setActivating` above — the button carries the feedback instead.
+      await this.dripCampaignService.activateDripCampaign(postData, true);
       return true;
 
     } catch (e) {

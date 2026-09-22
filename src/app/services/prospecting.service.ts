@@ -319,6 +319,22 @@ export class ProspectingService {
   peekConversations = (postData: any) =>
     this.conversationCache[this.__contactsCacheKey(postData)] ?? null;
 
+  /**
+   * Replays a cached page: the rows AND the total that went with them.
+   *
+   * Restoring the total is the whole point. `totalConversationCount` is a single field
+   * on this service shared by Inbox and Sent, while the cache is keyed per request — so
+   * a replay that only emitted `hit.data` left the total from whichever page fetched
+   * last. Arriving at an empty Inbox from a populated Sent, that stale non-zero total
+   * made `*ngIf="!totalConversationCount"` false and the "No conversations yet" pane
+   * never rendered; a reload fixed it only because an empty cache forces the HTTP path.
+   * It also drives `totalPage`, so pagination was wrong on any cache hit.
+   */
+  private __replayConversations(hit: { data: any[]; total?: number }) {
+    this.totalConversationCount = hit.total ?? hit.data.length;
+    this._conversation.next(hit.data);
+  }
+
   getAllConversation = async (postData, overWrite = false, version = 0) => {
     // Computed BEFORE the `delete postData.companyId` below, which mutates the object
     // the key is derived from — take it after and the store and the peek disagree.
@@ -330,12 +346,12 @@ export class ProspectingService {
       if (!overWrite) {
         // Fresh enough to stand alone: replay it, make no request.
         if (this.isSnapshotUsable(hit, version, CACHE_SCOPE.CONVERSATIONS)) {
-          this._conversation.next(hit.data);
+          this.__replayConversations(hit);
           return resolve(true);
         }
         // Stale but present: show it while the request runs rather than blanking the
         // list for a round trip.
-        if (hit) this._conversation.next(hit.data);
+        if (hit) this.__replayConversations(hit);
       }
 
       const companyId = postData.companyId;
@@ -362,6 +378,10 @@ export class ProspectingService {
             data: this.prospectContactConversations,
             at: Date.now(),
             version,
+            // Cached WITH the rows. `totalConversationCount` is one field shared by
+            // Inbox and Sent, so a replay that does not restore it leaves the other
+            // page's total behind — see `__replayConversations`.
+            total: res.data.total,
           };
           this._conversation.next(this.prospectContactConversations);
           resolve(true);

@@ -46,7 +46,7 @@
             [style.text-transform]="selectedOption.itemBgColor && selectedOption.itemTextColor ? 'uppercase' : ''"
           >
 <!--            {{ selectedOption }}-->
-            {{ selectedOption?.value ? selectedOption.value : selectedOption }}
+            <span class="tag-text" [title]="selectedOption?.value ? selectedOption.value : selectedOption">{{ selectedOption?.value ? selectedOption.value : selectedOption }}</span>
 
             <span class="close-icon-wrap" *ngIf="isClearable" (click)="clearSelectedOption()">
               <i class="fa fa-times-circle" aria-hidden="true"></i>

@@ -324,7 +324,7 @@
         </span>
         <i class="fa fa-angle-right mini-go" aria-hidden="true"></i>
       </button>
-      <button type="button" class="mini-card" (click)="goTo(brand.LIST_DRIP_CAMPAIGN)">
+      <button type="button" class="mini-card" (click)="goTo(brand.LIST_DRIP_CAMPAIGN, { status: 'active' })">
         <span class="mini-icon is-live"><i class="fa fa-paper-plane-o" aria-hidden="true"></i></span>
         <span class="mini-text">
           <span class="mini-value">{{ stats.totals.activeCampaigns | number }}</span>
@@ -344,7 +344,7 @@
           <!--States the mechanism where the mechanism is, rather than hiding it
               behind a bare column of checkboxes.-->
           <p class="panel-sub">
-            Tick campaigns to scope the whole dashboard to them
+            Your {{ campaignRows.length }} most recent campaigns, active ones first · tick to scope the whole dashboard to them
             <span *ngIf="!isAllCampaigns"> · {{ scopeLabel }}</span>
           </p>
         </div>
@@ -352,7 +352,7 @@
           <button type="button" class="link-btn" *ngIf="!isAllCampaigns" (click)="clearCampaignScope()">
             Clear
           </button>
-          <button type="button" class="link-btn" (click)="goTo(brand.LIST_DRIP_CAMPAIGN)">View all</button>
+          <button type="button" class="link-btn" (click)="goTo(brand.LIST_DRIP_CAMPAIGN, { status: 'active' })">View all</button>
         </div>
       </div>
 
@@ -417,6 +417,10 @@
             </tr>
           </tbody>
         </table>
+      </div>
+      <div class="table-state" *ngIf="!campaignRows.length">
+        No campaigns yet.
+        <button type="button" class="link-btn" (click)="goTo(brand.LIST_DRIP_CAMPAIGN)">View all campaigns</button>
       </div>
     </article>
   </ng-template>

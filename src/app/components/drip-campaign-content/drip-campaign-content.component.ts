@@ -195,7 +195,10 @@ export class DripCampaignContentComponent implements OnInit, OnDestroy {
       this.selectedTitle = data.title.title;
       this.selectedTitleId = data.title.id;
       this.selectedCompany = data.companyDescription;
-      this.selectedCompanyKey = data.companyDescription.description;
+      // Mirrors the short `value` now used in `companyOptions` (company name, not the
+      // full description) so a previously-saved campaign's dropdown pill matches what a
+      // fresh selection would show.
+      this.selectedCompanyKey = data.companyDescription.companyName;
     }
     this.selectedEmailToneKey = data.emailTone;
     this.numberOfEmail = data.numberOfEmails;
@@ -225,11 +228,26 @@ export class DripCampaignContentComponent implements OnInit, OnDestroy {
     this.companySubscription = this.prospectingService.allDescription.subscribe((data) => {
       this.companyOptions = [];
       data.map((item, index) => {
-        this.companyOptions.push({ ...item, value: item.description });
+        // `value` drives BOTH the closed dropdown's selected pill and each row's main
+        // label, so it must stay short — the company name, not the full description
+        // (which could run to paragraphs and rendered as a wrapping multi-line pill).
+        // The description is still shown, as `subText` under the company name in the
+        // open list, same slot `list-of-drip-campaign-table` etc. already use for a
+        // secondary line.
+        this.companyOptions.push({
+          ...item,
+          value: item.companyName,
+          subText: this.__truncateForOption(item.description),
+        });
       });
       console.log(this.companyOptions);
     });
     this.companyLoading = false;
+  };
+
+  private __truncateForOption = (text: string, max = 140): string => {
+    if (!text) return '';
+    return text.length > max ? `${text.slice(0, max)}…` : text;
   };
 
   setWebsiteOptions = async () => {

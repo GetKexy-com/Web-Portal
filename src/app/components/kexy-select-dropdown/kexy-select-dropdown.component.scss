@@ -312,6 +312,17 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    // Caps a single selected value to one line regardless of how long the underlying
+    // text is (e.g. a long company/website name) — the tag itself has no max-width, so
+    // without this the text just wrapped inside the flex pill instead of eliding.
+    max-width: 100%;
+
+    .tag-text {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      min-width: 0;
+    }
 
     .close-icon-wrap {
       cursor: pointer;

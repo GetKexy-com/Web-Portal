@@ -95,10 +95,11 @@ export class BrandConversationsComponent implements OnInit, OnDestroy {
     this.isLoading = false;
     this.conversationsSubscription = this.prospectingService.allConversation.subscribe(
       (conversations: ProspectContact[]) => {
-        console.log({ conversations });
-        if (conversations.length) {
-          this.setConversation(conversations);
-        }
+        // An EMPTY emission is the important one and used to be dropped by an
+        // `if (conversations.length)` guard, so deleting the last conversation left
+        // the rows and the open thread on screen until a reload. `setConversation`
+        // handles the empty case itself now.
+        this.setConversation(conversations ?? []);
       },
     );
   }
@@ -149,6 +150,18 @@ export class BrandConversationsComponent implements OnInit, OnDestroy {
       }
     })
     this.filteredConversations = this.conversations = conversations;
+
+    if (!conversations.length) {
+      // Clear the open thread too, not just the list. Without this the right-hand
+      // pane keeps rendering the last selected conversation, so `.conv-empty`
+      // (`*ngIf="!selectedConversation"`) never appears — and because
+      // `allConversation` is ONE subject shared by Inbox and Sent, the thread left
+      // behind can even belong to the other page.
+      this.selectedConversation = undefined;
+      this.pageUiService.setSelectedProspectingConv(undefined);
+      return;
+    }
+
     await this.conversationTapped(conversations[0]);
     this.pageUiService.setSelectedProspectingConv(this.selectedConversation);
   };
@@ -505,6 +518,16 @@ export class BrandConversationsComponent implements OnInit, OnDestroy {
 
   handleConvSearchInputChange = (ev) => {
     if (ev.target.value === '') this.filteredConversations = this.conversations;
+  };
+
+  /**
+   * Clears the search from the empty state. Restores the already-loaded list rather
+   * than refetching — emptying the input does the same thing, and the rows are still
+   * in `conversations`.
+   */
+  clearConversationSearch = () => {
+    this.convSearchText = '';
+    this.filteredConversations = this.conversations;
   };
 
   // startAConversationBtnClick = () => {
