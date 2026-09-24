@@ -789,38 +789,10 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
   exportCSV = async () => {
     await this.getAllContacts();
 
-    const headers = `First Name,Last Name,Linkedin,Website,Email,Email Status,Job Title,Company Name,Phone Number,City,State,Country,Marketing Status,List`;
-    let rows = '';
-    this.allContacts.forEach((contact) => {
-      console.log('contact', contact);
-      let labels = [];
-      contact.lists.forEach((list) => {
-        labels.push(list.label);
-      });
-
-      let contactDetails;
-      if (this.pageUiService.isJsonString(contact.details)) {
-        contactDetails = JSON.parse(contact.details);
-      } else {
-        contactDetails = contact.details;
-      }
-      rows += `${contactDetails.firstName?.replace(/,/g, ' ')}, `;
-      rows += `${contactDetails.lastName?.replace(/,/g, ' ')}, `;
-      rows += `${contactDetails.linkedinUrl?.replace(/,/g, ' ')}, `;
-      rows += `${contactDetails.organization.websiteUrl?.replace(/,/g, ' ')}, `;
-      rows += `${contactDetails.email?.replace(/,/g, ' ')}, `;
-      rows += `${contactDetails.emailStatus?.replace(/,/g, ' ')}, `;
-      rows += `${contactDetails.title?.replace(/,/g, ' ')}, `;
-      rows += `${contactDetails.organization.name?.replace(/,/g, ' ')}, `;
-      rows += `${contactDetails.organization.phone?.replace(/,/g, ' ')}, `;
-      rows += `${contactDetails.city?.replace(/,/g, ' ')}, `;
-      rows += `${contactDetails.state?.replace(/,/g, ' ')}, `;
-      rows += `${contactDetails.country?.replace(/,/g, ' ')}, `;
-      rows += `${contact.marketingStatus?.replace(/,/g, ' ')}, `;
-      rows += `${labels.length ? labels.join('/') : ''}\n`;
-    });
-    // console.log(rows);
-    await CsvHelper.download('Contacts.csv', headers + '\n' + rows);
+    const csv = CsvHelper.contactsToCsv(this.allContacts || [], (contact) =>
+      (contact.lists || []).map((list) => list.label),
+    );
+    await CsvHelper.download('Contacts.csv', csv);
     this.isWaitingFlag = false;
   };
 

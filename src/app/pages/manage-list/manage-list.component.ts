@@ -316,38 +316,13 @@ export class ManageListComponent implements OnInit, OnDestroy {
   exportBtnLoading = false;
   exportCSV = async () => {
     const contacts = await this.getAllContacts();
-    const headers = `First Name,Last Name,Linkedin,Website,Email,Email Status,Job Title,Company Name,Phone Number,City,State,Country,Marketing Status,List`;
-    let rows = '';
-    contacts.forEach((contact) => {
-      let labels = [];
-      contact.listIds.forEach(label => {
-        const labelTitle = this.labelOptions.find(l => l.id === parseInt(label));
-        labels.push(labelTitle.label);
-      });
-      let contactDetails;
-      if (this.pageUiService.isJsonString(contact.details)) {
-        contactDetails = JSON.parse(contact.details);
-      } else {
-        contactDetails = contact.details;
-      }
-
-      rows += `${contactDetails.firstName?.replace(/,/g, ' ')}, `;
-      rows += `${contactDetails.lastName?.replace(/,/g, ' ')}, `;
-      rows += `${contactDetails.linkedinUrl?.replace(/,/g, ' ')}, `;
-      rows += `${contactDetails.organization.websiteUrl?.replace(/,/g, ' ')}, `;
-      rows += `${contactDetails.email?.replace(/,/g, ' ')}, `;
-      rows += `${contactDetails.emailStatus?.replace(/,/g, ' ')}, `;
-      rows += `${contactDetails.title?.replace(/,/g, ' ')}, `;
-      rows += `${contactDetails.organization.name?.replace(/,/g, ' ')}, `;
-      rows += `${contactDetails.organization.phone?.replace(/,/g, ' ')}, `;
-      rows += `${contactDetails.city?.replace(/,/g, ' ')}, `;
-      rows += `${contactDetails.state?.replace(/,/g, ' ')}, `;
-      rows += `${contactDetails.country?.replace(/,/g, ' ')}, `;
-      rows += `${contact.marketingStatus?.replace(/,/g, ' ')}, `;
-      rows += `${labels.length ? labels.join('/') : ''}\n`;
-    });
-    // console.log(rows);
-    CsvHelper.download('Contacts.csv', headers + '\n' + rows);
+    if (!contacts) return; // the fetch failed and already showed its error
+    const csv = CsvHelper.contactsToCsv(contacts, (contact) =>
+      (contact.listIds || [])
+        .map((id) => this.labelOptions.find((l) => l.id === parseInt(id))?.label)
+        .filter(Boolean),
+    );
+    CsvHelper.download('Contacts.csv', csv);
     this.isWaitingFlag = false;
   };
 }
