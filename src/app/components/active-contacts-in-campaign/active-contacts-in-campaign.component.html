@@ -1,18 +1,33 @@
 <div class="canvas-content-wrap">
   <div class="head-area">
-    <p>Contact(s)</p>
-    <img src="/assets/images/close-icon.png" alt="Close" (click)="activeCanvas.dismiss('Cross click')" />
+    <div class="head-text">
+      <p class="head-title">Contacts in action</p>
+      <span class="head-subtitle">
+        {{ contacts.length }} contact<span *ngIf="contacts.length !== 1">s</span> waiting for the next email in this campaign
+      </span>
+    </div>
+    <button type="button" class="close-btn" aria-label="Close" (click)="activeCanvas.dismiss('Cross click')">
+      <i class="fa fa-times" aria-hidden="true"></i>
+    </button>
   </div>
 
   <div class="canvas-body">
-    <div class="contacts-table-wrapper">
+    <div class="form-section">
+      <div class="section-head">
+        <i class="fa fa-users section-icon" aria-hidden="true"></i>
+        <span class="section-title">Contacts</span>
+        <span class="count-pill">{{ contacts.length | number }}</span>
+        <span class="selected-pill" *ngIf="selectedContacts.length">
+          <i class="fa fa-check" aria-hidden="true"></i>
+          {{ selectedContacts.length }} selected
+        </span>
+        <span class="section-hint">Click a row to view the contact</span>
+      </div>
+
       <active-contacts-table
-        tableHeaderBg="#0047CC"
-        tableHeaderColor="#FFFFFF"
         [cardData]="paginatedContacts"
+        [total]="contacts.length"
         [checkboxClicked]="handleContactSelect"
-        [selectedContacts]="selectedContacts"
-        [unenrollBtnClicked]="unenrollBtnClicked"
         [totalPage]="totalPage"
         [currentPage]="page"
         [limit]="limit"
@@ -22,5 +37,14 @@
       >
       </active-contacts-table>
     </div>
+  </div>
+
+  <div class="buttons">
+    <button class="blue-border-white-bg-button" type="button" (click)="activeCanvas.dismiss('Cross click')">
+      Close
+    </button>
+    <button class="danger-button" type="button" [disabled]="!selectedContacts.length" (click)="unenrollBtnClicked()">
+      <i class="fa fa-minus-circle me-2" aria-hidden="true"></i>Unenroll
+    </button>
   </div>
 </div>

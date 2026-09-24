@@ -5,11 +5,13 @@ import { ActivatedRoute } from "@angular/router";
 import Swal from "sweetalert2";
 import { PageUiService } from "../../services/page-ui.service";
 import {ActiveContactsTableComponent} from '../active-contacts-table/active-contacts-table.component';
+import {CommonModule} from '@angular/common';
 
 @Component({
   selector: 'app-active-contacts-in-campaign',
   imports: [
-    ActiveContactsTableComponent
+    ActiveContactsTableComponent,
+    CommonModule,
   ],
   templateUrl: './active-contacts-in-campaign.component.html',
   styleUrl: './active-contacts-in-campaign.component.scss'
@@ -117,13 +119,11 @@ export class ActiveContactsInCampaignComponent implements OnInit {
         if (index > -1) {
           this.contacts.splice(index, 1);
         }
-
-        const i = this.paginatedContacts.findIndex(c => c.email === email);
-        if (i > -1) {
-          this.paginatedContacts.splice(index, 1);
-        }
       })
       this.selectedContacts = [];
+      // Rebuild the page from what is left (and step back if this page emptied).
+      this.page = Math.min(this.page, Math.max(1, Math.ceil(this.contacts.length / this.limit)));
+      this.setContactsWithPagination();
       await this.dripCampaignService.getProspects({
         drip_campaign_id: this.dripCampaignId,
       });

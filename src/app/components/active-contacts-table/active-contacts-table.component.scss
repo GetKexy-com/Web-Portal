@@ -1,195 +1,240 @@
-.kexy-table-card {
-  background: white;
-  margin-bottom: 20px;
+// Tokens: same as the shared drawer design (prospecting-contacts, email-time-settings-content).
+$kx-primary: #12a5f4;
+$kx-primary-deep: #095dd1;
+$kx-ink: #0f172a;
+$kx-muted: #64748b;
+$kx-border: #e2e8f0;
+$kx-hairline: #f1f5f9;
+$kx-field-bg: #f7f9fc;
+$kx-selected-bg: #eef7fe;
+
+:host {
+  display: block;
+}
+
+.ac-table-wrap {
+  border: 1px solid $kx-border;
   border-radius: 12px;
-  box-shadow: 0 1px 5px 0 #d6d6d6;
+  overflow: hidden;
+}
 
-  .card-header {
-    padding: 15px;
+.ac-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+
+  th {
+    padding: 11px 14px;
+    background: $kx-field-bg;
+    border-bottom: 1px solid $kx-border;
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: $kx-muted;
+    text-align: left;
+  }
+
+  td {
+    padding: 11px 14px;
+    border-bottom: 1px solid $kx-hairline;
+    font-size: 14px;
+    color: $kx-ink;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  tbody tr {
+    cursor: pointer;
+    transition: background 0.12s ease;
+
+    &:last-child td {
+      border-bottom: none;
+    }
+
+    &:hover {
+      background: $kx-field-bg;
+
+      .col-view {
+        color: $kx-primary-deep;
+      }
+    }
+
+    &.selected {
+      background: $kx-selected-bg;
+    }
+  }
+
+  .col-check {
+    width: 52px;
+    text-align: center;
+  }
+
+  .col-view {
+    width: 40px;
+    text-align: center;
+    color: #cbd5e1;
+    font-size: 16px;
+  }
+
+  .email {
+    color: $kx-muted;
+  }
+
+  .name-cell {
     display: flex;
-    justify-content: flex-end;
     align-items: center;
-    height: 50px;
+    gap: 10px;
+    min-width: 0;
 
-    p {
-      margin-bottom: 0;
-      font-weight: 600;
-      font-size: 14px;
-      line-height: 16px;
-
-      span {
-        font-size: 12px;
-      }
-    }
-
-    .pagination-section {
-      display: flex;
+    .avatar {
+      flex-shrink: 0;
+      width: 30px;
+      height: 30px;
+      display: inline-flex;
       align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: linear-gradient(135deg, $kx-primary, $kx-primary-deep);
+      color: #fff;
+      font-weight: 600;
+      font-size: 11px;
+    }
 
-      .btn-wrap {
-        width: fit-content;
-      }
-
-      .conv-pagination-wrap {
-        padding-left: 20px;
-        border-radius: 10px;
-
-        .conv-pagination {
-          display: flex;
-          //justify-content: flex-end;
-          align-items: center;
-          //min-width: 200px;
-          p {
-            color: #5e5e5e;
-            font-size: 14px;
-            margin-bottom: 0;
-          }
-
-          .pagination-arrow {
-            font-size: 20px;
-            width: 30px;
-            cursor: pointer;
-            border-radius: 50%;
-            height: 30px;
-            display: inline-block;
-            text-align: center;
-            background: #e7f6fe;
-
-            &:hover {
-              background: lightgray;
-            }
-          }
-
-          .disabled {
-            color: grey;
-            pointer-events: none;
-            cursor: crosshair;
-          }
-        }
-      }
+    .name {
+      font-weight: 600;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
   }
 
-  .new-table-wrapper {
-    overflow-y: hidden;
-    overflow-x: scroll;
+  .empty-row td {
+    padding: 28px 14px;
+    text-align: center;
+    color: $kx-muted;
+    cursor: default;
 
-    .list-wrapper {
-      background: #e7f6fe;
-      border-radius: 10px;
-
-      .n-table {
-        outline: 0;
-
-        .n-product {
-          background: white;
-          cursor: pointer;
-          border-bottom: 1px solid #a2deff;
-
-          &:hover {
-            background: #edeeff;
-          }
-
-          &.selected {
-            background: #e2f9fe;
-          }
-        }
-
-        tr.n-header {
-          text-transform: uppercase;
-          color: #0047cc;
-          position: relative;
-          z-index: 1000;
-          font-weight: bold;
-        }
-
-        .n-header-product {
-          width: 20px;
-          padding: 10px;
-          font-size: 12px;
-        }
-
-        .n-header-name,
-        .n-header-title {
-          font-size: 12px;
-          color: #0047cc;
-          padding: 10px 0;
-
-          .select-all-header-icons {
-            display: inline-block;
-            width: 100%;
-            text-align: center;
-            cursor: pointer;
-
-            i {
-              font-size: 18px;
-              width: 15px;
-            }
-          }
-        }
-
-        td.n-cell {
-          height: 48px;
-
-          span {
-            font-size: 14px;
-            display: inline-block;
-            line-height: 16px;
-            color: black;
-            font-weight: normal;
-          }
-
-          .col-actions {
-            width: 100%;
-            display: inline-block;
-            text-align: center;
-
-            i {
-              font-size: 16px;
-              padding: 10px;
-            }
-          }
-
-          &.title-of-campaign-column-width {
-            width: 170px;
-            padding-left: 10px;
-          }
-        }
-      }
+    i {
+      margin-right: 6px;
     }
   }
 
-  .pagination {
-    text-align: right;
-    padding: 10px;
+  tbody tr.empty-row:hover {
+    background: transparent;
   }
 }
 
-.kexy-table-entry-count {
+// The icon is always rendered and only made visible when checked, and the box is
+// middle-aligned: an inline-flex box sits on its baseline, which moved when the icon
+// appeared, so checking a row used to change the row height and make the list jump.
+.check-btn {
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  vertical-align: middle;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 5px;
+  background: #fff;
+  color: #fff;
+  font-size: 10px;
+  cursor: pointer;
+  transition: all 0.12s ease;
+
+  &:hover:not(:disabled) {
+    border-color: $kx-primary;
+  }
+
+  i {
+    visibility: hidden;
+  }
+
+  &.checked {
+    border-color: $kx-primary-deep;
+    background: linear-gradient(135deg, $kx-primary, $kx-primary-deep);
+
+    i {
+      visibility: visible;
+    }
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.ac-pager {
   display: flex;
   align-items: center;
-  color: #5e5e5e;
-  font-size: 14px;
-  font-weight: 600;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+  font-size: 13px;
+  color: $kx-muted;
 
-  select {
-    margin: 0 10px;
-    width: auto;
-    padding: 3px;
+  .per-page {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    select {
+      padding: 5px 8px;
+      background: $kx-field-bg;
+      border: 1.5px solid $kx-border;
+      border-radius: 8px;
+      font-size: 13px;
+      color: $kx-ink;
+
+      &:focus {
+        outline: none;
+        border-color: $kx-primary;
+      }
+    }
+  }
+
+  .range {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .pager-btns {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .page-of {
+    min-width: 90px;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .icon-btn {
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid $kx-border;
+    border-radius: 8px;
+    background: #fff;
+    color: $kx-muted;
     font-size: 14px;
-  }
-}
+    cursor: pointer;
 
-.checkbox-icon {
-  font-size: 18px;
-  color: #b8b6b6;
+    &:hover:not(:disabled) {
+      border-color: $kx-primary;
+      color: $kx-primary-deep;
+    }
 
-  &.selected {
-    color: #2646c5;
+    &:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
   }
-}
-.action-btns-wrap {
-  margin-right: 20px;
-  display: flex;
-  gap: 15px;
 }

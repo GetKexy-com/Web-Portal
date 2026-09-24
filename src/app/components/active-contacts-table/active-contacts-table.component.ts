@@ -1,9 +1,6 @@
-import { AfterViewChecked, Component, EventEmitter, Input, OnDestroy, OnInit, Output } from "@angular/core";
-import { constants } from "../../helpers/constants";
-import { DripCampaignService } from "../../services/drip-campaign.service";
+import { Component, EventEmitter, Input, Output } from "@angular/core";
 import { NgbModal } from "@ng-bootstrap/ng-bootstrap";
 import { ProspectingService } from "../../services/prospecting.service";
-import {KexyButtonComponent} from '../kexy-button/kexy-button.component';
 import {FormsModule} from '@angular/forms';
 import {
   ContactDetailsModalContentComponent
@@ -13,7 +10,6 @@ import {CommonModule} from '@angular/common';
 @Component({
   selector: 'active-contacts-table',
   imports: [
-    KexyButtonComponent,
     FormsModule,
     CommonModule,
   ],
@@ -21,14 +17,9 @@ import {CommonModule} from '@angular/common';
   styleUrl: './active-contacts-table.component.scss'
 })
 export class ActiveContactsTableComponent {
-  @Input() tableHeaderBg;
-  @Input() tableHeaderColor;
   @Input() cardData = [];
-  @Input() selectedContacts = [];
-  @Input() isLoading: boolean = false;
-  @Input() isWaitingFlag: boolean;
+  @Input() total = 0;
   @Input() checkboxClicked;
-  @Input() unenrollBtnClicked;
   @Input() paginationLeftArrowClick;
   @Input() paginationRightArrowClick;
   @Input() totalPage;
@@ -36,47 +27,25 @@ export class ActiveContactsTableComponent {
   @Input() limit;
   @Output() selectedLimit: EventEmitter<any> = new EventEmitter();
 
-  public tableWidth = 800;
-  public columnList: any[];
-
   constructor(private prospectingService: ProspectingService, private modal: NgbModal) {}
 
-  ngOnInit(): void {
-    console.log(this.cardData);
-    this.getListViewData();
+  get selectedItemCount(): number {
+    return this.cardData.filter((i) => i.is_selected).length;
   }
 
-  ngOnDestroy(): void {}
-
-  ngAfterViewChecked() {
-    this.calcWidth();
+  get allSelected(): boolean {
+    return this.cardData.length > 0 && this.selectedItemCount === this.cardData.length;
   }
 
-  getListViewData = () => {
-    let columnList: any;
-    columnList = [
-      { name: "", key: "action", width: 40 },
-      { name: "Name", key: "contactName", width: 120 },
-      { name: "Email Address", key: "email", width: 180 },
-    ];
-    this.columnList = columnList;
-  };
+  get rangeStart(): number {
+    return this.total ? (this.currentPage - 1) * this.limit + 1 : 0;
+  }
 
-  browserWidthForTable;
-  calcWidth = () => {
-    // const sidebarWidth = document.getElementById("main-sidebar")?.clientWidth;
-    // const pageMargin = 48;
-    // let sum = 300;
-    // let map = {};
-    // this.columnList.forEach((column) => {
-    //   sum += column.width;
-    //   map[column.key] = column.width;
-    // });
-    this.browserWidthForTable = this.tableWidth;
-    // this.tableWidth = this.browserWidthForTable > sum ? this.browserWidthForTable : sum;
-  };
+  get rangeEnd(): number {
+    return Math.min(this.currentPage * this.limit, this.total);
+  }
 
-  getCellValue = (row, column) => {
+  getDetails = (row) => {
     // Some prospects are stored with an empty `details`; JSON.parse('') throws mid-render.
     let details = row.details;
     if (typeof details === "string") {
@@ -86,34 +55,36 @@ export class ActiveContactsTableComponent {
         details = null;
       }
     }
-    return details?.[column.key] ?? (column.key === "email" ? row.email : undefined);
+    return details || {};
   };
 
-  selectedItemCount;
-  isNoItemSelected = () => {
-    this.selectedItemCount = this.cardData.filter((i) => i.is_selected).length;
-    return this.selectedItemCount === 0;
+  getName = (row) => {
+    const d = this.getDetails(row);
+    return d.contactName || d.name || [d.firstName, d.lastName].filter(Boolean).join(' ') || '—';
   };
 
-  stopPropagation = (event: Event) => {
-    // Stop the event propagation to prevent the outer button click handler from being called
+  getEmail = (row) => this.getDetails(row).email || row.email || '—';
+
+  getInitials = (row) => {
+    const [first = '', last = ''] = this.getName(row).replace('—', '').trim().split(/\s+/);
+    return ((first[0] || '') + (last[0] || '')).toUpperCase() || '?';
+  };
+
+  onSelectAll = () => {
+    this.checkboxClicked(null, true);
+  };
+
+  onCheckboxClicked = (event: Event, data) => {
     event.stopPropagation();
+    this.checkboxClicked(data);
   };
 
-  onCheckboxClicked = (event, data) => {
-    this.stopPropagation(event);
-    this.checkboxClicked(data);
-  }
-
-  handleRowClick = (event, data) => {
-    this.stopPropagation(event);
+  handleRowClick = (data) => {
     this.prospectingService.selectedContactForShowDetails = data;
     this.modal.open(ContactDetailsModalContentComponent, {size: "lg"});
-  }
-
-  onShowEntriesSelect = ($event) => {
-    this.selectedLimit.emit(this.limit);
   };
 
-  protected readonly constants = constants;
+  onShowEntriesSelect = () => {
+    this.selectedLimit.emit(this.limit);
+  };
 }
