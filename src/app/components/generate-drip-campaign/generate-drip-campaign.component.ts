@@ -865,36 +865,16 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
   }
 
   handleClickNextButton = async () => {
-    if (!this.emails.length) {
-      await Swal.fire({
-        title: `Error`,
-        text: 'Please generate emails to activate.',
-        icon: 'warning',
-      });
-      return;
-    }
-
-    const enrollList = this.getEnrolledList();
-    if (!enrollList?.length) {
-      this.openSettingsCanvas();
-      await Swal.fire({
-        title: `Error`,
-        text: 'Please select list(s) from enrollment triggers',
-        icon: 'warning',
-      });
-      return;
-    }
-
-    // A campaign with no send-from SMTP would activate and then fail to send, so
-    // block it here the same way a missing list is blocked: open the settings canvas
-    // (the SMTP selector is on its Enrollment Triggers tab) and explain why.
-    if (!this.__getSelectedSmtpId()) {
-      this.openSettingsCanvas();
-      await Swal.fire({
-        title: `Error`,
-        text: 'Please select an SMTP account from settings and save it before activating.',
-        icon: 'warning',
-      });
+    // Shared with reactivating a completed drip (see `getActivationBlocker`). A missing
+    // list or SMTP opens the settings canvas — both are on its Enrollment Triggers tab.
+    const blocker = this.dripCampaignService.getActivationBlocker({
+      emailCount: this.emails.length,
+      enrollListCount: this.getEnrolledList()?.length ?? 0,
+      smtpId: this.__getSelectedSmtpId(),
+    });
+    if (blocker) {
+      if (blocker.reason !== 'emails') this.openSettingsCanvas();
+      await Swal.fire({ title: `Error`, text: blocker.message, icon: 'warning' });
       return;
     }
 
@@ -1258,23 +1238,7 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
     // component's `this.dripCampaign` reference is stale afterwards. Without this,
     // picking an SMTP, saving, and clicking Activate again would still be blocked.
     this.dripCampaign = this.dripCampaignService.getDripCampaignContentPageData();
-
-    const setting = (this.dripCampaign?.settings || []).find(
-      (s: any) => s?.settingsType === 'smtp_account',
-    );
-    if (!setting) return null;
-
-    let value = setting.settingsValue;
-    if (typeof value === 'string') {
-      try {
-        value = JSON.parse(value);
-      } catch {
-        return null;
-      }
-    }
-    if (!Array.isArray(value) || !value.length) return null;
-
-    return value[0]?.smtpId ?? value[0]?.value ?? null;
+    return this.dripCampaignService.getSelectedSmtpId(this.dripCampaign);
   };
 
   onEmailToneSelect = (tone, index = null, rowIndex = null) => {

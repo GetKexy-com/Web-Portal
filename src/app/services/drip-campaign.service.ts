@@ -1,5 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
+import Swal from 'sweetalert2';
+import { constants } from '../helpers/constants';
 import { HttpService } from './http.service';
 import { CampaignService } from './campaign.service';
 import { SseService } from './sse.service';
@@ -700,6 +702,82 @@ export class DripCampaignService {
         },
       });
     });
+  };
+
+  /**
+   * The Activate button's checks, in one place, so a COMPLETED drip reactivated by adding
+   * a list or prospects to it is held to exactly the same bar as a click on Activate.
+   * `reason` lets a caller act on it (the Activate page opens the settings canvas for
+   * `lists` / `smtp`). The backend repeats these for a reactivation
+   * (`DripCampaignsService.__assertCanActivate`) with the same wording.
+   */
+  getActivationBlocker = (input: {
+    emailCount: number;
+    enrollListCount: number;
+    smtpId: any;
+  }): { reason: 'emails' | 'lists' | 'smtp'; message: string } | null => {
+    if (!input.emailCount) {
+      return { reason: 'emails', message: 'Please generate emails to activate.' };
+    }
+    if (!input.enrollListCount) {
+      return { reason: 'lists', message: 'Please select list(s) from enrollment triggers' };
+    }
+    // A campaign with no send-from SMTP would activate and then fail to send.
+    if (!input.smtpId) {
+      return {
+        reason: 'smtp',
+        message: 'Please select an SMTP account from settings and save it before activating.',
+      };
+    }
+    return null;
+  };
+
+  /**
+   * The send-from SMTP id from a campaign's `smtp_account` setting, or null. Defensive
+   * about the string form: the backend stores `settingsValue` as a JSON string and not
+   * every path through the app hands it over already parsed.
+   */
+  getSelectedSmtpId = (dripCampaign: DripCampaign): any => {
+    const setting = (dripCampaign?.settings || []).find(
+      (s: any) => s?.settingsType === 'smtp_account',
+    );
+    if (!setting) return null;
+
+    let value: any = setting.settingsValue;
+    if (typeof value === 'string') {
+      try {
+        value = JSON.parse(value);
+      } catch {
+        return null;
+      }
+    }
+    if (!Array.isArray(value) || !value.length) return null;
+
+    return value[0]?.smtpId ?? value[0]?.value ?? null;
+  };
+
+  isCompleted = (dripCampaign: { status?: string } | null | undefined): boolean =>
+    dripCampaign?.status === constants.COMPLETE;
+
+  /**
+   * Asked the moment someone starts adding a list or prospects to a COMPLETED drip — not
+   * at save time — because doing so reactivates it and it starts sending again.
+   */
+  confirmReactivation = async (what: 'list' | 'prospects'): Promise<boolean> => {
+    const result = await Swal.fire({
+      title: 'This drip campaign is complete',
+      text:
+        `Adding ${what === 'list' ? 'a list' : 'prospects'} will make it ACTIVE again, and ` +
+        'new prospects will receive the full email sequence from the first email. ' +
+        'Prospects who already received every email will not be emailed again.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, reactivate it',
+      cancelButtonText: 'Cancel',
+    });
+    return !result.dismiss;
   };
 
   getProspects = async (postData) => {

@@ -517,7 +517,18 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
     }
   };
 
-  onEnrollmentLabelSelect = (selectedValue, index = null, rowIndex = null) => {
+  // Asked once per visit to this canvas, on the first list added to a completed drip.
+  reactivationConfirmed = false;
+
+  onEnrollmentLabelSelect = async (selectedValue, index = null, rowIndex = null) => {
+    // Adding a list to a COMPLETED drip reactivates it on save, so say so now — when the
+    // list is picked — rather than after the fact. Declining leaves the list unselected.
+    const isAdding = selectedValue?.id && !selectedValue.isSelected;
+    if (isAdding && this.dripCampaignService.isCompleted(this.dripCampaign) && !this.reactivationConfirmed) {
+      if (!(await this.dripCampaignService.confirmReactivation('list'))) return;
+      this.reactivationConfirmed = true;
+    }
+
     this.handleMultiselectFunctionality(this.enrollmentLabelOptions, selectedValue);
     console.log(selectedValue, index);
     console.log(this.enrollmentLabelOptions);
@@ -664,6 +675,22 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
     const newEnrollListIds = this.enrollmentLabelOptions.filter(i => i.isSelected).map(i => i.id);
     const previousEnrollListIds = this.enrollList.map(i => i.list.id);
 
+    // A completed drip with a new list is reactivated below, so it must pass the Activate
+    // button's checks — BEFORE anything is saved. Checked against this form's own values
+    // (the SMTP picked here is saved in the same request), not the stored campaign.
+    const reactivating = this.dripCampaignService.isCompleted(this.dripCampaign) && newEnrollListIds.length > 0;
+    if (reactivating) {
+      const blocker = this.dripCampaignService.getActivationBlocker({
+        emailCount: this.dripCampaign.emails?.length ?? 0,
+        enrollListCount: newEnrollListIds.length + previousEnrollListIds.length,
+        smtpId: this.selectedSmtpId,
+      });
+      if (blocker) {
+        await Swal.fire({ title: `Error`, text: blocker.message, icon: 'warning' });
+        return;
+      }
+    }
+
     const postData = {
       drip_campaign_id: this.dripCampaignId,
       companyId: this.userData.supplier_id,
@@ -718,13 +745,35 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
 
       // If new list is added to 'active' drip campaign then we need to call 'activateDripCampaign'
       // Because contacts from new list needs to be added to the drip which will be done in 'activateDripCampaign'
-      if (this.dripCampaign.status === constants.ACTIVE && newEnrollListIds.length) {
+      // A 'complete' one goes the same way: activating it is what reactivates it.
+      if ((this.dripCampaign.status === constants.ACTIVE || reactivating) && newEnrollListIds.length) {
         const postData = {
           drip_campaign_id: this.dripCampaignId,
           companyId: this.userData.supplier_id,
           // notify: 'false',
         };
         await this.dripCampaignService.activateDripCampaign(postData);
+      }
+
+      if (reactivating) {
+        // Refresh the page's campaign so its status reflects the reactivation. The backend
+        // leaves it complete when the new list brought nobody who is owed an email.
+        const campaign: any = await this.dripCampaignService.getCampaign(
+          { drip_campaign_id: this.dripCampaignId, supplier_id: this.userData.supplier_id },
+          true,
+        );
+        this.setInitialData();
+        this.reactivationConfirmed = false;
+        await Swal.fire(
+          campaign?.status === constants.ACTIVE
+            ? { title: 'Drip campaign reactivated', text: 'New prospects will start receiving emails.', icon: 'success' }
+            : {
+                title: 'Settings saved',
+                text: 'Everyone on the new list(s) was already in this campaign, so it stays complete.',
+                icon: 'info',
+              },
+        );
+        return;
       }
 
       await Swal.fire('Success', 'Settings saved successfully', 'success');

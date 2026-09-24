@@ -192,6 +192,14 @@ $kx-red-bg: #fdeaea;
         line-height: 1.5;
         color: $kx-muted;
       }
+
+      .reactivation-note {
+        margin-top: 0;
+        padding: 8px 12px;
+        border-radius: 8px;
+        background: #e7f6fe;
+        color: #2847cc;
+      }
     }
 
     // ── Fields ──────────────────────────────────────────────────────────

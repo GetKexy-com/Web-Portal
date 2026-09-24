@@ -76,21 +76,26 @@ export class AddContactsToDripCampaignComponent implements OnInit, OnDestroy {
 
   getDripCampaignsApiCall = async () => {
     // this.isLoading = true;
+    // Fresh, not the cached list: whether a campaign is COMPLETE decides whether picking
+    // it warns that it will be reactivated, and a stale "active" would skip that warning.
     this.dripCampaignList =
-      await this.dripCampaignService.getListOfDripCampaignsWithoutPagination(false);
+      await this.dripCampaignService.getListOfDripCampaignsWithoutPagination(true);
     // this.isLoading = false;
     if (this.dripCampaignList.length) {
+      // COMPLETE is offered too: adding prospects to it reactivates it (confirmed on pick).
       this.dripCampaignList = this.dripCampaignList.filter((i) => {
-        return i.status === constants.ACTIVE || i.status === constants.PAUSE;
+        return i.status === constants.ACTIVE || i.status === constants.PAUSE || i.status === constants.COMPLETE;
       });
     }
 
     this.dripCampaignList.forEach((cam) => {
+      const completed = this.dripCampaignService.isCompleted(cam);
       this.dripCampaignDropDownList.push({
         key: cam.id,
         id: cam.id,
         lists: cam.lists,
-        value: cam.details.title.title,
+        value: completed ? `${cam.details.title.title} (Completed)` : cam.details.title.title,
+        campaign: cam,
       });
     });
 
@@ -131,6 +136,15 @@ export class AddContactsToDripCampaignComponent implements OnInit, OnDestroy {
 
   onDripCampaignSelect = async (selectedValue, index = 0, rowIndex = 0) => {
     console.log('labels', selectedValue);
+    // Adding prospects to a COMPLETED drip reactivates it, so say so the moment it is
+    // picked. Declining leaves the previous choice (or none) in place.
+    if (
+      selectedValue?.id !== this.selectedDripCampaign?.['id'] &&
+      this.dripCampaignService.isCompleted(selectedValue?.campaign) &&
+      !(await this.dripCampaignService.confirmReactivation('prospects'))
+    ) {
+      return;
+    }
     this.labels = [];
     this.selectedLabel = null;
     this.selectedDripCampaign = selectedValue;
@@ -207,6 +221,26 @@ export class AddContactsToDripCampaignComponent implements OnInit, OnDestroy {
     if (!this.selectedDripCampaign['value'] || !this.selectedLabel) return;
 
 
+    // A completed drip is reactivated after the prospects are added, so it must pass the
+    // Activate button's checks first — before anything is written.
+    const campaign = this.selectedDripCampaign['campaign'];
+    const reactivating = this.dripCampaignService.isCompleted(campaign);
+    if (reactivating) {
+      const blocker = this.dripCampaignService.getActivationBlocker({
+        emailCount: campaign.emails?.length ?? 0,
+        enrollListCount: (campaign.lists ?? []).filter((l) => l.type === 'enroll_list').length,
+        smtpId: this.dripCampaignService.getSelectedSmtpId(campaign),
+      });
+      if (blocker) {
+        await Swal.fire({
+          title: `Error`,
+          text: `${blocker.message} Open the campaign to fix this, then add the contacts again.`,
+          icon: 'warning',
+        });
+        return;
+      }
+    }
+
     const getContactApiPostData = this.getContactsApiPayload();
     this.isLoading = true;
     try {
@@ -231,10 +265,36 @@ export class AddContactsToDripCampaignComponent implements OnInit, OnDestroy {
       };
       await this.dripCampaignService.assignContactsAndLabelsInCampaign(assignApiPostData);
 
+      let reactivated = false;
+      if (reactivating) {
+        await this.dripCampaignService.activateDripCampaign({
+          drip_campaign_id: this.addToDripCampaignId,
+          companyId: this.userData.supplier_id,
+        });
+        // The backend leaves the campaign complete when nobody added is owed an email
+        // (they had all been through it already), so read the outcome back. This also
+        // refreshes the cached campaign list, whose status is now stale.
+        const refreshed = await this.dripCampaignService.getListOfDripCampaignsWithoutPagination(true);
+        reactivated =
+          refreshed.find((c) => String(c.id) === String(this.addToDripCampaignId))?.status === constants.ACTIVE;
+      }
+
       await this.prospectingService.getContacts(getContactApiPostData, true);
       this.prospectingService.selectedContactsInContactsPage = [];
 
-      await Swal.fire('Done!', 'Contact(s) added successfully!', 'success');
+      if (reactivating) {
+        await Swal.fire(
+          reactivated
+            ? { title: 'Done!', text: 'Contact(s) added and the drip campaign is active again.', icon: 'success' }
+            : {
+                title: 'Done!',
+                text: 'Contact(s) added. They were already in this campaign, so it stays complete.',
+                icon: 'info',
+              },
+        );
+      } else {
+        await Swal.fire('Done!', 'Contact(s) added successfully!', 'success');
+      }
 
       this.activeCanvas.dismiss('Cross click');
     } catch (e) {

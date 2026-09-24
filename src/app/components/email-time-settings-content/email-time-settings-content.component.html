@@ -98,6 +98,11 @@
         <p class="section-note">
           Contacts on these lists will be automatically enrolled in the campaign as soon as it's activated.
         </p>
+        <p class="section-note reactivation-note" *ngIf="dripCampaignService.isCompleted(dripCampaign)">
+          <i class="fa fa-info-circle" aria-hidden="true"></i>
+          This campaign is complete. Adding a list will make it active again, and new contacts
+          will receive the full email sequence.
+        </p>
         <kexy-select-dropdown
           class="full-select"
           label="Lists"
