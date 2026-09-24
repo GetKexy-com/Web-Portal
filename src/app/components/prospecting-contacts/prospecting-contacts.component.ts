@@ -213,22 +213,43 @@ export class ProspectingContactsComponent implements OnInit, AfterViewInit, OnDe
     );
   };
 
-  getContactDripCampaign = () => {
+  /**
+   * Fills the "Drip Campaigns" section with the campaigns this contact is really
+   * ENROLLED in, from `GET contacts/:id/drip-campaigns`.
+   *
+   * This used to be derived locally as
+   * `this.contact.lists.flatMap(l => l.dripCampaignList)` — i.e. every campaign fed
+   * by a list the contact belongs to — which is a DIFFERENT and larger set than the
+   * contact's enrolments. Prospects are enrolled when a campaign is activated (or by
+   * "add contacts to campaign"), so a contact added to the list afterwards is in the
+   * list but not in the campaign, and the section claimed an enrolment that does not
+   * exist. The backend reads `drip_campaign_selected_prospects`, which is the only
+   * record of one.
+   */
+  getContactDripCampaign = async () => {
     if (
       this.isMultipleContactsSelected ||
-      this.prospectingService.isAddNewButtonClickedInContactPage
+      this.prospectingService.isAddNewButtonClickedInContactPage ||
+      !this.contact?.id
     ) {
       this.initialLoading = false;
       return;
     }
-    const contactDripCampaigns = this.contact.lists.flatMap(l => l.dripCampaignList);
-    this.contactDripCampaigns = contactDripCampaigns.filter(c => {
-      if (c.dripCampaign.status === constants.ACTIVE) {
-        return c.dripCampaign;
-      }
-    });
-    console.log(this.contactDripCampaigns);
-    this.initialLoading = false;
+
+    try {
+      const res = await this.prospectingService.getContactDripCampaigns(
+        this.contact.id,
+        this.supplierId,
+      );
+      this.contactDripCampaigns = res?.dripCampaigns || [];
+    } catch (e) {
+      // The section is secondary information on an edit form — a failure here must
+      // not block editing the contact, so it degrades to the empty state.
+      this.contactDripCampaigns = [];
+      console.error('Failed to load the contact\'s drip campaigns', e);
+    } finally {
+      this.initialLoading = false;
+    }
   };
 
   setLabelForListContactAdd = () => {
@@ -286,10 +307,9 @@ export class ProspectingContactsComponent implements OnInit, AfterViewInit, OnDe
     });
   };
 
-  redirectToEditPage = (dripCampaign) => {
-    console.log('redirectToEditPage', dripCampaign);
+  redirectToEditPage = (dripCampaignId: number) => {
     const queryParams: any = {
-      id: dripCampaign.id,
+      id: dripCampaignId,
     };
     this.router.navigate([routeConstants.BRAND.EDIT_DRIP_CAMPAIGN], {
       queryParams,
@@ -767,6 +787,10 @@ export class ProspectingContactsComponent implements OnInit, AfterViewInit, OnDe
     }
   };
 
+  // DEAD CODE, kept as-is: nothing in the template calls this, `contacts/removeDripCampaignFromContact`
+  // does not exist in KexyApi, and `campaign.drip_campaign_id` matches neither the old
+  // list-derived shape nor the enrolment rows `getContactDripCampaign` now loads (which use
+  // `dripCampaignId`). Wire it up only alongside a real backend endpoint.
   removeContactFromDripCampaign = async (campaign) => {
     const confirmed = await this.__isDeleteConfirmed('Yes, remove it!');
     if (!confirmed) return;

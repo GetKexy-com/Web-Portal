@@ -237,10 +237,10 @@
             <span
               class="campaign-chip"
               *ngFor="let campaign of contactDripCampaigns"
-              (click)="redirectToEditPage(campaign.dripCampaign)">
+              (click)="redirectToEditPage(campaign.dripCampaignId)">
               <i class="fa fa-paper-plane-o" aria-hidden="true"></i>
-              <span class="link-text">{{ campaign.dripCampaign.details.title.title }}</span>
-              <span class="campaign-status text-capitalize">{{ campaign.dripCampaign.status }}</span>
+              <span class="link-text">{{ campaign.title || 'Untitled campaign' }}</span>
+              <span class="campaign-status text-capitalize">{{ campaign.status }}</span>
             </span>
           </ng-container>
           <span *ngIf="contactDripCampaigns.length === 0 && !initialLoading" class="campaign-empty">

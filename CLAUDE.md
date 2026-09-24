@@ -591,6 +591,23 @@ Classification section shows; per-contact fields are hidden).
   while the typed email still matches the saved one** (editing the address hides
   the badge, since the old result no longer applies). Green = valid, red =
   invalid, amber = catch-all/unverified.
+- **Drip Campaigns card lists ENROLMENTS, fetched — never derived from the contact's
+  lists.** `getContactDripCampaign()` calls
+  `prospectingService.getContactDripCampaigns(contact.id, supplierId)` →
+  `GET contacts/:id/drip-campaigns`, whose rows come from
+  `drip_campaign_selected_prospects`. It previously computed
+  `this.contact.lists.flatMap(l => l.dripCampaignList)` — every campaign fed by a list the
+  contact is in — which is a **different and larger set**: prospects are enrolled when a
+  campaign is activated (or via "add contacts to campaign"), so a contact added to the list
+  afterwards was in the list but never in the campaign, and the card claimed an enrolment
+  that did not exist. Don't reintroduce a client-side derivation from `lists` here; list
+  membership is how an enrolment gets seeded, not what one is.
+  The chips read the flat API shape (`campaign.dripCampaignId` / `.title` / `.status`), so
+  `redirectToEditPage()` now takes an **id**, not a campaign object. A failed request
+  degrades to the empty state ("Not enrolled in any campaign") rather than blocking the
+  edit form — the section is secondary information on a form whose job is editing a
+  contact. `removeContactFromDripCampaign()` is dead code (no template call site, no such
+  endpoint) and is commented as such.
 
 ### Shared drawer look: `lead-magnet-form`
 
@@ -1537,12 +1554,13 @@ Other keys never need manual eviction: a write bumps the scope, their recorded v
 stops matching, and they refetch on next read while still showing their stale rows.
 Reach for the version counter, not the map.
 
-**Read-shaped POSTs are exempt from invalidation.** `contacts/getDripCampaigns`,
-`contacts/searches` and `contacts/apollo-searches` are reads that POST because their
-filter payload won't fit a query string. `READ_SHAPED_WRITES` in the interceptor skips
-them — otherwise opening the contact drawer or running a prospecting search bumped
-`CONTACTS` + `LISTS` and forced a refetch of every table. Keep that list tight; a real
-write listed there shows stale rows.
+**Read-shaped POSTs are exempt from invalidation.** `contacts/searches` and
+`contacts/apollo-searches` are reads that POST because their filter payload won't fit a
+query string. `READ_SHAPED_WRITES` in the interceptor skips them — otherwise running a
+prospecting search bumped `CONTACTS` + `LISTS` and forced a refetch of every table. Keep
+that list tight; a real write listed there shows stale rows. (`contacts/getDripCampaigns`
+was listed here too; the contact drawer now reads its enrolments with
+`GET contacts/:id/drip-campaigns`, and a GET never reaches this rule.)
 
 **Peek and set `isWaitingFlag` BEFORE any `await`.** `isWaitingFlag` starts `true`, so
 anything awaited ahead of the peek keeps the table blanked and the snapshot buys

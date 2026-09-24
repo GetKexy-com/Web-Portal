@@ -1072,9 +1072,23 @@ export class ProspectingService {
     return contactList;
   };
 
-  getContactDripCampaigns = async (postData) => {
-    return new Promise(async (resolve, reject) => {
-      this.httpService.post('contacts/getDripCampaigns', postData).subscribe({
+  /**
+   * The drip campaigns a contact is actually ENROLLED in.
+   *
+   * Reads `GET contacts/:id/drip-campaigns`, whose rows come from
+   * `drip_campaign_selected_prospects`. This is deliberately NOT derivable on the
+   * client from `contact.lists[].dripCampaignList`: that says "a list this contact
+   * is in feeds this campaign", which is a different (larger) set — a contact added
+   * to the list after the campaign was activated was never enrolled. See
+   * `ContactsService.getDripCampaigns` in KexyApi.
+   *
+   * Resolves `{ dripCampaigns: [{ dripCampaignId, title, status,
+   * enrollmentStatus, emailSequence, prospectId }] }`.
+   */
+  getContactDripCampaigns = async (contactId: number, companyId: number) => {
+    const url = `contacts/${contactId}/drip-campaigns?companyId=${companyId}`;
+    return new Promise<any>(async (resolve, reject) => {
+      this.httpService.get(url).subscribe({
         next: (res) => resolve(res.data),
         error: (err) => {
           if (err.error) {
