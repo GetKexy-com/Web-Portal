@@ -77,10 +77,16 @@ export class ActiveContactsTableComponent {
   };
 
   getCellValue = (row, column) => {
-    const details = typeof row.details === "string" ? JSON.parse(row.details) : row.details;
-    if (details[column.key]) {
-      return details[column.key];
+    // Some prospects are stored with an empty `details`; JSON.parse('') throws mid-render.
+    let details = row.details;
+    if (typeof details === "string") {
+      try {
+        details = JSON.parse(details);
+      } catch {
+        details = null;
+      }
     }
+    return details?.[column.key] ?? (column.key === "email" ? row.email : undefined);
   };
 
   selectedItemCount;
