@@ -15,6 +15,8 @@ $st-green: #16a34a;
 $st-green-bg: #e7f7ee;
 $st-amber: #b45309;
 $st-amber-bg: #fef3d9;
+$st-blue: #2847cc;
+$st-blue-bg: #e7f6fe;
 
 .kexy-table-card {
   background: #ffffff;
@@ -277,6 +279,7 @@ $st-amber-bg: #fef3d9;
 
             &.st-green { background: $st-green-bg; color: $st-green; .dot { background: $st-green; } }
             &.st-amber { background: $st-amber-bg; color: $st-amber; .dot { background: $st-amber; } }
+            &.st-blue { background: $st-blue-bg; color: $st-blue; .dot { background: $st-blue; } }
           }
 
           .label-tag {

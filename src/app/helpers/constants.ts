@@ -231,6 +231,7 @@ export const constants = {
     { key: 'all', value: 'All' },
     { key: 'active', value: 'Active' },
     { key: 'inactive', value: 'Draft' },
+    { key: 'complete', value: 'Completed' },
   ],
   DRIP_CAMPAIGN: 'Drip Campaigns',
   PROMOTIONS: 'Promotions',
