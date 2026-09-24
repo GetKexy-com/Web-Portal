@@ -1058,11 +1058,8 @@ export class DripCampaignService {
           this.updateDripCampaignWithLatestSettings(res);
           resolve(true);
         },
-        error: (err) => {
-          if (err.error) {
-            reject(err.error);
-          }
-        },
+        // Always settle: the caller holds a loading alert open until this does.
+        error: (err) => reject(err?.error ?? err),
       });
     });
   };

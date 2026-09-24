@@ -474,8 +474,11 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
 
   removeActiveList = async (list) => {
     console.log(list);
+    // Removal un-enrolls the list's contacts for good (unless another enroll list of this
+    // drip still has them); re-adding the list later does not bring them back.
     const isConfirm = await Swal.fire({
       title: 'Are you sure?',
+      text: `Contacts on "${list.list?.label ?? 'this list'}" will stop receiving emails from this campaign, unless they are also on another enrollment list here. Adding the list back later will not re-enroll them.`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#3085d6',
