@@ -27,6 +27,7 @@ import {
   IDashboardCampaignTrendPoint,
   IDashboardEngagedContacts,
   IDashboardLinkCount,
+  IDashboardReach,
   IDashboardStats,
   IDashboardTrendPoint,
 } from '../../models/DashboardStats';
@@ -658,6 +659,46 @@ export class BrandDashboardComponent implements OnInit, OnDestroy {
     return whole ? Math.round((part / whole) * 100) : 0;
   }
 
+  /**
+   * Unique prospects for the selected range, summed over the campaigns in scope.
+   *
+   * Rates come from here and never from `trend`, whose opens/clicks/replies count
+   * every event (see `IDashboardReach`). Summing across campaigns is sound — a
+   * prospect is one recipient of one campaign — which is how the filter still applies.
+   * `previous` is null when any campaign has no baseline for the range, matching the
+   * "no comparison" the tiles already show when the prior window isn't loaded.
+   */
+  private __scopedReach(
+    which: 'current' | 'previous',
+    campaignId?: number,
+  ): IDashboardReach | null {
+    const range = this.stats?.reach?.find((r) => r.days === this.selectedDays);
+    const acc: IDashboardReach = { prospects: 0, opened: 0, clicked: 0, replied: 0 };
+    if (!range) return which === 'current' ? acc : null;
+
+    for (const c of range.campaigns) {
+      const inScope =
+        campaignId !== undefined
+          ? c.campaignId === campaignId
+          : this.isAllCampaigns || this.selectedCampaignIds.has(c.campaignId);
+      if (!inScope) continue;
+
+      const r = c[which];
+      if (!r) return null;
+      acc.prospects += r.prospects;
+      acc.opened += r.opened;
+      acc.clicked += r.clicked;
+      acc.replied += r.replied;
+    }
+    return acc;
+  }
+
+  private __reachPct(r: IDashboardReach | null, key: MetricKey): number {
+    if (!r) return 0;
+    const part = key === 'opens' ? r.opened : key === 'clicks' ? r.clicked : r.replied;
+    return this.__pct(part, r.prospects);
+  }
+
   /** `Jul 24 – Jul 30`, or a single date when the window is one day. */
   private __spanLabel(dates: string[]): string {
     if (!dates.length) return '';
@@ -679,8 +720,8 @@ export class BrandDashboardComponent implements OnInit, OnDestroy {
   private __buildTiles(): void {
     const cur = this.visibleTrend;
     const prev = this.previousTrend;
-    const curSent = this.__sum(cur, 'sent');
-    const prevSent = this.__sum(prev, 'sent');
+    const curReach = this.__scopedReach('current');
+    const prevReach = this.__scopedReach('previous');
 
     const spec: { key: MetricKey; label: string }[] = [
       { key: 'sent', label: 'Emails sent' },
@@ -704,7 +745,9 @@ export class BrandDashboardComponent implements OnInit, OnDestroy {
         };
       }
 
-      const rate = this.__pct(total, curSent);
+      // The RATE is per unique prospect, not per event: a prospect who opens five
+      // times counts once. `total` stays the event count, shown beneath the tile.
+      const rate = this.__reachPct(curReach, key);
       return {
         key,
         label,
@@ -712,7 +755,7 @@ export class BrandDashboardComponent implements OnInit, OnDestroy {
         rate,
         // Compare the RATE, not the raw count: a rate that held steady while volume
         // grew is not an improvement, and comparing counts would claim it was.
-        delta: this.__delta(rate, this.__pct(prevTotal, prevSent)),
+        delta: prevReach ? this.__delta(rate, this.__reachPct(prevReach, key)) : null,
         display: `${rate}%`,
       };
     });
@@ -1179,12 +1222,13 @@ export class BrandDashboardComponent implements OnInit, OnDestroy {
     this.campaignRows = rowCampaigns.map((meta) => {
       const t = byCampaign.get(meta.id);
       const sent = t?.sent || 0;
+      const reach = this.__scopedReach('current', meta.id);
       return {
         ...meta,
         sent,
-        openRate: this.__pct(t?.opens || 0, sent),
-        clickRate: this.__pct(t?.clicks || 0, sent),
-        replyRate: this.__pct(t?.replies || 0, sent),
+        openRate: this.__reachPct(reach, 'opens'),
+        clickRate: this.__reachPct(reach, 'clicks'),
+        replyRate: this.__reachPct(reach, 'replies'),
         selected: this.selectedCampaignIds.has(meta.id),
       };
     });
@@ -1205,16 +1249,16 @@ export class BrandDashboardComponent implements OnInit, OnDestroy {
 
   /** Funnel = magnitude → one hue, light to dark. Steps, never a rainbow. */
   private __buildFunnel(): void {
-    const cur = this.visibleTrend;
-    const sent = this.__sum(cur, 'sent');
-    const opens = this.__sum(cur, 'opens');
-    const clicks = this.__sum(cur, 'clicks');
-    const replies = this.__sum(cur, 'replies');
+    // Unique prospects at every stage, so each is a subset of the one before and no
+    // bar can pass 100%. Event counts would let 3 prospects "open" 82 times.
+    const { prospects: sent, opened: opens, clicked: clicks, replied: replies } =
+      this.__scopedReach('current');
 
-    // `stepPct` is conversion from the stage above, which is where drop-off shows.
-    // Share-of-sent alone hides that opens→clicks is the weak link.
+    // `stepPct` is conversion from the stage the prospect had to pass through, which
+    // is where drop-off shows. Replies are measured against OPENED, not clicked: a
+    // reply rarely involves a click, so replied/clicked would routinely pass 100%.
     this.funnel = [
-      { label: 'Sent', value: sent, pct: 100, stepPct: null, step: 'step-1' },
+      { label: 'Prospects', value: sent, pct: 100, stepPct: null, step: 'step-1' },
       {
         label: 'Opened',
         value: opens,
@@ -1233,7 +1277,7 @@ export class BrandDashboardComponent implements OnInit, OnDestroy {
         label: 'Replied',
         value: replies,
         pct: this.__pct(replies, sent),
-        stepPct: this.__pct(replies, clicks),
+        stepPct: this.__pct(replies, opens),
         step: 'step-4',
       },
     ];

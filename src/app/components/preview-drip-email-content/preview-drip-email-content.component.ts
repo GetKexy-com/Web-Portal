@@ -6,6 +6,7 @@ import { DripCampaignService } from '../../services/drip-campaign.service';
 import { DripEmail } from '../../models/DripEmail';
 import { KexyButtonComponent } from '../kexy-button/kexy-button.component';
 import { PageUiService } from '../../services/page-ui.service';
+import { EMAIL_FRAME_IMAGE_CSS } from '../email-send-progress/email-send-progress.component';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
@@ -135,9 +136,13 @@ export class PreviewDripEmailContentComponent implements OnInit, AfterViewInit {
       : this.__buildPreviewHtml(this.emailSubject, this.emailContent);
   }
 
-  /** Inject `<base target="_blank">` so links open in a new tab, not in-frame. */
+  /**
+   * Inject `<base target="_blank">` so links open in a new tab, not in-frame, plus the
+   * image rule below — a full document can still carry a CKEditor image whose width and
+   * height attributes are the file's intrinsic pixels.
+   */
   private __withPreviewLinkTarget(html: string): string {
-    const base = '<base target="_blank" rel="noopener noreferrer" />';
+    const base = `<base target="_blank" rel="noopener noreferrer" /><style>${EMAIL_FRAME_IMAGE_CSS}</style>`;
     return /<head[\s>]/i.test(html)
       ? html.replace(/<head([\s>])/i, `<head$1\n  ${base}`)
       : `${base}${html}`;
@@ -152,6 +157,11 @@ export class PreviewDripEmailContentComponent implements OnInit, AfterViewInit {
   <base target="_blank" rel="noopener noreferrer" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>${this.__escapeHtml(subject || 'Email')}</title>
+  <!-- Without this an image carrying its intrinsic size in width/height (anything
+       written in the old CKEditor) renders thousands of px wide and tears the 600px
+       shell apart — the same rule KexyApi applies to the email itself on the way out,
+       so this preview matches the prospect's inbox. -->
+  <style>${EMAIL_FRAME_IMAGE_CSS}</style>
 </head>`;
 
     // Plain Text style: mirror the editor's plainText export — no email-table

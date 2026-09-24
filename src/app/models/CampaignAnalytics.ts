@@ -23,6 +23,21 @@ export interface ICampaignAnalyticsTotals {
   replies: number;
 }
 
+/**
+ * Unique prospects emailed in a window, and how many of THOSE opened, clicked or
+ * replied. Every open/click/reply rate is worked out from this, never from the event
+ * counts in `ICampaignAnalyticsTotals`: one prospect opening five times is five opens
+ * but one prospect who opened, so dividing events by sends went over 100%.
+ * `opened <= prospects` always holds (the server only counts engagement from prospects
+ * it also counted as emailed).
+ */
+export interface IUniqueReach {
+  prospects: number;
+  opened: number;
+  clicked: number;
+  replied: number;
+}
+
 export interface ICampaignAnalyticsTrendPoint {
   /** `YYYY-MM-DD`. The series is gap-free — the server materialises empty days. */
   date: string;
@@ -44,6 +59,8 @@ export interface ICampaignAnalyticsEmailRow {
   opens: number;
   clicks: number;
   replies: number;
+  /** Unique prospects for this email — what the row's rates come from. */
+  reach: IUniqueReach;
 }
 
 export interface ICampaignAnalyticsLink {
@@ -80,6 +97,10 @@ export interface ICampaignAnalytics {
    * number would lose the difference between "no change" and "nothing to compare to".
    */
   previous: ICampaignAnalyticsTotals;
+  /** Unique prospects for the whole scope — what the headline rates come from. */
+  reach: IUniqueReach;
+  /** The same, for the previous window. */
+  previousReach: IUniqueReach;
   trend: ICampaignAnalyticsTrendPoint[];
   /** Empty when scoped to one email — there is no comparison left to make. */
   perEmail: ICampaignAnalyticsEmailRow[];

@@ -108,7 +108,7 @@ export interface IDashboardCampaignMeta {
  */
 export interface IDashboardCampaignRow extends IDashboardCampaignMeta {
   sent: number;
-  /** Whole percentages, 0-100, of `sent`. */
+  /** Whole percentages, 0-100, of unique prospects emailed (see `IDashboardReach`). */
   openRate: number;
   clickRate: number;
   replyRate: number;
@@ -159,11 +159,44 @@ export interface IDashboardMeta {
   bouncesTracked: boolean;
 }
 
+/**
+ * Unique prospects for one campaign over one selectable range — the exception to "one
+ * fact table", and the ONLY input to an open/click/reply RATE.
+ *
+ * `trend` counts every event, so a prospect who opens on three days is three opens;
+ * dividing that by sends went over 100%. A rate is about people (of the prospects
+ * emailed, how many opened?), and distinct people cannot be summed across days, so
+ * the server works these out per range instead. They CAN be summed across campaigns
+ * (one prospect per campaign), which is how the campaign filter still works.
+ *
+ * `opened` includes anyone who clicked or replied (that proves they read it), and only
+ * prospects emailed in the window count, so `opened <= prospects` always.
+ */
+export interface IDashboardReach {
+  prospects: number;
+  opened: number;
+  clicked: number;
+  replied: number;
+}
+
+export interface IDashboardReachRange {
+  /** One of `DASHBOARD_RANGES[].days`. */
+  days: number;
+  campaigns: {
+    campaignId: number;
+    current: IDashboardReach;
+    /** The equal-length window before; null when the page has no baseline for it. */
+    previous: IDashboardReach | null;
+  }[];
+}
+
 export interface IDashboardStats {
   totals: IDashboardTotals;
   campaigns: IDashboardCampaignMeta[];
   /** The fact table. Oldest → newest; days with no sends are absent. */
   trend: IDashboardCampaignTrendPoint[];
+  /** Unique-prospect figures per range, for the rates. See `IDashboardReach`. */
+  reach: IDashboardReachRange[];
   unsubscribes: IDashboardUnsubscribePoint[];
   recentActivity: IDashboardActivity[];
   meta: IDashboardMeta;

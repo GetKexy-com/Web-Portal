@@ -258,17 +258,20 @@ export class CampaignInsightsContentComponent implements OnInit {
 
   private __recompute(): void {
     const t = this.data.totals;
+    // Rates are per PROSPECT, not per event: a prospect who opens five times counts
+    // once. `totals` counts every event, so dividing it by sends went over 100%.
+    const r = this.data.reach;
 
-    this.openRate = this.__pct(t.opens, t.sent);
-    this.clickRate = this.__pct(t.clicks, t.sent);
-    this.replyRate = this.__pct(t.replies, t.sent);
+    this.openRate = this.__pct(r.opened, r.prospects);
+    this.clickRate = this.__pct(r.clicked, r.prospects);
+    this.replyRate = this.__pct(r.replied, r.prospects);
     this.sentDelta = this.__delta(t.sent, this.data.previous.sent);
 
     this.perEmail = this.data.perEmail.map((e) => ({
       ...e,
-      openRate: this.__pct(e.opens, e.sent),
-      clickRate: this.__pct(e.clicks, e.sent),
-      replyRate: this.__pct(e.replies, e.sent),
+      openRate: this.__pct(e.reach.opened, e.reach.prospects),
+      clickRate: this.__pct(e.reach.clicked, e.reach.prospects),
+      replyRate: this.__pct(e.reach.replied, e.reach.prospects),
     }));
 
     this.linkPeak = this.data.topLinks.reduce((max, l) => Math.max(max, l.count), 0);
@@ -277,20 +280,23 @@ export class CampaignInsightsContentComponent implements OnInit {
   }
 
   private __buildFunnel(): void {
-    const t = this.data.totals;
+    // Unique prospects at every stage, so each stage is a subset of the one above and
+    // no bar can pass 100%. Event counts would let 3 prospects "open" 82 times.
+    const r = this.data.reach;
     const stages = [
-      { label: 'Sent', value: t.sent, step: 'step-1' },
-      { label: 'Opened', value: t.opens, step: 'step-2' },
-      { label: 'Clicked', value: t.clicks, step: 'step-3' },
-      { label: 'Replied', value: t.replies, step: 'step-4' },
+      { label: 'Prospects', value: r.prospects, step: 'step-1' },
+      { label: 'Opened', value: r.opened, step: 'step-2' },
+      { label: 'Clicked', value: r.clicked, step: 'step-3' },
+      { label: 'Replied', value: r.replied, step: 'step-4' },
     ];
 
     this.funnel = stages.map((s, i) => ({
       ...s,
-      pct: this.__pct(s.value, t.sent),
-      // Conversion from the stage ABOVE — where drop-off actually shows. Share of
-      // sent alone hides that opens -> clicks is usually the weak link.
-      stepPct: i === 0 ? null : this.__pct(s.value, stages[i - 1].value),
+      pct: this.__pct(s.value, r.prospects),
+      // Conversion from the stage the prospect had to pass through — where drop-off
+      // actually shows. Replies are measured against OPENED, not clicked: a reply
+      // rarely involves a click, so replied/clicked would routinely pass 100%.
+      stepPct: i === 0 ? null : this.__pct(s.value, stages[i === 3 ? 1 : i - 1].value),
     }));
   }
 

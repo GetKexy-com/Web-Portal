@@ -12,6 +12,27 @@ import {
 import { DripCampaignService } from '../../services/drip-campaign.service';
 
 /**
+ * Keeps a framed email's images inside the frame, in proportion.
+ *
+ * `max-width` alone is NOT enough, and getting it wrong is what produced the
+ * "stretched" emails: an image written by the old CKEditor carries its INTRINSIC size in
+ * the width/height attributes (3496x1967 was live in real content) with the display size
+ * only as a percentage on the `<figure>`. Clamp the width without releasing the height
+ * and the height attribute still applies — `aspect-ratio` is ignored once both dimensions
+ * are set — so the picture renders as a tall vertical smear. `height:auto` is what lets
+ * the ratio follow the width.
+ *
+ * Applied to a full email document as well as a fragment, because the stored body of an
+ * older campaign is usually a bare fragment but a newer one is a whole document, and both
+ * can contain such an image. It cannot disturb the current editor's own media blocks:
+ * those carry their size in an INLINE style, which beats a stylesheet rule.
+ *
+ * KexyApi does the same thing to the email itself on the way out
+ * (`normalizeEmailImages`), so this frame and the prospect's inbox agree.
+ */
+export const EMAIL_FRAME_IMAGE_CSS = 'img{max-width:100%;height:auto}';
+
+/**
  * Sets an `<iframe>`'s `srcdoc` as a plain DOM property.
  *
  * Binding `[srcdoc]` in a template routes the string through Angular's HTML sanitiser,
@@ -31,13 +52,14 @@ export class SrcdocDirective {
 
   private static wrap(html: string): string {
     const base = '<base target="_blank" rel="noopener noreferrer" />';
+    const head = `${base}<style>${EMAIL_FRAME_IMAGE_CSS}</style>`;
     if (/<html[\s>]/i.test(html)) {
-      return /<head[\s>]/i.test(html) ? html.replace(/<head([\s>])/i, `<head$1${base}`) : `${base}${html}`;
+      return /<head[\s>]/i.test(html) ? html.replace(/<head([\s>])/i, `<head$1${head}`) : `${head}${html}`;
     }
     return (
-      `<!DOCTYPE html><html><head><meta charset="utf-8">${base}` +
+      `<!DOCTYPE html><html><head><meta charset="utf-8">${head}` +
       `<style>body{margin:14px;font:14px/1.6 Arial,Helvetica,sans-serif;color:#202124;word-wrap:break-word}` +
-      `img{max-width:100%}</style></head><body>${html}</body></html>`
+      `</style></head><body>${html}</body></html>`
     );
   }
 }
