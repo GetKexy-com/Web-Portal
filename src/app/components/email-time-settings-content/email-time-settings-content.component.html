@@ -88,7 +88,14 @@
               [style.text-transform]="item.itemBgColor && item.itemTextColor ? 'uppercase' : ''"
             >
               {{ item.list.label }}
-              <span class="chip-remove" (click)="removeActiveList(item)">
+              <span
+                class="chip-remove"
+                [class.locked]="isListRemovalLocked()"
+                [ngbTooltip]="isListRemovalLocked() ? removeListLockedTooltip : ''"
+                container="body"
+                [attr.aria-disabled]="isListRemovalLocked()"
+                (click)="removeActiveList(item)"
+              >
                 <i class="fa fa-times-circle non-hide-from-toggle" aria-hidden="true"></i>
               </span>
             </span>

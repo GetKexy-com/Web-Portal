@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { NgbActiveOffcanvas } from '@ng-bootstrap/ng-bootstrap';
+import { NgbActiveOffcanvas, NgbTooltip } from '@ng-bootstrap/ng-bootstrap';
 import Swal from 'sweetalert2';
 import { constants } from '../../helpers/constants';
 import { AuthService } from '../../services/auth.service';
@@ -25,6 +25,7 @@ import { ErrorMessageCardComponent } from '../error-message-card/error-message-c
     KexyToggleSwitchComponent,
     CommonModule,
     ReactiveFormsModule,
+    NgbTooltip,
   ],
   templateUrl: './email-time-settings-content.component.html',
   styleUrl: './email-time-settings-content.component.scss',
@@ -472,8 +473,15 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
     this.selectedSettingsType = value;
   };
 
+  // Removing a list un-enrolls its contacts, so it is not offered while the drip is
+  // sending; the × shows why on hover instead. The backend refuses it too.
+  readonly removeListLockedTooltip =
+    "Lists can't be removed while this drip campaign is active. Pause the campaign first to remove a list.";
+
+  isListRemovalLocked = (): boolean => this.dripCampaign?.status === constants.ACTIVE;
+
   removeActiveList = async (list) => {
-    console.log(list);
+    if (this.isListRemovalLocked()) return;
     // Removal un-enrolls the list's contacts for good (unless another enroll list of this
     // drip still has them); re-adding the list later does not bring them back.
     const isConfirm = await Swal.fire({

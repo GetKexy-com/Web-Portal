@@ -443,6 +443,14 @@ $kx-red-bg: #fdeaea;
           i { font-size: 15px; }
 
           &:hover { opacity: 1; }
+
+          // Active drip: still shown (so the tooltip has a target), but inert.
+          &.locked {
+            opacity: 0.4;
+            cursor: not-allowed;
+
+            &:hover { opacity: 0.55; }
+          }
         }
       }
     }
