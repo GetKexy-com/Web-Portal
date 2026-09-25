@@ -7,7 +7,8 @@
   <section class="middle-area">
     <div *ngIf="dripCampaigns.length">
       <div *ngFor="let item of dripCampaigns; let i = index">
-        <p>{{i + 1}}. <span class="link-text">{{item.dripCampaign.details.title.title}}</span></p>
+        <!-- Opens the campaign in a new tab so the user keeps their place on Manage Lists. -->
+        <p>{{i + 1}}. <a class="link-text" [routerLink]="'/' + editDripCampaignPath" [queryParams]="{ id: item.dripCampaign.id }" target="_blank" rel="noopener">{{item.dripCampaign.details.title.title}}</a></p>
       </div>
     </div>
     <div *ngIf="!dripCampaigns.length" class="text-center">
