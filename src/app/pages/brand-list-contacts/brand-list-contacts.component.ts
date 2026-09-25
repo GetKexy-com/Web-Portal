@@ -30,7 +30,6 @@ import {
 import { ProspectingContactsComponent } from '../../components/prospecting-contacts/prospecting-contacts.component';
 import { CommonModule } from '@angular/common';
 import { Contact } from '../../models/Contact';
-import freeEmailDomains from 'free-email-domains';
 
 @Component({
   selector: 'app-brand-list-contacts',

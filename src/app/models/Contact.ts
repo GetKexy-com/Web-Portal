@@ -1,5 +1,7 @@
 import freeEmailDomains from 'free-email-domains';
 
+const FREE_EMAIL_DOMAINS = new Set<string>(freeEmailDomains);
+
 export class Contact {
   id: number;
   isSelected?: boolean;
@@ -210,6 +212,25 @@ export class Contact {
     return new Contact(emptyRawData);
   }
 
+  /**
+   * The website to store for a contact: the given one (trimmed, `https://`
+   * added when missing) or, when blank, the email's domain — unless that's a
+   * free/personal provider (gmail.com, …), which says nothing about the
+   * company. Returns '' when there's nothing usable.
+   */
+  static resolveWebsiteUrl(website: string | null | undefined, email: string | null | undefined): string {
+    const url = (website || '').trim();
+    if (url) {
+      return /^https?:\/\//i.test(url) ? url : `https://${url}`;
+    }
+    const address = (email || '').trim();
+    const domain = address.slice(address.lastIndexOf('@') + 1).toLowerCase();
+    if (!address.includes('@') || !domain.includes('.') || FREE_EMAIL_DOMAINS.has(domain)) {
+      return '';
+    }
+    return `https://${domain}`;
+  }
+
   static parseCsvDataToContact(csvData) {
     const contacts = [];
     // Columns the "Match your columns" step left as "Custom Property" — kept
@@ -226,16 +247,7 @@ export class Contact {
         companyLinkedin = 'https://www.linkedin.com';
       }
 
-      let website = contact['Website'] || '';
-      if (website && !website.startsWith('http')) {
-        website = `https://${website}`;
-      }
-      if (!website) {
-        const emailDomain = email.split('@')[1];
-        if (!freeEmailDomains.includes(emailDomain)) {
-          website = `https://${emailDomain}`;
-        }
-      }
+      const website = Contact.resolveWebsiteUrl(contact['Website'], email);
 
       const c: Contact = Contact.empty();
       c.email = email;

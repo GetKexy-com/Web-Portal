@@ -617,9 +617,8 @@ export class ProspectingContactsComponent implements OnInit, AfterViewInit, OnDe
       contactDetails.organization.linkedinUrl = formData.linkedinUrl;
     }
 
-    if (formData.websiteUrl) {
-      contactDetails.organization.websiteUrl = formData.websiteUrl;
-    }
+    contactDetails.organization.websiteUrl =
+      Contact.resolveWebsiteUrl(formData.websiteUrl, formData.email) || null;
 
     if (this.customPropertyKeys.length && formData.customProperties) {
       contactDetails.customProperties = formData.customProperties;

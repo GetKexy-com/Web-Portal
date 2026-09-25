@@ -36,7 +36,6 @@ import { CACHE_SCOPE, CacheVersionService } from '../../services/cache-version.s
 import { TimeAgoComponent } from '../../components/time-ago/time-ago.component';
 import { Contact, ContactOrganization } from '../../models/Contact';
 import { PageUiService } from '../../services/page-ui.service';
-import freeEmailDomains from 'free-email-domains';
 
 @Component({
   selector: 'brand-contacts',
