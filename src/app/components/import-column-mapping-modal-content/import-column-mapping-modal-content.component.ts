@@ -44,18 +44,18 @@ export class ImportColumnMappingModalContentComponent implements OnInit {
   // The exact set of columns parseCsvDataToContact() looks for on each row.
   // Required here is a PRODUCT decision enforced at this step, not the backend's:
   // the API itself only truly requires `email` (@IsEmail, no @IsOptional on
-  // ContactDto) and defaults everything else to '' if absent — but every field
-  // below except the URL ones must be mapped to continue past this modal.
+  // ContactDto) and Contact.contactPostDto() defaults everything else to '' if
+  // absent — but First Name, Last Name and Email must be mapped to continue.
   readonly FIELDS: KexyField[] = [
-    { key: 'Email', label: 'Email', required: true },
     { key: 'First Name', label: 'First Name', required: true },
     { key: 'Last Name', label: 'Last Name', required: true },
-    { key: 'Job Title', label: 'Job Title', required: true },
-    { key: 'Company Name', label: 'Company Name', required: true },
-    { key: 'Phone Number', label: 'Phone Number', required: true },
-    { key: 'City', label: 'City', required: true },
-    { key: 'State', label: 'State', required: true },
-    { key: 'Country', label: 'Country', required: true },
+    { key: 'Email', label: 'Email', required: true },
+    { key: 'Job Title', label: 'Job Title' },
+    { key: 'Company Name', label: 'Company Name' },
+    { key: 'Phone Number', label: 'Phone Number' },
+    { key: 'City', label: 'City' },
+    { key: 'State', label: 'State' },
+    { key: 'Country', label: 'Country' },
     { key: 'Website', label: 'Website' },
     { key: 'Linkedin', label: 'LinkedIn URL' },
     { key: 'Company Linkedin Url', label: 'Company LinkedIn URL' },
@@ -102,6 +102,20 @@ export class ImportColumnMappingModalContentComponent implements OnInit {
         mappedTo,
       };
     });
+
+    // Show the rows mapped to the required identity fields first, in FIELDS
+    // order (First Name, Last Name, Email — same as the preview grid); the rest
+    // keep their file order. Done once here so a row never jumps while the user
+    // is changing its mapping.
+    const pinned = this.FIELDS.filter((f) => f.required).map((f) => f.key);
+    const rank = (r: MappingRow) => {
+      const i = pinned.indexOf(r.mappedTo);
+      return i === -1 ? pinned.length : i;
+    };
+    this.rows = this.rows
+      .map((r, i) => ({ r, i }))
+      .sort((a, b) => rank(a.r) - rank(b.r) || a.i - b.i)
+      .map(({ r }) => r);
   }
 
   private normalize = (s: string) => (s || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
