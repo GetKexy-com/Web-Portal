@@ -161,9 +161,21 @@
             <i class="fa fa-pencil cell-edit-hint" *ngIf="!isEditing(item, col)" aria-hidden="true"></i>
             <span class="cell-copied" *ngIf="copiedKey === cellKey(item, col)">Copied</span>
             <input
-              *ngIf="isEditing(item, col)"
+              *ngIf="isEditing(item, col) && !isPhoneColumn(col)"
               class="cell-input"
               [(ngModel)]="item.row[col]"
+              (blur)="stopEdit()"
+              (keydown.enter)="stopEdit()"
+              (keydown.escape)="stopEdit()"
+            />
+            <!-- Phone cells format as you type for the row's country, so they
+                 manage the value themselves (ngModel would fight the caret). -->
+            <input
+              *ngIf="isEditing(item, col) && isPhoneColumn(col)"
+              class="cell-input"
+              type="tel"
+              [value]="item.row[col] ?? ''"
+              (input)="onPhoneInput($event, item, col)"
               (blur)="stopEdit()"
               (keydown.enter)="stopEdit()"
               (keydown.escape)="stopEdit()"

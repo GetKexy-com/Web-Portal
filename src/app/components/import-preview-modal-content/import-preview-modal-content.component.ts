@@ -9,7 +9,9 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { AsYouType, CountryCode, isSupportedCountry } from 'libphonenumber-js';
 import { KexyButtonComponent } from '../kexy-button/kexy-button.component';
+import { countries } from 'src/assets/countries';
 
 // EXPERIMENTAL: spreadsheet-style preview shown BEFORE a CSV import starts.
 // Highlights rows whose email or URL columns are invalid, shows a summary, lets
@@ -198,6 +200,7 @@ export class ImportPreviewModalContentComponent implements OnInit {
   };
 
   isEmailColumn = (c: string) => (c || '').toLowerCase().trim() === 'email';
+  isPhoneColumn = (c: string) => /phone|mobile/i.test(c || '');
   isUrlColumn = (c: string) => /linkedin|website|url/i.test(c || '');
 
   private isCellInvalid = (col: string, value: any): boolean => {
@@ -339,8 +342,61 @@ export class ImportPreviewModalContentComponent implements OnInit {
     });
   };
 
+  // ── Phone formatting ──────────────────────────────────────────────────────
+  // Country names (lowercase) -> ISO code, for reading the row's Country cell.
+  private readonly COUNTRY_BY_NAME = new Map<string, string>([
+    ...countries.map((c: any) => [c.name.toLowerCase(), c.isoCode] as [string, string]),
+    ['usa', 'US'],
+    ['united states of america', 'US'],
+    ['uk', 'GB'],
+  ]);
+
+  // The row's country as an ISO code (accepts "Canada" or "CA"); defaults to the
+  // US, the app's default contact country, when missing or unrecognised.
+  private rowCountry = (row: any): CountryCode => {
+    const col = this.columns.find((c) => (c || '').toLowerCase().trim() === 'country');
+    const raw = ((col && row?.[col]) ?? '').toString().trim();
+    const iso = raw.length === 2 ? raw.toUpperCase() : this.COUNTRY_BY_NAME.get(raw.toLowerCase());
+    return iso && isSupportedCountry(iso) ? (iso as CountryCode) : 'US';
+  };
+
+  // Formats a (possibly partial) number for the row's country; a number typed
+  // with a leading "+" is formatted by its own country code instead. Anything
+  // that isn't just digits and phone punctuation (e.g. "ext 12") is left alone.
+  private formatPhone = (value: string, row: any): string => {
+    if (!/^[\d\s()+\-.]*$/.test(value) || !/\d/.test(value)) return value;
+    const intl = value.trim().startsWith('+');
+    return new AsYouType(intl ? undefined : this.rowCountry(row)).input(value);
+  };
+
+  onPhoneInput = (event: Event, item: PreviewItem, col: string) => {
+    const input = event.target as HTMLInputElement;
+    // Leave deletions unformatted, or backspacing over ")" / "-" would just
+    // re-insert it; the value is formatted again on the next keystroke / blur.
+    if ((event as InputEvent).inputType?.startsWith('delete')) {
+      item.row[col] = input.value;
+      return;
+    }
+    // Keep the caret after the same number of digits once the text is re-spaced.
+    const caret = input.selectionStart ?? input.value.length;
+    const digitsBefore = input.value.slice(0, caret).replace(/\D/g, '').length;
+    const formatted = this.formatPhone(input.value, item.row);
+    item.row[col] = formatted;
+    if (formatted === input.value) return;
+    input.value = formatted;
+    let pos = 0;
+    for (let seen = 0; pos < formatted.length && seen < digitsBefore; pos++) {
+      if (/\d/.test(formatted[pos])) seen++;
+    }
+    input.setSelectionRange(pos, pos);
+  };
+
   stopEdit = () => {
     if (this.editing) {
+      const { item, col } = this.editing;
+      if (this.isPhoneColumn(col) && item.row[col]) {
+        item.row[col] = this.formatPhone(item.row[col].toString(), item.row);
+      }
       this.revalidate(this.editing.item);
       this.editing = null;
       this.recompute();
