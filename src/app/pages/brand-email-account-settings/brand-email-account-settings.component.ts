@@ -485,7 +485,7 @@ export class BrandEmailAccountSettingsComponent implements OnInit {
 
   support = () => {
     this.gleapService.identify(this.userData.id.toString(), {
-      name: this.userData.first_name + ' ' + this.userData.last_name,
+      name: this.userData.firstName + ' ' + this.userData.lastName,
       email: this.userData.email,
       customData: {
         supplier_name: this.userData.supplier_name,
