@@ -1,58 +1,80 @@
-<div class="promotion-attributes">
+<div class="canvas-content-wrap">
   <div class="head-area">
-    <p>{{canvasTitle()}} Product/Service</p>
-    <img src="/assets/images/close-icon.png" alt="Close" (click)="activeCanvas.dismiss('Cross click')" />
+    <div class="head-text">
+      <p class="head-title">{{ canvasTitle() }} Product/Service</p>
+      <span class="head-subtitle">Details KEXY uses to write your cold emails</span>
+    </div>
+    <button type="button" class="close-btn" aria-label="Close" (click)="activeCanvas.dismiss('Cross click')">
+      <i class="fa fa-times" aria-hidden="true"></i>
+    </button>
   </div>
 
-  <div class="canvas-body">
-    <form [formGroup]="primaryForm" (ngSubmit)="saveNewProduct()">
-      <div class="input-wrap">
-        <div class="label-and-input">
-          <p>Product/Service Name</p>
-          <input
-            class="form-control"
-            formControlName="name"
-            type="text"
-            maxlength="30"
-          />
-          <p class="text-right mt-2 mb-0">
-            {{primaryForm.get('name')?.value?.length || 0}}/30
-          </p>
+  <form class="canvas-form" [formGroup]="primaryForm" (ngSubmit)="saveNewProduct()">
+    <div class="canvas-body">
+      <div class="form-section">
+        <div class="section-head">
+          <i class="fa fa-cube section-icon" aria-hidden="true"></i>
+          <span class="section-title">Product / service</span>
+        </div>
+
+        <div class="field">
+          <label class="field-label">Name</label>
+          <input class="form-control" formControlName="name" type="text" [maxlength]="maxName"
+                 placeholder="e.g. Premium Coffee Beans" />
+          <span class="counter">{{ primaryForm.get('name')?.value?.length || 0 }}/{{ maxName }}</span>
           @if (formValidationErrorCheck('name')) {
             <error-message-card message="Field is required!" />
           }
         </div>
+      </div>
 
-        @if (!editData()) {
-          <div class="label-and-input">
-            <p>Product/Service Description</p>
-            <textarea
-              class="form-control"
-              formControlName="description"
-              type="text"
-              maxlength="1000"
-            ></textarea>
-            <p class="text-right mt-2 mb-0">
-              {{primaryForm.get('description')?.value?.length || 0}}/1000
-            </p>
+      <div class="form-section">
+        <div class="section-head">
+          <i class="fa fa-align-left section-icon" aria-hidden="true"></i>
+          <span class="section-title">Descriptions</span>
+          <span class="section-count">{{ descriptions.length }}</span>
+        </div>
+        <p class="section-hint">
+          Add a few angles — features, benefits, who it's for. KEXY picks from these when writing emails.
+        </p>
+
+        @for (ctrl of descriptions.controls; track ctrl; let i = $index) {
+          <div class="desc-card">
+            <div class="desc-head">
+              <span class="desc-label">Description {{ i + 1 }}</span>
+              <button type="button" class="desc-remove" title="Remove description"
+                      [attr.aria-label]="'Remove description ' + (i + 1)"
+                      (click)="removeDescription(i)">
+                <i class="fa fa-trash-o" aria-hidden="true"></i>
+              </button>
+            </div>
+            <textarea class="form-control" [formControl]="ctrl" [maxlength]="maxDescription"
+                      placeholder="Describe this product or service — the more accurate the detail, the better the emails."></textarea>
+            <span class="counter">{{ ctrl.value.length }}/{{ maxDescription }}</span>
           </div>
         }
-      </div>
-      <div class="buttons mt-4">
-        <button type="submit" class="blue-button me-3">
-          Save
-          @if (isLoading()) {
-            <i class="fa fa-spinner fa-spin ms-2" aria-hidden="true" style="color: white"></i>
-          }
-        </button>
-        <button
-          type="button"
-          class="blue-border-white-bg-button"
-          (click)="activeCanvas.dismiss('Cross click')"
-        >
-          Cancel
+
+        @if (missingDescription) {
+          <error-message-card message="Add at least one description." />
+        }
+
+        <button type="button" class="add-row-btn" (click)="addDescription()">
+          <i class="fa fa-plus" aria-hidden="true"></i>
+          Add another description
         </button>
       </div>
-    </form>
-  </div>
+    </div>
+
+    <div class="buttons">
+      <button class="blue-border-white-bg-button" type="button" (click)="activeCanvas.dismiss('Cross click')">
+        Cancel
+      </button>
+      <button class="blue-button" type="submit" [disabled]="isLoading()">
+        @if (isLoading()) {
+          <i class="fa fa-spinner fa-spin me-2" aria-hidden="true"></i>
+        }
+        Save
+      </button>
+    </div>
+  </form>
 </div>

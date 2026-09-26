@@ -1,8 +1,13 @@
 .company-description-page {
   background: #f4f6fb;
   padding: 18px 24px;
-  height: calc(100vh - 70px);
+  min-height: calc(100vh - 70px);
+
   .card-area-wrap {
-    padding-bottom: 20px;
+    margin-bottom: 20px;
   }
+}
+
+@media (max-width: 559px) {
+  .company-description-page { padding: 14px; }
 }
