@@ -8,6 +8,8 @@
 
 export interface IProspectScoreComponent {
   key: string;
+  /** "Tier N". 0, 1, 2… in display order. */
+  tier: number;
   label: string;
   points: number;
   maxPoints: number;
@@ -23,6 +25,8 @@ export interface IProspectScore {
   band: 'strong' | 'good' | 'fair' | 'weak';
   /** e.g. "Strong — he replied". */
   headline: string;
+  /** The tier the prospect has reached; one of `components[].tier`. */
+  stage: number;
   /** Display order; each is a bar AND a segment of the score ring. */
   components: IProspectScoreComponent[];
   scoredAt: string;

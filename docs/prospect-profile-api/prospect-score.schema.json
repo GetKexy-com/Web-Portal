@@ -5,7 +5,7 @@
   "description": "The `data` of GET /v2/drip-campaigns/:campaignId/prospects/score?email=<email>. Drives the score, ring and bars of the 'Lead strength' card in the prospect profile. What the prospect DID (replied, opened, clicked) is not part of this API: the portal reads it from its own tracking. The standard ResponseSuccessInterceptor wraps it as { success, statusCode, path, data, timestamp }.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["email", "score", "maxScore", "band", "headline", "components", "scoredAt"],
+  "required": ["email", "score", "maxScore", "band", "headline", "stage", "components", "scoredAt"],
   "properties": {
     "email": {
       "type": "string",
@@ -33,20 +33,31 @@
       "maxLength": 60,
       "description": "Short line under the score, e.g. 'Strong — good fit, reachable now'. Must not claim a reply or an open: the portal shows those from its own tracking."
     },
+    "stage": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "The tier the prospect has currently reached, as decided by the scoring model. Must equal one of components[].tier. Shown as 'Current stage · Tier N' and as the Tier pill next to the prospect's name (e.g. in the warm-lead alert email)."
+    },
     "components": {
       "type": "array",
       "minItems": 1,
       "maxItems": 5,
-      "description": "Score breakdown, in display order. Each one is drawn as a bar and as one segment of the score ring.",
+      "description": "Score breakdown, one per tier, in display order (tier 0 first). Each one is drawn as a bar and as one segment of the score ring.",
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["key", "label", "points", "maxPoints"],
+        "required": ["key", "tier", "label", "points", "maxPoints"],
         "properties": {
           "key": {
             "type": "string",
             "pattern": "^[a-z][a-z0-9_]*$",
             "description": "Stable id, e.g. 'contactable', 'offer_fit', 'timing'."
+          },
+          "tier": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 4,
+            "description": "Tier number shown as 'Tier N'. Components are numbered 0, 1, 2… in display order, so tier equals the component's position in the array, and each tier appears once. Sent explicitly so a reorder or a new component can't silently renumber the tiers."
           },
           "label": { "type": "string", "minLength": 1, "maxLength": 60 },
           "points": { "type": "integer", "minimum": 0, "description": "Must be <= maxPoints." },

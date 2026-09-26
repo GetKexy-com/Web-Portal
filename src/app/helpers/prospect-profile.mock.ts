@@ -12,10 +12,11 @@ export const MOCK_PROSPECT_SCORE: IProspectScore = {
   "maxScore": 100,
   "band": "strong",
   "headline": "Strong — good fit, reachable now",
+  "stage": 2,
   "components": [
-    { "key": "contactable", "label": "Real, contactable record", "points": 30, "maxPoints": 30 },
-    { "key": "offer_fit", "label": "Good fit for the offer", "points": 35, "maxPoints": 40 },
-    { "key": "timing", "label": "Right time to reach him", "points": 30, "maxPoints": 30 }
+    { "key": "contactable", "tier": 0, "label": "Real, contactable record", "points": 30, "maxPoints": 30 },
+    { "key": "offer_fit", "tier": 1, "label": "Good fit for the offer", "points": 35, "maxPoints": 40 },
+    { "key": "timing", "tier": 2, "label": "Right time to reach him", "points": 30, "maxPoints": 30 }
   ],
   "scoredAt": "2026-09-19T15:42:00.000Z"
 };
