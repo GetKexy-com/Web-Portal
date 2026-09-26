@@ -1,8 +1,8 @@
 import { CommonModule } from '@angular/common';
 import { Component, Directive, ElementRef, Input, OnDestroy, OnInit } from '@angular/core';
-import { NgbOffcanvas, OffcanvasDismissReasons } from '@ng-bootstrap/ng-bootstrap';
 
 import {
+  EmailDeliveryStatus,
   IAiPausedState,
   EmailSendFilter,
   EmailSendStatus,
@@ -11,8 +11,6 @@ import {
   IEmailSendSummary,
 } from '../../models/EmailSendProgress';
 import { DripCampaignService } from '../../services/drip-campaign.service';
-import { IStatusMeta, STATUS_META } from '../../helpers/email-send-status';
-import { ProspectProfileContentComponent } from '../prospect-profile-content/prospect-profile-content.component';
 
 /**
  * Keeps a framed email's images inside the frame, in proportion.
@@ -67,6 +65,42 @@ export class SrcdocDirective {
   }
 }
 
+type Tone = 'good' | 'live' | 'wait' | 'bad' | 'mute';
+
+interface IStatusMeta {
+  label: string;
+  tone: Tone;
+  /** Spins while the sweep is actively working on the prospect. */
+  busy: boolean;
+}
+
+/** One place that decides how each state is worded and coloured. */
+const STATUS_META: Record<EmailSendStatus, IStatusMeta> = {
+  scheduled: { label: 'Scheduled', tone: 'mute', busy: false },
+  queued: { label: 'Queued', tone: 'wait', busy: false },
+  generating: { label: 'Generating', tone: 'live', busy: true },
+  generated: { label: 'Generated', tone: 'live', busy: true },
+  sending: { label: 'Sending', tone: 'live', busy: true },
+  sent: { label: 'Sent', tone: 'good', busy: false },
+  failed: { label: 'Failed', tone: 'bad', busy: false },
+  skipped_after_failures: { label: 'Gave up', tone: 'bad', busy: false },
+  declined_by_ai: { label: 'AI declined', tone: 'bad', busy: false },
+  skipped: { label: 'Skipped', tone: 'mute', busy: false },
+};
+
+/**
+ * What happened after the send, per Amazon SES. "Sent" alone only means SES accepted it;
+ * these say whether it then reached the inbox. `problem` rows also show SES's reason.
+ */
+const DELIVERY_META: Record<EmailDeliveryStatus, { label: string; tone: Tone; problem: boolean }> = {
+  delivered: { label: 'Delivered', tone: 'good', problem: false },
+  delayed: { label: 'Delivery delayed', tone: 'wait', problem: false },
+  bounced: { label: 'Bounced', tone: 'bad', problem: true },
+  rejected: { label: 'Rejected by SES', tone: 'bad', problem: true },
+  failed: { label: 'Not delivered', tone: 'bad', problem: true },
+  complained: { label: 'Marked as spam', tone: 'bad', problem: true },
+};
+
 /** Plain-language name for each failure/skip code; the code itself is still shown beside it. */
 const ERROR_TITLES: Record<string, string> = {
   ai_api_error: 'AI service unavailable',
@@ -80,8 +114,6 @@ const ERROR_TITLES: Record<string, string> = {
   interrupted: 'Interrupted',
   suppressed: 'On the suppression list',
   unsubscribed: 'Unsubscribed',
-  replied: 'Prospect replied — remaining emails cancelled',
-  unenrolled: 'No longer enrolled in this campaign',
 };
 
 /**
@@ -165,8 +197,6 @@ const SEARCH_DEBOUNCE_MS = 300;
 export class EmailSendProgressComponent implements OnInit, OnDestroy {
   @Input({ required: true }) campaignId!: number;
   @Input({ required: true }) emailId!: number;
-  /** 1-based position in the sequence, for "Replied to Email 3" in the profile. */
-  @Input() emailSequence: number | null = null;
 
   readonly pageSize = PAGE_SIZE;
 
@@ -215,10 +245,7 @@ export class EmailSendProgressComponent implements OnInit, OnDestroy {
   private requestSeq = 0;
   private destroyed = false;
 
-  constructor(
-    private dripCampaignService: DripCampaignService,
-    private ngbOffcanvas: NgbOffcanvas,
-  ) {}
+  constructor(private dripCampaignService: DripCampaignService) {}
 
   ngOnInit(): void {
     this.__load('initial');
@@ -231,6 +258,10 @@ export class EmailSendProgressComponent implements OnInit, OnDestroy {
 
   // ── Template helpers ────────────────────────────────────────────────────
   statusMeta = (status: EmailSendStatus): IStatusMeta => STATUS_META[status];
+
+  /** An unknown status (a newer API) still reads sensibly rather than blank. */
+  deliveryMeta = (status: string) =>
+    DELIVERY_META[status as EmailDeliveryStatus] ?? { label: status, tone: 'mute' as Tone, problem: false };
 
   rowKey = (item: IEmailSendItem): string =>
     item.logId ? `log:${item.logId}` : item.conversationId ? `conv:${item.conversationId}` : `email:${item.email}`;
@@ -326,44 +357,6 @@ export class EmailSendProgressComponent implements OnInit, OnDestroy {
   retryDetail = (item: IEmailSendItem): void => {
     delete this.details[this.rowKey(item)];
     this.__loadDetail(item);
-  };
-
-  /**
-   * Opens the prospect's profile as a second drawer STACKED on this one — the Insights
-   * drawer stays open underneath, so closing the profile returns to the same list, page
-   * and open rows.
-   *
-   * `scroll: true` is deliberate: ng-bootstrap tracks one scroll lock, and the Insights
-   * drawer already holds it. If this drawer took it too, closing this one would release
-   * it and the page behind Insights would start scrolling. The panel/backdrop classes
-   * lift it above Insights (global `styles.scss`).
-   */
-  openProfile = (item: IEmailSendItem): void => {
-    const ref = this.ngbOffcanvas.open(ProspectProfileContentComponent, {
-      panelClass: 'prospect-profile-drawer',
-      backdropClass: 'prospect-profile-backdrop',
-      position: 'end',
-      scroll: true,
-    });
-    ref.componentInstance.campaignId = this.campaignId;
-    ref.componentInstance.emailSequence = this.emailSequence;
-    // `?? true` for an API from before the field existed — on is the default setting.
-    ref.componentInstance.stopsOnReply = this.summary?.stopsOnReply ?? true;
-    ref.componentInstance.prospect = item;
-
-    // Esc must close the TOP drawer. ng-bootstrap listens for Esc on each panel's own
-    // element, so it goes to whichever panel has focus — and focus is still on this
-    // "View" button, inside Insights, until the profile has animated in. Esc then closed
-    // Insights and left the profile floating. Both panels ignore an Esc whose default is
-    // already prevented, so claim it first, for as long as the profile is open.
-    const onKeydown = (event: KeyboardEvent): void => {
-      if (event.key !== 'Escape') return;
-      event.preventDefault();
-      ref.dismiss(OffcanvasDismissReasons.ESC);
-    };
-    document.addEventListener('keydown', onKeydown, true);
-    const cleanup = (): void => document.removeEventListener('keydown', onKeydown, true);
-    ref.result.then(cleanup, cleanup);
   };
 
   clearFilters = (): void => {

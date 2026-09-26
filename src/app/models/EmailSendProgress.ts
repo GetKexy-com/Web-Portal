@@ -52,35 +52,6 @@ export interface IEmailSendSummary {
   inFlight: boolean;
   /** Generation attempts a queue row gets before it is parked (for "attempt 1/2"). */
   maxAttempts: number;
-  /** A reply un-enrolls the prospect and cancels their queued emails (campaign setting, on by default). */
-  stopsOnReply: boolean;
-}
-
-/** Who the prospect is, from the details stored when they were enrolled. Any field may be null. */
-export interface IEmailSendProfile {
-  jobTitle: string | null;
-  city: string | null;
-  state: string | null;
-  country: string | null;
-  /** Only a real `/in/…` profile URL. */
-  linkedinUrl: string | null;
-  phone: string | null;
-  /** Whose number it is, e.g. "Company HQ line" — most are not personal. */
-  phoneSource: string | null;
-  /** `verified`, `invalid`, `catch-all`, `unavailable`, … as stored; null when never checked. */
-  emailStatus: string | null;
-  /** Where their COMPANY is — full address when stored, else city/state/country. */
-  companyAddress: string | null;
-}
-
-/**
- * What the prospect did with THIS email — first open, click and reply. A reply to a
- * different email in the sequence never shows up here.
- */
-export interface IEmailSendEngagement {
-  openedAt: string | null;
-  clickedAt: string | null;
-  repliedAt: string | null;
 }
 
 export interface IEmailSendItem {
@@ -110,8 +81,26 @@ export interface IEmailSendItem {
   sentAt: string | null;
   failedAt: string | null;
   updatedAt: string | null;
-  profile: IEmailSendProfile;
-  engagement: IEmailSendEngagement;
+  /**
+   * What Amazon SES did with the email AFTER accepting it — "Sent" only means SES said OK.
+   * Null until SES reports something (and always for older sends or non-SES servers).
+   */
+  delivery: IEmailDelivery | null;
+}
+
+export type EmailDeliveryStatus =
+  | 'delayed'
+  | 'delivered'
+  | 'bounced'
+  | 'rejected'
+  | 'failed'
+  | 'complained';
+
+export interface IEmailDelivery {
+  status: EmailDeliveryStatus;
+  /** Why, in words — e.g. the bounce reason, or that SES suppressed the address. */
+  detail: string | null;
+  updatedAt: string;
 }
 
 /**

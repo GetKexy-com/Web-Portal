@@ -153,6 +153,18 @@
                 </span>
                 <!--Whether it will be tried again depends on WHY it failed.-->
                 <span class="sp-attempt" *ngIf="retryNote(item, summary.maxAttempts) as note">{{ note }}</span>
+                <!--After "Sent": whether SES then got it to the inbox. Only once SES has
+                    reported something — no event yet leaves the row as plain "Sent".-->
+                <ng-container *ngIf="item.delivery as d">
+                  <span
+                    class="sp-pill sp-delivery"
+                    [ngClass]="'tone-' + deliveryMeta(d.status).tone"
+                    [title]="d.detail || deliveryMeta(d.status).label"
+                  >{{ deliveryMeta(d.status).label }}</span>
+                  <span class="sp-attempt sp-delivery-detail" *ngIf="deliveryMeta(d.status).problem && d.detail" [title]="d.detail">
+                    {{ d.detail }}
+                  </span>
+                </ng-container>
               </td>
 
               <td class="col-subject">
