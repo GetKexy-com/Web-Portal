@@ -1,0 +1,77 @@
+<div class="canvas-content-wrap">
+  <div class="head-area">
+    <div class="head-text">
+      <p class="head-title">Invite People{{ companyName ? ' to ' + companyName : '' }}</p>
+      <span class="head-subtitle">
+        They get access to {{ companyName || 'your workspace' }} once they accept the email invitation
+        @if (totalSeats) {
+          · {{ remainingSeats }} seat{{ remainingSeats === 1 ? '' : 's' }} remaining
+        }
+      </span>
+    </div>
+    <button type="button" class="close-btn" aria-label="Close" (click)="activeCanvas.dismiss('Cross click')">
+      <i class="fa fa-times" aria-hidden="true"></i>
+    </button>
+  </div>
+
+  <form class="canvas-form" [formGroup]="primaryForm" (ngSubmit)="handleSubmit()">
+    <div class="canvas-body">
+      <div class="form-section" formArrayName="peoplesList">
+        <div class="section-head">
+          <i class="fa fa-user-plus section-icon" aria-hidden="true"></i>
+          <span class="section-title">Invitations</span>
+          <span class="section-count">{{ peoplesList.length }}</span>
+        </div>
+
+        @for (row of peoplesList.controls; track row; let i = $index) {
+          <div class="user-row" [formGroupName]="i">
+            <div class="field">
+              @if (i === 0) { <label class="field-label">Email address</label> }
+              <input class="form-control" type="email" formControlName="userEmail" placeholder="name@example.com"
+                     [class.invalid]="showError(i, 'userEmail')" />
+              @if (showError(i, 'userEmail')) {
+                <error-message-card message="A valid email is required!" />
+              }
+            </div>
+
+            <div class="field">
+              @if (i === 0) { <label class="field-label">Role</label> }
+              <select class="form-control" formControlName="userRole" [class.invalid]="showError(i, 'userRole')">
+                <option value="">Select role</option>
+                <option value="Rep">Basic User</option>
+                <option value="Admin">Admin</option>
+              </select>
+              @if (showError(i, 'userRole')) {
+                <error-message-card message="Selection is required!" />
+              }
+            </div>
+
+            <button type="button" class="row-remove" [class.with-label]="i === 0"
+                    [disabled]="peoplesList.length === 1" title="Remove row" (click)="removePeople(i)">
+              <i class="fa fa-trash-o" aria-hidden="true"></i>
+            </button>
+          </div>
+        }
+
+        <button type="button" class="add-row-btn" (click)="addPeopleRow()">
+          <i class="fa fa-plus" aria-hidden="true"></i>
+          Add another invitation
+        </button>
+      </div>
+    </div>
+
+    <div class="buttons">
+      <button class="blue-border-white-bg-button" type="button" (click)="activeCanvas.dismiss('Cross click')">
+        Cancel
+      </button>
+      <button class="blue-button" type="submit" [disabled]="isLoading()">
+        @if (isLoading()) {
+          <i class="fa fa-spinner fa-spin me-2" aria-hidden="true"></i>
+        } @else {
+          <i class="fa fa-paper-plane-o me-2" aria-hidden="true"></i>
+        }
+        Send Invitation{{ peoplesList.length === 1 ? '' : 's' }}
+      </button>
+    </div>
+  </form>
+</div>

@@ -135,6 +135,12 @@ $kx-shadow: 0 10px 30px -18px rgba(9, 93, 209, 0.35), 0 2px 8px rgba(31, 42, 68,
   }
 }
 
+.card-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .count-chip {
   flex: 0 0 auto;
   min-width: 30px;
@@ -345,22 +351,6 @@ $kx-shadow: 0 10px 30px -18px rgba(9, 93, 209, 0.35), 0 2px 8px rgba(31, 42, 68,
 }
 
 // ── Invite form ─────────────────────────────────────────────────────────
-.invite-row {
-  display: flex;
-  align-items: flex-start;
-  gap: 16px;
-  margin-bottom: 16px;
-
-  .field {
-    flex: 1 1 0;
-    min-width: 0;
-  }
-
-  .field-remove {
-    flex: 0 0 auto;
-  }
-}
-
 .field-label {
   display: block;
   font-size: 12px;
@@ -433,39 +423,6 @@ $kx-shadow: 0 10px 30px -18px rgba(9, 93, 209, 0.35), 0 2px 8px rgba(31, 42, 68,
   font-weight: 600;
 }
 
-.row-remove {
-  margin-top: 0;
-  height: 50px;
-  width: 50px;
-  border-radius: 12px;
-}
-
-.add-another-invitation-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  margin: 4px 0 24px;
-  color: $kx-primary-deep;
-  font-weight: 700;
-  font-size: 14px;
-  cursor: pointer;
-
-  i {
-    font-size: 16px;
-  }
-
-  &:hover {
-    color: $kx-primary;
-  }
-}
-
-.form-actions {
-  display: flex;
-  border-top: 1px solid $kx-line;
-  padding-top: 20px;
-}
-
-// ── Modals (moved to body by NgbModal; encapsulation attrs still apply) ──
 .kx-modal {
   padding: 4px;
 
@@ -566,27 +523,6 @@ $kx-shadow: 0 10px 30px -18px rgba(9, 93, 209, 0.35), 0 2px 8px rgba(31, 42, 68,
 
 // ── Responsive ──────────────────────────────────────────────────────────
 @media (max-width: 767px) {
-  .invite-row {
-    flex-wrap: wrap;
-    gap: 12px;
-
-    .field {
-      flex: 1 1 100%;
-    }
-
-    .field-remove {
-      flex: 1 1 100%;
-
-      .field-label {
-        display: none;
-      }
-
-      .row-remove {
-        width: 100%;
-      }
-    }
-  }
-
   .surface-card {
     padding: 18px;
   }

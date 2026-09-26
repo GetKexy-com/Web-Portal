@@ -1,14 +1,6 @@
 import { Component, OnInit } from "@angular/core";
-import {
-  FormArray,
-  FormControl,
-  FormGroup,
-  FormBuilder,
-  Validators,
-  ReactiveFormsModule,
-  FormsModule
-} from "@angular/forms";
-import { NgbModalConfig, NgbModal } from "@ng-bootstrap/ng-bootstrap";
+import { FormsModule } from "@angular/forms";
+import { NgbModal, NgbOffcanvas } from "@ng-bootstrap/ng-bootstrap";
 import Swal from "sweetalert2";
 import { Router } from "@angular/router";
 import { AuthService } from "src/app/services/auth.service";
@@ -17,12 +9,15 @@ import { constants } from "src/app/helpers/constants";
 import {BrandLayoutComponent} from '../../layouts/brand-layout/brand-layout.component';
 import {KexyButtonComponent} from '../../components/kexy-button/kexy-button.component';
 import {CommonModule} from '@angular/common';
+import {
+  InvitePeopleCanvasComponent,
+  SentInvitation,
+} from '../../components/invite-people-canvas/invite-people-canvas.component';
 
 @Component({
   selector: 'app-brand-invite-people',
   imports: [
     BrandLayoutComponent,
-    ReactiveFormsModule,
     KexyButtonComponent,
     FormsModule,
     CommonModule,
@@ -31,17 +26,13 @@ import {CommonModule} from '@angular/common';
   styleUrl: './brand-invite-people.component.scss'
 })
 export class BrandInvitePeopleComponent {
-  primaryForm: FormGroup;
-  submitted: boolean = false;
   error;
   isWaitingFlag: boolean = false;
   isLoadingListFlag: boolean = false;
-  isSubmitFlag: boolean = false;
   userData;
   subscription;
   isAdmin: boolean = false;
   invitedUsersList = [];
-  formRowCount = [1];
 
   selectedEmployeeForRoleChange;
   roleChangeModalRef;
@@ -63,20 +54,13 @@ export class BrandInvitePeopleComponent {
     private _authService: AuthService,
     private httpService: HttpService,
     private router: Router,
-    private fb: FormBuilder,
     private modal: NgbModal,
-  ) {
-    this.primaryForm = this.fb.group({
-      peoplesList: this.fb.array([]),
-    });
-  }
+    private ngbOffcanvas: NgbOffcanvas,
+  ) {}
 
   async ngOnInit() {
     this._authService.loggedUserRedirectToProperDashboard();
     document.title = "Invite Users - KEXY Brand Webportal";
-
-    //add default form field - atleast 1 contact
-    this.peoplesList().push(this.newPeopleRow());
 
     this.userData = this._authService.userTokenValue;
     this.isAdmin = this.userData.isAdmin;
@@ -133,95 +117,21 @@ export class BrandInvitePeopleComponent {
     }
   }
 
-  peoplesList(): FormArray {
-    return this.primaryForm.get("peoplesList") as FormArray;
-  }
-
-  newPeopleRow(): FormGroup {
-    return this.fb.group({
-      userEmail: new FormControl("", Validators.compose([Validators.required, Validators.email])),
-      userRole: new FormControl("", Validators.compose([Validators.required])),
+  openInviteCanvas() {
+    const ref = this.ngbOffcanvas.open(InvitePeopleCanvasComponent, {
+      panelClass: 'email-time-settings-slider edit-rep-canvas',
+      backdropClass: 'edit-rep-canvas-backdrop',
+      position: 'end',
+      scroll: false,
     });
-  }
+    ref.componentInstance.totalSeats = this.subscription?.total_seats ?? 0;
+    ref.componentInstance.usedSeats = this.cleanUserList.length;
 
-  addPeopleRow() {
-    this.peoplesList().push(this.newPeopleRow());
-  }
-
-  removePeople(i: number) {
-    this.peoplesList().removeAt(i);
-  }
-
-  subscriptionSeatLimitWarning = () => {
-    Swal.fire({
-      icon: "error",
-      text: "Your current subscription only allows " + this.subscription.total_seats + " user(s). Please increase subscription user limit.",
-    });
-  };
-
-  async primaryFormSubmitted(): Promise<any> {
-    // console.log('subscriptionSeats', this.subscription.total_seats);
-    // console.log('cleanUserList', this.cleanUserList.length);
-    // return;
-    if (this.subscription.total_seats <= this.cleanUserList.length) {
-      this.subscriptionSeatLimitWarning();
-      return;
-    }
-    this.submitted = true;
-    this.isSubmitFlag = true;
-
-    if (!this.primaryForm.valid) {
-      this.isSubmitFlag = false;
-      return;
-    }
-
-    let data = {
-      supplier_id: this.userData.supplier_id,
-      invited_employee_list: [],
-    };
-
-    let formData = this.primaryForm.getRawValue();
-    let formSubmittedData = formData.peoplesList.map((peopleData) => {
-      return {
-        email: peopleData.userEmail,
-        role: peopleData.userRole,
-      };
-    });
-
-    const remainingSeats = this.subscription.total_seats - this.cleanUserList.length;
-    if (formSubmittedData.length > remainingSeats) {
-      this.subscriptionSeatLimitWarning();
-      this.isSubmitFlag = false;
-      return;
-    }
-
-    data.invited_employee_list = formSubmittedData;
-
-    let response = await this.httpService.post("supplier/inviteEmployees", data).toPromise();
-    if (response.success) {
-      this.isSubmitFlag = false;
-      formData.peoplesList.map((peopleData) => {
-        let newList = {
-          email: peopleData.userEmail,
-          role: peopleData.userRole,
-          action: "sent",
-        };
-        this.cleanUserList.push(newList);
-      });
-      this.primaryForm.reset();
-      Swal.fire("Done!", "Invitation has been sent.", "success");
-    } else {
-      this.isSubmitFlag = false;
-      let message = "There was an error!";
-      if (response.error && response.error.code && response.error.message) {
-        message = response.error.message;
-      }
-      Swal.fire({
-        icon: "error",
-        title: "Oops...",
-        text: message,
-      });
-    }
+    // Closed with the invitations that were sent; a plain dismiss (cancel) rejects.
+    ref.result.then(
+      (sent: SentInvitation[]) => this.cleanUserList.push(...sent),
+      () => {},
+    );
   }
 
   async resendInvitation(user, index) {

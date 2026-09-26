@@ -34,7 +34,19 @@
           <h2 class="card-title"><i class="fa fa-users" aria-hidden="true"></i> Users</h2>
           <p class="card-sub">People with access to this workspace</p>
         </div>
-        <span class="count-chip" *ngIf="!isLoadingListFlag">{{ cleanUserList.length }}</span>
+        <div class="card-head-actions">
+          <span class="count-chip" *ngIf="!isLoadingListFlag">{{ cleanUserList.length }}</span>
+          <app-kexy-button
+            *ngIf="isAdmin"
+            label="Invite People"
+            iconLeft="fa-user-plus"
+            bgColor="#12a5f4"
+            textColor="#ffffff"
+            fontSize="13px !important"
+            iconSize="small"
+            (click)="openInviteCanvas()"
+          ></app-kexy-button>
+        </div>
       </div>
 
       <div class="table-wrap">
@@ -123,101 +135,6 @@
         </table>
       </div>
     </div>
-
-    <!-- Invite card -->
-    <ng-container *ngIf="isAdmin">
-      <div class="surface-card">
-        <div class="card-head">
-          <div class="card-head-text">
-            <h2 class="card-title"><i class="fa fa-paper-plane-o" aria-hidden="true"></i> Invite People to Join KEXY</h2>
-            <p class="card-sub">Send an email invitation and assign a role. They'll get access once they accept.</p>
-          </div>
-        </div>
-
-        <form [formGroup]="primaryForm" (ngSubmit)="primaryFormSubmitted()">
-          <div formArrayName="peoplesList">
-            <div class="invite-row" *ngFor="let people of peoplesList().controls; let i = index" [formGroupName]="i">
-              <div class="field">
-                <label class="field-label" *ngIf="i === 0">Email address</label>
-                <div class="input-wrap">
-                  <i class="fa fa-envelope-o input-icon" aria-hidden="true"></i>
-                  <input
-                    [class.error]="
-                      (submitted || primaryForm.get('peoplesList')['controls'][i].controls.userEmail.dirty) &&
-                      primaryForm.get('peoplesList')['controls'][i].controls.userEmail.invalid
-                    "
-                    type="text"
-                    formControlName="userEmail"
-                    class="form-control"
-                    placeholder="name@example.com"
-                  />
-                </div>
-                <span
-                  class="field-error"
-                  *ngIf="
-                    (submitted || primaryForm.get('peoplesList')['controls'][i].controls.userEmail.dirty) &&
-                    primaryForm.get('peoplesList')['controls'][i].controls.userEmail.invalid
-                  "
-                >Email is required</span>
-              </div>
-
-              <div class="field">
-                <label class="field-label" *ngIf="i === 0">Role</label>
-                <div class="input-wrap select-wrap">
-                  <i class="fa fa-user-o input-icon" aria-hidden="true"></i>
-                  <select
-                    [class.error]="
-                      (submitted || primaryForm.get('peoplesList')['controls'][i].controls.userRole.dirty) &&
-                      primaryForm.get('peoplesList')['controls'][i].controls.userRole.invalid
-                    "
-                    formControlName="userRole"
-                    name="userRole"
-                    class="form-control"
-                  >
-                    <option value="" selected>Select Role</option>
-                    <option value="Rep">Basic User</option>
-                    <option value="Admin">Admin</option>
-                  </select>
-                </div>
-                <span
-                  class="field-error"
-                  *ngIf="
-                    (submitted || primaryForm.get('peoplesList')['controls'][i].controls.userRole.dirty) &&
-                    primaryForm.get('peoplesList')['controls'][i].controls.userRole.invalid
-                  "
-                >Selection is required</span>
-              </div>
-
-              <div class="field-remove">
-                <label class="field-label" *ngIf="i === 0">&nbsp;</label>
-                <button
-                  type="button"
-                  class="icon-btn danger row-remove"
-                  title="Remove row"
-                  *ngIf="i != 0"
-                  (click)="removePeople(i)"
-                >
-                  <i class="fa fa-trash" aria-hidden="true"></i>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <a href="javascript: void(0);" class="add-another-invitation-link" (click)="addPeopleRow()">
-            <i class="fa fa-plus-circle" aria-hidden="true"></i> Add another invitation
-          </a>
-
-          <div class="form-actions">
-            <app-kexy-button
-              type="submit"
-              [label]="isSubmitFlag ? 'Please wait...' : 'Send Invitation(s)' "
-              [disabled]="isSubmitFlag"
-              [iconLeft]="isSubmitFlag ? 'fa-refresh fa-spin' : 'fa-paper-plane-o'"
-            ></app-kexy-button>
-          </div>
-        </form>
-      </div>
-    </ng-container>
   </div>
 
   <ng-template #employeeRoleChangeModal let-c="close" let-d="dismiss">
