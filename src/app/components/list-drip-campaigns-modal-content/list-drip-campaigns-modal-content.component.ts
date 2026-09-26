@@ -22,8 +22,21 @@ export class ListDripCampaignsModalContentComponent implements OnInit {
   constructor(private prospectingService: ProspectingService, private dripCampaignService: DripCampaignService) {
   }
 
+  private readonly statusLabels: Record<string, string> = {
+    active: 'Active',
+    pause: 'Paused',
+    complete: 'Completed',
+    published: 'Published',
+    inactive: 'Inactive',
+    archive: 'Archived',
+  };
+
+  nameOf = (item): string =>
+    item?.dripCampaign?.details?.title?.title || `Drip campaign #${item?.dripCampaign?.id ?? ''}`;
+
+  statusLabel = (status: string): string => this.statusLabels[status] ?? status ?? 'Unknown';
+
   ngOnInit() {
-    console.log('list drip campaigns',this.prospectingService.listDripCampaigns);
     this.dripCampaigns = this.prospectingService.listDripCampaigns;
 
     // this.dripCampaignTitlesSubscription = this.dripCampaignService.dripCampaignTitles.subscribe((campaignTitles) => {

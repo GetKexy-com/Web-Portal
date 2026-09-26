@@ -246,11 +246,7 @@ export class ManageListComponent implements OnInit, OnDestroy {
     );
 
     if (!deletableLabels.length) {
-      await Swal.fire(
-        'Nothing to delete',
-        'That list is used by an active drip campaign, so it cannot be deleted.',
-        'info',
-      );
+      await this.__showListInUseAlert(this.selectedLabels);
       return;
     }
 
@@ -278,6 +274,56 @@ export class ManageListComponent implements OnInit, OnDestroy {
       Swal.close();
       await Swal.fire('Error', e.message);
     }
+  };
+
+
+  private __escapeHtml = (value: unknown): string =>
+    String(value ?? '').replace(/[&<>"']/g, (c) =>
+      ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c],
+    );
+
+  /**
+   * Explains WHY a list cannot be deleted and what to do about it: name the drip
+   * campaigns holding it, and give the two ways out (pause + delete the drip now, or
+   * let it finish sending first). A bare "cannot be deleted" left users stuck.
+   */
+  private __showListInUseAlert = async (labels: any[]) => {
+    const seen = new Set<number>();
+    const campaigns = labels
+      .flatMap((l) => l.dripCampaignList ?? [])
+      .map((d) => d.dripCampaign)
+      .filter((c) => c?.status === 'active' && !seen.has(c.id) && seen.add(c.id));
+    const many = campaigns.length > 1;
+    const rows = campaigns
+      .map((c) => {
+        const name = this.__escapeHtml(c.details?.title?.title || `Drip campaign #${c.id}`);
+        return `<li class="liu-campaign"><span class="liu-name">${name}</span>` +
+          `<span class="liu-status">Active</span></li>`;
+      })
+      .join('');
+
+    await Swal.fire({
+      icon: 'info',
+      title: 'This list is in use',
+      html: `
+        <p class="liu-lead">${many
+          ? `${campaigns.length} active drip campaigns are still using this list`
+          : 'An active drip campaign is still using this list'}, so it can't be deleted yet.</p>
+        ${rows ? `<ul class="liu-campaigns">${rows}</ul>` : ''}
+        <div class="liu-options">
+          <div class="liu-option">
+            <span class="liu-option-title">Need to delete it right now?</span>
+            <span class="liu-option-text">Pause ${many ? 'these drips' : 'the drip'}, delete ${many ? 'them' : 'it'}, then delete this list.</span>
+          </div>
+          <div class="liu-option">
+            <span class="liu-option-title">No rush?</span>
+            <span class="liu-option-text">Let ${many ? 'them' : 'it'} finish sending, then delete ${many ? 'them' : 'the drip'} and this list.</span>
+          </div>
+        </div>`,
+      confirmButtonText: 'Got it',
+      confirmButtonColor: '#3085d6',
+      customClass: { popup: 'list-in-use-popup' },
+    });
   };
 
 

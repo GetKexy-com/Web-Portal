@@ -1,18 +1,34 @@
-<div class="search-contact-modal">
-  <section class="header-area">
-    <p>Drip Campaign(s)</p>
-    <img src="/assets/images/close-icon.png" alt="close-icon" style="cursor:pointer;" (click)="activeModal.close('Close click')" />
-  </section>
+<div class="ldc-modal">
+  <header class="ldc-header">
+    <div class="ldc-heading">
+      <h2 class="ldc-title">Used in drip campaigns</h2>
+      <p class="ldc-subtitle" *ngIf="dripCampaigns?.length">
+        {{ dripCampaigns.length }} campaign{{ dripCampaigns.length === 1 ? '' : 's' }} use this list
+      </p>
+    </div>
+    <button type="button" class="ldc-close" aria-label="Close" (click)="activeModal.close('Close click')">
+      <img src="/assets/images/close-icon.png" alt="" />
+    </button>
+  </header>
 
-  <section class="middle-area">
-    <div *ngIf="dripCampaigns.length">
-      <div *ngFor="let item of dripCampaigns; let i = index">
-        <!-- Opens the campaign in a new tab so the user keeps their place on Manage Lists. -->
-        <p>{{i + 1}}. <a class="link-text" [routerLink]="'/' + editDripCampaignPath" [queryParams]="{ id: item.dripCampaign.id }" target="_blank" rel="noopener">{{item.dripCampaign.details.title.title}}</a></p>
-      </div>
-    </div>
-    <div *ngIf="!dripCampaigns.length" class="text-center">
-      <p class="mb-0">No drip campaigns found!</p>
-    </div>
-  </section>
+  <ul class="ldc-list" *ngIf="dripCampaigns?.length; else empty">
+    <li *ngFor="let item of dripCampaigns" class="ldc-item">
+      <!-- Opens the campaign in a new tab so the user keeps their place on Manage Lists. -->
+      <a class="ldc-name"
+         [routerLink]="'/' + editDripCampaignPath"
+         [queryParams]="{ id: item.dripCampaign?.id }"
+         target="_blank" rel="noopener"
+         [title]="nameOf(item)">
+        <span class="ldc-name-text">{{ nameOf(item) }}</span>
+        <i class="fa fa-external-link ldc-open" aria-hidden="true"></i>
+      </a>
+      <span class="ldc-status" [ngClass]="'ldc-status-' + (item.dripCampaign?.status || 'unknown')">
+        <span class="ldc-dot"></span>{{ statusLabel(item.dripCampaign?.status) }}
+      </span>
+    </li>
+  </ul>
+
+  <ng-template #empty>
+    <p class="ldc-empty">No drip campaigns found.</p>
+  </ng-template>
 </div>
