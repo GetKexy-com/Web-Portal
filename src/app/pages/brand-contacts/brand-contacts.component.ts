@@ -280,6 +280,13 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
 
     // Set Label Subscription
     this.contactLabelsSubscription = this.prospectingService.lists.subscribe((labels) => {
+      // Contacts resolve their `lists` from these labels when they load. On a reload the
+      // contacts can arrive first (labels are not awaited), leaving `lists` empty — so
+      // re-resolve them once the labels are here. New array so the table re-renders.
+      if (this.contactList?.length) {
+        this.contactList = this.prospectingService.setLabelsInContactsList([...this.contactList]);
+      }
+
       // Set label dropdown options
       this.labelOptions = [];
       labels.map((i) => {
@@ -368,7 +375,7 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
     await this.getPaginatedContacts();
 
     // Reset select all contacts
-    this.selectAllContacts = true;
+    this.selectAllContacts = false;
     this.prospectingService.selectedAllContacts = this.selectAllContacts;
   };
 

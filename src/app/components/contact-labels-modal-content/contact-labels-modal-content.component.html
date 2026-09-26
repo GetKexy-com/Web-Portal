@@ -7,8 +7,9 @@
 
   <section class="middle-area">
     <div class="labels-wrap">
-      <span *ngFor="let label of labels" class="label" [style.background-color]="label.list.bgColor"
-            [style.color]="label.list.textColor">{{ label.list.label }}</span>
+      <!-- Items are either { list: {...} } (drip campaigns) or the list itself (contacts). -->
+      <span *ngFor="let item of labels" class="label" [style.background-color]="(item.list ?? item).bgColor"
+            [style.color]="(item.list ?? item).textColor">{{ (item.list ?? item).label }}</span>
     </div>
   </section>
 </div>

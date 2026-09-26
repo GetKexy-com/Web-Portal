@@ -163,6 +163,12 @@ export class BrandListContactsComponent implements OnInit, OnDestroy {
     }
 
     this.contactLabelsSubscription = this.prospectingService.lists.subscribe(async (labels) => {
+      // Same race as the manage-contacts page: on a reload the contacts can load before
+      // the lists, leaving each contact's `lists` empty. Re-resolve once lists are here.
+      if (this.contactList?.length) {
+        this.contactList = this.prospectingService.setLabelsInContactsList([...this.contactList]);
+      }
+
       if (this.listId) {
         const index = labels.findIndex(l => l.id.toString() === this.listId.toString());
         if (index > -1) {
