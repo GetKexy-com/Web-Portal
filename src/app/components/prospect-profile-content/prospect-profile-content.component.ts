@@ -64,11 +64,52 @@ interface IOpenerBar {
   isWinner: boolean;
 }
 
-/** How the stored email status reads beside the address. `null` shows nothing. */
-const EMAIL_STATUS: Record<string, { label: string; tone: 'good' | 'warn' | 'bad' | 'mute' }> = {
-  verified: { label: '✓ validated', tone: 'good' },
-  'catch-all': { label: 'catch-all domain', tone: 'warn' },
-  invalid: { label: 'invalid', tone: 'bad' },
+type EmailTone = 'good' | 'warn' | 'bad' | 'mute';
+
+/**
+ * One wording per stored email status, used by the header pill, the tag beside the
+ * address in Contact and the Safety check — so the three can never disagree (a catch-all
+ * address used to show nothing up top while Safety checks said "not validated").
+ */
+interface IEmailStatusView {
+  tone: EmailTone;
+  pill: string;
+  tag: string;
+  check: string;
+  passed: boolean;
+}
+
+const EMAIL_STATUS: Record<string, IEmailStatusView> = {
+  verified: {
+    tone: 'good',
+    pill: '✓ Email validated',
+    tag: '✓ validated',
+    check: 'Email validated by KEXY',
+    passed: true,
+  },
+  'catch-all': {
+    tone: 'warn',
+    pill: '⚠ Catch-all email',
+    tag: 'catch-all — can’t be fully validated',
+    check: 'Catch-all domain — the address can’t be fully validated',
+    passed: false,
+  },
+  invalid: {
+    tone: 'bad',
+    pill: '✕ Invalid email',
+    tag: 'invalid',
+    check: 'Email is invalid',
+    passed: false,
+  },
+};
+
+/** Unverified, unavailable, never checked — anything that is not a verdict. */
+const EMAIL_NOT_VALIDATED: IEmailStatusView = {
+  tone: 'mute',
+  pill: 'Email not validated',
+  tag: 'not validated',
+  check: 'Email not validated yet',
+  passed: false,
 };
 
 interface ISafetyCheck {
@@ -114,6 +155,8 @@ export class ProspectProfileContentComponent implements OnInit {
   @Input() campaignId = 0;
   /** 1-based position of the email whose Insights this was opened from. */
   @Input() emailSequence: number | null = null;
+  /** The campaign un-enrolls on reply and cancels queued emails (its "un-enroll if reply" setting). */
+  @Input() stopsOnReply = true;
   @Input() prospect!: IEmailSendItem;
 
   readonly isMock = PROSPECT_PROFILE_USE_MOCK;
@@ -135,7 +178,7 @@ export class ProspectProfileContentComponent implements OnInit {
   linkedinUrl = '';
   linkedinLabel = '';
   sendPill: { label: string; tone: Tone; at: string | null } | null = null;
-  emailStatus: { label: string; tone: string } | null = null;
+  emailStatus: IEmailStatusView = EMAIL_NOT_VALIDATED;
   /** Set only when the prospect replied to THIS email — drives the pill and the Lead strength box. */
   /** Header pill — only when they replied to THIS email. */
   replyPill: { label: string; urgent: boolean } | null = null;
@@ -143,9 +186,9 @@ export class ProspectProfileContentComponent implements OnInit {
   replyBox: { tone: 'urgent' | 'positive' | 'neutral'; title: string; message: string } | null = null;
   /** "opened" / "clicked" beside the send status; empty once they replied (the reply pill says more). */
   sendEngagement = '';
-  emailVerified = false;
   phone = '';
   phoneSource = '';
+  companyAddress = '';
   maskedPhone = '';
 
   // ── Derived: score ──────────────────────────────────────────────────────
@@ -217,7 +260,7 @@ export class ProspectProfileContentComponent implements OnInit {
     this.displayName = item.name || this.email;
     this.jobTitle = p.jobTitle || '';
     this.company = item.company || '';
-    this.location = [p.city, p.state].filter(Boolean).join(', ') || p.country || '';
+    this.location = [p.city, p.state, p.country].filter(Boolean).join(', ');
     this.linkedinUrl = p.linkedinUrl || '';
     this.linkedinLabel = this.linkedinUrl.replace(/^https?:\/\/(www\.)?/i, '').replace(/\/$/, '');
 
@@ -234,20 +277,20 @@ export class ProspectProfileContentComponent implements OnInit {
     this.__recomputeReply(item);
     this.sendEngagement = e?.repliedAt ? '' : e?.clickedAt ? 'clicked' : e?.openedAt ? 'opened' : '';
 
-    this.emailVerified = p.emailStatus === 'verified';
-    this.emailStatus = p.emailStatus ? (EMAIL_STATUS[p.emailStatus] ?? { label: 'not validated', tone: 'mute' }) : null;
+    this.emailStatus = EMAIL_STATUS[p.emailStatus ?? ''] ?? EMAIL_NOT_VALIDATED;
 
     this.phone = p.phone || '';
     this.phoneSource = p.phoneSource || '';
+    this.companyAddress = p.companyAddress || '';
     this.maskedPhone = this.__maskPhone(this.phone);
     this.__recomputeSafetyChecks();
   }
 
   /**
    * From KEXY's own reply tracking for this one email — a reply to a different email in
-   * the sequence never counts. Deliberately does NOT say "emailing is paused": nothing
-   * stops a sequence on a reply today, so the later emails still go out, and the box says
-   * so rather than promising otherwise.
+   * the sequence never counts. What happens to the rest of the sequence depends on the
+   * campaign's "un-enroll if reply" setting (`stopsOnReply`): on, KexyApi un-enrolls them
+   * and cancels anything already queued; off, the later emails still go out.
    */
   private __recomputeReply(item: IEmailSendItem): void {
     const e = item.engagement;
@@ -261,12 +304,13 @@ export class ProspectProfileContentComponent implements OnInit {
         label: urgent ? `Replied to ${email} — follow up within 24h` : `Replied to ${email} · ${when}`,
         urgent,
       };
+      const rest = this.stopsOnReply
+        ? 'Their remaining emails in this sequence were cancelled.'
+        : 'Later emails in this sequence still go out — “un-enroll if they reply” is off for this campaign.';
       this.replyBox = {
         tone: urgent ? 'urgent' : 'positive',
         title: `Replied to ${email} on ${when}.`,
-        message: urgent
-          ? 'Reach out personally within 24 hours. Later emails in this sequence still go out on schedule.'
-          : 'Later emails in this sequence still go out on schedule.',
+        message: urgent ? `Reach out personally within 24 hours. ${rest}` : rest,
       };
       return;
     }
@@ -279,6 +323,12 @@ export class ProspectProfileContentComponent implements OnInit {
           ? `They opened it on ${day(e.openedAt)}.`
           : 'No open recorded yet either.';
       this.replyBox = { tone: 'neutral', title: 'No reply yet.', message: `The prospect hasn't replied to ${email}. ${seen}` };
+    } else if (item.errorCode === 'replied') {
+      this.replyBox = {
+        tone: 'neutral',
+        title: 'Cancelled.',
+        message: `They replied to an earlier email in this campaign, so ${email} was cancelled for them.`,
+      };
     } else {
       const stopped = ['failed', 'skipped', 'skipped_after_failures', 'declined_by_ai'].includes(item.status);
       this.replyBox = {
@@ -290,10 +340,7 @@ export class ProspectProfileContentComponent implements OnInit {
   }
 
   private __recomputeSafetyChecks(): void {
-    const emailCheck: ISafetyCheck = {
-      label: this.emailVerified ? 'Email validated by KEXY' : 'Email not validated',
-      passed: this.emailVerified,
-    };
+    const emailCheck: ISafetyCheck = { label: this.emailStatus.check, passed: this.emailStatus.passed };
     this.safetyChecks = [
       emailCheck,
       ...(this.insights?.safetyChecks ?? []).map((c) => ({ label: c.label, passed: c.passed })),

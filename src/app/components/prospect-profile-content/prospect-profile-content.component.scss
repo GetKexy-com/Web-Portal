@@ -122,6 +122,12 @@ $kx-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 .pp-pill.tone-neutral { color: $kx-muted; background: $kx-hairline; border-color: $kx-border; }
 .pp-pill.tone-warning { color: $kx-wait; background: $kx-wait-bg; border-color: #f6dcae; }
 
+// Email status (`EMAIL_STATUS`) — same colours as the tag beside the address.
+.pp-pill.email-good { color: $kx-teal; background: $kx-teal-bg; border-color: #bfe3dc; }
+.pp-pill.email-warn { color: $kx-wait; background: $kx-wait-bg; border-color: #f6dcae; }
+.pp-pill.email-bad { color: #dc2626; background: #fdeaea; border-color: #f5c2c2; }
+.pp-pill.email-mute { color: $kx-muted; background: $kx-hairline; border-color: $kx-border; }
+
 // Drawer send-status tones (`STATUS_META`).
 .pp-pill.send-good { color: $kx-good; background: $kx-good-bg; }
 .pp-pill.send-live { color: $kx-live; background: $kx-live-bg; }

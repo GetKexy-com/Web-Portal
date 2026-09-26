@@ -44,7 +44,7 @@
         <span class="pp-pill" *ngIf="replyPill as r" [ngClass]="r.urgent ? 'tone-urgent' : 'tone-positive'">
           <span class="pp-dot" aria-hidden="true"></span>{{ r.label }}
         </span>
-        <span class="pp-pill tone-positive" *ngIf="emailVerified">✓ Email validated</span>
+        <span class="pp-pill" [ngClass]="'email-' + emailStatus.tone">{{ emailStatus.pill }}</span>
         <span class="pp-pill" *ngIf="sendPill as sp" [ngClass]="'send-' + sp.tone">
           This email: {{ sp.label }}<ng-container *ngIf="sp.at"> · {{ sp.at | date: 'MMM d' }}</ng-container><ng-container *ngIf="sendEngagement"> · {{ sendEngagement }}</ng-container>
         </span>
@@ -229,7 +229,7 @@
               <dt>Email</dt>
               <dd>
                 <a [href]="'mailto:' + email">{{ email }}</a>
-                <span class="pp-email-status" *ngIf="emailStatus as es" [ngClass]="'is-' + es.tone">{{ es.label }}</span>
+                <span class="pp-email-status" [ngClass]="'is-' + emailStatus.tone">{{ emailStatus.tag }}</span>
               </dd>
             </div>
             <div>
@@ -243,6 +243,11 @@
             <div *ngIf="phoneSource">
               <dt>Phone source</dt>
               <dd>{{ phoneSource }}</dd>
+            </div>
+            <div>
+              <dt>Company address</dt>
+              <dd *ngIf="companyAddress">{{ companyAddress }}</dd>
+              <dd *ngIf="!companyAddress" class="pp-none">Not found</dd>
             </div>
           </dl>
         </section>

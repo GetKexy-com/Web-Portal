@@ -52,6 +52,8 @@ export interface IEmailSendSummary {
   inFlight: boolean;
   /** Generation attempts a queue row gets before it is parked (for "attempt 1/2"). */
   maxAttempts: number;
+  /** A reply un-enrolls the prospect and cancels their queued emails (campaign setting, on by default). */
+  stopsOnReply: boolean;
 }
 
 /** Who the prospect is, from the details stored when they were enrolled. Any field may be null. */
@@ -67,6 +69,8 @@ export interface IEmailSendProfile {
   phoneSource: string | null;
   /** `verified`, `invalid`, `catch-all`, `unavailable`, … as stored; null when never checked. */
   emailStatus: string | null;
+  /** Where their COMPANY is — full address when stored, else city/state/country. */
+  companyAddress: string | null;
 }
 
 /**

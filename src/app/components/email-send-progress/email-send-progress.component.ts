@@ -80,6 +80,8 @@ const ERROR_TITLES: Record<string, string> = {
   interrupted: 'Interrupted',
   suppressed: 'On the suppression list',
   unsubscribed: 'Unsubscribed',
+  replied: 'Prospect replied — remaining emails cancelled',
+  unenrolled: 'No longer enrolled in this campaign',
 };
 
 /**
@@ -345,6 +347,8 @@ export class EmailSendProgressComponent implements OnInit, OnDestroy {
     });
     ref.componentInstance.campaignId = this.campaignId;
     ref.componentInstance.emailSequence = this.emailSequence;
+    // `?? true` for an API from before the field existed — on is the default setting.
+    ref.componentInstance.stopsOnReply = this.summary?.stopsOnReply ?? true;
     ref.componentInstance.prospect = item;
 
     // Esc must close the TOP drawer. ng-bootstrap listens for Esc on each panel's own
