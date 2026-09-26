@@ -11,6 +11,12 @@ import { HttpService } from './http.service';
  */
 export const PROSPECT_PROFILE_USE_MOCK = true;
 
+/**
+ * Shows the "Profile/Score" column in Insights → Prospects, the only way into the
+ * profile. Hidden until the APIs ship; flip to `true` (with USE_MOCK `false`) then.
+ */
+export const PROSPECT_PROFILE_ENABLED = false;
+
 /** Long enough to exercise the loading skeletons, short enough not to annoy. */
 const MOCK_LATENCY_MS = 450;
 
