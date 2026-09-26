@@ -1,0 +1,173 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://getkexy.com/schemas/prospect-insights.schema.json",
+  "title": "Prospect insights",
+  "description": "The `data` of GET /v2/drip-campaigns/:campaignId/prospects/insights?email=<email>. Drives the left column of the prospect profile ('Why we chose this lead', 'How we picked the opening topic', 'What happened so far') plus the signal checks in the Safety checks card. Who the prospect is (name, title, location, LinkedIn, phone, email status) is NOT part of this API — the portal already has it from the send-progress list. Anything that says the prospect replied, opened or clicked (callout tone 'replied', signals[].usedIn.outcome, openerSelection.outcome, timeline text) MUST agree with KEXY's own tracking in drip_campaign_insignts for that email — the portal shows the real reply status beside it, and a mismatch reads as a lie. The standard ResponseSuccessInterceptor wraps it as { success, statusCode, path, data, timestamp }. Every piece of text is shown to the user as-is, so it must be written for the brand user, not for developers.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["email", "callout", "signals", "openerSelection", "timeline", "safetyChecks", "generatedAt"],
+  "properties": {
+    "email": {
+      "type": "string",
+      "format": "email",
+      "description": "The prospect's email, echoed back exactly as requested."
+    },
+    "callout": {
+      "description": "Highlighted box at the top of 'Why we chose this lead'. Rendered as '<b>title</b> message <b>Next step: nextStep</b>'. null to hide it.",
+      "oneOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["tone", "title", "message", "nextStep"],
+          "properties": {
+            "tone": { "type": "string", "enum": ["replied", "positive", "neutral", "warning"], "description": "'replied' only when drip_campaign_insignts has a reply from this prospect." },
+            "title": { "type": "string", "minLength": 1, "maxLength": 80, "description": "e.g. 'Peter replied on Sep 19:'" },
+            "message": { "type": "string", "minLength": 1, "maxLength": 240 },
+            "nextStep": { "type": ["string", "null"], "maxLength": 160, "description": "Text after 'Next step:'. null to omit." }
+          }
+        }
+      ]
+    },
+    "signals": {
+      "type": "array",
+      "description": "Everything found about the prospect, ORDERED BY confidence DESCENDING. The UI shows the first two and puts the rest behind '+N more, lower confidence · view all'. May be empty.",
+      "items": { "$ref": "#/$defs/signal" }
+    },
+    "openerSelection": {
+      "description": "'How we picked the opening topic'. null before any opener has been chosen.",
+      "oneOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["winnerKey", "outcome", "candidates", "rule"],
+          "properties": {
+            "winnerKey": { "type": "string", "description": "candidates[].key of the opener that was used. Must be present in candidates." },
+            "outcome": {
+              "type": "string",
+              "enum": ["pending", "sent", "opened", "replied", "no_response"],
+              "description": "What happened with the winning opener. pending = not sent yet."
+            },
+            "candidates": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 8,
+              "description": "Every opener that was compared, ORDERED BY score DESCENDING.",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["key", "label", "score"],
+                "properties": {
+                  "key": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+                  "label": { "type": "string", "minLength": 1, "maxLength": 40, "description": "e.g. 'His LinkedIn post'" },
+                  "score": { "type": "integer", "minimum": 0, "maximum": 100 }
+                }
+              }
+            },
+            "rule": {
+              "description": "Footnote under the bars. null to hide.",
+              "oneOf": [
+                { "type": "null" },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["label", "text"],
+                  "properties": {
+                    "label": { "type": "string", "minLength": 1, "maxLength": 40, "description": "Bold lead-in, e.g. 'Rule in action'." },
+                    "text": { "type": "string", "minLength": 1, "maxLength": 240 }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "timeline": {
+      "type": "array",
+      "description": "'What happened so far', ORDERED OLDEST FIRST. Rendered as '<date> <b>title</b> detail'.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["at", "title", "detail"],
+        "properties": {
+          "at": { "type": "string", "format": "date-time" },
+          "title": { "type": "string", "minLength": 1, "maxLength": 80, "description": "e.g. 'He replied.'" },
+          "detail": { "type": ["string", "null"], "maxLength": 240 }
+        }
+      }
+    },
+    "safetyChecks": {
+      "type": "array",
+      "description": "Checks on the research itself, shown in the 'Safety checks' card after the portal's own email-validation check. A failed check is shown with a warning mark. May be empty.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["key", "label", "passed"],
+        "properties": {
+          "key": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+          "label": { "type": "string", "minLength": 1, "maxLength": 60 },
+          "passed": { "type": "boolean" }
+        }
+      }
+    },
+    "generatedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When these insights were produced (ISO 8601, UTC)."
+    }
+  },
+  "$defs": {
+    "signal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "title", "timing", "quote", "source", "usedIn", "reason", "confidence"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "kind": {
+          "type": "string",
+          "enum": ["linkedin_share", "linkedin_post", "city", "company_news", "pain_point", "lead_magnet", "other"]
+        },
+        "title": { "type": "string", "minLength": 1, "maxLength": 60, "description": "Card heading, e.g. 'What he shared on LinkedIn'." },
+        "timing": { "type": ["string", "null"], "maxLength": 60, "description": "Grey text after the heading, e.g. '5 days before we emailed' or 'recent'." },
+        "quote": { "type": "string", "minLength": 1, "maxLength": 600, "description": "The prospect's words, verbatim. No surrounding quote marks — the UI adds them." },
+        "source": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["platform", "attribution", "url"],
+          "properties": {
+            "platform": { "type": "string", "minLength": 1, "maxLength": 40, "description": "e.g. 'LinkedIn'." },
+            "attribution": { "type": ["string", "null"], "maxLength": 80, "description": "e.g. 'shared by John McDonald' or 'his own post'." },
+            "url": { "type": ["string", "null"], "format": "uri", "description": "Link to the original. Shows 'View post' when set." }
+          }
+        },
+        "usedIn": {
+          "description": "Set when this signal opened a sent email. Shows a badge like 'OPENED EMAIL 1 · GOT THE REPLY'.",
+          "oneOf": [
+            { "type": "null" },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["emailSequence", "outcome"],
+              "properties": {
+                "emailSequence": { "type": "integer", "minimum": 1, "description": "1-based position of the email in the drip sequence." },
+                "outcome": { "type": "string", "enum": ["sent", "opened", "clicked", "replied"] }
+              }
+            }
+          ]
+        },
+        "reason": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["label", "text"],
+          "properties": {
+            "label": { "type": "string", "minLength": 1, "maxLength": 40, "description": "e.g. 'Why we used it' or 'Why it matters'." },
+            "text": { "type": "string", "minLength": 1, "maxLength": 240 }
+          }
+        },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    }
+  }
+}

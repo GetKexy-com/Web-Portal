@@ -118,6 +118,7 @@
       *ngIf="isEmailScope && campaignId && emailId"
       [campaignId]="campaignId"
       [emailId]="emailId"
+      [emailSequence]="emailSequence"
     />
 
     <ng-container *ngIf="!isLoading && !loadError && data">

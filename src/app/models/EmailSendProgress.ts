@@ -54,6 +54,31 @@ export interface IEmailSendSummary {
   maxAttempts: number;
 }
 
+/** Who the prospect is, from the details stored when they were enrolled. Any field may be null. */
+export interface IEmailSendProfile {
+  jobTitle: string | null;
+  city: string | null;
+  state: string | null;
+  country: string | null;
+  /** Only a real `/in/…` profile URL. */
+  linkedinUrl: string | null;
+  phone: string | null;
+  /** Whose number it is, e.g. "Company HQ line" — most are not personal. */
+  phoneSource: string | null;
+  /** `verified`, `invalid`, `catch-all`, `unavailable`, … as stored; null when never checked. */
+  emailStatus: string | null;
+}
+
+/**
+ * What the prospect did with THIS email — first open, click and reply. A reply to a
+ * different email in the sequence never shows up here.
+ */
+export interface IEmailSendEngagement {
+  openedAt: string | null;
+  clickedAt: string | null;
+  repliedAt: string | null;
+}
+
 export interface IEmailSendItem {
   /** Set for rows written by the send log. Identifies the content to load. */
   logId: number | null;
@@ -81,6 +106,8 @@ export interface IEmailSendItem {
   sentAt: string | null;
   failedAt: string | null;
   updatedAt: string | null;
+  profile: IEmailSendProfile;
+  engagement: IEmailSendEngagement;
 }
 
 /**

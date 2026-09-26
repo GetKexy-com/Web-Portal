@@ -357,7 +357,7 @@ $kx-red-bg: #fdeaea;
 
 .sp-table {
   width: 100%;
-  min-width: 620px;
+  min-width: 700px;
   border-collapse: collapse;
   table-layout: fixed;
 
@@ -397,9 +397,30 @@ $kx-red-bg: #fdeaea;
     white-space: nowrap;
     font-variant-numeric: tabular-nums;
   }
+  .col-profile {
+    width: 104px;
+  }
   .col-toggle {
     width: 44px;
     text-align: right;
+  }
+}
+
+.sp-profile-link {
+  display: inline-block;
+  padding: 3px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  color: $kx-primary-deep;
+  background: $kx-live-bg;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  text-decoration: none;
+
+  &:hover {
+    background: #dcebfd;
+    text-decoration: none;
   }
 }
 

@@ -1,0 +1,270 @@
+<div class="canvas-content-wrap">
+  <div class="head-area">
+    <div class="head-text">
+      <p class="head-title">Prospect profile</p>
+      <span class="head-subtitle">{{ email }}</span>
+    </div>
+    <div class="head-actions">
+      <!--Closes only this drawer — the Insights drawer underneath stays where it was.-->
+      <button type="button" class="close-btn" aria-label="Close profile" (click)="activeCanvas.dismiss('Cross click')">
+        <i class="fa fa-times" aria-hidden="true"></i>
+      </button>
+    </div>
+  </div>
+
+  <div class="canvas-body">
+
+    <!--Until both APIs exist the score and research are the example payloads — say so,
+        or a sample "Peter replied" reads as a fact about this prospect.-->
+    <div class="pp-mock" *ngIf="isMock" role="note">
+      <i class="fa fa-flask" aria-hidden="true"></i>
+      <span>
+        <strong>Preview.</strong> The prospect’s details, contact info and send status are real. The
+        score and everything about why we picked this lead are sample data until their APIs are connected.
+      </span>
+    </div>
+
+    <!--══════════ Header ══════════-->
+    <header class="pp-head">
+      <h2 class="pp-name">{{ displayName }}</h2>
+      <p class="pp-sub">
+        <ng-container *ngFor="let part of [jobTitle, company, location]">
+          <span *ngIf="part" class="pp-sub-part">{{ part }}</span>
+        </ng-container>
+        <a
+          *ngIf="linkedinUrl"
+          class="pp-sub-part pp-sub-link"
+          [href]="linkedinUrl"
+          target="_blank"
+          rel="noopener noreferrer"
+        >{{ linkedinLabel }}</a>
+      </p>
+
+      <div class="pp-pills">
+        <span class="pp-pill" *ngIf="replyPill as r" [ngClass]="r.urgent ? 'tone-urgent' : 'tone-positive'">
+          <span class="pp-dot" aria-hidden="true"></span>{{ r.label }}
+        </span>
+        <span class="pp-pill tone-positive" *ngIf="emailVerified">✓ Email validated</span>
+        <span class="pp-pill" *ngIf="sendPill as sp" [ngClass]="'send-' + sp.tone">
+          This email: {{ sp.label }}<ng-container *ngIf="sp.at"> · {{ sp.at | date: 'MMM d' }}</ng-container><ng-container *ngIf="sendEngagement"> · {{ sendEngagement }}</ng-container>
+        </span>
+      </div>
+    </header>
+
+    <div class="pp-grid">
+
+      <!--══════════════════ Left column: insights API ══════════════════-->
+      <div class="pp-col">
+
+        <!--── Why we chose this lead ──-->
+        <section class="pp-card" aria-labelledby="pp-why">
+          <h3 class="pp-card-title" id="pp-why">Why we chose this lead</h3>
+
+          <ng-container *ngIf="insightsState === 'loading'">
+            <div class="pp-skel" style="height: 64px"></div>
+            <div class="pp-skel" style="height: 150px"></div>
+            <div class="pp-skel" style="height: 150px"></div>
+          </ng-container>
+          <ng-container *ngTemplateOutlet="insightsError"></ng-container>
+
+          <ng-container *ngIf="insightsState === 'ready' && insights">
+            <div class="pp-callout" *ngIf="insights.callout as c" [ngClass]="'tone-' + c.tone">
+              <span class="pp-callout-icon" aria-hidden="true">
+                <i class="fa" [ngClass]="c.tone === 'replied' ? 'fa-reply' : c.tone === 'warning' ? 'fa-exclamation' : 'fa-info'"></i>
+              </span>
+              <p>
+                <strong>{{ c.title }}</strong> {{ c.message }}
+                <strong *ngIf="c.nextStep">Next step: {{ c.nextStep }}</strong>
+              </p>
+            </div>
+
+            <article
+              class="pp-signal"
+              *ngFor="let sig of signals; let i = index"
+              [hidden]="!showAllSignals && i >= signalsPreview"
+            >
+              <h4 class="pp-signal-title">
+                {{ sig.title }}<span class="pp-signal-timing" *ngIf="sig.timing"> · {{ sig.timing }}</span>
+              </h4>
+              <blockquote class="pp-quote">“{{ sig.quote }}”</blockquote>
+              <div class="pp-source">
+                <span>Source: {{ sig.source.platform }}</span>
+                <span *ngIf="sig.source.attribution"> · {{ sig.source.attribution }}</span>
+                <ng-container *ngIf="sig.source.url">
+                  ·
+                  <a [href]="sig.source.url" target="_blank" rel="noopener noreferrer">View post ↗</a>
+                </ng-container>
+                <span class="pp-used" *ngIf="sig.usedInLabel">{{ sig.usedInLabel }}</span>
+              </div>
+              <p class="pp-reason"><strong>{{ sig.reason.label }}:</strong> {{ sig.reason.text }}</p>
+            </article>
+
+            <button
+              type="button"
+              class="pp-more"
+              *ngIf="signals.length > signalsPreview"
+              [attr.aria-expanded]="showAllSignals"
+              (click)="toggleSignals()"
+            >
+              <ng-container *ngIf="!showAllSignals">
+                + {{ signals.length - signalsPreview }} more, lower confidence · view all
+              </ng-container>
+              <ng-container *ngIf="showAllSignals">Show fewer</ng-container>
+            </button>
+
+            <p class="pp-empty" *ngIf="!insights.callout && !signals.length">
+              Nothing has been found about this prospect yet.
+            </p>
+          </ng-container>
+        </section>
+
+        <!--── How we picked the opening topic ──-->
+        <section
+          class="pp-card"
+          aria-labelledby="pp-opener"
+          *ngIf="insightsState !== 'ready' || insights?.openerSelection"
+        >
+          <h3 class="pp-card-title" id="pp-opener">How we picked the opening topic</h3>
+
+          <div class="pp-skel" style="height: 170px" *ngIf="insightsState === 'loading'"></div>
+          <ng-container *ngTemplateOutlet="insightsError"></ng-container>
+
+          <ng-container *ngIf="insightsState === 'ready' && insights?.openerSelection as op">
+            <p class="pp-lead">
+              {{ openerIntro }}
+              <strong *ngIf="openerWinner">“{{ openerWinner }}” won{{ openerOutcome }}</strong>
+            </p>
+            <ul class="pp-bars">
+              <li *ngFor="let b of openerBars" class="pp-bar-row">
+                <span class="pp-bar-label">{{ b.label }}</span>
+                <span class="pp-track" role="img" [attr.aria-label]="b.label + ': ' + b.score + ' of 100'">
+                  <span class="pp-fill" [class.is-winner]="b.isWinner" [style.width.%]="b.score"></span>
+                </span>
+                <span class="pp-bar-num">{{ b.score }}</span>
+              </li>
+            </ul>
+            <p class="pp-rule" *ngIf="op.rule as r"><strong>{{ r.label }}:</strong> {{ r.text }}</p>
+          </ng-container>
+        </section>
+
+        <!--── What happened so far ──-->
+        <section class="pp-card" aria-labelledby="pp-timeline">
+          <h3 class="pp-card-title" id="pp-timeline">What happened so far</h3>
+
+          <div class="pp-skel" style="height: 90px" *ngIf="insightsState === 'loading'"></div>
+          <ng-container *ngTemplateOutlet="insightsError"></ng-container>
+
+          <ng-container *ngIf="insightsState === 'ready' && insights">
+            <ol class="pp-timeline" *ngIf="insights.timeline.length">
+              <li *ngFor="let t of insights.timeline">
+                <time class="pp-when" [attr.datetime]="t.at" [title]="t.at | date: 'medium'">{{ t.at | date: 'MMM d' }}</time>
+                <span><strong>{{ t.title }}</strong> {{ t.detail }}</span>
+              </li>
+            </ol>
+            <p class="pp-empty" *ngIf="!insights.timeline.length">Nothing has happened yet.</p>
+          </ng-container>
+        </section>
+      </div>
+
+      <!--══════════════════ Right column ══════════════════-->
+      <aside class="pp-col">
+
+        <!--── Lead strength: score API ──-->
+        <section class="pp-card" aria-labelledby="pp-strength">
+          <h3 class="pp-card-title" id="pp-strength">Lead strength</h3>
+
+          <div class="pp-skel" style="height: 250px" *ngIf="scoreState === 'loading'"></div>
+          <div class="pp-state is-error" *ngIf="scoreState === 'error'" role="alert">
+            Could not load the score.
+            <button type="button" class="pp-link" (click)="loadScore()">Try again</button>
+          </div>
+
+          <ng-container *ngIf="scoreState === 'ready' && score">
+            <div class="pp-score">
+              <svg class="pp-ring" viewBox="0 0 120 120" role="img" [attr.aria-label]="'Score ' + score.score + ' of ' + score.maxScore">
+                <circle cx="60" cy="60" [attr.r]="ringRadius" class="pp-ring-track" />
+                <circle
+                  *ngFor="let seg of ringSegments"
+                  cx="60"
+                  cy="60"
+                  [attr.r]="ringRadius"
+                  class="pp-ring-seg"
+                  [attr.stroke]="seg.color"
+                  [attr.stroke-dasharray]="seg.dashArray"
+                  [attr.stroke-dashoffset]="seg.dashOffset"
+                />
+                <text x="60" y="61" class="pp-ring-num">{{ score.score }}</text>
+              </svg>
+              <div>
+                <div class="pp-score-big">{{ score.score }}<span> / {{ score.maxScore }}</span></div>
+                <div class="pp-score-headline">{{ score.headline }}</div>
+              </div>
+            </div>
+
+            <ul class="pp-components">
+              <li *ngFor="let b of scoreBars">
+                <div class="pp-comp-top">
+                  <span>{{ b.label }}</span>
+                  <span class="pp-mono">{{ b.points }}/{{ b.maxPoints }}</span>
+                </div>
+                <span class="pp-track is-thick">
+                  <span class="pp-fill" [style.width.%]="b.pct" [style.background]="b.color"></span>
+                </span>
+              </li>
+            </ul>
+          </ng-container>
+
+          <!--Where THIS email stands with them — our reply tracking, not the score API,
+              so it shows even while the score is loading or failed.-->
+          <div class="pp-alert" *ngIf="replyBox as r" [ngClass]="'tone-' + r.tone">
+            <strong>{{ r.title }}</strong> {{ r.message }}
+          </div>
+        </section>
+
+        <!--── Contact: all from the row's stored details ──-->
+        <section class="pp-card" aria-labelledby="pp-contact">
+          <h3 class="pp-card-title" id="pp-contact">Contact</h3>
+          <dl class="pp-dl">
+            <div>
+              <dt>Email</dt>
+              <dd>
+                <a [href]="'mailto:' + email">{{ email }}</a>
+                <span class="pp-email-status" *ngIf="emailStatus as es" [ngClass]="'is-' + es.tone">{{ es.label }}</span>
+              </dd>
+            </div>
+            <div>
+              <dt>Phone</dt>
+              <dd *ngIf="phone">
+                <span class="pp-mono">{{ showPhone ? phone : maskedPhone }}</span>
+                <button type="button" class="pp-link" (click)="togglePhone()">{{ showPhone ? 'Hide' : 'Show' }}</button>
+              </dd>
+              <dd *ngIf="!phone" class="pp-none">Not found</dd>
+            </div>
+            <div *ngIf="phoneSource">
+              <dt>Phone source</dt>
+              <dd>{{ phoneSource }}</dd>
+            </div>
+          </dl>
+        </section>
+
+        <!--── Safety checks: our email check (real) + the insights API's research checks ──-->
+        <section class="pp-card" aria-labelledby="pp-safety">
+          <h3 class="pp-card-title" id="pp-safety">Safety checks</h3>
+          <p class="pp-checks">
+            <ng-container *ngFor="let c of safetyChecks; let last = last">
+              <span [class.is-failed]="!c.passed">{{ c.passed ? '✓' : '⚠' }} {{ c.label }}</span><span *ngIf="!last" class="pp-sep"> · </span>
+            </ng-container>
+          </p>
+          <div class="pp-skel" style="height: 18px; margin: 8px 0 0" *ngIf="insightsState === 'loading'"></div>
+        </section>
+      </aside>
+    </div>
+  </div>
+</div>
+
+<ng-template #insightsError>
+  <div class="pp-state is-error" *ngIf="insightsState === 'error'" role="alert">
+    Could not load this section.
+    <button type="button" class="pp-link" (click)="loadInsights()">Try again</button>
+  </div>
+</ng-template>

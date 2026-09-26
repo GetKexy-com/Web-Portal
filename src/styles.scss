@@ -447,6 +447,28 @@ button[disabled] {
   width: calc(100% - 220px) !important;
 }
 
+// Prospect profile — opened from INSIDE the Insights drawer and stacked on top of it
+// (`email-send-progress.openProfile`). Bootstrap gives every offcanvas the same z-index,
+// so without these the second backdrop would sit UNDER the first drawer. Narrower than
+// Insights so its left edge still shows underneath: you can see what you'll return to.
+// Kept below the CSV label drawers (1060), which open over everything.
+.prospect-profile-backdrop {
+  z-index: 1050 !important;
+}
+
+.prospect-profile-drawer {
+  z-index: 1055 !important;
+  border-radius: 10px 0 0 10px !important;
+  width: min(1180px, calc(100% - 300px)) !important;
+}
+
+@media (max-width: 900px) {
+  .prospect-profile-drawer {
+    width: 100% !important;
+    border-radius: 0 !important;
+  }
+}
+
 .label-offcanvas-backdrop {
   z-index: 1045 !important;
 }

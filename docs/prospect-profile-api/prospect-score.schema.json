@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://getkexy.com/schemas/prospect-score.schema.json",
+  "title": "Prospect score",
+  "description": "The `data` of GET /v2/drip-campaigns/:campaignId/prospects/score?email=<email>. Drives the score, ring and bars of the 'Lead strength' card in the prospect profile. What the prospect DID (replied, opened, clicked) is not part of this API: the portal reads it from its own tracking. The standard ResponseSuccessInterceptor wraps it as { success, statusCode, path, data, timestamp }.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["email", "score", "maxScore", "band", "headline", "components", "scoredAt"],
+  "properties": {
+    "email": {
+      "type": "string",
+      "format": "email",
+      "description": "The prospect's email, echoed back exactly as requested."
+    },
+    "score": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Total score. Must equal the sum of components[].points and be <= maxScore."
+    },
+    "maxScore": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Highest possible score (100 today). Must equal the sum of components[].maxPoints."
+    },
+    "band": {
+      "type": "string",
+      "enum": ["strong", "good", "fair", "weak"],
+      "description": "Bucket for the score. Suggested: strong >= 80, good >= 60, fair >= 40, else weak."
+    },
+    "headline": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 60,
+      "description": "Short line under the score, e.g. 'Strong — good fit, reachable now'. Must not claim a reply or an open: the portal shows those from its own tracking."
+    },
+    "components": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 5,
+      "description": "Score breakdown, in display order. Each one is drawn as a bar and as one segment of the score ring.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["key", "label", "points", "maxPoints"],
+        "properties": {
+          "key": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "description": "Stable id, e.g. 'contactable', 'offer_fit', 'timing'."
+          },
+          "label": { "type": "string", "minLength": 1, "maxLength": 60 },
+          "points": { "type": "integer", "minimum": 0, "description": "Must be <= maxPoints." },
+          "maxPoints": { "type": "integer", "minimum": 1 }
+        }
+      }
+    },
+    "scoredAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this score was last computed (ISO 8601, UTC)."
+    }
+  }
+}

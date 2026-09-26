@@ -1,0 +1,121 @@
+import { IProspectInsights, IProspectScore } from '../models/ProspectProfile';
+
+/**
+ * Stand-in responses for the prospect profile APIs until the backend ships them.
+ * Byte-for-byte the `*.example.json` payloads in `docs/prospect-profile-api/` — the
+ * files handed to the backend developer — so the page is built against exactly what the
+ * API will send. Regenerate from those files rather than editing here.
+ */
+export const MOCK_PROSPECT_SCORE: IProspectScore = {
+  "email": "pmullen@example.org",
+  "score": 95,
+  "maxScore": 100,
+  "band": "strong",
+  "headline": "Strong — good fit, reachable now",
+  "components": [
+    { "key": "contactable", "label": "Real, contactable record", "points": 30, "maxPoints": 30 },
+    { "key": "offer_fit", "label": "Good fit for the offer", "points": 35, "maxPoints": 40 },
+    { "key": "timing", "label": "Right time to reach him", "points": 30, "maxPoints": 30 }
+  ],
+  "scoredAt": "2026-09-19T15:42:00.000Z"
+};
+
+export const MOCK_PROSPECT_INSIGHTS: IProspectInsights = {
+  "email": "pmullen@example.org",
+  "callout": {
+    "tone": "positive",
+    "title": "Why Peter fits:",
+    "message": "he runs business development in Tulsa and shares faith-driven entrepreneurship content — exactly who the client sells to.",
+    "nextStep": "watch for a reply to Email 1."
+  },
+  "signals": [
+    {
+      "id": "sig_01",
+      "kind": "linkedin_share",
+      "title": "What he shared on LinkedIn",
+      "timing": "5 days before we emailed",
+      "quote": "2026 Faith Driven Entrepreneurship Watch Party underway at the Northeast Indiana Innovation Community #FDEcon2026",
+      "source": {
+        "platform": "LinkedIn",
+        "attribution": "shared by John McDonald",
+        "url": "https://www.linkedin.com/feed/update/urn:li:activity:0000000000000000001"
+      },
+      "usedIn": { "emailSequence": 1, "outcome": "sent" },
+      "reason": { "label": "Why we used it", "text": "faith + innovation is exactly who the client sells to." },
+      "confidence": 0.92
+    },
+    {
+      "id": "sig_02",
+      "kind": "city",
+      "title": "What he posts about his city",
+      "timing": "recent",
+      "quote": "Unbreakable Oklahoma — America's Proving Ground... #Oklahoma #Tulsa #OklahomaCity",
+      "source": {
+        "platform": "LinkedIn",
+        "attribution": "his own post",
+        "url": "https://www.linkedin.com/feed/update/urn:li:activity:0000000000000000002"
+      },
+      "usedIn": null,
+      "reason": { "label": "Why it matters", "text": "he's proud of Tulsa — a good topic for a later email." },
+      "confidence": 0.81
+    },
+    {
+      "id": "sig_03",
+      "kind": "company_news",
+      "title": "What his company announced",
+      "timing": "3 weeks ago",
+      "quote": "We're expanding our Tulsa office and hiring across business development.",
+      "source": { "platform": "Company website", "attribution": "press page", "url": "https://example.org/news/expansion" },
+      "usedIn": null,
+      "reason": { "label": "Why it matters", "text": "a growing BD team is a natural reason to talk." },
+      "confidence": 0.64
+    },
+    {
+      "id": "sig_04",
+      "kind": "pain_point",
+      "title": "A problem he mentioned",
+      "timing": "2 months ago",
+      "quote": "Finding the right partners across the region is still mostly word of mouth.",
+      "source": { "platform": "LinkedIn", "attribution": "comment on a post", "url": null },
+      "usedIn": null,
+      "reason": { "label": "Why it matters", "text": "the offer addresses exactly this, but the comment is old." },
+      "confidence": 0.41
+    },
+    {
+      "id": "sig_05",
+      "kind": "lead_magnet",
+      "title": "A guide that fits his role",
+      "timing": null,
+      "quote": "The 2026 Regional Partnership Playbook",
+      "source": { "platform": "KEXY", "attribution": "your lead magnet library", "url": null },
+      "usedIn": null,
+      "reason": { "label": "Why it matters", "text": "relevant, but generic — weaker than a personal hook." },
+      "confidence": 0.38
+    }
+  ],
+  "openerSelection": {
+    "winnerKey": "linkedin_post",
+    "outcome": "sent",
+    "candidates": [
+      { "key": "linkedin_post", "label": "His LinkedIn post", "score": 87 },
+      { "key": "company_news", "label": "Company news", "score": 74 },
+      { "key": "city", "label": "His city", "score": 66 },
+      { "key": "pain_points", "label": "Pain points", "score": 41 },
+      { "key": "free_guide", "label": "Free guide", "score": 38 }
+    ],
+    "rule": {
+      "label": "Rule in action",
+      "text": "the conference post is now \"used up\" — the next email will open with something else."
+    }
+  },
+  "timeline": [
+    { "at": "2026-09-12T09:05:00.000Z", "title": "Imported.", "detail": "Score started at 62." },
+    { "at": "2026-09-19T08:30:00.000Z", "title": "Email 1 sent", "detail": "— opened with his LinkedIn share." },
+    { "at": "2026-09-19T15:42:00.000Z", "title": "Rescored.", "detail": "Score rose 65 → 95 after his company news was found." }
+  ],
+  "safetyChecks": [
+    { "key": "signals_sourced", "label": "Every signal has a source", "passed": true },
+    { "key": "nothing_invented", "label": "Nothing was invented", "passed": true }
+  ],
+  "generatedAt": "2026-09-19T15:42:05.000Z"
+};
