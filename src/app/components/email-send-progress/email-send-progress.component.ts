@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, Directive, ElementRef, Input, OnDestroy, OnInit } from '@angular/core';
 
 import {
+  EmailDeliveryStatus,
   IAiPausedState,
   EmailSendFilter,
   EmailSendStatus,
@@ -85,6 +86,19 @@ const STATUS_META: Record<EmailSendStatus, IStatusMeta> = {
   skipped_after_failures: { label: 'Gave up', tone: 'bad', busy: false },
   declined_by_ai: { label: 'AI declined', tone: 'bad', busy: false },
   skipped: { label: 'Skipped', tone: 'mute', busy: false },
+};
+
+/**
+ * What happened after the send, per Amazon SES. "Sent" alone only means SES accepted it;
+ * these say whether it then reached the inbox. `problem` rows also show SES's reason.
+ */
+const DELIVERY_META: Record<EmailDeliveryStatus, { label: string; tone: Tone; problem: boolean }> = {
+  delivered: { label: 'Delivered', tone: 'good', problem: false },
+  delayed: { label: 'Delivery delayed', tone: 'wait', problem: false },
+  bounced: { label: 'Bounced', tone: 'bad', problem: true },
+  rejected: { label: 'Rejected by SES', tone: 'bad', problem: true },
+  failed: { label: 'Not delivered', tone: 'bad', problem: true },
+  complained: { label: 'Marked as spam', tone: 'bad', problem: true },
 };
 
 /** Plain-language name for each failure/skip code; the code itself is still shown beside it. */
@@ -244,6 +258,10 @@ export class EmailSendProgressComponent implements OnInit, OnDestroy {
 
   // ── Template helpers ────────────────────────────────────────────────────
   statusMeta = (status: EmailSendStatus): IStatusMeta => STATUS_META[status];
+
+  /** An unknown status (a newer API) still reads sensibly rather than blank. */
+  deliveryMeta = (status: string) =>
+    DELIVERY_META[status as EmailDeliveryStatus] ?? { label: status, tone: 'mute' as Tone, problem: false };
 
   rowKey = (item: IEmailSendItem): string =>
     item.logId ? `log:${item.logId}` : item.conversationId ? `conv:${item.conversationId}` : `email:${item.email}`;

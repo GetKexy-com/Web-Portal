@@ -81,6 +81,26 @@ export interface IEmailSendItem {
   sentAt: string | null;
   failedAt: string | null;
   updatedAt: string | null;
+  /**
+   * What Amazon SES did with the email AFTER accepting it — "Sent" only means SES said OK.
+   * Null until SES reports something (and always for older sends or non-SES servers).
+   */
+  delivery: IEmailDelivery | null;
+}
+
+export type EmailDeliveryStatus =
+  | 'delayed'
+  | 'delivered'
+  | 'bounced'
+  | 'rejected'
+  | 'failed'
+  | 'complained';
+
+export interface IEmailDelivery {
+  status: EmailDeliveryStatus;
+  /** Why, in words — e.g. the bounce reason, or that SES suppressed the address. */
+  detail: string | null;
+  updatedAt: string;
 }
 
 /**
