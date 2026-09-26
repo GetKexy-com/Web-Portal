@@ -667,10 +667,10 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
     // Honest sub-states — the notice must never claim more than is true.
     //
     // 1. The card is mounted but silent: research has finished for every
-    //    prospect while the CAMPAIGN row still reads PENDING/RUNNING. Nothing
-    //    will be sent until the backend marks the campaign complete (the send
-    //    sweep requires both statuses SUCCEEDED), so promising a queued send
-    //    here would be flatly wrong.
+    //    prospect while the CAMPAIGN row still reads PENDING/RUNNING. Sending is
+    //    gated on the web and map scrapes succeeding (not on the campaign being
+    //    "complete"), so it begins right after this, but nothing has gone out
+    //    yet — promising a specific send count here would be wrong.
     // 2. Send count not known yet (loading, or the request failed): say only
     //    what is true regardless — that sends follow the schedule.
     // 3. Known to be zero: the send window is frequently shut (7:00 AM – 8:00 PM
@@ -697,7 +697,7 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
       this.__stopSentCountPolling();
       this.liveNoticePill = 'Finishing up';
       this.liveNoticeStatus =
-        'Research has finished for every prospect. Sending starts once the campaign is marked complete.';
+        'Research has finished for every prospect. Emails start sending as soon as it wraps up, on the schedule below.';
     } else {
       this.__startSentCountPolling(campaign.id);
       this.liveNoticePill = 'Sending';
