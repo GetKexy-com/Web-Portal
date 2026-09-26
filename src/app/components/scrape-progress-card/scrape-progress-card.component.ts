@@ -200,7 +200,7 @@ export class ScrapeProgressCardComponent implements OnInit, OnDestroy {
       this.phase = 'running';
       this.scrapeProgressDetails.title = 'Researching your prospects';
       this.scrapeProgressDetails.subTitle =
-        'We’re gathering the insights that personalise each email.';
+        'We’re gathering the insights that personalize each email.';
       this.startMessageRotation();
       return;
     }
