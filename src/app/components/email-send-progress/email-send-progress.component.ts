@@ -12,6 +12,7 @@ import {
   IEmailSendSummary,
 } from '../../models/EmailSendProgress';
 import { DripCampaignService } from '../../services/drip-campaign.service';
+import { PROSPECT_PROFILE_ENABLED } from '../../services/prospect-profile.service';
 import { IStatusMeta, STATUS_META, Tone } from '../../helpers/email-send-status';
 import { ProspectProfileContentComponent } from '../prospect-profile-content/prospect-profile-content.component';
 
@@ -188,6 +189,8 @@ export class EmailSendProgressComponent implements OnInit, OnDestroy {
   aiPaused: IAiPausedState | null = null;
   items: IEmailSendItem[] = [];
   total = 0;
+  /** "Profile/Score" column; hidden until the profile APIs ship (see PROSPECT_PROFILE_ENABLED). */
+  readonly showProfile = PROSPECT_PROFILE_ENABLED;
   page = 1;
   totalPages = 1;
   filter: EmailSendFilter = 'all';

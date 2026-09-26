@@ -126,7 +126,7 @@
             <th scope="col" class="col-status">Status</th>
             <th scope="col" class="col-subject">Subject</th>
             <th scope="col" class="col-when">When</th>
-            <th scope="col" class="col-profile">Profile/Score</th>
+            <th scope="col" class="col-profile" *ngIf="showProfile">Profile/Score</th>
             <th scope="col" class="col-toggle"><span class="sr-only">Details</span></th>
           </tr>
         </thead>
@@ -182,7 +182,7 @@
                 </ng-container>
               </td>
 
-              <td class="col-profile">
+              <td class="col-profile" *ngIf="showProfile">
                 <button
                   type="button"
                   class="sp-profile-link"
@@ -207,7 +207,7 @@
 
             <!--══════════ Expanded: timeline, error, AI vs sent ══════════-->
             <tr class="sp-detail-row" *ngIf="expanded[rowKey(item)]">
-              <td colspan="6">
+              <td [attr.colspan]="showProfile ? 6 : 5">
                 <ng-container *ngIf="details[rowKey(item)] as d">
 
                   <div class="sp-detail-state" *ngIf="d.state === 'loading'">
