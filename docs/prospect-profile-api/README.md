@@ -6,7 +6,7 @@ serves the `*.example.json` payloads in this folder as mock data.
 
 | Endpoint | Schema | Example | Feeds |
 |---|---|---|---|
-| `GET /v2/drip-campaigns/:campaignId/prospects/score?email=<email>` | `prospect-score.schema.json` | `prospect-score.example.json` | Lead strength card: score, ring, bars |
+| `GET /v2/drip-campaigns/:campaignId/prospects/score?email=<email>` | `prospect-score.schema.json` | `prospect-score.example.json` | Lead strength card: score, ring, bars. Also the warm-lead alert email (KexyApi): score, tier bars, current stage |
 | `GET /v2/drip-campaigns/:campaignId/prospects/insights?email=<email>` | `prospect-insights.schema.json` | `prospect-insights.example.json` | Why we chose this lead, How we picked the opening topic, What happened so far, signal safety checks |
 
 Who the prospect is — name, company, job title, location, LinkedIn, phone and email
@@ -34,6 +34,8 @@ to say it.
 Score:
 - `score` = sum of `components[].points`, and `maxScore` = sum of `components[].maxPoints`.
 - `points <= maxPoints` for every component.
+- `components[].tier` is `0, 1, 2…` in array order: each tier appears once, with no gaps.
+- `stage` is one of the `components[].tier` values.
 
 Insights:
 - `signals` is ordered by `confidence`, highest first. The UI shows the first two.
