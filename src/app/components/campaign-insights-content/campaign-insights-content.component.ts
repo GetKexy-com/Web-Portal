@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NgbActiveOffcanvas } from '@ng-bootstrap/ng-bootstrap';
 
@@ -10,6 +10,7 @@ import {
   ICampaignAnalyticsEmailRow,
   ICampaignAnalyticsTrendPoint,
 } from '../../models/CampaignAnalytics';
+import { EmailSendFilter } from '../../models/EmailSendProgress';
 import { DashboardService } from '../../services/dashboard.service';
 import { EmailSendProgressComponent } from '../email-send-progress/email-send-progress.component';
 import { InsightsStatisticsCardComponent } from '../insights-statistics-card/insights-statistics-card.component';
@@ -67,6 +68,15 @@ export class CampaignInsightsContentComponent implements OnInit {
   /** Seeds the summary so it names the email on the first frame, before the fetch. */
   emailSequence?: number;
   emailSubject = '';
+  /**
+   * Email scope: open the Prospects list on this tab, scrolled into view. Set when the
+   * drawer is opened from a countdown (a Delay card's "Queues in …"), so the user lands
+   * on the prospect it counts down for instead of hunting for them.
+   */
+  prospectsFilter: EmailSendFilter | null = null;
+  @ViewChild(EmailSendProgressComponent) private prospects?: EmailSendProgressComponent;
+  /** Only the first analytics load re-scrolls; a later range change must not yank the view. */
+  private prospectsFocusPending = true;
 
   get isEmailScope(): boolean {
     return !!this.emailId;
@@ -247,6 +257,11 @@ export class CampaignInsightsContentComponent implements OnInit {
         this.emailSubject = this.data.email.subject;
       }
       this.__recompute();
+      // The summary above Prospects just rendered and pushed it down; put it back in view.
+      if (this.prospectsFilter && this.prospectsFocusPending) {
+        this.prospectsFocusPending = false;
+        this.prospects?.focus();
+      }
     } catch (error: any) {
       // An empty drawer and a failed request look identical, so say which it was
       // rather than leaving zeros to be read as real numbers.

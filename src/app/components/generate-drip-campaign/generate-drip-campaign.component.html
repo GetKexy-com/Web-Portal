@@ -23,6 +23,27 @@
         <p class="title">{{ liveNoticeTitle }}</p>
         <p class="desc">{{ liveNoticeStatus }}</p>
 
+        <!--The soonest Delay card's countdown, so it is visible without scrolling the
+            sequence; click for that email's Insights on the tab the prospect is in. Not
+            "After research": this notice only shows once research is done for every
+            prospect (the campaign row can lag — "Finishing up"), and saying both would
+            contradict itself.-->
+        <button
+          *ngIf="campaignNextSend && !liveNoticeIsComplete && campaignNextSend.schedule.state !== 'research'"
+          type="button"
+          class="live-next-send"
+          (click)="campaignNextSendClick()"
+          aria-label="Show the next prospect to be emailed in Insights"
+        >
+          <send-countdown
+            [prefix]="'Next: Email #' + campaignNextSend.emailSequence + ' ·'"
+            [schedule]="campaignNextSend.schedule"
+            [clockOffsetMs]="prospectsClockOffsetMs"
+            [showAt]="false"
+          ></send-countdown>
+          <i class="fa fa-angle-right" aria-hidden="true"></i>
+        </button>
+
         <ul class="facts">
           <li class="fact" *ngFor="let fact of liveNoticeFacts">
             <i class="fa" [ngClass]="fact.icon" aria-hidden="true"></i>
@@ -272,6 +293,7 @@
             [clockOffsetMs]="prospectsClockOffsetMs"
             [showDripCampaignContacts]="showDripCampaignContacts"
             [showDetailsBtnClick]="showEmailDelayBtnClick"
+            [insightsBtnClick]="insightsBtnClick"
           ></drip-campaign-card>
           <div class="separating-line-wrap">
             <div class="line"></div>

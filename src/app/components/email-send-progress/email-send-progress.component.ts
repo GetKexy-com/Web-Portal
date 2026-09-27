@@ -192,6 +192,11 @@ export class EmailSendProgressComponent implements OnInit, OnDestroy {
   @Input({ required: true }) emailId!: number;
   /** 1-based position in the sequence, for "Replied to Email 3" in the profile. */
   @Input() emailSequence: number | null = null;
+  /**
+   * Opens on this tab instead of "All" — set when the drawer was opened from a countdown,
+   * so the prospect it counts down for is in front of the user. See `focus`.
+   */
+  @Input() initialFilter: EmailSendFilter | null = null;
 
   readonly pageSize = PAGE_SIZE;
 
@@ -253,11 +258,22 @@ export class EmailSendProgressComponent implements OnInit, OnDestroy {
   constructor(
     private dripCampaignService: DripCampaignService,
     private ngbOffcanvas: NgbOffcanvas,
+    private host: ElementRef<HTMLElement>,
   ) {}
 
   ngOnInit(): void {
+    if (this.initialFilter) this.filter = this.initialFilter;
     this.__load('initial');
   }
+
+  /**
+   * Scrolls this section to the top of the drawer. Called after its own first load when
+   * opened on a tab, and by the drawer after the analytics above it load — whichever
+   * lands last moves it down, so both ask and the later one leaves it in place.
+   */
+  focus = (): void => {
+    setTimeout(() => this.host.nativeElement.scrollIntoView({ block: 'start', behavior: 'smooth' }));
+  };
 
   ngOnDestroy(): void {
     this.destroyed = true;
@@ -450,6 +466,7 @@ export class EmailSendProgressComponent implements OnInit, OnDestroy {
       this.__refreshStaleDetails();
       this.__recomputeSchedules();
       this.__syncCountdown();
+      if (mode === 'initial' && this.initialFilter) this.focus();
 
       // A filter can shrink the result under the page we were on.
       if (this.page > this.totalPages) {

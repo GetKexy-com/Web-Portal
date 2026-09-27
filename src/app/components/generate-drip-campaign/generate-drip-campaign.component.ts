@@ -6,8 +6,9 @@ import { Subscription } from 'rxjs';
 import Swal from 'sweetalert2';
 import { DripCampaignService } from '../../services/drip-campaign.service';
 import { DashboardService } from '../../services/dashboard.service';
-import { IEmailSendSchedule, IEmailSendSummary } from '../../models/EmailSendProgress';
-import { scheduleEventAt, schedulePollDelay } from '../../helpers/send-schedule-label';
+import { EmailSendFilter, IEmailSendSchedule, IEmailSendSummary } from '../../models/EmailSendProgress';
+import { scheduleEventAt, schedulePollDelay, scheduleProspectsFilter } from '../../helpers/send-schedule-label';
+import { SendCountdownComponent } from '../send-countdown/send-countdown.component';
 import { routeConstants } from '../../helpers/routeConstants';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DripEmail, EmailDelay } from '../../models/DripEmail';
@@ -55,6 +56,7 @@ import { ScrapeProgressCardComponent } from '../scrape-progress-card/scrape-prog
     KexyToastifyComponent,
     CommonModule,
     ScrapeProgressCardComponent,
+    SendCountdownComponent,
   ],
   templateUrl: './generate-drip-campaign.component.html',
   styleUrl: './generate-drip-campaign.component.scss',
@@ -303,6 +305,12 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
    * why ("After research", "Not sending").
    */
   nextSendBySequence: Record<number, IEmailSendSchedule | null> = {};
+  /**
+   * The campaign's next send, for the "This campaign is live" notice: the soonest of the
+   * Delay cards above (same rule — moving first by time, else the first that says why it
+   * is blocked), and which email it is. Rebuilt with `nextSendBySequence`.
+   */
+  campaignNextSend: { schedule: IEmailSendSchedule; emailSequence: number } | null = null;
   /** Server clock minus this browser's, from the prospects response's `serverTime`. */
   prospectsClockOffsetMs = 0;
 
@@ -319,7 +327,23 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
       if (!best || soonest) bySequence[seq] = sc;
     }
     this.nextSendBySequence = bySequence;
+
+    let next: { schedule: IEmailSendSchedule; emailSequence: number; at: number | null } | null = null;
+    for (const [seq, sc] of Object.entries(bySequence)) {
+      if (!sc || sc.state === 'unknown') continue;
+      const at = scheduleEventAt(sc);
+      const better = !next || (at !== null && (next.at === null || at < next.at));
+      if (better) next = { schedule: sc, emailSequence: Number(seq), at };
+    }
+    this.campaignNextSend = next ? { schedule: next.schedule, emailSequence: next.emailSequence } : null;
   }
+
+  /** The live notice's countdown: that email's Insights, on the tab its prospect is in. */
+  campaignNextSendClick = () => {
+    const next = this.campaignNextSend;
+    const email = next && this.emails.find((e) => Number(e.emailSequence) === next.emailSequence);
+    if (email) this.insightsBtnClick(email, scheduleProspectsFilter(next.schedule));
+  };
 
   getEmailContactsInAction = (emailSequence) => {
     return this.dripCampaignProspects.filter(d => {
@@ -560,7 +584,7 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
    * `email_notification_sent` column, and the live table has no such column. The
    * analytics endpoint aggregates in scoped raw SQL and is immune to that drift.
    */
-  insightsBtnClick = (email) => {
+  insightsBtnClick = (email, prospectsFilter: EmailSendFilter | null = null) => {
     const ref = this.ngbOffcanvas.open(CampaignInsightsContentComponent, {
       panelClass: 'campaign-insights',
       position: 'end',
@@ -573,6 +597,8 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
     // request lands; the response confirms both.
     ref.componentInstance.emailSequence = email.emailSequence;
     ref.componentInstance.emailSubject = email.emailSubject || '';
+    // Opened from a Delay card's countdown: land on the Prospects tab that prospect is in.
+    ref.componentInstance.prospectsFilter = prospectsFilter;
   };
 
   showEmailDelayBtnClick = (email) => {

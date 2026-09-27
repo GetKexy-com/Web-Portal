@@ -1,4 +1,4 @@
-import { IEmailSendSchedule } from '../models/EmailSendProgress';
+import { EmailSendFilter, IEmailSendSchedule } from '../models/EmailSendProgress';
 
 /**
  * The wording for when a prospect's next drip email goes out, from the `schedule` /
@@ -177,6 +177,34 @@ export function schedulePollDelay(
     delay = Math.min(delay, moving ? activeMs : at - now + settleMs);
   }
   return Math.max(delay, minMs);
+}
+
+/**
+ * Which tab of the Insights "Prospects" list a schedule's prospect is under, so clicking
+ * a countdown can open straight onto them: waiting to join the queue (or blocked before
+ * it) is `scheduled` — they have no send-log row yet — `queued` is `queued`, being
+ * written or sent is `in_progress`, and a row out of attempts is `failed`. "Sending
+ * paused" applies both before and after queueing; only a due prospect carries times.
+ */
+export function scheduleProspectsFilter(sc: IEmailSendSchedule | null): EmailSendFilter {
+  switch (sc?.state) {
+    case 'estimated':
+    case 'held':
+    case 'earlier_email':
+    case 'research':
+    case 'no_window':
+      return 'scheduled';
+    case 'queued':
+      return 'queued';
+    case 'sending':
+      return 'in_progress';
+    case 'stuck':
+      return 'failed';
+    case 'sending_paused':
+      return sc.earliestSendAt ? 'scheduled' : 'queued';
+    default:
+      return 'all';
+  }
 }
 
 function parse(iso: string | null | undefined): number | null {
