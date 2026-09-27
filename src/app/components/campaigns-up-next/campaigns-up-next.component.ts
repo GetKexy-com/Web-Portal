@@ -11,7 +11,8 @@ import { SendCountdownComponent } from '../send-countdown/send-countdown.compone
 /**
  * "Up next" above the campaign list: the next few sends across ALL the user's ACTIVE
  * campaigns (`GET drip-campaigns/up-next`), each ticking live, so they are visible
- * without paging or filtering the table. Hidden when there is no active campaign.
+ * without paging or filtering the table. Hidden unless an active campaign has emails
+ * queued to go out; it keeps polling while hidden, so it appears once one does.
  *
  * Loads itself and stays live with the same pacing as the Delay cards
  * (`schedulePollDelay`); a background tab skips the fetch. `refreshKey` lets the page
