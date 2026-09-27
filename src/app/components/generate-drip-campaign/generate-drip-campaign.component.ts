@@ -697,7 +697,7 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
       this.__stopSentCountPolling();
       this.liveNoticePill = 'Finishing up';
       this.liveNoticeStatus =
-        'Research has finished for every prospect. Emails start sending as soon as it wraps up, on the schedule below.';
+        'Research is complete for every prospect. Emails will start sending according to the schedule below.';
     } else {
       this.__startSentCountPolling(campaign.id);
       this.liveNoticePill = 'Sending';
