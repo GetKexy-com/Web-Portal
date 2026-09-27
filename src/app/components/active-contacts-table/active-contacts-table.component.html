@@ -16,6 +16,7 @@
         </th>
         <th>Name</th>
         <th>Email Address</th>
+        <th class="col-next">Next send</th>
         <th class="col-view"></th>
       </tr>
     </thead>
@@ -44,11 +45,15 @@
           </div>
         </td>
         <td class="email">{{ getEmail(row) }}</td>
+        <!--`nextSend` comes from the API (the queue fill's own rules); hover for detail.-->
+        <td class="col-next">
+          <send-countdown [schedule]="row.nextSend ?? null" [clockOffsetMs]="clockOffsetMs" [showAt]="true"></send-countdown>
+        </td>
         <td class="col-view"><i class="fa fa-angle-right" aria-hidden="true"></i></td>
       </tr>
 
       <tr *ngIf="cardData.length === 0" class="empty-row">
-        <td colspan="4">
+        <td colspan="5">
           <i class="fa fa-users" aria-hidden="true"></i>
           No contacts are waiting for this email.
         </td>

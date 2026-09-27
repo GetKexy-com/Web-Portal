@@ -73,6 +73,13 @@
         color: #0047CC;
         font-size: 19px;
       }
+      // "Next send in 2h 05m" beside the contacts button.
+      .next-send {
+        display: flex;
+        align-items: center;
+        margin-left: 10px;
+        font-size: 12.5px;
+      }
     }
 
     .left-side-button {

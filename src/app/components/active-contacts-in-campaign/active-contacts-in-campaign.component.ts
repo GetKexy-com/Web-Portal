@@ -26,6 +26,7 @@ export class ActiveContactsInCampaignComponent implements OnInit {
   public limit = 25;
   public totalPage = 1;
   public paginatedContacts = [];
+  public clockOffsetMs = 0;
 
   constructor(
     public activeCanvas: NgbActiveOffcanvas,
@@ -42,6 +43,7 @@ export class ActiveContactsInCampaignComponent implements OnInit {
     });
 
     this.contacts = this.dripCampaignService.emailProspects;
+    this.clockOffsetMs = this.dripCampaignService.emailProspectsClockOffsetMs;
     console.log(this.contacts);
     this.setContactsWithPagination();
   }

@@ -6,12 +6,14 @@ import {
   ContactDetailsModalContentComponent
 } from '../contact-details-modal-content/contact-details-modal-content.component';
 import {CommonModule} from '@angular/common';
+import { SendCountdownComponent } from '../send-countdown/send-countdown.component';
 
 @Component({
   selector: 'active-contacts-table',
   imports: [
     FormsModule,
     CommonModule,
+    SendCountdownComponent,
   ],
   templateUrl: './active-contacts-table.component.html',
   styleUrl: './active-contacts-table.component.scss'
@@ -25,6 +27,8 @@ export class ActiveContactsTableComponent {
   @Input() totalPage;
   @Input() currentPage;
   @Input() limit;
+  /** Server clock minus browser clock, for each row's "Next send" countdown. */
+  @Input() clockOffsetMs = 0;
   @Output() selectedLimit: EventEmitter<any> = new EventEmitter();
 
   constructor(private prospectingService: ProspectingService, private modal: NgbModal) {}

@@ -41,6 +41,14 @@
         iconLeft="fa-users"
         (click)="showDripCampaignContacts(emailContacts)"
       ></app-kexy-button>
+      <!--When the first of those contacts gets this email; hover for the exact time.-->
+      <send-countdown
+        *ngIf="isDelayCard && emailContacts.length && nextSend"
+        class="next-send"
+        prefix="Next send"
+        [schedule]="nextSend"
+        [clockOffsetMs]="clockOffsetMs"
+      ></send-countdown>
 
     </div>
     <div class="left-side-button">
