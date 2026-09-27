@@ -456,6 +456,35 @@ $kx-red-bg: #fdeaea;
   color: $kx-faint;
 }
 
+// "When" cell of a scheduled row: a live countdown with the time under it.
+.sp-when {
+  display: block;
+  cursor: help;
+
+  &.when-count .sp-when-text {
+    color: $kx-live;
+    font-weight: 600;
+  }
+  &.when-soon .sp-when-text {
+    color: $kx-wait;
+    font-weight: 600;
+  }
+  &.when-mute .sp-when-text {
+    color: $kx-faint;
+  }
+}
+
+.sp-when-text,
+.sp-when-at {
+  display: block;
+}
+
+.sp-when-at {
+  margin-top: 1px;
+  font-size: 10.5px;
+  color: $kx-faint;
+}
+
 .sp-pill {
   display: inline-flex;
   align-items: center;
