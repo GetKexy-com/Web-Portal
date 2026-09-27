@@ -172,6 +172,7 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
     });
     this.dripCampaignStatusSubscription = this.dripCampaignService.dripCampaignStatus.subscribe(status => {
       this.dripCampaignStatus = status;
+      this.__syncProspectsPolling();
     });
     this.showAiEmailError();
     this.numberOfEmail = this.dripCampaign.details.numberOfEmails;
@@ -200,25 +201,67 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
       this.onEmailToneSelect(this.emailTones[0]);
     }
 
+    this.dripCampaignProspectsSubscription = this.dripCampaignService.dripCampaignProspects.subscribe(data => {
+      this.dripCampaignProspects = data['prospects'] || [];
+    });
     this.getDripCampaignProspects().then(res => {
     });
   }
 
 
-  getDripCampaignProspects = async () => {
+  getDripCampaignProspects = async (silent = false) => {
     const postData = {
       drip_campaign_id: this.dripCampaignId,
     };
     try {
       await this.dripCampaignService.getProspects(postData);
-      this.dripCampaignProspectsSubscription = this.dripCampaignService.dripCampaignProspects.subscribe(data => {
-        this.dripCampaignProspects = data['prospects'];
-        console.log('prospects', this.dripCampaignProspects);
-      });
     } catch (e) {
+      // A background refresh failing is not worth a dialog — the last list stays.
+      if (silent) {
+        console.error('Could not refresh the drip campaign prospects', e);
+        return;
+      }
       Swal.fire('Error', e.message).then();
     }
   };
+
+  /**
+   * Keeps the "contact(s) in actions" counts on the Delay cards live while the
+   * campaign is ACTIVE. A prospect's `emailSequence` advances when the send queue
+   * delivers their email, but the API pushes nothing to the browser (sends run off
+   * an external cron), so without this the contacts stayed under the old Delay
+   * card until a reload.
+   */
+  private prospectsTimer: ReturnType<typeof setInterval> | null = null;
+  /** The endpoint is one join on the campaign's prospects, so this is cheap. */
+  private static readonly PROSPECTS_POLL_MS = 30_000;
+
+  private __syncProspectsPolling() {
+    if (this.dripCampaignStatus !== constants.ACTIVE) {
+      this.__stopProspectsPolling();
+      return;
+    }
+    if (this.prospectsTimer) return;
+    this.prospectsTimer = setInterval(() => {
+      // Don't poll a background tab; `onVisibilityChange` catches up on return.
+      if (document.hidden) return;
+      this.getDripCampaignProspects(true).then();
+    }, GenerateDripCampaignComponent.PROSPECTS_POLL_MS);
+  }
+
+  private __stopProspectsPolling() {
+    if (this.prospectsTimer) {
+      clearInterval(this.prospectsTimer);
+      this.prospectsTimer = null;
+    }
+  }
+
+  @HostListener('document:visibilitychange')
+  onVisibilityChange() {
+    if (!document.hidden && this.prospectsTimer) {
+      this.getDripCampaignProspects(true).then();
+    }
+  }
 
   getEmailContactsInAction = (emailSequence) => {
     return this.dripCampaignProspects.filter(d => {
@@ -253,6 +296,7 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
     if (this.dripCampaignProspectsSubscription) this.dripCampaignProspectsSubscription.unsubscribe();
     if (this.contactListSubscription) this.contactListSubscription.unsubscribe();
     this.__stopSentCountPolling();
+    this.__stopProspectsPolling();
     if (this.dripCampaignStatus !== constants.ACTIVE) {
       this.sseService.removeDripBulkEmailData();
     }
