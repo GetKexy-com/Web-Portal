@@ -45,7 +45,7 @@
       <send-countdown
         *ngIf="isDelayCard && emailContacts.length && nextSend"
         class="next-send"
-        prefix="Next send"
+        prefix="Next email:"
         [schedule]="nextSend"
         [clockOffsetMs]="clockOffsetMs"
       ></send-countdown>

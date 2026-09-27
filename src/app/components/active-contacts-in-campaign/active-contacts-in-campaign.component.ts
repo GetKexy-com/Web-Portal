@@ -1,4 +1,4 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, OnDestroy, OnInit } from "@angular/core";
 import { NgbActiveOffcanvas } from "@ng-bootstrap/ng-bootstrap";
 import { DripCampaignService } from "../../services/drip-campaign.service";
 import { ActivatedRoute } from "@angular/router";
@@ -6,6 +6,8 @@ import Swal from "sweetalert2";
 import { PageUiService } from "../../services/page-ui.service";
 import {ActiveContactsTableComponent} from '../active-contacts-table/active-contacts-table.component';
 import {CommonModule} from '@angular/common';
+import { Subscription } from "rxjs";
+import { constants } from "../../helpers/constants";
 
 @Component({
   selector: 'app-active-contacts-in-campaign',
@@ -16,7 +18,7 @@ import {CommonModule} from '@angular/common';
   templateUrl: './active-contacts-in-campaign.component.html',
   styleUrl: './active-contacts-in-campaign.component.scss'
 })
-export class ActiveContactsInCampaignComponent implements OnInit {
+export class ActiveContactsInCampaignComponent implements OnInit, OnDestroy {
   public isLoading: boolean = false;
   public submitted: boolean = false;
   public contacts = [];
@@ -27,6 +29,7 @@ export class ActiveContactsInCampaignComponent implements OnInit {
   public totalPage = 1;
   public paginatedContacts = [];
   public clockOffsetMs = 0;
+  private prospectsSubscription: Subscription | null = null;
 
   constructor(
     public activeCanvas: NgbActiveOffcanvas,
@@ -44,7 +47,35 @@ export class ActiveContactsInCampaignComponent implements OnInit {
 
     this.contacts = this.dripCampaignService.emailProspects;
     this.clockOffsetMs = this.dripCampaignService.emailProspectsClockOffsetMs;
-    console.log(this.contacts);
+    this.setContactsWithPagination();
+
+    // Follow the drip page's polling, so each row's countdown moves on to its next stage
+    // (queued, sent) instead of freezing on what it said when the panel opened.
+    const sequence = this.dripCampaignService.emailProspectsSequence;
+    if (sequence) {
+      this.prospectsSubscription = this.dripCampaignService.dripCampaignProspects.subscribe((data) => {
+        this.__refreshContacts(data, sequence);
+      });
+    }
+  }
+
+  ngOnDestroy() {
+    this.prospectsSubscription?.unsubscribe();
+  }
+
+  /** Same filter as the Delay card's count; keeps the selection and page. */
+  private __refreshContacts(data, sequence: number) {
+    const prospects = data?.['prospects'];
+    if (!Array.isArray(prospects)) return;
+    const selected = new Set(this.selectedContacts.map((c) => c.id));
+    this.contacts = prospects.filter(
+      (p) => p.status === constants.ACTIVE && parseInt(p.emailSequence) === sequence,
+    );
+    this.contacts.forEach((c) => (c.is_selected = selected.has(c.id)));
+    this.selectedContacts = this.contacts.filter((c) => c.is_selected);
+    const serverNow = Date.parse(data['serverTime']);
+    if (!Number.isNaN(serverNow)) this.clockOffsetMs = serverNow - Date.now();
+    this.page = Math.min(this.page, Math.max(1, Math.ceil(this.contacts.length / this.limit)));
     this.setContactsWithPagination();
   }
 

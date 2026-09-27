@@ -15,7 +15,7 @@ import {
 import { DripCampaignService } from '../../services/drip-campaign.service';
 import { PROSPECT_PROFILE_ENABLED } from '../../services/prospect-profile.service';
 import { IStatusMeta, STATUS_META, Tone } from '../../helpers/email-send-status';
-import { IScheduleLabel, scheduleLabel } from '../../helpers/send-schedule-label';
+import { IScheduleLabel, scheduleEventAt, scheduleLabel } from '../../helpers/send-schedule-label';
 import { ProspectProfileContentComponent } from '../prospect-profile-content/prospect-profile-content.component';
 
 /**
@@ -162,6 +162,8 @@ const SEARCH_DEBOUNCE_MS = 300;
 const COUNTDOWN_TICK_MS = 1000;
 /** Never fire a "their time has come" poll sooner than this after a load. */
 const DUE_POLL_MIN_MS = 5000;
+/** Rows whose `schedule` is shown: waiting to join the queue, and waiting in it. */
+const COUNTED_STATUSES = ['scheduled', 'queued'];
 /** setTimeout overflows past ~24.8 days; nothing here is scheduled that far out anyway. */
 const MAX_TIMEOUT_MS = 2_000_000_000;
 
@@ -477,18 +479,19 @@ export class EmailSendProgressComponent implements OnInit, OnDestroy {
     this.__clearPollTimer();
     if (this.destroyed) return;
 
-    // A scheduled row whose time has come moves to "queued" on the next fill run, so
-    // look again then. Overdue rows are polled at the queued pace until they move.
+    // A row's countdown ends when it should change stage — a scheduled row joins the
+    // queue, a queued one is sent — so look again then. Overdue rows are polled at the
+    // queued pace until they move.
     const dueIn = this.__msUntilNextDue();
+    const dueDelay =
+      dueIn !== null ? Math.min(Math.max(dueIn, dueIn > 0 ? DUE_POLL_MIN_MS : POLL_QUEUED_MS), MAX_TIMEOUT_MS) : 0;
     const delay = this.pollError
       ? POLL_RETRY_MS
       : this.summary?.inFlight
         ? POLL_ACTIVE_MS
         : this.summary?.queued
-          ? POLL_QUEUED_MS
-          : dueIn !== null
-            ? Math.min(Math.max(dueIn, dueIn > 0 ? DUE_POLL_MIN_MS : POLL_QUEUED_MS), MAX_TIMEOUT_MS)
-            : 0;
+          ? Math.min(POLL_QUEUED_MS, dueDelay || POLL_QUEUED_MS)
+          : dueDelay;
     if (!delay) return;
 
     this.timer = setTimeout(() => {
@@ -640,13 +643,13 @@ export class EmailSendProgressComponent implements OnInit, OnDestroy {
   /** Rows on this page with a time to count down to. */
   private __countingRows(): IEmailSendSchedule[] {
     return this.items
-      .filter((i) => i.status === 'scheduled' && i.schedule?.state === 'estimated' && i.schedule.earliestSendAt)
+      .filter((i) => COUNTED_STATUSES.includes(i.status) && scheduleEventAt(i.schedule ?? null) !== null)
       .map((i) => i.schedule as IEmailSendSchedule);
   }
 
-  /** Ms until the soonest row on this page can be picked up; negative if overdue; null if none. */
+  /** Ms until the soonest row on this page changes stage; negative if overdue; null if none. */
   private __msUntilNextDue(): number | null {
-    const times = this.__countingRows().map((sc) => Date.parse(sc.earliestSendAt as string));
+    const times = this.__countingRows().map((sc) => scheduleEventAt(sc) as number);
     return times.length ? Math.min(...times) - this.__now() : null;
   }
 
@@ -664,7 +667,9 @@ export class EmailSendProgressComponent implements OnInit, OnDestroy {
     const now = this.__now();
     const labels: Record<string, IScheduleLabel> = {};
     for (const item of this.items) {
-      if (item.status !== 'scheduled') continue;
+      if (!COUNTED_STATUSES.includes(item.status)) continue;
+      // A queued row from an API without schedules keeps its plain timestamp.
+      if (item.status === 'queued' && !item.schedule) continue;
       labels[this.rowKey(item)] = scheduleLabel(item.schedule ?? null, now);
     }
     this.scheduleLabels = labels;

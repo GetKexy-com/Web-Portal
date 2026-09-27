@@ -60,7 +60,7 @@ const SECOND_TICK$ = timer(0, 1000).pipe(share());
 export class SendCountdownComponent implements OnInit, OnChanges, OnDestroy {
   @Input() schedule: IEmailSendSchedule | null = null;
   @Input() clockOffsetMs = 0;
-  /** Words before a running countdown, e.g. "Next send" → "Next send in 2h 05m". */
+  /** Words before a running countdown, e.g. "Next email:" → "Next email: Queues in 2h 05m". */
   @Input() prefix = '';
   /** Show the send time under the countdown. */
   @Input() showAt = false;
