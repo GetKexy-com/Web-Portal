@@ -1,0 +1,32 @@
+<!--Only once loaded, and only when there is an active campaign to talk about.-->
+<section class="up-next" *ngIf="data && data.activeCampaigns > 0" aria-label="Up next">
+  <header class="un-header">
+    <span class="un-title"><i class="fa fa-clock-o" aria-hidden="true"></i> Up next</span>
+    <span class="un-summary">
+      {{ data.activeCampaigns }} active campaign{{ data.activeCampaigns === 1 ? '' : 's' }}
+      <ng-container *ngIf="data.dueWithinHour">· {{ data.dueWithinHour }} due within the hour</ng-container>
+    </span>
+  </header>
+
+  <ul class="un-list" *ngIf="data.items.length; else nothingOwed">
+    <li *ngFor="let item of data.items; trackBy: trackByCampaign" class="un-item">
+      <button type="button" class="un-link" (click)="open(item.campaignId)" [title]="'Open ' + (item.title || 'campaign')">
+        <span class="un-dot" aria-hidden="true"></span>
+        <span class="un-name">{{ item.title || 'Untitled campaign' }}</span>
+      </button>
+      <send-countdown
+        class="un-when"
+        [schedule]="item.schedule"
+        [clockOffsetMs]="clockOffsetMs"
+        [prefix]="'Email #' + item.emailSequence + ':'"
+        [showAt]="false"
+      ></send-countdown>
+      <i class="fa fa-angle-right un-go" aria-hidden="true"></i>
+    </li>
+  </ul>
+  <ng-template #nothingOwed>
+    <p class="un-empty">No emails are waiting to go out right now.</p>
+  </ng-template>
+
+  <p class="un-note" *ngIf="data.truncated">Showing the most recent 200 active campaigns.</p>
+</section>

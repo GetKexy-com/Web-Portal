@@ -190,6 +190,19 @@ export interface ICampaignNextSends {
   serverTime: string;
 }
 
+/** The "Up next" strip above the campaign list (`GET drip-campaigns/up-next`). */
+export interface ICampaignsUpNext {
+  /** Soonest first; blocked campaigns ("After research") only fill the remaining slots. */
+  items: (ICampaignNextSend & { campaignId: number; title: string | null })[];
+  /** Every ACTIVE campaign the user has. */
+  activeCampaigns: number;
+  /** Campaigns whose next stage change (joining the queue, or sending) is within the hour. */
+  dueWithinHour: number;
+  /** Only the most recent 200 active campaigns were looked at. */
+  truncated: boolean;
+  serverTime: string;
+}
+
 export type EmailDeliveryStatus =
   | 'delayed'
   | 'delivered'

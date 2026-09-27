@@ -22,6 +22,7 @@ import {
   ListOfDripCampaignTableComponent,
 } from '../../components/list-of-drip-campaign-table/list-of-drip-campaign-table.component';
 import { TimeAgoComponent } from '../../components/time-ago/time-ago.component';
+import { CampaignsUpNextComponent } from '../../components/campaigns-up-next/campaigns-up-next.component';
 import { DripCampaign } from '../../models/DripCampaign';
 import { ICampaignNextSend } from '../../models/EmailSendProgress';
 import { schedulePollDelay } from '../../helpers/send-schedule-label';
@@ -34,6 +35,7 @@ import { schedulePollDelay } from '../../helpers/send-schedule-label';
     KexyButtonComponent,
     ListOfDripCampaignTableComponent,
     TimeAgoComponent,
+    CampaignsUpNextComponent,
   ],
   templateUrl: './brand-list-of-drip-campaigns.component.html',
   styleUrl: './brand-list-of-drip-campaigns.component.scss',

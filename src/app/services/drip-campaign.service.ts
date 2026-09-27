@@ -10,9 +10,13 @@ import { EnrollmentTriggers, IRawEnrollmentTrigger } from '../models/EnrollmentT
 import {
   EmailSendFilter,
   ICampaignNextSends,
+  ICampaignsUpNext,
   IEmailSendDetail,
   IEmailSendProgress,
 } from '../models/EmailSendProgress';
+
+/** Campaigns per `GET drip-campaigns/next-sends` — the API's own cap (`NEXT_SENDS_MAX_CAMPAIGNS`). */
+const NEXT_SENDS_BATCH = 100;
 
 /** A snapshot of the campaign list, with everything needed to judge its freshness. */
 export interface IDripCampaignListCacheEntry {
@@ -1109,8 +1113,25 @@ export class DripCampaignService {
    * When each ACTIVE campaign's next email goes out, for the campaign list. Never cached:
    * it is a live countdown, unlike the list it sits beside (see `getListOfDripCampaigns`).
    */
-  getCampaignNextSends = (campaignIds: number[]): Promise<ICampaignNextSends> =>
-    this.__getData(`drip-campaigns/next-sends?ids=${campaignIds.join(',')}`);
+  getCampaignNextSends = async (campaignIds: number[]): Promise<ICampaignNextSends> => {
+    // The API answers at most 100 campaigns per request and a page can show 500 rows, so
+    // ask in batches and merge — otherwise rows past the 100th silently showed "—".
+    const batches: number[][] = [];
+    for (let i = 0; i < campaignIds.length; i += NEXT_SENDS_BATCH) {
+      batches.push(campaignIds.slice(i, i + NEXT_SENDS_BATCH));
+    }
+    const answers: ICampaignNextSends[] = await Promise.all(
+      batches.map((ids) => this.__getData<ICampaignNextSends>(`drip-campaigns/next-sends?ids=${ids.join(',')}`)),
+    );
+    return {
+      nextSends: Object.assign({}, ...answers.map((a) => a?.nextSends ?? {})),
+      serverTime: answers[answers.length - 1]?.serverTime,
+    };
+  };
+
+  /** The next few sends across ALL active campaigns, for the list's "Up next" strip. Never cached. */
+  getCampaignsUpNext = (limit = 3): Promise<ICampaignsUpNext> =>
+    this.__getData(`drip-campaigns/up-next?limit=${limit}`);
 
   /**
    * What the AI generated versus what was sent, for one prospect. A row from the send
