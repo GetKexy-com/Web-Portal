@@ -675,7 +675,8 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
   /**
    * The sequence has run its course (every prospect reached, or nothing left to send).
    * Drives the calm styling — the pulsing "still running" dot would contradict the copy.
-   * The CAMPAIGN is still ACTIVE in both cases: this is about the emails, not its status.
+   * The API then marks the campaign `complete` (KexyApi `DripCampaignCompletionService`),
+   * which hides this notice on the next load; until then this is what is on screen.
    */
   liveNoticeIsComplete = false;
   liveNoticeFacts: { icon: string; label: string }[] = [];
@@ -753,8 +754,8 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
     //    is the common default), so "going out" would be a lie.
     // 4. Known to be non-zero: say how many have really gone out.
     // 5. The sequence has run its course: the last email is sent to EVERY enrolled
-    //    prospect. The campaign stays ACTIVE (it still accepts new prospects), so this
-    //    changes the wording, not whether the notice shows.
+    //    prospect. The API marks the campaign `complete` once nothing is left to send,
+    //    so say so — this page still holds the ACTIVE status it loaded with.
     // 6. Nothing is left to send but not everyone got the last email (failed/skipped):
     //    "sent to all" would be false, so say what did happen.
     const isFinalising = this.showScrapeProgress && !this.scrapeCardVisible;
@@ -782,7 +783,7 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
         this.liveNoticePill = 'Complete';
         this.liveNoticeStatus =
           `All ${plural(emailCount, 'email')} in the sequence have been sent to all ` +
-          `${plural(seq.totalProspects, 'prospect')}. The sequence is complete — the campaign itself is still active.`;
+          `${plural(seq.totalProspects, 'prospect')}. The campaign is now complete.`;
       } else if (finished) {
         this.liveNoticeTitle = 'Sequence finished';
         this.liveNoticePill = 'Finished';
