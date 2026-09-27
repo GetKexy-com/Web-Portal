@@ -158,6 +158,27 @@ export function scheduleEventAt(sc: IEmailSendSchedule | null): number | null {
   }
 }
 
+/**
+ * When to ask the API again for these schedules: just after the soonest one is due to
+ * change stage, every `activeMs` while any is moving (queued, being sent, or past its
+ * countdown and waiting on a run), otherwise `idleMs` — never sooner than `minMs`. `now`
+ * is server-corrected.
+ */
+export function schedulePollDelay(
+  schedules: (IEmailSendSchedule | null | undefined)[],
+  now: number,
+  { idleMs = 30_000, activeMs = 10_000, minMs = 3_000, settleMs = 1_500 } = {},
+): number {
+  let delay = idleMs;
+  for (const sc of schedules) {
+    const at = scheduleEventAt(sc ?? null);
+    if (at === null) continue;
+    const moving = sc.state !== 'estimated' || at <= now;
+    delay = Math.min(delay, moving ? activeMs : at - now + settleMs);
+  }
+  return Math.max(delay, minMs);
+}
+
 function parse(iso: string | null | undefined): number | null {
   if (!iso) return null;
   const t = Date.parse(iso);

@@ -1,4 +1,4 @@
-import { Component, inject, signal, DestroyRef, OnInit } from '@angular/core';
+import { Component, inject, signal, DestroyRef, HostListener, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
@@ -23,6 +23,8 @@ import {
 } from '../../components/list-of-drip-campaign-table/list-of-drip-campaign-table.component';
 import { TimeAgoComponent } from '../../components/time-ago/time-ago.component';
 import { DripCampaign } from '../../models/DripCampaign';
+import { ICampaignNextSend } from '../../models/EmailSendProgress';
+import { schedulePollDelay } from '../../helpers/send-schedule-label';
 
 @Component({
   selector: 'brand-list-of-drip-campaigns',
@@ -79,6 +81,19 @@ export class BrandListOfDripCampaignsComponent implements OnInit {
    * ingredient that makes the AWS-console pattern work.
    */
   lastUpdatedAt = signal<number | null>(null);
+  /**
+   * The "Next email" column: each ACTIVE row's next send, by campaign id. NOT part of the
+   * snapshot above — a countdown in a cached list would be wrong for as long as the
+   * snapshot is reused — so it is fetched live after every set of rows, and kept live
+   * (see `__loadNextSends`).
+   */
+  nextSends = signal<Record<number, ICampaignNextSend | null>>({});
+  /** Server clock minus browser clock, from the next-sends response. */
+  nextSendsClockOffsetMs = signal(0);
+  private nextSendsTimer: ReturnType<typeof setTimeout> | null = null;
+  /** Drops a response for rows no longer on screen (page, filter or refresh moved on). */
+  private nextSendsSeq = 0;
+  private destroyed = false;
 
 
   // Constants
@@ -105,6 +120,10 @@ export class BrandListOfDripCampaignsComponent implements OnInit {
    */
   async ngOnInit() {
     document.title = 'List of Drip Campaign - KEXY Brand Portal';
+    this.destroyRef.onDestroy(() => {
+      this.destroyed = true;
+      this.__clearNextSendsTimer();
+    });
     this.userData.set(this.authService.userTokenValue);
 
     // A `?status=` query param (e.g. the dashboard's "Active now" card) preselects the
@@ -208,7 +227,54 @@ export class BrandListOfDripCampaignsComponent implements OnInit {
     this.dripCampaignList.set(data['dripCampaigns']);
     this.totalPageCounts.set(data['totalPageCounts']);
     this.totalRecordsCount.set(data['totalRecordsCount']);
+    this.__loadNextSends().then();
   };
+
+  /**
+   * Fetches the next send of every ACTIVE row on screen, then looks again when one of
+   * them should change stage — the same pacing as the Delay cards (`schedulePollDelay`):
+   * just after the soonest countdown ends, every 10s while any is queued or sending,
+   * otherwise every 30s. A background tab skips the fetch; returning to it refetches.
+   */
+  private __loadNextSends = async () => {
+    this.__clearNextSendsTimer();
+    const seq = ++this.nextSendsSeq;
+    const ids = this.dripCampaignList()
+      .filter((c) => c.status === constants.ACTIVE)
+      .map((c) => c.id);
+    if (!ids.length) {
+      this.nextSends.set({});
+      return;
+    }
+    if (!document.hidden) {
+      try {
+        const res = await this.dripCampaignService.getCampaignNextSends(ids);
+        if (seq !== this.nextSendsSeq || this.destroyed) return;
+        this.nextSends.set(res?.nextSends ?? {});
+        const serverNow = Date.parse(res?.serverTime);
+        if (!Number.isNaN(serverNow)) this.nextSendsClockOffsetMs.set(serverNow - Date.now());
+      } catch (e) {
+        // A column is not worth an error dialog; the last values stay and the next look retries.
+        console.error('Could not load the campaigns\' next sends', e);
+      }
+    }
+    if (seq !== this.nextSendsSeq || this.destroyed) return;
+    const delay = schedulePollDelay(
+      Object.values(this.nextSends()).map((n) => n?.schedule),
+      Date.now() + this.nextSendsClockOffsetMs(),
+    );
+    this.nextSendsTimer = setTimeout(() => this.__loadNextSends(), delay);
+  };
+
+  private __clearNextSendsTimer() {
+    if (this.nextSendsTimer) clearTimeout(this.nextSendsTimer);
+    this.nextSendsTimer = null;
+  }
+
+  @HostListener('document:visibilitychange')
+  onVisibilityChange() {
+    if (!document.hidden && this.dripCampaignList().length) this.__loadNextSends().then();
+  }
 
   /**
    * Subscribe only — the fetch is a separate call in `ngOnInit`, because it is
