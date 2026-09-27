@@ -90,6 +90,8 @@ export class BrandListOfDripCampaignsComponent implements OnInit {
    * (see `__loadNextSends`).
    */
   nextSends = signal<Record<number, ICampaignNextSend | null>>({});
+  /** The "Next email" column is hidden for now; while off, next-sends is never fetched. */
+  readonly showNextEmail = false;
   /** Server clock minus browser clock, from the next-sends response. */
   nextSendsClockOffsetMs = signal(0);
   private nextSendsTimer: ReturnType<typeof setTimeout> | null = null;
@@ -240,6 +242,7 @@ export class BrandListOfDripCampaignsComponent implements OnInit {
    */
   private __loadNextSends = async () => {
     this.__clearNextSendsTimer();
+    if (!this.showNextEmail) return;
     const seq = ++this.nextSendsSeq;
     const ids = this.dripCampaignList()
       .filter((c) => c.status === constants.ACTIVE)

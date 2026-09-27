@@ -68,6 +68,8 @@ export class ListOfDripCampaignTableComponent implements OnInit, AfterViewInit, 
    * the page after the rows). Absent until loaded; null when nobody is owed an email.
    */
   @Input() nextSends: Record<number, ICampaignNextSend | null> = {};
+  /** The "Next Email" column is only rendered when the page turns it on. */
+  @Input() showNextEmail = false;
   /** Server clock minus browser clock, for those countdowns. */
   @Input() clockOffsetMs = 0;
   @Output() selectedLimit: EventEmitter<any> = new EventEmitter();
@@ -155,12 +157,13 @@ export class ListOfDripCampaignTableComponent implements OnInit, AfterViewInit, 
       // trimmed to keep the total at 100%. Long values now ellipsise inside the
       // cell (see the SCSS) rather than being hard-cut.
       { name: '', key: 'action', width: '58px' },
-      { name: 'Drip Campaign Title', key: 'drip_campaign_title', width: '26%' },
+      { name: 'Drip Campaign Title', key: 'drip_campaign_title', width: this.showNextEmail ? '26%' : '42%' },
       { name: 'Number Of Emails', key: 'number_of_emails', width: '10%' },
       { name: 'Email Tone', key: 'email_tone', width: '10%' },
       { name: 'Status', key: 'status', width: '10%' },
       // When an ACTIVE campaign's next email goes out — the soonest of its Delay cards.
-      { name: 'Next Email', key: 'next_email', width: '16%' },
+      // Hidden for now (`showNextEmail`); Title takes its 16% back while it is.
+      ...(this.showNextEmail ? [{ name: 'Next Email', key: 'next_email', width: '16%' }] : []),
       // `auto` on purpose: list names are user-chosen and unpredictable, and a
       // percentage here forced them to ellipsise. Under `table-layout: auto` (see the
       // scss) this column sizes to its content and the table scrolls if the row
