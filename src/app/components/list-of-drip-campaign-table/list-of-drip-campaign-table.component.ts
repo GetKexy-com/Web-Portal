@@ -22,6 +22,8 @@ import {
   ContactLabelsModalContentComponent,
 } from '../contact-labels-modal-content/contact-labels-modal-content.component';
 import { DripCampaign } from '../../models/DripCampaign';
+import { ICampaignNextSend } from '../../models/EmailSendProgress';
+import { SendCountdownComponent } from '../send-countdown/send-countdown.component';
 
 @Component({
   selector: 'list-of-drip-campaign-table',
@@ -31,6 +33,7 @@ import { DripCampaign } from '../../models/DripCampaign';
     NgClass,
     DecimalPipe,
     CommonModule,
+    SendCountdownComponent,
   ],
   templateUrl: './list-of-drip-campaign-table.component.html',
   // OnPush: these tables render hundreds of cells, and under the default
@@ -60,6 +63,13 @@ export class ListOfDripCampaignTableComponent implements OnInit, AfterViewInit, 
   @Input() selectedAllDripCampaigns;
   @Input() toggleSelectAllSelection;
   @Input() initialStatusKey: string;
+  /**
+   * Each ACTIVE campaign's next send, by id (`GET drip-campaigns/next-sends`, loaded by
+   * the page after the rows). Absent until loaded; null when nobody is owed an email.
+   */
+  @Input() nextSends: Record<number, ICampaignNextSend | null> = {};
+  /** Server clock minus browser clock, for those countdowns. */
+  @Input() clockOffsetMs = 0;
   @Output() selectedLimit: EventEmitter<any> = new EventEmitter();
   @Output() selectedStatus: EventEmitter<any> = new EventEmitter();
 
@@ -145,16 +155,18 @@ export class ListOfDripCampaignTableComponent implements OnInit, AfterViewInit, 
       // trimmed to keep the total at 100%. Long values now ellipsise inside the
       // cell (see the SCSS) rather than being hard-cut.
       { name: '', key: 'action', width: '58px' },
-      { name: 'Drip Campaign Title', key: 'drip_campaign_title', width: '30%' },
-      { name: 'Number Of Emails', key: 'number_of_emails', width: '12%' },
-      { name: 'Email Tone', key: 'email_tone', width: '12%' },
-      { name: 'Status', key: 'status', width: '12%' },
+      { name: 'Drip Campaign Title', key: 'drip_campaign_title', width: '26%' },
+      { name: 'Number Of Emails', key: 'number_of_emails', width: '10%' },
+      { name: 'Email Tone', key: 'email_tone', width: '10%' },
+      { name: 'Status', key: 'status', width: '10%' },
+      // When an ACTIVE campaign's next email goes out — the soonest of its Delay cards.
+      { name: 'Next Email', key: 'next_email', width: '16%' },
       // `auto` on purpose: list names are user-chosen and unpredictable, and a
       // percentage here forced them to ellipsise. Under `table-layout: auto` (see the
       // scss) this column sizes to its content and the table scrolls if the row
       // needs more than the viewport, instead of hiding the name behind a "…".
       { name: 'Lists', key: 'label', width: 'auto' },
-      { name: 'Date Created', key: 'date_created', width: '18%' },
+      { name: 'Date Created', key: 'date_created', width: '16%' },
     ];
     this.columnList = columnList;
   };

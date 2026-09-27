@@ -174,6 +174,22 @@ export interface IEmailSendSchedule {
   earlierEmailSequence: number | null;
 }
 
+/**
+ * One campaign's next send on the campaign list (`GET drip-campaigns/next-sends`): the
+ * soonest schedule among its prospects — what its Delay cards would show — and which
+ * email of the sequence it is.
+ */
+export interface ICampaignNextSend {
+  schedule: IEmailSendSchedule;
+  emailSequence: number;
+}
+
+export interface ICampaignNextSends {
+  /** Keyed by campaign id; null when nobody in it is owed an email. Only ACTIVE campaigns. */
+  nextSends: Record<number, ICampaignNextSend | null>;
+  serverTime: string;
+}
+
 export type EmailDeliveryStatus =
   | 'delayed'
   | 'delivered'

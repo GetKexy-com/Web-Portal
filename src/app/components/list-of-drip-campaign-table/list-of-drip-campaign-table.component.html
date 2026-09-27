@@ -173,6 +173,18 @@
                   </span>
                 </span>
 
+                <!--Live countdown from the API's schedule; "—" when not active or nobody is owed an email.-->
+                <ng-container *ngIf="column.key === 'next_email'">
+                  <send-countdown
+                    *ngIf="row.status === constants.ACTIVE && nextSends[row.id] as ns; else noNextSend"
+                    [schedule]="ns.schedule"
+                    [clockOffsetMs]="clockOffsetMs"
+                    [prefix]="'Email #' + ns.emailSequence + ':'"
+                    [showAt]="true"
+                  ></send-countdown>
+                  <ng-template #noNextSend><span class="next-send-none">—</span></ng-template>
+                </ng-container>
+
                 <span *ngIf="column.key === 'label'">
                   <span
                     *ngIf="getList(row.lists)"

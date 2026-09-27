@@ -7,7 +7,7 @@ import Swal from 'sweetalert2';
 import { DripCampaignService } from '../../services/drip-campaign.service';
 import { DashboardService } from '../../services/dashboard.service';
 import { IEmailSendSchedule, IEmailSendSummary } from '../../models/EmailSendProgress';
-import { scheduleEventAt } from '../../helpers/send-schedule-label';
+import { scheduleEventAt, schedulePollDelay } from '../../helpers/send-schedule-label';
 import { routeConstants } from '../../helpers/routeConstants';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DripEmail, EmailDelay } from '../../models/DripEmail';
@@ -244,13 +244,6 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
    */
   private prospectsTimer: ReturnType<typeof setTimeout> | null = null;
   private prospectsPolling = false;
-  /** The endpoint is one join on the campaign's prospects, so this is cheap. */
-  private static readonly PROSPECTS_POLL_MS = 30_000;
-  private static readonly PROSPECTS_POLL_ACTIVE_MS = 10_000;
-  /** However close the next stage change, never sooner than this. */
-  private static readonly PROSPECTS_POLL_MIN_MS = 3_000;
-  /** Look this long after a stage is due to change, so the API has seen it happen. */
-  private static readonly PROSPECTS_POLL_SETTLE_MS = 1_500;
 
   private __syncProspectsPolling() {
     if (this.dripCampaignStatus !== constants.ACTIVE) {
@@ -276,20 +269,12 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
     }, this.__prospectsPollDelay());
   }
 
+  /** The endpoint is one join on the campaign's prospects, so polling it is cheap. */
   private __prospectsPollDelay(): number {
-    const C = GenerateDripCampaignComponent;
-    const now = Date.now() + this.prospectsClockOffsetMs;
-    let delay = C.PROSPECTS_POLL_MS;
-    for (const p of this.dripCampaignProspects) {
-      if (p?.status !== constants.ACTIVE) continue;
-      const sc: IEmailSendSchedule | null = p?.nextSend ?? null;
-      const at = scheduleEventAt(sc);
-      if (at === null) continue;
-      // Queued, being sent, or past its countdown and waiting on a run: moving now.
-      const moving = sc.state !== 'estimated' || at <= now;
-      delay = Math.min(delay, moving ? C.PROSPECTS_POLL_ACTIVE_MS : at - now + C.PROSPECTS_POLL_SETTLE_MS);
-    }
-    return Math.max(delay, C.PROSPECTS_POLL_MIN_MS);
+    const schedules = this.dripCampaignProspects
+      .filter((p) => p?.status === constants.ACTIVE)
+      .map((p) => p?.nextSend as IEmailSendSchedule | null);
+    return schedulePollDelay(schedules, Date.now() + this.prospectsClockOffsetMs);
   }
 
   private __stopProspectsPolling() {

@@ -9,6 +9,7 @@ import { DripCampaign, IRawDripCampaign } from '../models/DripCampaign';
 import { EnrollmentTriggers, IRawEnrollmentTrigger } from '../models/EnrollmentTriggers';
 import {
   EmailSendFilter,
+  ICampaignNextSends,
   IEmailSendDetail,
   IEmailSendProgress,
 } from '../models/EmailSendProgress';
@@ -1103,6 +1104,13 @@ export class DripCampaignService {
 
     return this.__getData(`drip-campaigns/${campaignId}/emails/${emailId}/send-progress?${params}`);
   };
+
+  /**
+   * When each ACTIVE campaign's next email goes out, for the campaign list. Never cached:
+   * it is a live countdown, unlike the list it sits beside (see `getListOfDripCampaigns`).
+   */
+  getCampaignNextSends = (campaignIds: number[]): Promise<ICampaignNextSends> =>
+    this.__getData(`drip-campaigns/next-sends?ids=${campaignIds.join(',')}`);
 
   /**
    * What the AI generated versus what was sent, for one prospect. A row from the send

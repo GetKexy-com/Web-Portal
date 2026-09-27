@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnChanges, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, OnChanges, OnDestroy, OnInit } from '@angular/core';
 import { Subscription, share, timer } from 'rxjs';
 
 import { IEmailSendSchedule } from '../../models/EmailSendProgress';
@@ -68,8 +68,16 @@ export class SendCountdownComponent implements OnInit, OnChanges, OnDestroy {
   label: IScheduleLabel = scheduleLabel(null, 0);
   private sub: Subscription | null = null;
 
+  constructor(private cdr: ChangeDetectorRef) {}
+
   ngOnInit(): void {
-    this.sub = SECOND_TICK$.subscribe(() => this.__update());
+    // Checks only this component's own view: inside an OnPush parent (the campaign list
+    // table) a tick would otherwise never reach the screen, and marking the parent for
+    // check instead would re-check a whole table every second.
+    this.sub = SECOND_TICK$.subscribe(() => {
+      this.__update();
+      this.cdr.detectChanges();
+    });
   }
 
   ngOnChanges(): void {

@@ -1,5 +1,5 @@
 import { IEmailSendSchedule } from '../models/EmailSendProgress';
-import { scheduleEventAt, scheduleLabel as label } from './send-schedule-label';
+import { scheduleEventAt, scheduleLabel as label, schedulePollDelay } from './send-schedule-label';
 
 /** The next-send wording shared by Insights, the Delay cards and the contacts list. */
 describe('scheduleLabel', () => {
@@ -81,5 +81,30 @@ describe('scheduleEventAt', () => {
     expect(scheduleEventAt(est)).toBe(Date.parse('2026-09-28T16:01:30Z'));
     expect(scheduleEventAt({ ...est, queueAt: null })).toBe(Date.parse('2026-09-28T16:00:00Z'));
     expect(scheduleEventAt({ ...est, state: 'held' })).toBeNull();
+  });
+});
+
+describe('schedulePollDelay', () => {
+  const now = Date.parse('2026-09-28T16:00:00Z');
+  const waiting = (ms: number): IEmailSendSchedule => ({
+    state: 'estimated',
+    dueAt: null,
+    earliestSendAt: null,
+    latestSendAt: null,
+    queueAt: new Date(now + ms).toISOString(),
+    sendAt: null,
+    earlierEmailSequence: null,
+  });
+
+  it('looks just after the soonest stage change, else every 30s', () => {
+    expect(schedulePollDelay([waiting(12_000), waiting(60_000)], now)).toBe(13_500);
+    expect(schedulePollDelay([waiting(3_600_000)], now)).toBe(30_000);
+    expect(schedulePollDelay([null, { ...waiting(0), state: 'held', queueAt: null }], now)).toBe(30_000);
+  });
+
+  it('looks every 10s while anything is queued, sending or overdue, never under 3s', () => {
+    expect(schedulePollDelay([{ ...waiting(0), state: 'queued', queueAt: null, sendAt: null }], now)).toBe(10_000);
+    expect(schedulePollDelay([waiting(-5_000)], now)).toBe(10_000);
+    expect(schedulePollDelay([waiting(500)], now)).toBe(3_000);
   });
 });
