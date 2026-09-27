@@ -770,6 +770,28 @@ $settings-band: 2;
     }
   }
 
+  .live-next-send {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin: 8px 0 0;
+    padding: 4px 10px;
+    border: 1px solid #a7f3d0;
+    border-radius: 8px;
+    background: #ffffff;
+    font-size: 12.5px;
+    cursor: pointer;
+
+    .fa {
+      color: #94a3b8;
+    }
+
+    &:hover,
+    &:focus-visible {
+      border-color: #059669;
+    }
+  }
+
   // Facts wrap rather than scroll: the send-window label can get long on a
   // narrow column, and a clipped schedule is worse than a second line.
   .facts {
