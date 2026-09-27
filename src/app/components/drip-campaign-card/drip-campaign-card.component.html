@@ -41,14 +41,19 @@
         iconLeft="fa-users"
         (click)="showDripCampaignContacts(emailContacts)"
       ></app-kexy-button>
-      <!--When the first of those contacts gets this email; hover for the exact time.-->
-      <send-countdown
+      <!--When the first of those contacts gets this email; hover for the exact time. Click
+          to open this email's Insights on the Prospects tab that prospect is in.-->
+      <button
         *ngIf="isDelayCard && emailContacts.length && nextSend"
+        type="button"
         class="next-send"
-        prefix="Next email:"
-        [schedule]="nextSend"
-        [clockOffsetMs]="clockOffsetMs"
-      ></send-countdown>
+        [disabled]="!insightsBtnClick"
+        (click)="handleNextSendClick()"
+        [attr.aria-label]="'Show these prospects in Insights'"
+      >
+        <send-countdown prefix="Next email:" [schedule]="nextSend" [clockOffsetMs]="clockOffsetMs"></send-countdown>
+        <i class="fa fa-angle-right" aria-hidden="true"></i>
+      </button>
 
     </div>
     <div class="left-side-button">

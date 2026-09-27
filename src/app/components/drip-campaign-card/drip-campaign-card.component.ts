@@ -9,6 +9,7 @@ import { CommonModule, NgClass } from '@angular/common';
 import { KexyButtonComponent } from '../kexy-button/kexy-button.component';
 import { SendCountdownComponent } from '../send-countdown/send-countdown.component';
 import { IEmailSendSchedule } from '../../models/EmailSendProgress';
+import { scheduleProspectsFilter } from '../../helpers/send-schedule-label';
 
 @Component({
   selector: 'drip-campaign-card',
@@ -71,6 +72,11 @@ export class DripCampaignCardComponent implements OnInit {
 
   handleInsightsBtnClick = () => {
     this.insightsBtnClick(this.email);
+  };
+
+  /** The Delay card's countdown: Insights for this email, on the tab its prospect is in. */
+  handleNextSendClick = () => {
+    this.insightsBtnClick?.(this.email, scheduleProspectsFilter(this.nextSend));
   };
 
   deleteLoading = false;

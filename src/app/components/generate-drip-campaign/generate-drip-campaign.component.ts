@@ -6,7 +6,7 @@ import { Subscription } from 'rxjs';
 import Swal from 'sweetalert2';
 import { DripCampaignService } from '../../services/drip-campaign.service';
 import { DashboardService } from '../../services/dashboard.service';
-import { IEmailSendSchedule, IEmailSendSummary } from '../../models/EmailSendProgress';
+import { EmailSendFilter, IEmailSendSchedule, IEmailSendSummary } from '../../models/EmailSendProgress';
 import { scheduleEventAt, schedulePollDelay } from '../../helpers/send-schedule-label';
 import { routeConstants } from '../../helpers/routeConstants';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -560,7 +560,7 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
    * `email_notification_sent` column, and the live table has no such column. The
    * analytics endpoint aggregates in scoped raw SQL and is immune to that drift.
    */
-  insightsBtnClick = (email) => {
+  insightsBtnClick = (email, prospectsFilter: EmailSendFilter | null = null) => {
     const ref = this.ngbOffcanvas.open(CampaignInsightsContentComponent, {
       panelClass: 'campaign-insights',
       position: 'end',
@@ -573,6 +573,8 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
     // request lands; the response confirms both.
     ref.componentInstance.emailSequence = email.emailSequence;
     ref.componentInstance.emailSubject = email.emailSubject || '';
+    // Opened from a Delay card's countdown: land on the Prospects tab that prospect is in.
+    ref.componentInstance.prospectsFilter = prospectsFilter;
   };
 
   showEmailDelayBtnClick = (email) => {

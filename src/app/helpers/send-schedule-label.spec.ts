@@ -1,5 +1,10 @@
 import { IEmailSendSchedule } from '../models/EmailSendProgress';
-import { scheduleEventAt, scheduleLabel as label, schedulePollDelay } from './send-schedule-label';
+import {
+  scheduleEventAt,
+  scheduleLabel as label,
+  schedulePollDelay,
+  scheduleProspectsFilter,
+} from './send-schedule-label';
 
 /** The next-send wording shared by Insights, the Delay cards and the contacts list. */
 describe('scheduleLabel', () => {
@@ -106,5 +111,33 @@ describe('schedulePollDelay', () => {
     expect(schedulePollDelay([{ ...waiting(0), state: 'queued', queueAt: null, sendAt: null }], now)).toBe(10_000);
     expect(schedulePollDelay([waiting(-5_000)], now)).toBe(10_000);
     expect(schedulePollDelay([waiting(500)], now)).toBe(3_000);
+  });
+});
+
+describe('scheduleProspectsFilter', () => {
+  const sc = (state: IEmailSendSchedule['state'], earliestSendAt: string | null = null): IEmailSendSchedule => ({
+    state,
+    dueAt: null,
+    earliestSendAt,
+    latestSendAt: null,
+    queueAt: null,
+    sendAt: null,
+    earlierEmailSequence: null,
+  });
+
+  it('opens the Prospects tab the countdown is about', () => {
+    expect(scheduleProspectsFilter(sc('estimated'))).toBe('scheduled');
+    expect(scheduleProspectsFilter(sc('research'))).toBe('scheduled');
+    expect(scheduleProspectsFilter(sc('held'))).toBe('scheduled');
+    expect(scheduleProspectsFilter(sc('queued'))).toBe('queued');
+    expect(scheduleProspectsFilter(sc('sending'))).toBe('in_progress');
+    expect(scheduleProspectsFilter(sc('stuck'))).toBe('failed');
+  });
+
+  it('tells a paused due prospect from a paused queued one, and falls back to All', () => {
+    expect(scheduleProspectsFilter(sc('sending_paused', '2026-09-28T16:00:00Z'))).toBe('scheduled');
+    expect(scheduleProspectsFilter(sc('sending_paused'))).toBe('queued');
+    expect(scheduleProspectsFilter(sc('prospect_not_active'))).toBe('all');
+    expect(scheduleProspectsFilter(null)).toBe('all');
   });
 });
