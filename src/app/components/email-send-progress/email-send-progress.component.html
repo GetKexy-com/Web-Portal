@@ -191,6 +191,21 @@
                     </span>
                     <ng-template #noSchedule><span class="sp-dash">—</span></ng-template>
                   </ng-container>
+                  <!--Queued: countdown to when the send run should reach them.-->
+                  <ng-container *ngSwitchCase="'queued'">
+                    <span
+                      *ngIf="scheduleLabels[rowKey(item)] as sl; else queuedAt"
+                      class="sp-when"
+                      [ngClass]="'when-' + sl.tone"
+                      [title]="sl.title"
+                    >
+                      <span class="sp-when-text">{{ sl.text }}</span>
+                      <span class="sp-when-at" *ngIf="sl.at">{{ sl.at | date: 'EEE MMM d, h:mm a' }}</span>
+                    </span>
+                    <ng-template #queuedAt>
+                      <span [title]="item.updatedAt | date: 'medium'">{{ item.updatedAt | date: 'MMM d, h:mm a' }}</span>
+                    </ng-template>
+                  </ng-container>
                   <span *ngSwitchDefault [title]="item.updatedAt | date: 'medium'">{{ item.updatedAt | date: 'MMM d, h:mm a' }}</span>
                 </ng-container>
               </td>

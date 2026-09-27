@@ -118,40 +118,59 @@ export interface IEmailSendItem {
    */
   delivery: IEmailDelivery | null;
   /**
-   * When a `scheduled` prospect gets this email, or why it cannot be said yet. Null for
-   * every other status, and absent from an API that predates it.
+   * When a `scheduled` prospect joins the send queue, or a `queued` one's email goes out,
+   * or why it cannot be said yet. Null for every other status, and absent from an API
+   * that predates it.
    */
   schedule?: IEmailSendSchedule | null;
 }
 
 /**
  * Worked out by the API with the same code the queue fill uses (KexyApi
- * `send-schedule.ts`), so the countdown agrees with what actually gets sent.
+ * `send-schedule.ts`), so the countdown agrees with what actually gets sent. Two
+ * countdowns, one after the other: until the prospect joins the send queue, then until
+ * the email goes out.
  *
- * - `estimated`: only time stands between them and the email; the times are set.
+ * - `estimated`: waiting on the delay and/or the send window; counts down to `queueAt`
+ *   (or, when the queue run's schedule is unknown, to `earliestSendAt`).
+ * - `queued`: in the send queue; counts down to `sendAt` (null: the send run's schedule
+ *   is unknown).
+ * - `sending`: being written or sent right now.
  * - `earlier_email`: still waiting for Email #`earlierEmailSequence`.
  * - `research`: the campaign's research (scrapes) has not finished.
  * - `campaign_not_active` / `prospect_not_active`: nothing sends until that changes.
  * - `no_window`: the send window does not open in the next two weeks.
+ * - `held`: due, but the last queue run passed over them (suppression list, duplicate).
+ * - `stuck`: writing the email failed too many times; set aside for review.
+ * - `sending_paused`: sending is paused platform-wide.
  * - `unknown`: nothing honest to say.
  */
 export type EmailSendScheduleState =
   | 'estimated'
+  | 'queued'
+  | 'sending'
   | 'earlier_email'
   | 'research'
   | 'campaign_not_active'
   | 'prospect_not_active'
   | 'no_window'
+  | 'held'
+  | 'stuck'
+  | 'sending_paused'
   | 'unknown';
 
 export interface IEmailSendSchedule {
   state: EmailSendScheduleState;
   /** When the delay before this email runs out. */
   dueAt: string | null;
-  /** First moment it can be picked up: delay over AND the send window open. */
+  /** First moment it can be queued: delay over AND the send window open. */
   earliestSendAt: string | null;
-  /** Plus one queue run and one send run — later only when a send run is busy. */
+  /** Superseded by `queueAt` / `sendAt`; kept by the API for older portals. */
   latestSendAt: string | null;
+  /** `estimated`: when the next queue run should pick them up. Absent from an older API. */
+  queueAt?: string | null;
+  /** `queued`: when the send run should reach them. Absent from an older API. */
+  sendAt?: string | null;
   earlierEmailSequence: number | null;
 }
 

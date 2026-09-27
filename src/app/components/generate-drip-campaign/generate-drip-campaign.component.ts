@@ -7,6 +7,7 @@ import Swal from 'sweetalert2';
 import { DripCampaignService } from '../../services/drip-campaign.service';
 import { DashboardService } from '../../services/dashboard.service';
 import { IEmailSendSchedule, IEmailSendSummary } from '../../models/EmailSendProgress';
+import { scheduleEventAt } from '../../helpers/send-schedule-label';
 import { routeConstants } from '../../helpers/routeConstants';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DripEmail, EmailDelay } from '../../models/DripEmail';
@@ -206,6 +207,8 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
       const serverNow = Date.parse(data['serverTime']);
       if (!Number.isNaN(serverNow)) this.prospectsClockOffsetMs = serverNow - Date.now();
       this.__syncNextSendBySequence();
+      // The next look depends on what these say (see `__prospectsPollDelay`).
+      if (this.prospectsPolling) this.__scheduleProspectsPoll();
     });
     this.getDripCampaignProspects().then(res => {
     });
@@ -229,46 +232,85 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
   };
 
   /**
-   * Keeps the "contact(s) in actions" counts on the Delay cards live while the
-   * campaign is ACTIVE. A prospect's `emailSequence` advances when the send queue
+   * Keeps the "contact(s) in actions" counts and the Delay card countdowns live while
+   * the campaign is ACTIVE. A prospect's `emailSequence` advances when the send queue
    * delivers their email, but the API pushes nothing to the browser (sends run off
    * an external cron), so without this the contacts stayed under the old Delay
    * card until a reload.
+   *
+   * Paced by the countdowns themselves: the next look is just after the soonest one is
+   * due to change stage (joins the queue, gets sent), and every few seconds while anyone
+   * is queued or being sent — that is when things move. Otherwise every 30s.
    */
-  private prospectsTimer: ReturnType<typeof setInterval> | null = null;
+  private prospectsTimer: ReturnType<typeof setTimeout> | null = null;
+  private prospectsPolling = false;
   /** The endpoint is one join on the campaign's prospects, so this is cheap. */
   private static readonly PROSPECTS_POLL_MS = 30_000;
+  private static readonly PROSPECTS_POLL_ACTIVE_MS = 10_000;
+  /** However close the next stage change, never sooner than this. */
+  private static readonly PROSPECTS_POLL_MIN_MS = 3_000;
+  /** Look this long after a stage is due to change, so the API has seen it happen. */
+  private static readonly PROSPECTS_POLL_SETTLE_MS = 1_500;
 
   private __syncProspectsPolling() {
     if (this.dripCampaignStatus !== constants.ACTIVE) {
       this.__stopProspectsPolling();
       return;
     }
-    if (this.prospectsTimer) return;
-    this.prospectsTimer = setInterval(() => {
+    if (this.prospectsPolling) return;
+    this.prospectsPolling = true;
+    this.__scheduleProspectsPoll();
+  }
+
+  /** (Re)arms the one pending look. Called after every load, which may change the pace. */
+  private __scheduleProspectsPoll() {
+    if (this.prospectsTimer) clearTimeout(this.prospectsTimer);
+    this.prospectsTimer = null;
+    if (!this.prospectsPolling) return;
+    this.prospectsTimer = setTimeout(async () => {
+      this.prospectsTimer = null;
       // Don't poll a background tab; `onVisibilityChange` catches up on return.
-      if (document.hidden) return;
-      this.getDripCampaignProspects(true).then();
-    }, GenerateDripCampaignComponent.PROSPECTS_POLL_MS);
+      if (!document.hidden) await this.getDripCampaignProspects(true);
+      // A successful load re-arms from the subscription; a failed or skipped one does not.
+      if (!this.prospectsTimer) this.__scheduleProspectsPoll();
+    }, this.__prospectsPollDelay());
+  }
+
+  private __prospectsPollDelay(): number {
+    const C = GenerateDripCampaignComponent;
+    const now = Date.now() + this.prospectsClockOffsetMs;
+    let delay = C.PROSPECTS_POLL_MS;
+    for (const p of this.dripCampaignProspects) {
+      if (p?.status !== constants.ACTIVE) continue;
+      const sc: IEmailSendSchedule | null = p?.nextSend ?? null;
+      const at = scheduleEventAt(sc);
+      if (at === null) continue;
+      // Queued, being sent, or past its countdown and waiting on a run: moving now.
+      const moving = sc.state !== 'estimated' || at <= now;
+      delay = Math.min(delay, moving ? C.PROSPECTS_POLL_ACTIVE_MS : at - now + C.PROSPECTS_POLL_SETTLE_MS);
+    }
+    return Math.max(delay, C.PROSPECTS_POLL_MIN_MS);
   }
 
   private __stopProspectsPolling() {
+    this.prospectsPolling = false;
     if (this.prospectsTimer) {
-      clearInterval(this.prospectsTimer);
+      clearTimeout(this.prospectsTimer);
       this.prospectsTimer = null;
     }
   }
 
   @HostListener('document:visibilitychange')
   onVisibilityChange() {
-    if (!document.hidden && this.prospectsTimer) {
+    if (!document.hidden && this.prospectsPolling) {
       this.getDripCampaignProspects(true).then();
     }
   }
 
   /**
    * The countdown on each Delay card: the soonest `nextSend` among the prospects waiting
-   * on that email. Worked out by the API with the queue fill's own rules (KexyApi
+   * on that email — one being sent, then the first queued, then the first to join the
+   * queue. Worked out by the API with the queue fill's own rules (KexyApi
    * `send-schedule.ts`). A field, rebuilt only when the prospects change — the template
    * reads it on every change-detection pass.
    *
@@ -286,9 +328,9 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
       if (p?.status !== constants.ACTIVE || !sc) continue;
       const seq = parseInt(p.emailSequence);
       const best = bySequence[seq];
-      const soonest =
-        sc.state === 'estimated' &&
-        (best?.state !== 'estimated' || Date.parse(sc.earliestSendAt) < Date.parse(best.earliestSendAt));
+      const at = scheduleEventAt(sc);
+      const bestAt = scheduleEventAt(best ?? null);
+      const soonest = at !== null && (bestAt === null || at < bestAt);
       if (!best || soonest) bySequence[seq] = sc;
     }
     this.nextSendBySequence = bySequence;
@@ -555,6 +597,8 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
 
   showDripCampaignContacts = (prospects) => {
     this.dripCampaignService.emailProspects = prospects;
+    // So the panel can follow the live list: the prospects still waiting on this email.
+    this.dripCampaignService.emailProspectsSequence = parseInt(prospects?.[0]?.emailSequence) || null;
     this.dripCampaignService.emailProspectsClockOffsetMs = this.prospectsClockOffsetMs;
     this.__createRightSideSlide(ActiveContactsInCampaignComponent, 'contact-slide-content');
   };

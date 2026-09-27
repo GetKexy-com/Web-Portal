@@ -71,6 +71,8 @@ export class DripCampaignService {
   public emailProspects = [];
   /** Server clock minus browser clock, for the countdowns in the contacts-in-action list. */
   public emailProspectsClockOffsetMs = 0;
+  /** The email those prospects are waiting on, so the list can follow `dripCampaignProspects`. */
+  public emailProspectsSequence: number | null = null;
   public suppressionListApiPostData;
 
   constructor(
