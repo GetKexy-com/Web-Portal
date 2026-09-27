@@ -211,6 +211,10 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
       this.__syncNextSendBySequence();
       // The next look depends on what these say (see `__prospectsPollDelay`).
       if (this.prospectsPolling) this.__scheduleProspectsPoll();
+      // "Finishing up": every prospect is researched but the campaign row still reads the
+      // scrapes as running. It flips on the backend's own schedule, and nothing else on
+      // this page re-reads the campaign — so check it alongside the prospects until it has.
+      if (this.showScrapeProgress && !this.scrapeCardVisible) this.__refreshDripCampaign().then();
     });
     this.getDripCampaignProspects().then(res => {
     });
@@ -655,6 +659,14 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
   onScrapeCardVisibilityChange(visible: boolean) {
     this.scrapeCardVisible = visible;
     this.__syncCampaignLiveNotice();
+    // Research just finished. The card refreshed ITS copy of the campaign, not this page's
+    // — which still reads the scrapes as RUNNING and would hold the notice at "Finishing
+    // up" until a reload. Take the fresh campaign, and the prospects' schedules with it,
+    // so the notice and its countdown move on now.
+    if (!visible && this.showScrapeProgress) {
+      this.__refreshDripCampaign().then();
+      this.getDripCampaignProspects(true).then();
+    }
   }
 
   /**
