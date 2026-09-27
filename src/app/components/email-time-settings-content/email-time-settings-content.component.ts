@@ -89,9 +89,6 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
   allowReenrollId;
   analyticsReceiverId;
   allowContactsReenroll = false;
-  /** "Track email opens" (`track_opens`). ON unless saved off — the API's default too. */
-  trackOpens = true;
-  trackOpensId;
   dripCampaignTitlesSubscription: Subscription;
   contactLabelsSubscription: Subscription;
   labelsSubscription: Subscription;
@@ -167,16 +164,6 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
           prospectUnenrollIfReplyData.settingsValue = JSON.parse(prospectUnenrollIfReplyData.settingsValue);
         }
         this.prospectUnenrollIfReply = prospectUnenrollIfReplyData.settingsValue[0].value;
-      }
-
-      const trackOpensData = this.settings.find(r => r.settingsType === 'track_opens');
-      if (trackOpensData) {
-        this.trackOpensId = trackOpensData.id;
-        const value =
-          typeof trackOpensData.settingsValue === 'string'
-            ? JSON.parse(trackOpensData.settingsValue)
-            : trackOpensData.settingsValue;
-        this.trackOpens = value?.[0]?.value !== false;
       }
 
       const allowReenrollIndex = this.settings.findIndex(r => r.settingsType === 'allow_re_enroll');
@@ -584,10 +571,6 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
     this.prospectUnenrollIfReply = !this.prospectUnenrollIfReply;
   };
 
-  changeTrackOpens = () => {
-    this.trackOpens = !this.trackOpens;
-  };
-
   onUnenrollmentLabelSelect = (selectedValue, index = null, rowIndex = null) => {
     this.handleMultiselectFunctionality(this.unenrollmentLabelOptions, selectedValue);
 
@@ -735,13 +718,6 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
               value: this.prospectUnenrollIfReply,
             },
           ],
-        },
-        {
-          ...(this.trackOpensId && { id: this.trackOpensId }),
-          dripCampaignId: this.dripCampaignId,
-          companyId: this.userData.supplier_id,
-          settingsType: 'track_opens',
-          settingsValue: [{ value: this.trackOpens }],
         },
         {
           ...(this.allowReenrollId && { id: this.allowReenrollId }),

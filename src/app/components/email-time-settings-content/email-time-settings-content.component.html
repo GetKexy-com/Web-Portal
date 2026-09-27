@@ -203,29 +203,6 @@
         </ul>
       </div>
 
-      <!--Tracking-->
-      <div class="form-section">
-        <div class="section-head">
-          <i class="fa fa-eye section-icon" aria-hidden="true"></i>
-          <span class="section-title">Tracking</span>
-        </div>
-        <p class="section-note">
-          Adds an invisible image to each email to record opens. Turning it off can help
-          deliverability, and open counts are always approximate (Apple Mail loads images for
-          its users). Link clicks and replies are still tracked either way.
-        </p>
-
-        <div class="toggle-row">
-          <span class="toggle-label">Track email opens</span>
-          <kexy-toggle-switch
-            [isSwitchActive]="trackOpens"
-            [changeSwitchOption]="changeTrackOpens"
-            activeText="On"
-            inactiveText="Off"
-          ></kexy-toggle-switch>
-        </div>
-      </div>
-
       <!--Additional Analytics Recipients-->
       <div class="form-section">
         <div class="section-head">
