@@ -177,7 +177,20 @@
                 <ng-container [ngSwitch]="item.status">
                   <span *ngSwitchCase="'sent'" [title]="item.sentAt | date: 'medium'">{{ item.sentAt | date: 'MMM d, h:mm a' }}</span>
                   <span *ngSwitchCase="'failed'" [title]="(item.failedAt || item.updatedAt) | date: 'medium'">{{ item.failedAt || item.updatedAt | date: 'MMM d, h:mm a' }}</span>
-                  <span *ngSwitchCase="'scheduled'" class="sp-dash">—</span>
+                  <!--Countdown to when this prospect can be sent the email, or why it can't
+                      yet. Worked out by the API (see `scheduleLabels`); nothing guessed here.-->
+                  <ng-container *ngSwitchCase="'scheduled'">
+                    <span
+                      *ngIf="scheduleLabels[rowKey(item)] as sl; else noSchedule"
+                      class="sp-when"
+                      [ngClass]="'when-' + sl.tone"
+                      [title]="sl.title"
+                    >
+                      <span class="sp-when-text">{{ sl.text }}</span>
+                      <span class="sp-when-at" *ngIf="sl.at">{{ sl.at | date: 'EEE MMM d, h:mm a' }}</span>
+                    </span>
+                    <ng-template #noSchedule><span class="sp-dash">—</span></ng-template>
+                  </ng-container>
                   <span *ngSwitchDefault [title]="item.updatedAt | date: 'medium'">{{ item.updatedAt | date: 'MMM d, h:mm a' }}</span>
                 </ng-container>
               </td>

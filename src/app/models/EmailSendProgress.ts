@@ -117,6 +117,42 @@ export interface IEmailSendItem {
    * Null until SES reports something (and always for older sends or non-SES servers).
    */
   delivery: IEmailDelivery | null;
+  /**
+   * When a `scheduled` prospect gets this email, or why it cannot be said yet. Null for
+   * every other status, and absent from an API that predates it.
+   */
+  schedule?: IEmailSendSchedule | null;
+}
+
+/**
+ * Worked out by the API with the same code the queue fill uses (KexyApi
+ * `send-schedule.ts`), so the countdown agrees with what actually gets sent.
+ *
+ * - `estimated`: only time stands between them and the email; the times are set.
+ * - `earlier_email`: still waiting for Email #`earlierEmailSequence`.
+ * - `research`: the campaign's research (scrapes) has not finished.
+ * - `campaign_not_active` / `prospect_not_active`: nothing sends until that changes.
+ * - `no_window`: the send window does not open in the next two weeks.
+ * - `unknown`: nothing honest to say.
+ */
+export type EmailSendScheduleState =
+  | 'estimated'
+  | 'earlier_email'
+  | 'research'
+  | 'campaign_not_active'
+  | 'prospect_not_active'
+  | 'no_window'
+  | 'unknown';
+
+export interface IEmailSendSchedule {
+  state: EmailSendScheduleState;
+  /** When the delay before this email runs out. */
+  dueAt: string | null;
+  /** First moment it can be picked up: delay over AND the send window open. */
+  earliestSendAt: string | null;
+  /** Plus one queue run and one send run — later only when a send run is busy. */
+  latestSendAt: string | null;
+  earlierEmailSequence: number | null;
 }
 
 export type EmailDeliveryStatus =

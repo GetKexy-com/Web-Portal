@@ -9,6 +9,7 @@ import {
   EmailSendStatus,
   IEmailSendDetail,
   IEmailSendItem,
+  IEmailSendSchedule,
   IEmailSendSummary,
 } from '../../models/EmailSendProgress';
 import { DripCampaignService } from '../../services/drip-campaign.service';
@@ -135,6 +136,18 @@ interface IRowDetail {
   steps?: ITimelineStep[];
 }
 
+/**
+ * What the "When" cell says for a `scheduled` prospect. `at` is shown under the text,
+ * in the viewer's own time zone.
+ */
+interface IScheduleLabel {
+  text: string;
+  at: string | null;
+  title: string;
+  /** `count`: a live countdown · `soon`: due, waiting on a send run · `mute`: blocked. */
+  tone: 'count' | 'soon' | 'mute';
+}
+
 interface ISegment {
   key: string;
   label: string;
@@ -156,6 +169,12 @@ const POLL_QUEUED_MS = 15000;
 /** After a failed poll: back off rather than hammer an API that is struggling. */
 const POLL_RETRY_MS = 15000;
 const SEARCH_DEBOUNCE_MS = 300;
+/** Countdown tick. Only runs while a row on the page is counting down. */
+const COUNTDOWN_TICK_MS = 1000;
+/** Never fire a "their time has come" poll sooner than this after a load. */
+const DUE_POLL_MIN_MS = 5000;
+/** setTimeout overflows past ~24.8 days; nothing here is scheduled that far out anyway. */
+const MAX_TIMEOUT_MS = 2_000_000_000;
 
 /**
  * "Prospects" section of the per-email Insights drawer: every enrolled prospect and
@@ -213,6 +232,8 @@ export class EmailSendProgressComponent implements OnInit, OnDestroy {
 
   expanded: Record<string, boolean> = {};
   details: Record<string, IRowDetail> = {};
+  /** The "When" cell of each `scheduled` row, keyed by `rowKey`. Refreshed every tick. */
+  scheduleLabels: Record<string, IScheduleLabel> = {};
   /** Rows showing the raw AI stream instead of the formatted email. */
   rawView: Record<string, boolean> = {};
 
@@ -228,6 +249,12 @@ export class EmailSendProgressComponent implements OnInit, OnDestroy {
 
   private timer: ReturnType<typeof setTimeout> | null = null;
   private searchTimer: ReturnType<typeof setTimeout> | null = null;
+  private countdownTimer: ReturnType<typeof setInterval> | null = null;
+  /**
+   * Server clock minus this browser's, from the response's `serverTime`. A countdown
+   * read off a laptop clock that is a few minutes out would be wrong by that much.
+   */
+  private clockOffsetMs = 0;
   /** Bumped per request so a slow, superseded response cannot overwrite a newer one. */
   private requestSeq = 0;
   private destroyed = false;
@@ -426,8 +453,12 @@ export class EmailSendProgressComponent implements OnInit, OnDestroy {
       this.totalPages = Math.max(1, Math.ceil(res.prospects.total / PAGE_SIZE));
       this.loadError = '';
       this.pollError = false;
+      const serverNow = Date.parse(res.serverTime);
+      if (!Number.isNaN(serverNow)) this.clockOffsetMs = serverNow - Date.now();
       this.__recompute();
       this.__refreshStaleDetails();
+      this.__recomputeSchedules();
+      this.__syncCountdown();
 
       // A filter can shrink the result under the page we were on.
       if (this.page > this.totalPages) {
@@ -457,13 +488,18 @@ export class EmailSendProgressComponent implements OnInit, OnDestroy {
     this.__clearPollTimer();
     if (this.destroyed) return;
 
+    // A scheduled row whose time has come moves to "queued" on the next fill run, so
+    // look again then. Overdue rows are polled at the queued pace until they move.
+    const dueIn = this.__msUntilNextDue();
     const delay = this.pollError
       ? POLL_RETRY_MS
       : this.summary?.inFlight
         ? POLL_ACTIVE_MS
         : this.summary?.queued
           ? POLL_QUEUED_MS
-          : 0;
+          : dueIn !== null
+            ? Math.min(Math.max(dueIn, dueIn > 0 ? DUE_POLL_MIN_MS : POLL_QUEUED_MS), MAX_TIMEOUT_MS)
+            : 0;
     if (!delay) return;
 
     this.timer = setTimeout(() => {
@@ -607,8 +643,122 @@ export class EmailSendProgressComponent implements OnInit, OnDestroy {
     }
   }
 
+  // ── Countdown ───────────────────────────────────────────────────────────
+  private __now(): number {
+    return Date.now() + this.clockOffsetMs;
+  }
+
+  /** Rows on this page with a time to count down to. */
+  private __countingRows(): IEmailSendSchedule[] {
+    return this.items
+      .filter((i) => i.status === 'scheduled' && i.schedule?.state === 'estimated' && i.schedule.earliestSendAt)
+      .map((i) => i.schedule as IEmailSendSchedule);
+  }
+
+  /** Ms until the soonest row on this page can be picked up; negative if overdue; null if none. */
+  private __msUntilNextDue(): number | null {
+    const times = this.__countingRows().map((sc) => Date.parse(sc.earliestSendAt as string));
+    return times.length ? Math.min(...times) - this.__now() : null;
+  }
+
+  /** Ticks only while there is something to count; a settled page costs nothing. */
+  private __syncCountdown(): void {
+    const needed = this.__countingRows().length > 0;
+    if (needed && !this.countdownTimer) {
+      this.countdownTimer = setInterval(() => this.__recomputeSchedules(), COUNTDOWN_TICK_MS);
+    } else if (!needed) {
+      this.__clearCountdown();
+    }
+  }
+
+  private __recomputeSchedules(): void {
+    const now = this.__now();
+    const labels: Record<string, IScheduleLabel> = {};
+    for (const item of this.items) {
+      if (item.status !== 'scheduled') continue;
+      labels[this.rowKey(item)] = this.__scheduleLabel(item.schedule ?? null, now);
+    }
+    this.scheduleLabels = labels;
+  }
+
+  /** Never claims more than the API said: without an estimate there is no countdown. */
+  private __scheduleLabel(sc: IEmailSendSchedule | null, now: number): IScheduleLabel {
+    const mute = (text: string, title: string): IScheduleLabel => ({ text, at: null, title, tone: 'mute' });
+    if (!sc) return mute('—', '');
+
+    switch (sc.state) {
+      case 'earlier_email':
+        return mute(
+          `After Email #${sc.earlierEmailSequence}`,
+          `This email's delay starts once Email #${sc.earlierEmailSequence} has been sent.`,
+        );
+      case 'research':
+        return mute('After research', 'Sending starts once research has finished for this campaign.');
+      case 'campaign_not_active':
+        return mute('Not sending', 'The campaign is not active, so nothing is sent.');
+      case 'prospect_not_active':
+        return mute('Not sending', 'This prospect is paused or unsubscribed in this campaign.');
+      case 'no_window':
+        return mute('Window closed', 'The send window does not open in the next two weeks.');
+      case 'estimated':
+        break;
+      default:
+        return mute('—', '');
+    }
+
+    const earliest = Date.parse(sc.earliestSendAt as string);
+    const latest = Date.parse(sc.latestSendAt as string);
+    if (Number.isNaN(earliest)) return mute('—', '');
+
+    const lagMin = Number.isNaN(latest) ? null : Math.round((latest - earliest) / 60_000);
+    const within = lagMin ? ` It goes out on the next send run after that — usually within ${lagMin} minutes.` : '';
+    const waitsForWindow =
+      sc.dueAt && Date.parse(sc.dueAt) < earliest - 60_000
+        ? ' The delay has already run out; it is waiting for the send window to open.'
+        : '';
+
+    if (now < earliest) {
+      return {
+        text: `in ${this.__duration(earliest - now)}`,
+        at: sc.earliestSendAt,
+        title: `Can be sent from this time.${waitsForWindow}${within}`,
+        tone: 'count',
+      };
+    }
+    if (Number.isNaN(latest) || now < latest) {
+      return { text: 'Sending soon', at: null, title: `Due now — waiting for the next send run.${within}`, tone: 'soon' };
+    }
+    return {
+      text: 'Due — any moment',
+      at: null,
+      title: 'Due now. The send run is taking longer than usual (it writes each email with AI), so this can lag.',
+      tone: 'soon',
+    };
+  }
+
+  /** "3d 4h" · "2h 05m" · "12m 09s" — two units, enough to see it move. */
+  private __duration(ms: number): string {
+    const total = Math.max(0, Math.ceil(ms / 1000));
+    const d = Math.floor(total / 86400);
+    const h = Math.floor((total % 86400) / 3600);
+    const m = Math.floor((total % 3600) / 60);
+    const sec = total % 60;
+    const pad = (n: number) => String(n).padStart(2, '0');
+    if (d) return `${d}d ${h}h`;
+    if (h) return `${h}h ${pad(m)}m`;
+    return `${m}m ${pad(sec)}s`;
+  }
+
+  private __clearCountdown(): void {
+    if (this.countdownTimer) {
+      clearInterval(this.countdownTimer);
+      this.countdownTimer = null;
+    }
+  }
+
   private __clearTimers(): void {
     this.__clearPollTimer();
+    this.__clearCountdown();
     if (this.searchTimer) {
       clearTimeout(this.searchTimer);
       this.searchTimer = null;
