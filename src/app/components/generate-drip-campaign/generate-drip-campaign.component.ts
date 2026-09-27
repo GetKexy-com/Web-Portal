@@ -6,7 +6,7 @@ import { Subscription } from 'rxjs';
 import Swal from 'sweetalert2';
 import { DripCampaignService } from '../../services/drip-campaign.service';
 import { DashboardService } from '../../services/dashboard.service';
-import { IEmailSendSummary } from '../../models/EmailSendProgress';
+import { IEmailSendSchedule, IEmailSendSummary } from '../../models/EmailSendProgress';
 import { routeConstants } from '../../helpers/routeConstants';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DripEmail, EmailDelay } from '../../models/DripEmail';
@@ -203,6 +203,9 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
 
     this.dripCampaignProspectsSubscription = this.dripCampaignService.dripCampaignProspects.subscribe(data => {
       this.dripCampaignProspects = data['prospects'] || [];
+      const serverNow = Date.parse(data['serverTime']);
+      if (!Number.isNaN(serverNow)) this.prospectsClockOffsetMs = serverNow - Date.now();
+      this.__syncNextSendBySequence();
     });
     this.getDripCampaignProspects().then(res => {
     });
@@ -261,6 +264,34 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
     if (!document.hidden && this.prospectsTimer) {
       this.getDripCampaignProspects(true).then();
     }
+  }
+
+  /**
+   * The countdown on each Delay card: the soonest `nextSend` among the prospects waiting
+   * on that email. Worked out by the API with the queue fill's own rules (KexyApi
+   * `send-schedule.ts`). A field, rebuilt only when the prospects change — the template
+   * reads it on every change-detection pass.
+   *
+   * With nothing to count down to, a blocked schedule is kept instead so the card can say
+   * why ("After research", "Not sending").
+   */
+  nextSendBySequence: Record<number, IEmailSendSchedule | null> = {};
+  /** Server clock minus this browser's, from the prospects response's `serverTime`. */
+  prospectsClockOffsetMs = 0;
+
+  private __syncNextSendBySequence() {
+    const bySequence: Record<number, IEmailSendSchedule | null> = {};
+    for (const p of this.dripCampaignProspects) {
+      const sc: IEmailSendSchedule | null = p?.nextSend ?? null;
+      if (p?.status !== constants.ACTIVE || !sc) continue;
+      const seq = parseInt(p.emailSequence);
+      const best = bySequence[seq];
+      const soonest =
+        sc.state === 'estimated' &&
+        (best?.state !== 'estimated' || Date.parse(sc.earliestSendAt) < Date.parse(best.earliestSendAt));
+      if (!best || soonest) bySequence[seq] = sc;
+    }
+    this.nextSendBySequence = bySequence;
   }
 
   getEmailContactsInAction = (emailSequence) => {
@@ -524,6 +555,7 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
 
   showDripCampaignContacts = (prospects) => {
     this.dripCampaignService.emailProspects = prospects;
+    this.dripCampaignService.emailProspectsClockOffsetMs = this.prospectsClockOffsetMs;
     this.__createRightSideSlide(ActiveContactsInCampaignComponent, 'contact-slide-content');
   };
 

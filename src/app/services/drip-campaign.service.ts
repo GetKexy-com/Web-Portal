@@ -69,6 +69,8 @@ export class DripCampaignService {
   public selectedLaunchDripCampaignType;
   private dripCampaign: DripCampaign = DripCampaign.empty();
   public emailProspects = [];
+  /** Server clock minus browser clock, for the countdowns in the contacts-in-action list. */
+  public emailProspectsClockOffsetMs = 0;
   public suppressionListApiPostData;
 
   constructor(

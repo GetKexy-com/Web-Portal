@@ -1,14 +1,8 @@
-import { EmailSendProgressComponent } from './email-send-progress.component';
-import { IEmailSendSchedule } from '../../models/EmailSendProgress';
+import { IEmailSendSchedule } from '../models/EmailSendProgress';
+import { scheduleLabel as label } from './send-schedule-label';
 
-/**
- * The "When" cell of a scheduled prospect. Built without TestBed: the label logic needs
- * neither of the component's services.
- */
-describe('EmailSendProgressComponent schedule label', () => {
-  const component = new EmailSendProgressComponent(null as any, null as any);
-  const label = (sc: IEmailSendSchedule | null, now: number) => (component as any).__scheduleLabel(sc, now);
-
+/** The next-send wording shared by Insights, the Delay cards and the contacts list. */
+describe('scheduleLabel', () => {
   const earliest = Date.parse('2026-09-28T16:00:00Z');
   const estimated: IEmailSendSchedule = {
     state: 'estimated',

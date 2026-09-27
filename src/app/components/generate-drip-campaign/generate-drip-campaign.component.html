@@ -268,6 +268,8 @@
             [email]="email"
             [isDelayCard]="true"
             [emailContacts]="getEmailContactsInAction(email.emailSequence)"
+            [nextSend]="nextSendBySequence[email.emailSequence] ?? null"
+            [clockOffsetMs]="prospectsClockOffsetMs"
             [showDripCampaignContacts]="showDripCampaignContacts"
             [showDetailsBtnClick]="showEmailDelayBtnClick"
           ></drip-campaign-card>

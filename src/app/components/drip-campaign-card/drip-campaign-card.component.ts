@@ -7,6 +7,8 @@ import { Subscription } from 'rxjs';
 import { constants } from '../../helpers/constants';
 import { CommonModule, NgClass } from '@angular/common';
 import { KexyButtonComponent } from '../kexy-button/kexy-button.component';
+import { SendCountdownComponent } from '../send-countdown/send-countdown.component';
+import { IEmailSendSchedule } from '../../models/EmailSendProgress';
 
 @Component({
   selector: 'drip-campaign-card',
@@ -14,6 +16,7 @@ import { KexyButtonComponent } from '../kexy-button/kexy-button.component';
     NgClass,
     KexyButtonComponent,
     CommonModule,
+    SendCountdownComponent,
   ],
   templateUrl: './drip-campaign-card.component.html',
   styleUrl: './drip-campaign-card.component.scss',
@@ -23,6 +26,9 @@ export class DripCampaignCardComponent implements OnInit {
   @Input() headerTitle;
   @Input() emailText;
   @Input() emailContacts = [];
+  /** Delay cards: the soonest next send among `emailContacts`, from the API. */
+  @Input() nextSend: IEmailSendSchedule | null = null;
+  @Input() clockOffsetMs = 0;
   @Input() clickRate;
   @Input() showBlueBorder;
   @Input() isDelayCard = false;
