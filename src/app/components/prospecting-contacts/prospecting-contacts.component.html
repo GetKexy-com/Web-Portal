@@ -1,7 +1,9 @@
 <div class="canvas-content-wrap">
   <div class="head-area">
     <div class="head-text">
-      <p class="head-title">{{ canvasTitle }} Contact<span *ngIf="isMultipleContactsSelected">(s)</span></p>
+      <!--Admin-only escape hatch: 5 clicks in a row on this title reveals the Email
+          Status override below. Deliberately no visible affordance — see onHeadTitleClick.-->
+      <p class="head-title" (click)="onHeadTitleClick()">{{ canvasTitle }} Contact<span *ngIf="isMultipleContactsSelected">(s)</span></p>
       <span class="head-subtitle" *ngIf="isMultipleContactsSelected">Updating {{ selectedContacts.length }} contacts at once</span>
       <span class="head-subtitle" *ngIf="!isMultipleContactsSelected">Manage this contact's details and lists</span>
     </div>
@@ -65,6 +67,31 @@
               [isSearchAble]="false"
               [isClearable]="true"
               optionStyle="checkbox"
+              backgroundColor="white"
+              placeholder="Please Select"
+            ></kexy-select-dropdown>
+          </div>
+
+          <!-- Hidden unless unlocked via onHeadTitleClick — not meant for real users,
+               and not meaningful yet when creating a brand-new contact. -->
+          <div class="field full" *ngIf="emailStatusUnlocked && canvasTitle !== 'Create'">
+            <kexy-select-dropdown
+              label="Email Status"
+              shortNoteBesideLabel="Admin only"
+              [selectAllBtn]="false"
+              [required]="false"
+              [options]="emailStatusOptions"
+              [addNewBtn]="false"
+              [onAddNewClick]=""
+              [selectedOption]="selectedEmailStatus"
+              [onSelectSingleItem]="onEmailStatusSelect"
+              [rowIndex]="1"
+              [editIcon]="false"
+              [deleteIcon]="false"
+              [onDeleteClick]=""
+              [onEditClick]=""
+              [isSearchAble]="false"
+              optionStyle="button"
               backgroundColor="white"
               placeholder="Please Select"
             ></kexy-select-dropdown>

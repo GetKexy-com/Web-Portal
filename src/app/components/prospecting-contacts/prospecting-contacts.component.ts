@@ -56,6 +56,13 @@ export class ProspectingContactsComponent implements OnInit, AfterViewInit, OnDe
   canadaStatesWithKeyValuePair = [];
   marketingStatusOptions = [...constants.MARKETING_STATUS_OPTIONS];
   selectedMarketingStatus;
+  // Admin-only override, hidden behind onHeadTitleClick — email status is normally
+  // computed by verification and not meant to be user-editable.
+  emailStatusOptions = [...constants.EMAIL_STATUS_OPTIONS];
+  selectedEmailStatus;
+  emailStatusUnlocked: boolean = false;
+  private headTitleClickCount = 0;
+  private headTitleClickResetTimer: ReturnType<typeof setTimeout> | null = null;
   selectedContacts: Contact[] = [];
   contact: Contact = Contact.empty();
   labelIds = [];
@@ -193,12 +200,28 @@ export class ProspectingContactsComponent implements OnInit, AfterViewInit, OnDe
   ngOnDestroy() {
     if (this.contactLabelsSubscription) this.contactLabelsSubscription.unsubscribe();
     if (this.dripCampaignTitlesSubscription) this.dripCampaignTitlesSubscription.unsubscribe();
+    if (this.headTitleClickResetTimer) clearTimeout(this.headTitleClickResetTimer);
     this.prospectingService.isAddNewButtonClickedInContactPage = false;
     this.prospectingService.clickedContactInContactPage = [];
     this.prospectingService.selectedLabelIdInListContactPage = null;
     this.prospectingService.listIdWhenEditContactFromListContactPage = null;
     this.prospectingService.focusContactSection = null;
   }
+
+  // 5 clicks in a row on the header title reveals the Email Status override.
+  // Deliberately no visible affordance — this is an admin escape hatch, not a feature
+  // a real user should be able to find. A pause between clicks resets the count so it
+  // can't be triggered by someone just clicking around the header.
+  onHeadTitleClick = () => {
+    if (this.emailStatusUnlocked) return;
+    this.headTitleClickCount++;
+    if (this.headTitleClickResetTimer) clearTimeout(this.headTitleClickResetTimer);
+    if (this.headTitleClickCount >= 5) {
+      this.emailStatusUnlocked = true;
+      return;
+    }
+    this.headTitleClickResetTimer = setTimeout(() => (this.headTitleClickCount = 0), 800);
+  };
 
   getDripCampaignTitle = async () => {
     await this.dripCampaignService.getAllDripCampaignTitle(
@@ -329,6 +352,11 @@ export class ProspectingContactsComponent implements OnInit, AfterViewInit, OnDe
 
     contactDetails = this.contact.details;
 
+    // The dropdown's own label (e.g. "Valid"), for display only — the form control
+    // below carries the KEY ("verified"), which is what actually gets submitted, since
+    // this lands in a real enum column server-side and the label/key don't line up the
+    // way they coincidentally do for marketingStatus.
+    let emailStatusKey = '';
     if (this.selectedContacts?.length && !this.isMultipleContactsSelected) {
       // set dropdowns data
       this.selectedCountry = contactDetails.country;
@@ -336,8 +364,14 @@ export class ProspectingContactsComponent implements OnInit, AfterViewInit, OnDe
       this.selectedMarketingStatus = this.pageUiService.capitalizeFirstLetter(
         this.contact.marketingStatus,
       );
+      const emailStatusOption = constants.EMAIL_STATUS_OPTIONS.find(
+        (o) => o.key === (this.contact.emailStatus || '').toString().toLowerCase(),
+      );
+      this.selectedEmailStatus = emailStatusOption ? emailStatusOption.value : '';
+      emailStatusKey = emailStatusOption ? emailStatusOption.key : '';
     } else {
       this.selectedMarketingStatus = '';
+      this.selectedEmailStatus = '';
     }
 
     this.primaryForm = new FormGroup({
@@ -345,6 +379,7 @@ export class ProspectingContactsComponent implements OnInit, AfterViewInit, OnDe
         this.selectedMarketingStatus,
         Validators.compose([Validators.minLength(0)]),
       ),
+      emailStatus: new FormControl(emailStatusKey),
       firstName: new FormControl(
         contactDetails.firstName,
         Validators.compose([
@@ -476,6 +511,11 @@ export class ProspectingContactsComponent implements OnInit, AfterViewInit, OnDe
     this.primaryForm.patchValue({ marketingStatus: selectedValue.key });
   };
 
+  onEmailStatusSelect = (selectedValue, index = null, rowIndex = null) => {
+    this.selectedEmailStatus = selectedValue.value;
+    this.primaryForm.patchValue({ emailStatus: selectedValue.key });
+  };
+
   handleEditContactLabel = (data, event: Event) => {
     // Stop the event propagation to prevent the outer button click handler from being called
     event.stopPropagation();
@@ -597,6 +637,12 @@ export class ProspectingContactsComponent implements OnInit, AfterViewInit, OnDe
     contactDetails.name = `${formData.firstName} ${formData.lastName}`;
     contactDetails.title = formData.title;
     contactDetails.marketingStatus = formData.marketingStatus;
+    // Admin-only override (see onHeadTitleClick). formData.emailStatus is always the
+    // contact's current status unless the hidden dropdown was used, so this is a no-op
+    // for every ordinary edit.
+    if (formData.emailStatus) {
+      contactDetails.emailStatus = formData.emailStatus;
+    }
     contactDetails.email = formData.email;
     contactDetails.state = formData.state;
     contactDetails.city = formData.city;
@@ -648,6 +694,9 @@ export class ProspectingContactsComponent implements OnInit, AfterViewInit, OnDe
       contacts,
       listIds: formData.lists,
       marketingStatus: formData.marketingStatus,
+      // Admin-only override; blank (untouched) unless the hidden dropdown was used —
+      // the backend no-ops on a blank value, same as marketingStatus.
+      emailStatus: formData.emailStatus,
     };
   };
 
@@ -742,6 +791,11 @@ export class ProspectingContactsComponent implements OnInit, AfterViewInit, OnDe
           postData['contacts'] = [];
           if (this.selectedMarketingStatus) {
             postData['selectedAllContactsMarketingStatus'] = this.selectedMarketingStatus;
+          }
+          // Sent as the KEY (not selectedEmailStatus's display label) — this lands in a
+          // real enum column server-side, unlike marketingStatus's free-form JSON field.
+          if (formData.emailStatus) {
+            postData['selectedAllContactsEmailStatus'] = formData.emailStatus;
           }
         }
         await this.prospectingService.editContacts(postData);
