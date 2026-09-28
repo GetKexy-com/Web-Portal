@@ -353,12 +353,20 @@ export class BrandListOfDripCampaignsComponent implements OnInit {
         await this.getListOfDripCampaigns();
         this.selectedDripCampaigns.set([]);
       } else {
-        // const updatedList = this.dripCampaignList().map(item =>
-        //   item.id === dripCampaign.id ? { ...item, status: payload.status } : item
-        // );
-        // this.dripCampaignList.set(updatedList);
-
-        dripCampaign.status = payload.status;
+        // Mutating `dripCampaign.status` in place does not notify the `dripCampaignList`
+        // signal — its array reference is unchanged, so the table only picked this up on
+        // a later refetch. Replace the array (and the selection, which holds the same
+        // stale reference) so the signal's identity actually changes.
+        this.dripCampaignList.update(list =>
+          list.map(item =>
+            item.id === dripCampaign.id ? { ...item, status: payload.status } : item,
+          ),
+        );
+        this.selectedDripCampaigns.update(selected =>
+          selected.map(item =>
+            item.id === dripCampaign.id ? { ...item, status: payload.status } : item,
+          ),
+        );
       }
 
     } catch (e) {
