@@ -1,28 +1,28 @@
 <brand-layout layoutPaddingNone="true" headerBgWhite="true" [fullPageScroll]="false">
-  <div class="brand-contacts-page">
-    <div class="top-btns">
-      <!--Buttons for large screen-->
-      <div class="buttons-for-large-screen">
-        <!--The table is a snapshot; its age is stated so the freshness window is
-            disclosed rather than a hidden staleness bug, and the refresh beside it is
-            then the obvious remedy.-->
+  <main class="brand-contacts-page">
+    <!--Same single-row toolbar pattern as List Contacts: snapshot (last-updated +
+        refresh) on the left, actions on the right, one set of buttons that wraps
+        at any width instead of swapping in a second icon-only row per breakpoint.-->
+    <div class="actions-bar">
+      <div class="actions-bar-snapshot">
         <app-time-ago class="updated-stamp" [value]="lastUpdatedAt" />
-        <app-kexy-button
+        <button
+          type="button"
+          class="refresh-btn"
           (click)="refresh()"
-          style="margin-right: 10px"
-          label=""
-          [iconLeft]="isRefreshing ? 'fa-refresh fa-spin' : 'fa-refresh'"
           [disabled]="isRefreshing || isWaitingFlag || isLoading"
           title="Refresh contacts"
-          bgColor="#e7f6fe"
-          textColor="#2847cc"
-          radius="8px"
-        ></app-kexy-button>
+          aria-label="Refresh contacts"
+        >
+          <i class="fa" [class.fa-refresh]="true" [class.fa-spin]="isRefreshing" aria-hidden="true"></i>
+        </button>
+      </div>
+
+      <div class="actions-bar-buttons">
         <app-kexy-button
           *ngIf="selectedContacts.length"
           [disabled]="isWaitingFlag || isLoading || selectAllContacts"
           (click)="handleAddToDripCampaign()"
-          style="margin-right: 10px"
           label="Add To Drip Campaign"
           iconLeft="fa-plus"
           bgColor="#e7f6fe"
@@ -34,8 +34,8 @@
           *ngIf="selectedContacts.length && !addToDripCampaignId"
           [disabled]="isWaitingFlag || isLoading"
           (click)="deleteContacts()"
-          style="margin-right: 10px"
-          label=""
+          [label]="'Delete (' + (selectAllContacts ? totalContactsCount : selectedContacts.length) + ')'"
+          tooltip="Delete Contact(s)"
           iconLeft="fa-trash"
           bgColor="#e7f6fe"
           textColor="#2847cc"
@@ -46,7 +46,6 @@
           *ngIf="!selectedContacts.length"
           (click)="handleSearchBtnClick()"
           [disabled]="isWaitingFlag || isLoading"
-          style="margin-right: 10px"
           label="Filter"
           iconLeft="fa-search"
           bgColor="#e7f6fe"
@@ -57,7 +56,6 @@
         <app-kexy-button
           *ngIf="!addToDripCampaignId && !selectedContacts.length"
           [disabled]="isWaitingFlag || isLoading"
-          style="margin-right: 10px"
           label="Add Contact"
           iconLeft="fa-plus"
           bgColor="#e7f6fe"
@@ -69,7 +67,6 @@
         <app-kexy-button
           *ngIf="selectedContacts.length && !addToDripCampaignId"
           [disabled]="isWaitingFlag || isLoading"
-          style="margin-right: 10px"
           label="Edit Contact(s)"
           iconLeft="fa-pencil"
           bgColor="#e7f6fe"
@@ -82,7 +79,6 @@
           *ngIf="selectedContacts.length && !addToDripCampaignId"
           [disabled]="isWaitingFlag || isLoading || selectAllContacts || contactCard.validationLoading || contactCard.isValidationProgress()"
           (click)="contactCard.validateList()"
-          style="margin-right: 10px"
           [label]="contactCard.validationLoading ? 'Please wait...' : 'Validate Emails (' + selectedContacts.length + ')'"
           [iconLeft]="contactCard.validationLoading ? 'fa-refresh fa-spin' : 'fa-shield'"
           tooltip="Validate emails for the selected contact(s)"
@@ -94,7 +90,6 @@
         <app-kexy-button
           *ngIf="!addToDripCampaignId && !selectedContacts.length"
           [disabled]="isWaitingFlag || isLoading"
-          style="margin-right: 10px"
           label="Import"
           iconLeft="fa-cloud-upload"
           (click)="importBtnClick(uploadContacts)"
@@ -107,108 +102,16 @@
           *ngIf="!addToDripCampaignId && !selectedContacts.length"
           (click)="exportCSV()"
           [disabled]="exportBtnLoading || isLoading || isWaitingFlag"
-          [label]="exportBtnLoading ? 'Please wait...' : 'Export' "
+          [label]="exportBtnLoading ? 'Please wait...' : 'Export'"
           [iconLeft]="exportBtnLoading ? 'fa-refresh fa-spin' : 'fa-cloud-download'"
           bgColor="#e7f6fe"
           textColor="#2847cc"
           radius="8px"
-        ></app-kexy-button>
-      </div>
-
-      <!--Buttons for small laptop screen-->
-      <div class="buttons-for-small-screen">
-        <app-kexy-button
-          *ngIf="selectedContacts.length && !addToDripCampaignId"
-          [disabled]="isWaitingFlag || isLoading"
-          (click)="deleteContacts()"
-          style="margin-right: 10px"
-          label=""
-          iconLeft="fa-trash"
-          bgColor="#e7f6fe"
-          textColor="#2847cc"
-          radius="8px"
-          tooltip="Delete Contact(s)"
-        ></app-kexy-button>
-
-        <app-kexy-button
-          (click)="handleSearchBtnClick()"
-          [disabled]="isWaitingFlag || isLoading"
-          style="margin-right: 10px"
-          label=""
-          iconLeft="fa-search"
-          bgColor="#e7f6fe"
-          textColor="#2847cc"
-          radius="8px"
-          tooltip="Filter Contact(s)"
-        ></app-kexy-button>
-
-        <app-kexy-button
-          *ngIf="!addToDripCampaignId"
-          [disabled]="isWaitingFlag || isLoading"
-          style="margin-right: 10px"
-          label=""
-          iconLeft="fa-plus"
-          bgColor="#e7f6fe"
-          textColor="#2847cc"
-          radius="8px"
-          (click)="addContactClick()"
-          tooltip="Add Contact"
-        ></app-kexy-button>
-
-        <app-kexy-button
-          *ngIf="selectedContacts.length && !addToDripCampaignId"
-          [disabled]="isWaitingFlag || isLoading"
-          style="margin-right: 10px"
-          label=""
-          iconLeft="fa-pencil"
-          bgColor="#e7f6fe"
-          textColor="#2847cc"
-          radius="8px"
-          (click)="editContactClick()"
-          tooltip="Edit Contact(s)"
-        ></app-kexy-button>
-
-        <app-kexy-button
-          *ngIf="selectedContacts.length && !addToDripCampaignId"
-          [disabled]="isWaitingFlag || isLoading || selectAllContacts || contactCard.validationLoading || contactCard.isValidationProgress()"
-          (click)="contactCard.validateList()"
-          style="margin-right: 10px"
-          label=""
-          [iconLeft]="contactCard.validationLoading ? 'fa-refresh fa-spin' : 'fa-shield'"
-          bgColor="#e7f6fe"
-          textColor="#2847cc"
-          radius="8px"
-          tooltip="Validate Emails"
-        ></app-kexy-button>
-
-        <app-kexy-button
-          *ngIf="!addToDripCampaignId"
-          [disabled]="isWaitingFlag || isLoading"
-          style="margin-right: 10px"
-          label=""
-          iconLeft="fa-cloud-upload"
-          (click)="importBtnClick(uploadContacts)"
-          bgColor="#e7f6fe"
-          textColor="#2847cc"
-          radius="8px"
-          tooltip="Import Contact(s)"
-        ></app-kexy-button>
-
-        <app-kexy-button
-          *ngIf="!addToDripCampaignId"
-          (click)="exportCSV()"
-          [disabled]="exportBtnLoading || isWaitingFlag || isLoading"
-          [label]="exportBtnLoading ? 'Please wait...' : '' "
-          [iconLeft]="exportBtnLoading ? 'fa-refresh fa-spin' : 'fa-cloud-download'"
-          bgColor="#e7f6fe"
-          textColor="#2847cc"
-          radius="8px"
-          tooltip="Export Csv"
         ></app-kexy-button>
       </div>
     </div>
 
-    <div class="content-area">
+    <section>
       <div class="active-filters" *ngIf="activeFilterCount">
         <span class="af-label"><i class="fa fa-filter" aria-hidden="true"></i> Filters</span>
         <span class="filter-chip" *ngFor="let chip of getActiveFilterChips()">
@@ -255,8 +158,8 @@
         [selectAllContacts]="selectAllContacts"
         [toggleSelectAllContactSelection]="toggleSelectAllContactSelection"
       ></contact-list-card>
-    </div>
-  </div>
+    </section>
+  </main>
   <ng-template #uploadContacts let-c="close" let-d="dismiss">
     <upload-file-modal-content
       [closeModal]="closeModal"

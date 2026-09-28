@@ -288,7 +288,7 @@ export class ContactListCardComponent implements OnInit, OnChanges, OnDestroy, A
       // OnPush: this runs after an await, and the click that started it was handled
       // long ago — nothing marks this view dirty, so the banner would never appear.
       // Note the trigger can also be the PARENT's own button (brand-contacts renders
-      // its own "Validate Emails" in .top-btns and calls in via @ViewChild), which
+      // its own "Validate Emails" in .actions-bar and calls in via @ViewChild), which
       // marks the parent dirty and not this card.
       this.cdr.markForCheck();
     }
