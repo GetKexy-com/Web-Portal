@@ -543,11 +543,11 @@ $kx-red-bg: #fdeaea;
   color: $kx-faint;
 }
 
-// Delivery outcome under the "Sent" pill (SES events).
+// Delivery outcome under the "Sent" pill (SES events). Same pill design/size as
+// `.sp-pill` above it — only the stacking margin differs — so any status/delivery
+// combination reads as one consistent pill, not two different ones.
 .sp-delivery {
   margin-top: 4px;
-  padding: 2px 8px;
-  font-size: 10.5px;
 }
 
 // SES's reason can run long (a full bounce diagnostic) — two lines, the rest on hover.
