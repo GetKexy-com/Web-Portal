@@ -343,6 +343,8 @@ $kx-red-bg: #fdeaea;
 
 // ── Table ────────────────────────────────────────────────────────────────────
 .sp-table-wrap {
+  // The table's own width (it sits in a drawer), for the column widths below.
+  container-type: inline-size;
   overflow-x: auto;
   border: 1px solid $kx-hairline;
   border-radius: 10px;
@@ -357,7 +359,8 @@ $kx-red-bg: #fdeaea;
 
 .sp-table {
   width: 100%;
-  min-width: 700px;
+  // Below this Status and When get too tight; the wrap scrolls sideways instead.
+  min-width: 800px;
   border-collapse: collapse;
   table-layout: fixed;
 
@@ -385,24 +388,41 @@ $kx-red-bg: #fdeaea;
     border-bottom: none;
   }
 
+  // Profile and the toggle hold a fixed-size button; the text columns share the rest
+  // by how much they usually hold. Name/email and subject truncate with a tooltip.
+  .col-prospect {
+    width: 20%;
+  }
   .col-status {
-    width: 150px;
+    width: 18%;
+    text-align: center;
   }
   .col-subject {
-    width: 28%;
+    width: 34%;
   }
   .col-when {
-    width: 118px;
+    width: 18%;
     color: $kx-muted;
     white-space: nowrap;
     font-variant-numeric: tabular-nums;
   }
   .col-profile {
-    width: 104px;
+    width: 110px;
+    text-align: center;
   }
   .col-toggle {
     width: 44px;
     text-align: right;
+  }
+
+  // Narrower table: Subject gives way and Prospect takes whatever is left.
+  @container (max-width: 1300px) {
+    .col-prospect {
+      width: auto;
+    }
+    .col-subject {
+      width: 24%;
+    }
   }
 }
 

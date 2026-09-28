@@ -1054,6 +1054,18 @@ $kx-red-bg: #fdeaea;
       color: $kx-faint;
     }
 
+    // ── Centered metric columns ───────────────────────────────────────────
+    // Campaign and contact tables: the checkbox/rank and the name stay left, every
+    // column after them is centered. The sort arrow's space is given back on the right
+    // so a sortable header centers over its numbers.
+    &.selectable,
+    &.engaged {
+      th:nth-child(n + 3),
+      td:nth-child(n + 3) { text-align: center; }
+
+      th.sortable:nth-child(n + 3) .s-ic { margin-right: -14px; }
+    }
+
     // ── Selectable rows (campaign picker) ─────────────────────────────────
     // The whole row toggles, so it advertises that with a pointer and a hover tint,
     // and a selected row carries a brand left-accent — the same cue the contacts

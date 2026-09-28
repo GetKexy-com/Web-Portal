@@ -7,7 +7,10 @@ serves the `*.example.json` payloads in this folder as mock data.
 | Endpoint | Schema | Example | Feeds |
 |---|---|---|---|
 | `GET /v2/drip-campaigns/:campaignId/prospects/score?email=<email>` | `prospect-score.schema.json` | `prospect-score.example.json` | Lead strength card: score, ring, bars. Also the warm-lead alert email (KexyApi): score, tier bars, current stage |
-| `GET /v2/drip-campaigns/:campaignId/prospects/insights?email=<email>` | `prospect-insights.schema.json` | `prospect-insights.example.json` | Why we chose this lead, How we picked the opening topic, What happened so far, signal safety checks |
+| `GET /v2/drip-campaigns/:campaignId/prospects/insights?email=<email>` | `prospect-insights.schema.json` | `prospect-insights.example.json` | Why we chose this lead, How we picked the opening topic |
+
+**What happened so far** (the timeline) is not part of either API. It will come
+from a separate API. Until that is defined the portal shows sample data for it.
 
 Who the prospect is — name, company, job title, location, LinkedIn, phone and email
 validation — is **not** part of either API, and neither is whether they replied to,
@@ -34,14 +37,15 @@ to say it.
 Score:
 - `score` = sum of `components[].points`, and `maxScore` = sum of `components[].maxPoints`.
 - `points <= maxPoints` for every component.
-- `components[].tier` is `0, 1, 2…` in array order: each tier appears once, with no gaps.
+- `components` has **exactly three** entries, and `components[].tier` is `0, 1, 2` in
+  array order: each tier appears once, with no gaps.
 - `stage` is one of the `components[].tier` values.
 
 Insights:
-- `signals` is ordered by `confidence`, highest first. The UI shows the first two.
+- `signals` has at most 10 entries (the most confident), ordered by `confidence`,
+  highest first. The UI shows the first two.
 - `openerSelection.candidates` is ordered by `score`, highest first, and
   `winnerKey` is one of the candidate keys.
-- `timeline` is ordered oldest first.
 
 ## Validate a response
 

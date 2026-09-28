@@ -1080,6 +1080,8 @@ export class BrandDashboardComponent implements OnInit, OnDestroy {
   }
 
   // ── Activity feed ───────────────────────────────────────────────────────
+  /** Rows the feed shows — about the height of the performance table beside it. */
+  readonly activityLimit = 6;
   visibleActivity: IDashboardActivity[] = [];
 
   /**
@@ -1094,7 +1096,9 @@ export class BrandDashboardComponent implements OnInit, OnDestroy {
    * since-paused/completed campaign — exactly the "reads as broken" case the comment
    * above already warns about. Active-campaign events sort first (each group keeps the
    * server's recency order), so the feed leads with what's actionable today but still
-   * fills out with the rest rather than going sparse.
+   * fills out with the rest rather than going sparse. The first `activityLimit` of that
+   * order are shown; the server's extra rows only give the priority and the campaign
+   * scope something to choose from.
    */
   private __buildActivity(): void {
     const all = this.isAllCampaigns;
@@ -1104,7 +1108,7 @@ export class BrandDashboardComponent implements OnInit, OnDestroy {
     );
     const active = scoped.filter((a) => activeCampaignIds.has(a.campaignId));
     const others = scoped.filter((a) => !activeCampaignIds.has(a.campaignId));
-    this.visibleActivity = [...active, ...others];
+    this.visibleActivity = [...active, ...others].slice(0, this.activityLimit);
   }
 
   // ── Most engaged contacts ───────────────────────────────────────────────
@@ -1179,16 +1183,15 @@ export class BrandDashboardComponent implements OnInit, OnDestroy {
    * These are NOT scoped by the campaign selection: the table is how you change that
    * selection, so hiding the unselected rows would make it a one-way door.
    *
-   * This is a glance card, not the Manage Campaigns table: ACTIVE campaigns are
-   * PREFERRED, and only the `CAMPAIGN_ROWS_LIMIT` most recently created are shown —
-   * picked by recency BEFORE the user's column sort is applied, so sorting by e.g. Sent
-   * reorders those same few rows rather than pulling in older campaigns. When there
-   * aren't enough active campaigns to fill the quota, the remaining slots backfill with
-   * the next most recent non-active ones (paused/complete/archived/published — drafts
-   * are already excluded server-side) so the card isn't left half-empty just because an
-   * account has few campaigns currently running. Active rows always sort ahead of the
-   * backfilled ones. "View all" (next to the title) is the door to every campaign
-   * regardless of status.
+   * This is a glance card, not the Manage Campaigns table: only `CAMPAIGN_ROWS_LIMIT`
+   * campaigns are shown, picked in priority order — ACTIVE first, then COMPLETE (a
+   * finished drip's results are worth a glance), then everything else (paused/archived/
+   * published — drafts are already excluded server-side), each group most recently
+   * created first. The pick happens BEFORE the user's column sort is applied, so sorting
+   * by e.g. Sent reorders those same few rows rather than pulling in older campaigns, and
+   * the backfill keeps the card from looking half-empty on an account with few running
+   * campaigns. "View all" (next to the title) is the door to every campaign regardless
+   * of status.
    */
   private __buildCampaignRows(): void {
     const byCampaign = new Map<number, { sent: number; opens: number; clicks: number; replies: number }>();
@@ -1214,10 +1217,13 @@ export class BrandDashboardComponent implements OnInit, OnDestroy {
 
     const byRecency = (a: IDashboardCampaignMeta, b: IDashboardCampaignMeta) =>
       new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-    const activeIds = new Set(this.__activeCampaignMetas().map((c) => c.id));
+    const all = this.stats.campaigns || [];
     const active = this.__activeCampaignMetas().sort(byRecency);
-    const others = (this.stats.campaigns || []).filter((c) => !activeIds.has(c.id)).sort(byRecency);
-    const rowCampaigns = [...active, ...others].slice(0, CAMPAIGN_ROWS_LIMIT);
+    const complete = all.filter((c) => c.status === constants.COMPLETE).sort(byRecency);
+    const others = all
+      .filter((c) => c.status !== constants.ACTIVE && c.status !== constants.COMPLETE)
+      .sort(byRecency);
+    const rowCampaigns = [...active, ...complete, ...others].slice(0, CAMPAIGN_ROWS_LIMIT);
 
     this.campaignRows = rowCampaigns.map((meta) => {
       const t = byCampaign.get(meta.id);

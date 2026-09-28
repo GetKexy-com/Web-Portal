@@ -1,5 +1,5 @@
 /**
- * The two APIs behind the prospect profile page. These interfaces mirror the JSON Schemas
+ * The APIs behind the prospect profile page. These interfaces mirror the JSON Schemas
  * in `docs/prospect-profile-api/` — that folder is the contract handed to the backend, so
  * change the schema first and these to match, never the other way round.
  */
@@ -27,7 +27,7 @@ export interface IProspectScore {
   headline: string;
   /** The tier the prospect has reached; one of `components[].tier`. */
   stage: number;
-  /** Display order; each is a bar AND a segment of the score ring. */
+  /** Always exactly three (tiers 0, 1, 2), in display order; each is a bar AND a segment of the score ring. */
   components: IProspectScoreComponent[];
   scoredAt: string;
 }
@@ -73,7 +73,7 @@ export interface IProspectInsights {
     message: string;
     nextStep: string | null;
   } | null;
-  /** Sorted by confidence, highest first. */
+  /** At most 10, sorted by confidence, highest first. */
   signals: IProspectSignal[];
   openerSelection: {
     winnerKey: string;
@@ -82,9 +82,17 @@ export interface IProspectInsights {
     candidates: IOpenerCandidate[];
     rule: { label: string; text: string } | null;
   } | null;
-  /** Oldest first. */
-  timeline: { at: string; title: string; detail: string | null }[];
-  /** Checks on the research; the portal adds its own email-validation check in front. */
-  safetyChecks: { key: string; label: string; passed: boolean }[];
   generatedAt: string;
+}
+
+// ── "What happened so far" ───────────────────────────────────────────────────
+
+/**
+ * One entry of the timeline. It comes from a separate API that is not defined yet, so it
+ * has no schema in `docs/prospect-profile-api/` — the portal serves sample data for now.
+ */
+export interface IProspectTimelineEvent {
+  at: string;
+  title: string;
+  detail: string | null;
 }

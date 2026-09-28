@@ -14,13 +14,13 @@
 
   <div class="canvas-body">
 
-    <!--Until both APIs exist the score and research are the example payloads — say so,
+    <!--Until the APIs exist the score, research and timeline are the example payloads — say so,
         or a sample "Peter replied" reads as a fact about this prospect.-->
     <div class="pp-mock" *ngIf="isMock" role="note">
       <i class="fa fa-flask" aria-hidden="true"></i>
       <span>
         <strong>Preview.</strong> The prospect’s details, contact info and send status are real. The
-        score and everything about why we picked this lead are sample data until their APIs are connected.
+        score, why we picked this lead and what happened so far are sample data until their APIs are connected.
       </span>
     </div>
 
@@ -53,7 +53,7 @@
 
     <div class="pp-grid">
 
-      <!--══════════════════ Left column: insights API ══════════════════-->
+      <!--══════════════════ Left column: insights + timeline APIs ══════════════════-->
       <div class="pp-col">
 
         <!--── Why we chose this lead ──-->
@@ -147,21 +147,24 @@
           </ng-container>
         </section>
 
-        <!--── What happened so far ──-->
+        <!--── What happened so far: the timeline API ──-->
         <section class="pp-card" aria-labelledby="pp-timeline">
           <h3 class="pp-card-title" id="pp-timeline">What happened so far</h3>
 
-          <div class="pp-skel" style="height: 90px" *ngIf="insightsState === 'loading'"></div>
-          <ng-container *ngTemplateOutlet="insightsError"></ng-container>
+          <div class="pp-skel" style="height: 90px" *ngIf="timelineState === 'loading'"></div>
+          <div class="pp-state is-error" *ngIf="timelineState === 'error'" role="alert">
+            Could not load this section.
+            <button type="button" class="pp-link" (click)="loadTimeline()">Try again</button>
+          </div>
 
-          <ng-container *ngIf="insightsState === 'ready' && insights">
-            <ol class="pp-timeline" *ngIf="insights.timeline.length">
-              <li *ngFor="let t of insights.timeline">
+          <ng-container *ngIf="timelineState === 'ready'">
+            <ol class="pp-timeline" *ngIf="timeline.length">
+              <li *ngFor="let t of timeline">
                 <time class="pp-when" [attr.datetime]="t.at" [title]="t.at | date: 'medium'">{{ t.at | date: 'MMM d' }}</time>
                 <span><strong>{{ t.title }}</strong> {{ t.detail }}</span>
               </li>
             </ol>
-            <p class="pp-empty" *ngIf="!insights.timeline.length">Nothing has happened yet.</p>
+            <p class="pp-empty" *ngIf="!timeline.length">Nothing has happened yet.</p>
           </ng-container>
         </section>
       </div>
@@ -250,17 +253,6 @@
               <dd *ngIf="!companyAddress" class="pp-none">Not found</dd>
             </div>
           </dl>
-        </section>
-
-        <!--── Safety checks: our email check (real) + the insights API's research checks ──-->
-        <section class="pp-card" aria-labelledby="pp-safety">
-          <h3 class="pp-card-title" id="pp-safety">Safety checks</h3>
-          <p class="pp-checks">
-            <ng-container *ngFor="let c of safetyChecks; let last = last">
-              <span [class.is-failed]="!c.passed">{{ c.passed ? '✓' : '⚠' }} {{ c.label }}</span><span *ngIf="!last" class="pp-sep"> · </span>
-            </ng-container>
-          </p>
-          <div class="pp-skel" style="height: 18px; margin: 8px 0 0" *ngIf="insightsState === 'loading'"></div>
         </section>
       </aside>
     </div>

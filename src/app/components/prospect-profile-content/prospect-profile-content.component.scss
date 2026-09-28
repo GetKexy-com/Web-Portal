@@ -573,23 +573,6 @@ $kx-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   color: $kx-faint !important;
 }
 
-// ── Safety checks ────────────────────────────────────────────────────────────
-.pp-checks {
-  margin: 0;
-  font-size: 12.5px;
-  line-height: 1.7;
-  color: $kx-body;
-
-  .is-failed {
-    font-weight: 700;
-    color: $kx-wait;
-  }
-}
-
-.pp-sep {
-  color: $kx-faint;
-}
-
 // ── Shared bits ──────────────────────────────────────────────────────────────
 .pp-mono {
   @include mono;
