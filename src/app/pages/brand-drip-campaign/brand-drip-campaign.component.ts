@@ -181,7 +181,23 @@ export class BrandDripCampaignComponent implements OnInit, OnDestroy {
       drip_campaign_id: this.dripCampaignId,
       supplier_id: this.userData.supplier_id,
     };
-    const campaign = await this.dripCampaignService.getCampaign(postData);
+
+    // Warm: the wizard re-opens this page between steps (see ngOnDestroy), and the
+    // step that just saved already loaded THIS campaign into the service. Show its step
+    // straight away and refresh in the background — no skeleton for data we just had.
+    // Cold (first open, another campaign): the skeleton while it loads, as before.
+    const cached = this.dripCampaignService.getDripCampaignContentPageData();
+    const warm = !!cached?.id && String(cached.id) === String(this.dripCampaignId);
+    if (warm) {
+      this.__applyCampaign(cached);
+    }
+
+    const campaign = await this.dripCampaignService.getCampaign(postData, warm);
+    this.__applyCampaign(campaign);
+  };
+
+  /** Step, campaign and header from a loaded campaign (raw response or the cached model). */
+  private __applyCampaign = (campaign): void => {
     if (campaign && campaign['currentStep'] === constants.CAMPAIGN_CONTENT) {
       this.currentStep = 1;
     }

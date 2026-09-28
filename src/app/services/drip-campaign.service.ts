@@ -225,32 +225,39 @@ export class DripCampaignService {
     return this.hasPromotion;
   };
 
-  createOrUpdateDripCampaign = async (postData) => {
-    this._loading.next(true);
+  /**
+   * `silent` skips the page-wide `loading` flag (the full-page skeleton), like
+   * `getCampaign(…, silent)`: for a save the user triggers from a step that stays on
+   * screen, where the clicked button gives the feedback instead (`setActivating`).
+   */
+  createOrUpdateDripCampaign = async (postData, silent = false) => {
+    if (!silent) {
+      this._loading.next(true);
+    }
 
     if (postData.dripCampaignDuplicate) {
-      return this.createDripCampaign(postData);
+      return this.createDripCampaign(postData, silent);
     }
 
     if (!postData.dripCampaignId) {
-      return this.createDripCampaign(postData);
+      return this.createDripCampaign(postData, silent);
     } else {
-      return this.updateDripCampaign(postData);
+      return this.updateDripCampaign(postData, silent);
     }
   };
 
-  createDripCampaign = (postData) => {
+  createDripCampaign = (postData, silent = false) => {
     if (!postData.dripCampaignDuplicate) {
       delete postData.dripCampaignId;
     }
     return new Promise(async (resolve, reject) => {
       this.httpService.post('drip-campaigns', postData).subscribe({
         next: (res) => {
-          this._loading.next(false);
+          if (!silent) this._loading.next(false);
           resolve(res.data);
         },
         error: (err) => {
-          this._loading.next(false);
+          if (!silent) this._loading.next(false);
           if (err.error) {
             reject(err.error);
           }
@@ -259,17 +266,17 @@ export class DripCampaignService {
     });
   };
 
-  updateDripCampaign = (postData) => {
+  updateDripCampaign = (postData, silent = false) => {
     return new Promise(async (resolve, reject) => {
       const url = `drip-campaigns/${postData.dripCampaignId}`;
       delete postData.dripCampaignId;
       this.httpService.patch(url, postData).subscribe({
         next: (res) => {
-          this._loading.next(false);
+          if (!silent) this._loading.next(false);
           resolve(res.data);
         },
         error: (err) => {
-          this._loading.next(false);
+          if (!silent) this._loading.next(false);
           if (err.error) {
             reject(err.error);
           }

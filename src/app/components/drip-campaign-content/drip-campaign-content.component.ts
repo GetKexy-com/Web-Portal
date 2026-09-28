@@ -511,16 +511,25 @@ export class DripCampaignContentComponent implements OnInit, OnDestroy {
       payload['calendlyLink'] = this.selectedCalendlyLinkKey;
     }
     console.log({ payload });
-    const dripCampaign = await this.dripCampaignService.createOrUpdateDripCampaign(payload);
-    this.dripCampaignId = dripCampaign['id'];
-    const postData = {
-      drip_campaign_id: this.dripCampaignId,
-      supplier_id: this.userData.supplier_id,
-    };
-    await this.dripCampaignService.getCampaign(postData);
+    // Save and reload SILENTLY: this step stays on screen until the next one is ready,
+    // so blanking it to the page skeleton mid-click (twice — save, then reload) is
+    // what made "Next" feel janky. The Next button's own "Please wait…" is the
+    // feedback instead (same signal the Activate button uses).
+    this.dripCampaignService.setActivating(true);
+    try {
+      const dripCampaign = await this.dripCampaignService.createOrUpdateDripCampaign(payload, true);
+      this.dripCampaignId = dripCampaign['id'];
+      const postData = {
+        drip_campaign_id: this.dripCampaignId,
+        supplier_id: this.userData.supplier_id,
+      };
+      await this.dripCampaignService.getCampaign(postData, true);
 
-    // Navigate to the next page
-    this.nextBtnClick(this.dripCampaignId, true);
+      // Navigate to the next page
+      await this.nextBtnClick(this.dripCampaignId, true);
+    } finally {
+      this.dripCampaignService.setActivating(false);
+    }
   };
 
   protected readonly constants = constants;
