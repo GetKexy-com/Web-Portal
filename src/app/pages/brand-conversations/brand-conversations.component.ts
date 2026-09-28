@@ -54,8 +54,6 @@ export class BrandConversationsComponent implements OnInit, OnDestroy {
   paginationUrl = routeConstants.BASE_URL + routeConstants.BRAND.PROSPECTING_CONV_ALL;
   conversationsSubscription: Subscription;
 
-  // @ViewChild("conversationView") private conversationView: ElementRef;
-
   constructor(
     private _authService: AuthService,
     private httpService: HttpService,
@@ -106,26 +104,82 @@ export class BrandConversationsComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     if (this.conversationsSubscription) this.conversationsSubscription.unsubscribe();
+    this.threadResize?.disconnect();
+    this.clearLoadTimers();
   }
 
-  scrolledToBottom = false;
+  // ── Open the thread at its newest message ───────────────────────────────────
+  // Messages run oldest → newest, so a conversation opens scrolled to the bottom.
+  // Frames keep resizing after that (images, late fonts), so the view stays pinned
+  // to the bottom until the user scrolls up to read older messages.
+  private threadPane: HTMLElement | null = null;
+  private threadResize: ResizeObserver | null = null;
+  private pinToBottom = false;
+  /** Within this many px of the bottom still counts as "at the bottom". */
+  private static readonly BOTTOM_SLACK_PX = 48;
 
-  // ngAfterViewChecked() {
-  //   this.scrollToBottom();
-  // }
+  @ViewChild('threadPane') set threadPaneRef(ref: ElementRef<HTMLElement> | undefined) {
+    this.threadPane = ref?.nativeElement ?? null;
+  }
 
-  // scrollToBottom(): void {
-  //   try {
-  //     if (!this.scrolledToBottom) {
-  //       this.conversationView.nativeElement.scrollTop = this.conversationView.nativeElement.scrollHeight;
-  //     }
-  //   } catch (err) {
-  //   }
-  // }
+  @ViewChild('threadMessages') set threadMessagesRef(ref: ElementRef<HTMLElement> | undefined) {
+    this.threadResize?.disconnect();
+    this.threadResize = null;
+    if (!ref || typeof ResizeObserver === 'undefined') return;
+    this.threadResize = new ResizeObserver(() => {
+      if (this.pinToBottom) this.scrollThreadToBottom();
+    });
+    this.threadResize.observe(ref.nativeElement);
+  }
 
-  // onScroll() {
-  //   this.scrolledToBottom = true;
-  // }
+  /** When the user last wheeled, touched, pressed a key or grabbed the scrollbar in the thread. */
+  private threadInputAt = 0;
+  /** A scroll this soon after user input is theirs; later ones are the layout moving. */
+  private static readonly USER_SCROLL_MS = 1000;
+
+  onThreadInput = (): void => {
+    this.threadInputAt = Date.now();
+  };
+
+  private lastThreadScrollTop = 0;
+
+  /**
+   * Only the USER unpins. Swapping one thread's frames for another's, or a frame
+   * resizing, moves scrollTop too and fires this — treating those as "scrolled up"
+   * is what left a newly opened thread stranded mid-way. So while the thread loads
+   * scrolls are ignored, and after that a scroll away from the bottom unpins only if
+   * it went UP (layout only ever pushes the view down or clamps it to the bottom) or
+   * follows the user's own input. Wheeling over a message reaches its iframe, not
+   * this pane, hence the direction check rather than input events alone.
+   */
+  onThreadScroll = (): void => {
+    const el = this.threadPane;
+    if (!el) return;
+    const movedUp = el.scrollTop < this.lastThreadScrollTop;
+    this.lastThreadScrollTop = el.scrollTop;
+    if (this.messagesLoading) return;
+    const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight <= BrandConversationsComponent.BOTTOM_SLACK_PX;
+    if (atBottom) this.pinToBottom = true;
+    else if (movedUp || Date.now() - this.threadInputAt < BrandConversationsComponent.USER_SCROLL_MS) this.pinToBottom = false;
+  };
+
+  /** Oldest first by send time; `id` breaks ties (and orders rows without a date). */
+  private oldestFirst<T extends { id?: number; messageSentAt?: string }>(messages: T[] | undefined): T[] {
+    const at = (m: T) => (m.messageSentAt ? new Date(m.messageSentAt).getTime() : NaN);
+    return [...(messages ?? [])].sort((a, b) => {
+      const ta = at(a);
+      const tb = at(b);
+      if (!isNaN(ta) && !isNaN(tb) && ta !== tb) return ta - tb;
+      return (a.id ?? 0) - (b.id ?? 0);
+    });
+  }
+
+  private scrollThreadToBottom(): void {
+    const el = this.threadPane;
+    if (!el) return;
+    el.scrollTop = el.scrollHeight;
+    this.lastThreadScrollTop = el.scrollTop;
+  }
 
   setConversation = async (conversations) => {
     conversations.forEach((conversation) => {
@@ -389,20 +443,23 @@ export class BrandConversationsComponent implements OnInit, OnDestroy {
    *  components / blocked resource) — so the thread never gets stuck hidden. */
   private static readonly MAX_WAIT_MS = 1500;
 
-  private beginMessagesLoad(): void {
+  /** `source` is the API's own array — the displayed one is a sorted copy. */
+  private beginMessagesLoad(source: unknown[] | undefined): void {
     this.clearLoadTimers();
-    const msgs = this.selectedConversation?.['messages'];
-    const count = msgs?.length || 0;
+    this.pinToBottom = true;
+    const count = this.selectedConversation?.['messages']?.length || 0;
     // Re-clicking the already-open conversation reuses the same message frames,
-    // so nothing reloads and no frameReady fires. Detect it (same array ref) and
-    // leave the thread shown — no hide, no spinner.
-    if (!count || msgs === this.lastMessagesRef) {
-      this.lastMessagesRef = msgs ?? null;
+    // so nothing reloads and no frameReady fires. Detect it (same source array)
+    // and leave the thread shown — no hide, no spinner.
+    if (!count || source === this.lastMessagesRef) {
+      this.lastMessagesRef = source ?? null;
       this.messagesLoading = false;
       this.showSpinner = false;
+      // Same frames, already laid out — just bring the newest message back into view.
+      setTimeout(() => this.scrollThreadToBottom());
       return;
     }
-    this.lastMessagesRef = msgs;
+    this.lastMessagesRef = source;
     this.pendingFrames = count;
     this.messagesLoading = true;
     this.showSpinner = true;
@@ -422,6 +479,9 @@ export class BrandConversationsComponent implements OnInit, OnDestroy {
     if (this.revealTimer) return;
     const wait = Math.max(0, BrandConversationsComponent.MIN_SPINNER_MS - (Date.now() - this.loadStartedAt));
     this.revealTimer = setTimeout(() => {
+      // Still invisible but fully laid out, so the jump to the bottom is never seen.
+      this.pinToBottom = true;
+      this.scrollThreadToBottom();
       this.messagesLoading = false;
       this.showSpinner = false;
       this.revealTimer = null;
@@ -463,14 +523,13 @@ export class BrandConversationsComponent implements OnInit, OnDestroy {
         }
       };
     }
-    // Hide the thread behind a loader until all message frames are sized.
-    this.beginMessagesLoad();
+    // The API sends the thread newest first; show it oldest → newest, like a chat, so
+    // the latest message sits at the bottom, where the thread opens.
+    this.selectedConversation.messages = this.oldestFirst(conv.messages);
 
-    // Reversing conversations
-    // this.selectedConversation["prospecting_conversations_messages"] =
-    //   this.selectedConversation["prospecting_conversations_messages"].sort((a, b) => {
-    //     return new Date(b["message_sent_at"]).getTime() - new Date(a["message_sent_at"]).getTime();
-    //   });
+    // Hide the thread behind a loader until all message frames are sized.
+    this.beginMessagesLoad(conv.messages);
+
     // this.getProspectInfoApi({ contact_id: conv.receiverDetails.id });
 
     // Update "unread" messages to read.
@@ -479,8 +538,6 @@ export class BrandConversationsComponent implements OnInit, OnDestroy {
     }).toPromise();
 
     this.pageUiService.setSelectedProspectingConv(conv);
-    // Set this to user can see the last conversation without scrolling to the bottom
-    this.scrolledToBottom = false;
   };
 
   // formatPhoneNUmber = (number) => {

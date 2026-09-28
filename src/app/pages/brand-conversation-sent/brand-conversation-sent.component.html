@@ -253,16 +253,29 @@
         Prospect has unsubscribed
       </div>
 
-      <div class="pane-thread">
+      <div
+        class="pane-thread"
+        #threadPane
+        (scroll)="onThreadScroll()"
+        (wheel)="onThreadInput()"
+        (touchstart)="onThreadInput()"
+        (keydown)="onThreadInput()"
+        (pointerdown)="onThreadInput()"
+      >
         <div class="conv-loading-overlay" *ngIf="showSpinner">
           <i class="fa fa-spinner fa-spin" aria-hidden="true"></i>
         </div>
         <!--Messages stay laid out (so their iframes load + size) but invisible
             until every frame is ready — do NOT change this to *ngIf.-->
-        <div class="conv-messages" [class.hidden]="messagesLoading">
-          <ng-container *ngFor="let email of selectedConversation['messages']">
+        <div class="conv-messages" #threadMessages [class.hidden]="messagesLoading">
+          <ng-container *ngFor="let email of selectedConversation['messages']; let i = index">
             <brand-convo-email
               [email]="email"
+              [previous]="i > 0 ? selectedConversation['messages'][i - 1] : null"
+              [contactName]="getFullName(selectedConversation.receiverDetails.details)"
+              [contactInitials]="getNameInitials(selectedConversation.receiverDetails.details)"
+              [contactSeed]="getFullName(selectedConversation.receiverDetails.details) || selectedConversation.receiverEmail"
+              [subject]="selectedConversation.emailSubject || selectedConversation.email_subject"
               [forwardToCampaignUser]="forwardToCampaignUser"
               [isLoading]="forwardToCampaignUserApiLoadig"
               (frameReady)="onFrameReady()"

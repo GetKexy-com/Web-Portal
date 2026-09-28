@@ -2,78 +2,469 @@
 $kx-primary-deep: #095dd1;
 $kx-ink: #0f172a;
 $kx-muted: #64748b;
+$kx-faint: #94a3b8;
 $kx-border: #e2e8f0;
+
+// Both sides are the same white card with dark text, so an email's own colours
+// stay readable (a solid-blue bubble needed forced white text, which fought every
+// styled email). Side and tail corner tell sent from received. The iframe body is
+// transparent, so this is the only place the bubble colour lives.
+$bubble-bg: #ffffff;
+
+$avatar-w: 34px;
 
 // A single message in the thread, shared by brand-conversations AND
 // brand-conversation-sent.
-//
-// IMPORTANT: the bubble colour is set in TWO places that must agree — here, and
-// in `prepareFrameHtml` (component TS), which injects the same background/text
-// colour into the sandboxed iframe's own <body>. The CSS colour shows through the
-// transparent frame until the content paints, so a mismatch shows up as a flash
-// of the wrong colour. Change both together.
-.msg-box {
+:host {
+  display: block;
+}
+
+// ── Day divider ──────────────────────────────────────────────────────────────
+.msg-day {
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  margin-bottom: 18px;
+  align-items: center;
+  gap: 12px;
+  margin: 22px 0 16px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: $kx-muted;
 
-  .conv-message {
-    // Sent (right): white bubble with a hairline + soft lift. The message renders
-    // in a sandboxed iframe (see component) so full-HTML emails display
-    // faithfully, like the editor Preview. Auto-sized to content via
-    // onFrameLoad().
-    background-color: #ffffff;
-    width: 85%;
-    // Cap the measure — a full-width bubble on a wide monitor is unreadable.
-    max-width: 720px;
-    border: 1px solid $kx-border;
-    // Tail corner on the sender's side, like every modern messaging surface.
-    border-radius: 16px 16px 4px 16px;
-    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
-    overflow: hidden; // clip the iframe to the rounded corners
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: $kx-border;
+  }
+}
 
-    // The whole thread is held hidden by the parent until every frame is sized
-    // (see conv-messages coordination), so the frame just renders + sizes here.
-    // Transparent background = the bubble color shows through until content paints.
-    .conv-frame {
-      display: block;
-      width: 100%;
-      border: 0;
-      background: transparent;
-    }
+// ── One message ──────────────────────────────────────────────────────────────
+.msg-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+
+  // Same sender, same day: tuck under the previous one without repeating the
+  // avatar and name — like every modern messenger.
+  &.is-grouped {
+    margin-top: 6px;
   }
 
-  .time {
+  &.is-sent {
+    justify-content: flex-end;
+  }
+}
+
+.msg-avatar {
+  flex: 0 0 $avatar-w;
+  width: $avatar-w;
+  padding-top: 20px; // level with the bubble, below the name line
+}
+
+.msg-col {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  // The measure: a full-width bubble on a wide monitor is unreadable. A set width
+  // (not max-width) so the iframe has something to fill before it is measured; a
+  // compact bubble then shrinks inside it, pushed to its side by align-items.
+  width: min(78%, 680px);
+
+  .is-sent & {
+    align-items: flex-end;
+  }
+
+  .is-received & {
+    align-items: flex-start;
+  }
+}
+
+.msg-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 0 4px 5px;
+  font-size: 12px;
+
+  .msg-name {
+    font-weight: 700;
+    color: $kx-ink;
+  }
+
+  time {
+    color: $kx-faint;
+    font-size: 11.5px;
+  }
+}
+
+// Holds the bubble and, outside it, the hover-only side bits (time, forward).
+// Full width for rich emails; shrinks to the bubble for plain text once measured
+// (`is-sized` is set by the component).
+.msg-bubble-wrap {
+  position: relative;
+  width: 100%;
+
+  &.is-compact.is-sized {
+    width: auto;
+  }
+}
+
+// The message renders in a sandboxed iframe (see component) so full-HTML emails
+// display faithfully. It is auto-sized to its content in onFrameLoad(): height
+// always, width too for plain-text messages, so "Thanks!" gets a small bubble
+// instead of a 680px slab.
+.msg-bubble {
+  overflow: hidden; // clip the iframe to the rounded corners
+  border: 1px solid $kx-border;
+  border-radius: 18px;
+  background: $bubble-bg;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+
+  .is-sent & {
+    border-bottom-right-radius: 6px;
+  }
+
+  .is-received & {
+    border-bottom-left-radius: 6px;
+  }
+
+  // A grouped message is mid-run: square the tail side on top too, so a run of
+  // bubbles reads as one stack.
+  .is-sent.is-grouped & {
+    border-top-right-radius: 6px;
+  }
+
+  .is-received.is-grouped & {
+    border-top-left-radius: 6px;
+  }
+
+  .conv-frame {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    border: 0;
+    background: transparent;
+  }
+}
+
+// Hover-only bits on the open side of the bubble: the date/time tooltip and, on
+// received messages, the forward action under it. Hovering the iframe counts as
+// hovering its row, so this works with the pointer over the message itself.
+.msg-side {
+  position: absolute;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  pointer-events: none; // only its children take the pointer, and only when shown
+
+  // Beside a short bubble the tooltip and button sit in a row; beside a
+  // full-width email there's only a narrow margin, so they stack.
+  .msg-bubble-wrap:not(.is-compact) & {
+    flex-direction: column;
+  }
+
+  .is-sent & {
+    right: calc(100% + 8px);
+  }
+
+  .is-received & {
+    left: calc(100% + 8px);
+  }
+
+  .is-sent .msg-bubble-wrap:not(.is-compact) & {
+    align-items: flex-end;
+  }
+
+  .is-received .msg-bubble-wrap:not(.is-compact) & {
+    align-items: flex-start;
+  }
+}
+
+// Messenger-style: a dark tooltip, after a short delay so skimming the thread
+// doesn't flash one on every bubble; gone at once on leave. Opacity only (not
+// visibility) so the forward button stays in the keyboard tab order.
+.msg-when,
+.msg-action {
+  opacity: 0;
+  transition: opacity 0.12s ease;
+
+  .msg-row:hover & {
+    opacity: 1;
+    pointer-events: auto;
+    transition-delay: 0.35s;
+  }
+}
+
+.msg-when {
+  padding: 5px 9px;
+  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.88);
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #fff;
+}
+
+// Keyboard: tabbing onto the forward button shows it.
+.msg-action:focus-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+// No hover on touch screens: keep the forward action in view, skip the tooltip.
+@media (hover: none) {
+  .msg-action {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+// "Forward reply" beside a received bubble: a small secondary button, brand icon.
+.msg-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 12px 0 10px;
+  border: 1px solid $kx-border;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+  font-size: 12px;
+  font-weight: 600;
+  color: $kx-ink;
+  cursor: pointer;
+  transition: border-color 0.12s ease, background 0.12s ease, color 0.12s ease;
+
+  .fa {
+    font-size: 11px;
+    color: $kx-primary-deep;
+  }
+
+  &:hover:not(:disabled) {
+    border-color: #bcd3f5;
+    background: #f3f7fe;
+    color: $kx-primary-deep;
+  }
+
+  &:focus-visible {
+    outline: 2px solid rgba(9, 93, 209, 0.35);
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.6;
+  }
+}
+
+// ── Forward modal ────────────────────────────────────────────────────────────
+// Mirrors the compose modal (pages/_conversation-shell.scss `.send-email-modal-
+// content`): white head with a bordered close button, body, grey foot. The
+// rounded frame and width come from `.kx-forward-modal` in styles.scss.
+$kx-field-bg: #f7f9fc;
+$kx-red: #dc2626;
+$kx-red-bg: #fdeaea;
+
+.fwd-modal {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+
+  .modal-head {
     display: flex;
     align-items: center;
-    gap: 2px;
-    padding: 6px 4px 0;
-    font-size: 11.5px;
-    font-weight: 500;
-    color: $kx-muted;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 16px 22px;
+    background: #fff;
+    border-bottom: 1px solid $kx-border;
 
-    .link-text {
-      color: $kx-primary-deep;
+    .modal-title-text {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      margin: 0;
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 1.2;
+      color: $kx-ink;
+
+      i {
+        font-size: 13px;
+        color: $kx-primary-deep;
+      }
+    }
+
+    .icon-btn {
+      flex-shrink: 0;
+      width: 34px;
+      height: 34px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid $kx-border;
+      border-radius: 10px;
+      background: #fff;
+      color: $kx-muted;
+      font-size: 15px;
       cursor: pointer;
+      transition: all 0.15s ease;
 
       &:hover {
-        text-decoration: underline;
+        background: $kx-red-bg;
+        border-color: $kx-red;
+        color: $kx-red;
       }
     }
   }
 
-  &.left {
-    align-items: flex-start;
+  .fwd-body {
+    display: flex;
+    flex-direction: column;
+    padding: 18px 22px 20px;
+    background: #fff;
+  }
 
-    // Received: brand-blue bubble. The iframe body paints the real blue + white
-    // text (see prepareFrameHtml); this colour also shows through the transparent
-    // frame until the content paints, so there's no white flash on the blue side.
-    .conv-message {
-      background: $kx-primary-deep;
-      border-color: transparent;
-      border-radius: 16px 16px 16px 4px;
-      box-shadow: 0 8px 20px -10px rgba(9, 93, 209, 0.5);
+  .fwd-lead {
+    margin: 0 0 12px;
+    font-size: 13.5px;
+    line-height: 1.5;
+    color: $kx-muted;
+  }
+
+  // The reply being forwarded, as a quote: a few lines, the rest faded out.
+  .fwd-preview {
+    max-height: 96px;
+    margin: 0 0 18px;
+    padding: 10px 14px;
+    overflow: hidden;
+    border-left: 3px solid #bcd3f5;
+    border-radius: 0 10px 10px 0;
+    background: $kx-field-bg;
+    font-size: 13px;
+    line-height: 1.5;
+    color: $kx-ink;
+    white-space: pre-line;
+    -webkit-mask-image: linear-gradient(180deg, #000 70%, transparent);
+    mask-image: linear-gradient(180deg, #000 70%, transparent);
+  }
+
+  .fwd-label {
+    margin-bottom: 6px;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: $kx-ink;
+  }
+
+  .fwd-input {
+    height: 40px;
+    padding: 0 12px;
+    border: 1px solid $kx-border;
+    border-radius: 10px;
+    background: $kx-field-bg;
+    font-size: 14px;
+    color: $kx-ink;
+    outline: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+
+    &::placeholder {
+      color: $kx-faint;
+    }
+
+    &:focus {
+      border-color: $kx-primary-deep;
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(9, 93, 209, 0.12);
+    }
+
+    &.is-invalid {
+      border-color: $kx-red;
+      box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+    }
+  }
+
+  .fwd-hint,
+  .fwd-error {
+    margin-top: 6px;
+    font-size: 12px;
+  }
+
+  .fwd-hint {
+    color: $kx-faint;
+  }
+
+  .fwd-error {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-weight: 600;
+    color: $kx-red;
+  }
+
+  .modal-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 14px 22px;
+    background: $kx-field-bg;
+    border-top: 1px solid $kx-border;
+
+    .foot-hint {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 12.5px;
+      color: $kx-muted;
+    }
+
+    .foot-actions {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+  }
+
+  .ghost-btn,
+  .primary-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    height: 38px;
+    padding: 0 16px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .ghost-btn {
+    border: 1px solid $kx-border;
+    background: #fff;
+    color: $kx-ink;
+
+    &:hover {
+      border-color: $kx-muted;
+    }
+  }
+
+  .primary-btn {
+    border: 1px solid $kx-primary-deep;
+    background: $kx-primary-deep;
+    color: #fff;
+
+    &:hover:not(:disabled) {
+      background: #0850b6;
+    }
+
+    &:disabled {
+      cursor: default;
+      opacity: 0.7;
     }
   }
 }

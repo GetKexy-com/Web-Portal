@@ -1,52 +1,105 @@
-<div class="msg-box" [class.left]="conversationPosition()">
-  <div class="conv-message">
-    <iframe
-      class="conv-frame"
-      [srcdoc]="message"
-      (load)="onFrameLoad($event)"
-      sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox"
-      referrerpolicy="no-referrer"
-      title="Message"
-    ></iframe>
-  </div>
-  <div class="time">
-    {{ email.messageSentAt | date }}
-    <span class="ps-2">
-      <i *ngIf="email.messageStatus === 'delivered'" class="fa fa-envelope-open-o" aria-hidden="true"></i>
-      <i *ngIf="email.messageStatus === 'opened'" class="fa fa-envelope-o" aria-hidden="true"></i>
-    </span>
+<!--Day divider: before the first message of each calendar day.-->
+<div class="msg-day" *ngIf="showDay" role="separator">
+  <span>{{ dayLabel }}</span>
+</div>
 
-    <span
-      *ngIf="conversationPosition()"
-      class="link-text ms-3"
-      (click)="handleClickSentToUser(sendTestEmailModal)"
-    >
-      <span *ngIf="!isLoading">Send to User</span>
-      <span *ngIf="isLoading"><i class="fa fa-spinner fa-spin" aria-hidden="true"></i></span>
-    </span>
+<div class="msg-row" [class.is-received]="received" [class.is-sent]="!received" [class.is-grouped]="grouped">
+  <!--Received messages carry the prospect's avatar on the first of a run; the
+      slot stays (empty) on the rest so the bubbles line up.-->
+  <div class="msg-avatar" *ngIf="received">
+    <brand-convo-avatar *ngIf="!grouped" [text]="contactInitials" [seed]="contactSeed"></brand-convo-avatar>
+  </div>
+
+  <div class="msg-col">
+    <div class="msg-head" *ngIf="!grouped">
+      <span class="msg-name">{{ senderLabel }}</span>
+      <time [attr.datetime]="email.messageSentAt" [title]="email.messageSentAt | date: 'medium'">
+        {{ email.messageSentAt | date: 'h:mm a' }}
+      </time>
+    </div>
+
+    <div class="msg-bubble-wrap" [class.is-compact]="compact">
+      <div class="msg-bubble">
+        <iframe
+          class="conv-frame"
+          [srcdoc]="message"
+          (load)="onFrameLoad($event)"
+          sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox"
+          referrerpolicy="no-referrer"
+          title="Message"
+        ></iframe>
+      </div>
+
+      <!--Beside the bubble on hover, like Messenger: the full date and time, and on
+          received messages the forward action. (A title tooltip can't work here —
+          the pointer is over the iframe, not this document.)-->
+      <div class="msg-side">
+        <time class="msg-when" [attr.datetime]="email.messageSentAt">{{ fullTime }}</time>
+        <button
+          type="button"
+          class="msg-action"
+          *ngIf="received"
+          [disabled]="isLoading"
+          (click)="handleClickSentToUser(sendTestEmailModal)"
+        >
+          <i class="fa" [ngClass]="isLoading ? 'fa-spinner fa-spin' : 'fa-share'" aria-hidden="true"></i>
+          Forward reply
+        </button>
+      </div>
+    </div>
   </div>
 </div>
 
-<ng-template #sendTestEmailModal let-c="close" let-d="dismiss">
-  <modal [modalClose]="c" title="Send To User">
-    <div class="modal-body">
-      <div class="input-wrap">
-        <label class="input-label-text">Enter Email Address</label>
-        <input type="text" class="form-control" name="emailAddress" [(ngModel)]="emailAddress" />
-        <div *ngIf="submitted && !isValidEmail">
-          <error-message-card message="Please enter valid email."></error-message-card>
-        </div>
-      </div>
-      <div class="mt-4" style="width: 150px">
-        <app-kexy-button
-          [disabled]="isLoading"
-          [label]="isLoading? 'Please wait...' : 'Send'"
-          [iconLeft]="isLoading ? 'fa-refresh fa-spin' : 'fa-paper-plane-o'"
-          (click)="sendEmail()"
-        >
-        </app-kexy-button>
+<!--Same shell as the compose modal ("New message"): white head, body, grey foot.
+    Opened with windowClass `kx-forward-modal` for the width and rounded frame.-->
+<ng-template #sendTestEmailModal let-c="close">
+  <form class="fwd-modal" (ngSubmit)="sendEmail()" novalidate>
+    <div class="modal-head">
+      <p class="modal-title-text">
+        <i class="fa fa-share" aria-hidden="true"></i>
+        Forward reply
+      </p>
+      <button type="button" class="icon-btn" aria-label="Close" (click)="c()">
+        <i class="fa fa-times" aria-hidden="true"></i>
+      </button>
+    </div>
+
+    <div class="fwd-body">
+      <p class="fwd-lead">
+        Send {{ contactName || 'this prospect' }}’s reply to a teammate or client so they can follow up.
+      </p>
+
+      <!--What is being forwarded: the reply itself, without the quoted thread.-->
+      <blockquote class="fwd-preview" *ngIf="replyPreview">{{ replyPreview }}</blockquote>
+
+      <label class="fwd-label" for="fwd-email">Send to</label>
+      <input
+        id="fwd-email"
+        type="email"
+        class="fwd-input"
+        name="emailAddress"
+        placeholder="name@company.com"
+        autocomplete="email"
+        [class.is-invalid]="submitted && !isValidEmail"
+        [(ngModel)]="emailAddress"
+        ngbAutofocus
+      />
+      <span class="fwd-error" *ngIf="submitted && !isValidEmail" role="alert">
+        <i class="fa fa-exclamation-circle" aria-hidden="true"></i>
+        Enter a valid email address.
+      </span>
+      <span class="fwd-hint" *ngIf="!(submitted && !isValidEmail)">We’ll remember this address for next time.</span>
+    </div>
+
+    <div class="modal-foot">
+      <span class="foot-hint">Arrives as “RE: {{ subject || 'the original email' }}”.</span>
+      <div class="foot-actions">
+        <button type="button" class="ghost-btn" (click)="c()">Cancel</button>
+        <button type="submit" class="primary-btn" [disabled]="isLoading">
+          <i class="fa" [ngClass]="isLoading ? 'fa-spinner fa-spin' : 'fa-share'" aria-hidden="true"></i>
+          {{ isLoading ? 'Forwarding…' : 'Forward' }}
+        </button>
       </div>
     </div>
-  </modal>
+  </form>
 </ng-template>
-
