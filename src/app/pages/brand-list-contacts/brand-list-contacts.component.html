@@ -15,22 +15,87 @@
       ></prospecting-common-card>
     </section>
 
-    <!--This page has no toolbar of its own (the card owns its actions), so the
-        snapshot controls get a slim row between the info card and the table. Must be
-        flex-shrink: 0 — the section below it is the flex child that fills the
-        remaining height and scrolls internally.-->
-    <div class="snapshot-bar">
-      <app-time-ago class="updated-stamp" [value]="lastUpdatedAt" />
-      <button
-        type="button"
-        class="refresh-btn"
-        (click)="refresh()"
-        [disabled]="isRefreshing || isWaitingFlag || isLoading"
-        title="Refresh contacts"
-        aria-label="Refresh contacts"
-      >
-        <i class="fa" [class.fa-refresh]="true" [class.fa-spin]="isRefreshing" aria-hidden="true"></i>
-      </button>
+    <!--The card no longer owns any actions — they all live here, in one row, at every
+        screen size: snapshot (last-updated + refresh) first/left, actions last/right.
+        Wired to the same handlers the card's own row used to call; validate goes
+        through #contactCard since that logic lives on the card.-->
+    <div class="actions-bar">
+      <div class="actions-bar-snapshot">
+        <app-time-ago class="updated-stamp" [value]="lastUpdatedAt" />
+        <button
+          type="button"
+          class="refresh-btn"
+          (click)="refresh()"
+          [disabled]="isRefreshing || isWaitingFlag || isLoading"
+          title="Refresh contacts"
+          aria-label="Refresh contacts"
+        >
+          <i class="fa" [class.fa-refresh]="true" [class.fa-spin]="isRefreshing" aria-hidden="true"></i>
+        </button>
+      </div>
+
+      <div class="actions-bar-buttons">
+        <app-kexy-button
+          *ngIf="selectedContacts.length"
+          (click)="deleteContacts()"
+          [label]="'Delete (' + (selectAllContacts ? totalContactsCount : selectedContacts.length) + ')'"
+          tooltip="This action permanently deletes your account and all associated data. This cannot be undone."
+          iconLeft="fa-trash"
+          bgColor="#e7f6fe"
+          textColor="#2847cc"
+          radius="8px"
+        ></app-kexy-button>
+        <app-kexy-button
+          *ngIf="selectedContacts.length"
+          (click)="deleteContactsFromList()"
+          [label]="'Remove From List (' + (selectAllContacts ? totalContactsCount : selectedContacts.length) + ')'"
+          tooltip="Remove From List"
+          iconLeft="fa-minus-circle"
+          bgColor="#e7f6fe"
+          textColor="#2847cc"
+          radius="8px"
+        ></app-kexy-button>
+        <app-kexy-button
+          *ngIf="selectedContacts.length"
+          (click)="editContactClick()"
+          label="Edit Contact(s)"
+          tooltip="Edit Contact(s)"
+          iconLeft="fa-pencil"
+          bgColor="#e7f6fe"
+          textColor="#2847cc"
+          radius="8px"
+        ></app-kexy-button>
+        <app-kexy-button
+          *ngIf="!selectedContacts.length"
+          (click)="createContactClick()"
+          label="Add Contact"
+          tooltip="Add New Contact"
+          iconLeft="fa-plus"
+          bgColor="#e7f6fe"
+          textColor="#2847cc"
+          radius="8px"
+        ></app-kexy-button>
+        <app-kexy-button
+          *ngIf="contactList.length"
+          (click)="contactCard.validateList()"
+          [disabled]="contactCard.validationLoading || contactCard.isValidationProgress()"
+          [label]="contactCard.validationLoading ? 'Please wait...' : (selectAllContacts ? 'Validate Emails (' + totalContactsCount + ')' : (selectedContacts.length ? 'Validate Emails (' + selectedContacts.length + ')' : 'Validate Emails'))"
+          [iconLeft]="contactCard.validationLoading ? 'fa-refresh fa-spin' : 'fa-shield'"
+          bgColor="#e7f6fe"
+          textColor="#2847cc"
+          radius="8px"
+        ></app-kexy-button>
+        <app-kexy-button
+          *ngIf="!selectedContacts.length"
+          label="Import"
+          iconLeft="fa-cloud-upload"
+          (click)="importBtnClick()"
+          tooltip="Import Contacts(s)"
+          bgColor="#e7f6fe"
+          textColor="#2847cc"
+          radius="8px"
+        ></app-kexy-button>
+      </div>
     </div>
 
     <section>
@@ -60,7 +125,6 @@
         [sortByCreatedAt]="handleSortByCreatedAt"
         [showBackBtn]="false"
         [showTitle]="false"
-        [showActionBtns]="true"
         [backBtnClick]="backBtnClick"
         [isWaitingFlag]="isWaitingFlag"
         [isLoading]="isLoading"

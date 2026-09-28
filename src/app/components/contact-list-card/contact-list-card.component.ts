@@ -21,7 +21,6 @@ import {
 } from '../contact-labels-modal-content/contact-labels-modal-content.component';
 import { ProspectingService } from '../../services/prospecting.service';
 import { PageUiService } from '../../services/page-ui.service';
-import { KexyButtonComponent } from '../kexy-button/kexy-button.component';
 import { CommonModule, DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Contact } from '../../models/Contact';
@@ -30,7 +29,6 @@ import Swal from 'sweetalert2';
 @Component({
   selector: 'contact-list-card',
   imports: [
-    KexyButtonComponent,
     DecimalPipe,
     FormsModule,
     DatePipe,
@@ -75,7 +73,6 @@ export class ContactListCardComponent implements OnInit, OnChanges, OnDestroy, A
   @Input() backBtnClick;
   @Input() showBackBtn = false;
   @Input() showTitle = true;
-  @Input() showActionBtns = false;
   @Input() sortByCreatedAt;
   @Input() activeFilterClick;
   @Input() activeFilterCount;

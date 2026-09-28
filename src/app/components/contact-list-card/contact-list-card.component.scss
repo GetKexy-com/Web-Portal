@@ -717,12 +717,6 @@ $st-amber-bg: #fef3d9;
   }
 }
 
-.action-btns-wrap {
-  margin-right: 16px;
-  display: flex;
-  gap: 12px;
-}
-
 .navigation-input {
   width: 56px;
   padding: 6px 8px;
@@ -731,24 +725,7 @@ $st-amber-bg: #fef3d9;
   border-radius: 8px;
 }
 
-.buttons-for-large-screen {
-  display: flex;
-  gap: 12px;
-}
-
-.buttons-for-small-screen {
-  display: none;
-}
-
 @media (min-width: 320px) and (max-width: 575px) {
-  .buttons-for-large-screen {
-    display: none !important;
-  }
-  .buttons-for-small-screen {
-    display: flex !important;
-    gap: 15px;
-  }
-
   .kexy-table-card {
     .card-header, .card-footer {
       height: unset;
@@ -840,16 +817,6 @@ $st-amber-bg: #fef3d9;
 //    font-size: 13px;
 //  }
 //}
-
-@media (min-width: 992px) and (max-width: 1199px) {
-  .buttons-for-large-screen {
-    display: none !important;
-  }
-  .buttons-for-small-screen {
-    display: flex !important;
-    gap: 15px;
-  }
-}
 
 // Email-verification progress banner. Same shape as the drip-campaign paused
 // warning (accent box + icon + title/desc), but in a blue "in progress" palette

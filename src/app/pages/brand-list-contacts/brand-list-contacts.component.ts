@@ -15,6 +15,7 @@ import {
   ProspectingCommonCardComponent,
 } from '../../components/prospecting-common-card/prospecting-common-card.component';
 import { ContactListCardComponent } from '../../components/contact-list-card/contact-list-card.component';
+import { KexyButtonComponent } from '../../components/kexy-button/kexy-button.component';
 import {
   UploadFileModalContentComponent,
 } from '../../components/upload-file-modal-content/upload-file-modal-content.component';
@@ -37,6 +38,7 @@ import { Contact } from '../../models/Contact';
     BrandLayoutComponent,
     ProspectingCommonCardComponent,
     ContactListCardComponent,
+    KexyButtonComponent,
     UploadFileModalContentComponent,
     CommonModule,
     TimeAgoComponent,
