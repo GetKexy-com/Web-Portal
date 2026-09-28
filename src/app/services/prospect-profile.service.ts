@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 
-import { MOCK_PROSPECT_INSIGHTS, MOCK_PROSPECT_SCORE } from '../helpers/prospect-profile.mock';
-import { IProspectInsights, IProspectScore } from '../models/ProspectProfile';
+import { MOCK_PROSPECT_INSIGHTS, MOCK_PROSPECT_SCORE, MOCK_PROSPECT_TIMELINE } from '../helpers/prospect-profile.mock';
+import { IProspectInsights, IProspectScore, IProspectTimelineEvent } from '../models/ProspectProfile';
 import { HttpService } from './http.service';
 
 /**
@@ -13,9 +13,9 @@ export const PROSPECT_PROFILE_USE_MOCK = true;
 
 /**
  * Shows the "Profile/Score" column in Insights → Prospects, the only way into the
- * profile. Hidden until the APIs ship; flip to `true` (with USE_MOCK `false`) then.
+ * profile. `false` hides the column (and with it the profile drawer).
  */
-export const PROSPECT_PROFILE_ENABLED = false;
+export const PROSPECT_PROFILE_ENABLED = true;
 
 /** Long enough to exercise the loading skeletons, short enough not to annoy. */
 const MOCK_LATENCY_MS = 450;
@@ -30,11 +30,18 @@ export class ProspectProfileService {
       ? this.__mock({ ...MOCK_PROSPECT_SCORE, email })
       : this.__getData(`drip-campaigns/${campaignId}/prospects/score?email=${encodeURIComponent(email)}`);
 
-  /** Signals, opener choice, timeline, contact details and safety checks. */
+  /** Signals and opener choice. */
   getInsights = (campaignId: number, email: string): Promise<IProspectInsights> =>
     PROSPECT_PROFILE_USE_MOCK
       ? this.__mock({ ...MOCK_PROSPECT_INSIGHTS, email })
       : this.__getData(`drip-campaigns/${campaignId}/prospects/insights?email=${encodeURIComponent(email)}`);
+
+  /**
+   * "What happened so far". Its own API, not defined yet — always sample data until it is,
+   * whatever `PROSPECT_PROFILE_USE_MOCK` says.
+   */
+  getTimeline = (campaignId: number, email: string): Promise<IProspectTimelineEvent[]> =>
+    this.__mock(MOCK_PROSPECT_TIMELINE);
 
   private __mock = <T>(data: T): Promise<T> =>
     new Promise((resolve) => setTimeout(() => resolve(structuredClone(data)), MOCK_LATENCY_MS));

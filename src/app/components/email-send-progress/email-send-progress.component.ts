@@ -204,7 +204,7 @@ export class EmailSendProgressComponent implements OnInit, OnDestroy {
   aiPaused: IAiPausedState | null = null;
   items: IEmailSendItem[] = [];
   total = 0;
-  /** "Profile/Score" column; hidden until the profile APIs ship (see PROSPECT_PROFILE_ENABLED). */
+  /** "Profile/Score" column; toggled by PROSPECT_PROFILE_ENABLED. */
   readonly showProfile = PROSPECT_PROFILE_ENABLED;
   page = 1;
   totalPages = 1;

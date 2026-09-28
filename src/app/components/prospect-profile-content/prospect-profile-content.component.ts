@@ -8,6 +8,7 @@ import {
   IProspectInsights,
   IProspectScore,
   IProspectSignal,
+  IProspectTimelineEvent,
 } from '../../models/ProspectProfile';
 import { PROSPECT_PROFILE_USE_MOCK, ProspectProfileService } from '../../services/prospect-profile.service';
 
@@ -16,8 +17,8 @@ type LoadState = 'loading' | 'ready' | 'error';
 /** Signals shown before "view all" — the design's two strongest. */
 const SIGNALS_PREVIEW = 2;
 
-/** Ring and bar colours, by component position. Matches the design's teal → blue → ink. */
-const COMPONENT_COLORS = ['#0f7a6c', '#0b5bd3', '#0f172a', '#7c3aed', '#b45309'];
+/** Ring and bar colours, by component position (always three). Matches the design's teal → blue → ink. */
+const COMPONENT_COLORS = ['#0f7a6c', '#0b5bd3', '#0f172a'];
 
 /** How long after a reply the design's "follow up within 24h" still applies. */
 const FOLLOW_UP_WINDOW_MS = 24 * 60 * 60 * 1000;
@@ -67,16 +68,13 @@ interface IOpenerBar {
 type EmailTone = 'good' | 'warn' | 'bad' | 'mute';
 
 /**
- * One wording per stored email status, used by the header pill, the tag beside the
- * address in Contact and the Safety check — so the three can never disagree (a catch-all
- * address used to show nothing up top while Safety checks said "not validated").
+ * One wording per stored email status, used by the header pill and the tag beside the
+ * address in Contact — so the two can never disagree.
  */
 interface IEmailStatusView {
   tone: EmailTone;
   pill: string;
   tag: string;
-  check: string;
-  passed: boolean;
 }
 
 const EMAIL_STATUS: Record<string, IEmailStatusView> = {
@@ -84,22 +82,16 @@ const EMAIL_STATUS: Record<string, IEmailStatusView> = {
     tone: 'good',
     pill: '✓ Email validated',
     tag: '✓ validated',
-    check: 'Email validated by KEXY',
-    passed: true,
   },
   'catch-all': {
     tone: 'warn',
     pill: '⚠ Catch-all email',
     tag: 'catch-all — can’t be fully validated',
-    check: 'Catch-all domain — the address can’t be fully validated',
-    passed: false,
   },
   invalid: {
     tone: 'bad',
     pill: '✕ Invalid email',
     tag: 'invalid',
-    check: 'Email is invalid',
-    passed: false,
   },
 };
 
@@ -108,14 +100,7 @@ const EMAIL_NOT_VALIDATED: IEmailStatusView = {
   tone: 'mute',
   pill: 'Email not validated',
   tag: 'not validated',
-  check: 'Email not validated yet',
-  passed: false,
 };
-
-interface ISafetyCheck {
-  label: string;
-  passed: boolean;
-}
 
 interface ISignalView extends IProspectSignal {
   usedInLabel: string | null;
@@ -131,14 +116,15 @@ interface ISignalView extends IProspectSignal {
  * closing this one leaves you where you were in the list. The stacking (z-index, width,
  * scroll lock) is set up by the opener — see there.
  *
- * ── Three sources ───────────────────────────────────────────────────────────
- * - The header, Contact card and email check are REAL: the list row that was clicked,
- *   handed in as `prospect` — name, company, send status, and `profile` (title,
- *   location, LinkedIn, phone, email status) from the prospect's stored details.
+ * ── Four sources ────────────────────────────────────────────────────────────
+ * - The header and Contact card are REAL: the list row that was clicked, handed in as
+ *   `prospect` — name, company, send status, and `profile` (title, location, LinkedIn,
+ *   phone, email status) from the prospect's stored details.
  * - Lead strength: the score API.
- * - The left column and the research checks: the insights API.
- * Both APIs are mocked until KexyApi ships them (`ProspectProfileService`), and they
- * load independently so a slow or failed one never blanks the other's cards.
+ * - "Why we chose this lead" and "How we picked the opening topic": the insights API.
+ * - "What happened so far": the timeline API (separate, not defined yet).
+ * All three APIs are mocked until KexyApi ships them (`ProspectProfileService`), and they
+ * load independently so a slow or failed one never blanks the others' cards.
  *
  * ── Everything derived is a FIELD ───────────────────────────────────────────
  * Same rule as the drawer: computed once per response, not by getters on every
@@ -167,8 +153,11 @@ export class ProspectProfileContentComponent implements OnInit {
   email = '';
   score: IProspectScore | null = null;
   insights: IProspectInsights | null = null;
+  /** "What happened so far", oldest first. */
+  timeline: IProspectTimelineEvent[] = [];
   scoreState: LoadState = 'loading';
   insightsState: LoadState = 'loading';
+  timelineState: LoadState = 'loading';
 
   // ── Derived: header ─────────────────────────────────────────────────────
   displayName = '';
@@ -202,8 +191,6 @@ export class ProspectProfileContentComponent implements OnInit {
   openerWinner = '';
   openerOutcome = '';
   openerBars: IOpenerBar[] = [];
-  /** The portal's own email check first, then the insights API's research checks. */
-  safetyChecks: ISafetyCheck[] = [];
   showPhone = false;
 
   constructor(
@@ -216,6 +203,7 @@ export class ProspectProfileContentComponent implements OnInit {
     this.__recomputeProfile();
     this.loadScore();
     this.loadInsights();
+    this.loadTimeline();
   }
 
   // ── Loading ─────────────────────────────────────────────────────────────
@@ -238,6 +226,16 @@ export class ProspectProfileContentComponent implements OnInit {
       this.insightsState = 'ready';
     } catch {
       this.insightsState = 'error';
+    }
+  };
+
+  loadTimeline = async (): Promise<void> => {
+    this.timelineState = 'loading';
+    try {
+      this.timeline = await this.prospectProfileService.getTimeline(this.campaignId, this.email);
+      this.timelineState = 'ready';
+    } catch {
+      this.timelineState = 'error';
     }
   };
 
@@ -283,7 +281,6 @@ export class ProspectProfileContentComponent implements OnInit {
     this.phoneSource = p.phoneSource || '';
     this.companyAddress = p.companyAddress || '';
     this.maskedPhone = this.__maskPhone(this.phone);
-    this.__recomputeSafetyChecks();
   }
 
   /**
@@ -339,14 +336,6 @@ export class ProspectProfileContentComponent implements OnInit {
     }
   }
 
-  private __recomputeSafetyChecks(): void {
-    const emailCheck: ISafetyCheck = { label: this.emailStatus.check, passed: this.emailStatus.passed };
-    this.safetyChecks = [
-      emailCheck,
-      ...(this.insights?.safetyChecks ?? []).map((c) => ({ label: c.label, passed: c.passed })),
-    ];
-  }
-
   private __recomputeScore(): void {
     const s = this.score;
     const max = s.maxScore || 1;
@@ -397,8 +386,6 @@ export class ProspectProfileContentComponent implements OnInit {
         isWinner: c.key === op.winnerKey,
       }));
     }
-
-    this.__recomputeSafetyChecks();
   }
 
   /**
