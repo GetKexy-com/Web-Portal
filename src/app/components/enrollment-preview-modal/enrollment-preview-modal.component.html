@@ -1,0 +1,108 @@
+<div class="ep-modal">
+  <div class="modal-head">
+    <p class="modal-title-text">
+      <i class="fa fa-users" aria-hidden="true"></i>
+      Review contacts before adding
+    </p>
+    <button type="button" class="icon-btn" aria-label="Close" (click)="activeModal.dismiss()">
+      <i class="fa fa-times" aria-hidden="true"></i>
+    </button>
+  </div>
+
+  <div class="ep-body">
+    <!--Summary: the list(s) being added — each opens its contacts in a new tab, so they
+        can be checked without losing this dialog or the settings drawer behind it — and
+        the total, big enough to read at a glance.-->
+    <div class="ep-summary">
+      <div class="ep-summary-lists">
+        <span class="ep-eyebrow">{{ lists.length > 1 ? 'Lists' : 'List' }}</span>
+        <div class="ep-chips">
+          <a
+            *ngFor="let l of lists"
+            class="ep-chip"
+            [routerLink]="listContactsPath"
+            [queryParams]="{ listId: l.id, page: 1 }"
+            target="_blank"
+            rel="noopener"
+            [title]="'Open ' + l.name + ' in a new tab'"
+          >
+            <span class="ep-chip-name">{{ l.name }}</span>
+            <i class="fa fa-external-link" aria-hidden="true"></i>
+          </a>
+          <span class="ep-chip is-plain" *ngIf="!lists.length">Selected lists</span>
+        </div>
+      </div>
+
+      <div class="ep-total">
+        <span class="ep-total-num">{{ preview.total | number }}</span>
+        <span class="ep-total-label">
+          {{ preview.total === 1 ? 'contact' : 'contacts' }}
+          {{ lists.length > 1 ? 'across these lists' : 'on this list' }}
+        </span>
+      </div>
+    </div>
+
+    <p class="ep-section-label">
+      {{ preview.enrollsNow ? 'When you save' : 'When the campaign is activated' }}
+    </p>
+
+    <ul class="ep-stats">
+      <li class="ep-stat is-add">
+        <span class="ep-icon" aria-hidden="true"><i class="fa fa-check"></i></span>
+        <span class="ep-text">
+          <strong>{{ preview.toAdd | number }}</strong>
+          {{ preview.toAdd === 1 ? 'contact is' : 'contacts are' }} added to the campaign
+        </span>
+      </li>
+
+      <li class="ep-stat is-skip" *ngIf="preview.skippedInvalid > 0">
+        <span class="ep-icon" aria-hidden="true"><i class="fa fa-ban"></i></span>
+        <span class="ep-text">
+          <strong>{{ preview.skippedInvalid | number }}</strong>
+          {{ preview.skippedInvalid === 1 ? 'is' : 'are' }} skipped — invalid email address
+        </span>
+      </li>
+
+      <li class="ep-stat is-skip is-unverified" *ngIf="preview.skippedUnverified > 0">
+        <span class="ep-icon" aria-hidden="true"><i class="fa fa-question"></i></span>
+        <span class="ep-text">
+          <strong>{{ preview.skippedUnverified | number }}</strong>
+          {{ preview.skippedUnverified === 1 ? 'is' : 'are' }} skipped — email not verified
+        </span>
+      </li>
+
+      <li class="ep-stat is-already" *ngIf="preview.alreadyEnrolled > 0">
+        <span class="ep-icon" aria-hidden="true"><i class="fa fa-user-circle-o"></i></span>
+        <span class="ep-text">
+          <strong>{{ preview.alreadyEnrolled | number }}</strong>
+          {{ preview.alreadyEnrolled === 1 ? 'is' : 'are' }} already in this campaign — no change
+        </span>
+      </li>
+    </ul>
+
+    <!--Always state the rule — both halves, invalid AND unverified — whether or not this
+        list happens to have either.-->
+    <p class="ep-note" *ngIf="skipped > 0">
+      <i class="fa fa-info-circle" aria-hidden="true"></i>
+      <span>
+        Contacts with an <b>invalid</b> or <b>unverified</b> email are never added to a drip
+        campaign — emails to them can bounce and hurt your sender reputation.
+      </span>
+    </p>
+    <p class="ep-note is-good" *ngIf="skipped === 0">
+      <i class="fa fa-check-circle" aria-hidden="true"></i>
+      <span>
+        No invalid or unverified emails on {{ lists.length > 1 ? 'these lists' : 'this list' }}, so
+        nothing will be skipped. Contacts with an invalid or unverified email are never added
+        to a drip campaign.
+      </span>
+    </p>
+  </div>
+
+  <div class="modal-foot">
+    <button type="button" class="ghost-btn" (click)="activeModal.dismiss()">Cancel</button>
+    <button type="button" class="primary-btn" (click)="activeModal.close(true)" ngbAutofocus>
+      {{ confirmLabel }}
+    </button>
+  </div>
+</div>

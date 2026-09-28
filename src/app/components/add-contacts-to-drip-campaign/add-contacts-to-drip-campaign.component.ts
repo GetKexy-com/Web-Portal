@@ -193,6 +193,21 @@ export class AddContactsToDripCampaignComponent implements OnInit, OnDestroy {
     };
   };
 
+  /**
+   * Set by the opener (Manage Contacts) to reload ITS table with its own request —
+   * filters, search and page intact. Without it the drawer falls back to an unfiltered
+   * reload, which left the table unfiltered under filter chips that still showed.
+   */
+  refreshContacts: (() => Promise<unknown>) | null = null;
+
+  private __refreshContacts = async (): Promise<void> => {
+    if (this.refreshContacts) {
+      await this.refreshContacts();
+    } else {
+      await this.prospectingService.getContacts(this.getContactsApiPayload(), true);
+    }
+  };
+
   getContactsApiPayload = () => {
     return {
       companyId: this.userData.supplier_id,
@@ -241,7 +256,6 @@ export class AddContactsToDripCampaignComponent implements OnInit, OnDestroy {
       }
     }
 
-    const getContactApiPostData = this.getContactsApiPayload();
     this.isLoading = true;
     try {
       let contacts: Contact[] = this.selectedContacts;
@@ -263,7 +277,16 @@ export class AddContactsToDripCampaignComponent implements OnInit, OnDestroy {
         contactIds: mappedContacts,
         dripCampaignId: this.addToDripCampaignId,
       };
-      await this.dripCampaignService.assignContactsAndLabelsInCampaign(assignApiPostData);
+      const result = await this.dripCampaignService.assignContactsAndLabelsInCampaign(assignApiPostData);
+      const outcome = this.__describeOutcome(result);
+
+      // Nobody could be added (every contact's email is invalid or unverified): say so,
+      // and don't reactivate a completed campaign for nobody.
+      if (outcome.noneAdded) {
+        await this.__refreshContacts();
+        await Swal.fire({ title: 'Not added', html: outcome.html, icon: 'warning' });
+        return;
+      }
 
       let reactivated = false;
       if (reactivating) {
@@ -279,21 +302,21 @@ export class AddContactsToDripCampaignComponent implements OnInit, OnDestroy {
           refreshed.find((c) => String(c.id) === String(this.addToDripCampaignId))?.status === constants.ACTIVE;
       }
 
-      await this.prospectingService.getContacts(getContactApiPostData, true);
+      await this.__refreshContacts();
       this.prospectingService.selectedContactsInContactsPage = [];
 
       if (reactivating) {
         await Swal.fire(
           reactivated
-            ? { title: 'Done!', text: 'Contact(s) added and the drip campaign is active again.', icon: 'success' }
+            ? { title: 'Done!', html: `${outcome.html}<br>The drip campaign is active again.`, icon: 'success' }
             : {
                 title: 'Done!',
-                text: 'Contact(s) added. They were already in this campaign, so it stays complete.',
+                html: `${outcome.html}<br>They were already in this campaign, so it stays complete.`,
                 icon: 'info',
               },
         );
       } else {
-        await Swal.fire('Done!', 'Contact(s) added successfully!', 'success');
+        await Swal.fire({ title: 'Done!', html: outcome.html, icon: outcome.anySkipped ? 'info' : 'success' });
       }
 
       this.activeCanvas.dismiss('Cross click');
@@ -302,5 +325,28 @@ export class AddContactsToDripCampaignComponent implements OnInit, OnDestroy {
     } finally {
       this.isLoading = false;
     }
+  };
+
+  /**
+   * The message after adding: how many were added, and how many were skipped because
+   * their email is invalid or not verified (KexyApi never enrolls those, whatever the
+   * campaign's status). Falls back to the old wording if an older API sent no counts.
+   */
+  private __describeOutcome = (r: any): { html: string; noneAdded: boolean; anySkipped: boolean } => {
+    if (!r || typeof r !== 'object' || typeof r.toAdd !== 'number') {
+      return { html: 'Contact(s) added successfully!', noneAdded: false, anySkipped: false };
+    }
+    const n = (x: number, one: string, many: string) => `${x.toLocaleString()} ${x === 1 ? one : many}`;
+    const lines: string[] = [];
+    if (r.toAdd) lines.push(`<b>${n(r.toAdd, 'contact', 'contacts')}</b> added to the campaign.`);
+    if (r.alreadyEnrolled) lines.push(`${n(r.alreadyEnrolled, 'contact was', 'contacts were')} already in it.`);
+    if (r.skippedInvalid) lines.push(`${n(r.skippedInvalid, 'contact', 'contacts')} skipped — invalid email.`);
+    if (r.skippedUnverified) lines.push(`${n(r.skippedUnverified, 'contact', 'contacts')} skipped — email not verified.`);
+
+    const anySkipped = r.skippedInvalid + r.skippedUnverified > 0;
+    if (anySkipped) {
+      lines.push('<small>Only contacts with a verified email can be added to a drip campaign.</small>');
+    }
+    return { html: lines.join('<br>'), noneAdded: r.toAdd === 0 && r.alreadyEnrolled === 0 && anySkipped, anySkipped };
   };
 }
