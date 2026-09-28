@@ -34,6 +34,7 @@ $page-h: calc(100vh - 70px);
   .pane-thread {
     scrollbar-width: thin;
     scrollbar-color: #cbd5e1 transparent;
+    background: #f5f7fb;
 
     &::-webkit-scrollbar {
       width: 8px;
@@ -634,6 +635,9 @@ $page-h: calc(100vh - 70px);
       flex: 1 1 auto;
       min-height: 0;
       overflow-y: auto;
+      // Never sideways: the hover bits beside a bubble are absolutely positioned
+      // and, even while invisible, would otherwise widen the scroll area.
+      overflow-x: hidden;
       position: relative;
       padding: 20px 22px 60px;
 

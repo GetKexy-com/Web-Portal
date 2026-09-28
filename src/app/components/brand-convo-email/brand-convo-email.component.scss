@@ -5,11 +5,15 @@ $kx-muted: #64748b;
 $kx-faint: #94a3b8;
 $kx-border: #e2e8f0;
 
-// Both sides are the same white card with dark text, so an email's own colours
-// stay readable (a solid-blue bubble needed forced white text, which fought every
-// styled email). Side and tail corner tell sent from received. The iframe body is
-// transparent, so this is the only place the bubble colour lives.
-$bubble-bg: #ffffff;
+// Customer = white card, you = a soft brand tint, both with dark text so an
+// email's own colours stay readable (a solid-blue bubble needed forced white text,
+// which fought every styled email — keep the tint soft). The sent tint must stay
+// clearly apart from the thread background (#f5f7fb, _conversation-shell.scss).
+// The iframe body is transparent, so this is the only place the bubble colours
+// live; white backgrounds inside our sent HTML are cleared in prepareFrameHtml.
+$bubble-received: #ffffff;
+$bubble-sent: #e8f0fb;
+$bubble-sent-border: #d5e2f4;
 
 $avatar-w: 34px;
 
@@ -117,10 +121,12 @@ $avatar-w: 34px;
   overflow: hidden; // clip the iframe to the rounded corners
   border: 1px solid $kx-border;
   border-radius: 18px;
-  background: $bubble-bg;
+  background: $bubble-received;
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
 
   .is-sent & {
+    background: $bubble-sent;
+    border-color: $bubble-sent-border;
     border-bottom-right-radius: 6px;
   }
 
@@ -179,6 +185,23 @@ $avatar-w: 34px;
 
   .is-received .msg-bubble-wrap:not(.is-compact) & {
     align-items: flex-start;
+  }
+
+  // No room beside the bubble (see placeSide): overlay its inner bottom corner.
+  &.is-inside {
+    bottom: 8px;
+
+    .is-sent & {
+      right: auto;
+      left: 8px;
+      align-items: flex-start;
+    }
+
+    .is-received & {
+      left: auto;
+      right: 8px;
+      align-items: flex-end;
+    }
   }
 }
 

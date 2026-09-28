@@ -3,7 +3,13 @@
   <span>{{ dayLabel }}</span>
 </div>
 
-<div class="msg-row" [class.is-received]="received" [class.is-sent]="!received" [class.is-grouped]="grouped">
+<div
+  class="msg-row"
+  [class.is-received]="received"
+  [class.is-sent]="!received"
+  [class.is-grouped]="grouped"
+  (mouseenter)="placeSide($event)"
+>
   <!--Received messages carry the prospect's avatar on the first of a run; the
       slot stays (empty) on the rest so the bubbles line up.-->
   <div class="msg-avatar" *ngIf="received">
