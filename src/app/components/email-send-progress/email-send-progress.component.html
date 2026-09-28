@@ -122,11 +122,11 @@
       <table class="sp-table">
         <thead>
           <tr>
-            <th scope="col">Prospect</th>
+            <th scope="col" class="col-prospect">Prospect</th>
+            <th scope="col" class="col-profile" *ngIf="showProfile">Profile/Score</th>
             <th scope="col" class="col-status">Status</th>
             <th scope="col" class="col-subject">Subject</th>
             <th scope="col" class="col-when">When</th>
-            <th scope="col" class="col-profile" *ngIf="showProfile">Profile/Score</th>
             <th scope="col" class="col-toggle"><span class="sr-only">Details</span></th>
           </tr>
         </thead>
@@ -138,12 +138,21 @@
               [class.is-open]="expanded[rowKey(item)]"
               [class.is-static]="!canExpand(item)"
             >
-              <td>
+              <td class="col-prospect">
                 <span class="sp-name" [title]="item.name || item.email">{{ item.name || item.email }}</span>
                 <span class="sp-meta" [title]="item.email">
                   <ng-container *ngIf="item.name">{{ item.email }}</ng-container>
 <!--                  <ng-container *ngIf="item.company"><ng-container *ngIf="item.name"> · </ng-container>{{ item.company }}</ng-container>-->
                 </span>
+              </td>
+
+              <td class="col-profile" *ngIf="showProfile">
+                <button
+                  type="button"
+                  class="sp-profile-link"
+                  [attr.aria-label]="'View profile and score for ' + (item.name || item.email)"
+                  (click)="openProfile(item)"
+                >View</button>
               </td>
 
               <td class="col-status">
@@ -208,15 +217,6 @@
                   </ng-container>
                   <span *ngSwitchDefault [title]="item.updatedAt | date: 'medium'">{{ item.updatedAt | date: 'MMM d, h:mm a' }}</span>
                 </ng-container>
-              </td>
-
-              <td class="col-profile" *ngIf="showProfile">
-                <button
-                  type="button"
-                  class="sp-profile-link"
-                  [attr.aria-label]="'View profile and score for ' + (item.name || item.email)"
-                  (click)="openProfile(item)"
-                >View</button>
               </td>
 
               <td class="col-toggle">
