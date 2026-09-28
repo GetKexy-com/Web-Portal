@@ -15,6 +15,9 @@ $bubble-received: #ffffff;
 $bubble-sent: #e8f0fb;
 $bubble-sent-border: #d5e2f4;
 
+// The one sharp corner (bottom, sender's side) against 18px everywhere else.
+$bubble-tail-radius: 4px;
+
 $avatar-w: 34px;
 
 // A single message in the thread, shared by brand-conversations AND
@@ -127,21 +130,18 @@ $avatar-w: 34px;
   .is-sent & {
     background: $bubble-sent;
     border-color: $bubble-sent-border;
-    border-bottom-right-radius: 6px;
+  }
+
+  // The tail: one small corner, bottom, on the sender's side — on EVERY bubble, sent
+  // and received alike, so the two are exact mirrors. Nothing else changes a corner:
+  // shaping by position in a run (squaring grouped tops, or dropping the tail mid-run)
+  // made runs of our own drip emails, sent minutes apart, look different from replies.
+  .is-sent & {
+    border-bottom-right-radius: $bubble-tail-radius;
   }
 
   .is-received & {
-    border-bottom-left-radius: 6px;
-  }
-
-  // A grouped message is mid-run: square the tail side on top too, so a run of
-  // bubbles reads as one stack.
-  .is-sent.is-grouped & {
-    border-top-right-radius: 6px;
-  }
-
-  .is-received.is-grouped & {
-    border-top-left-radius: 6px;
+    border-bottom-left-radius: $bubble-tail-radius;
   }
 
   .conv-frame {
@@ -153,125 +153,181 @@ $avatar-w: 34px;
   }
 }
 
-// Hover-only bits on the open side of the bubble: the date/time tooltip and, on
-// received messages, the forward action under it. Hovering the iframe counts as
-// hovering its row, so this works with the pointer over the message itself.
+// Hover-only bits on the open side of the bubble, vertically centred on it: on
+// received messages the forward action (closest to the message), then the time.
+// Hovering the iframe counts as hovering its row, so this works with the pointer
+// over the message itself. Layout fallbacks are chosen by placeSide().
 .msg-side {
   position: absolute;
-  bottom: 0;
+  top: 50%;
+  transform: translateY(-50%);
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   white-space: nowrap;
   pointer-events: none; // only its children take the pointer, and only when shown
+  // The reveal lives HERE, on the container, so its delay can't leak into the
+  // button's own hover animation (a transition-delay applies to every property
+  // listed, which made the button's hover colour and lift start 0.3s late).
+  opacity: 0;
+  transition: opacity 0.15s ease;
 
-  // Beside a short bubble the tooltip and button sit in a row; beside a
-  // full-width email there's only a narrow margin, so they stack.
-  .msg-bubble-wrap:not(.is-compact) & {
-    flex-direction: column;
+  .msg-row:hover &,
+  &:focus-within {
+    opacity: 1;
+  }
+
+  .msg-row:hover & {
+    transition-delay: 0.3s;
   }
 
   .is-sent & {
     right: calc(100% + 8px);
+    flex-direction: row-reverse; // time nearest the bubble
   }
 
   .is-received & {
     left: calc(100% + 8px);
   }
 
-  .is-sent .msg-bubble-wrap:not(.is-compact) & {
-    align-items: flex-end;
+  // Not enough room for one row: stack, still centred, aligned to the bubble side.
+  &.is-stacked {
+    flex-direction: column;
+    gap: 6px;
+
+    .is-sent & {
+      align-items: flex-end;
+    }
+
+    .is-received & {
+      align-items: flex-start;
+    }
   }
 
-  .is-received .msg-bubble-wrap:not(.is-compact) & {
-    align-items: flex-start;
-  }
-
-  // No room beside the bubble (see placeSide): overlay its inner bottom corner.
+  // No room beside the bubble at all: overlay its inner edge, still centred.
   &.is-inside {
-    bottom: 8px;
+    flex-direction: column;
+    gap: 6px;
 
     .is-sent & {
       right: auto;
-      left: 8px;
+      left: 10px;
       align-items: flex-start;
     }
 
     .is-received & {
       left: auto;
-      right: 8px;
+      right: 10px;
       align-items: flex-end;
     }
   }
 }
 
-// Messenger-style: a dark tooltip, after a short delay so skimming the thread
-// doesn't flash one on every bubble; gone at once on leave. Opacity only (not
+// Shown (with the container, above) after a short delay so skimming the thread
+// doesn't flash them on every bubble; gone at once on leave. Opacity only (not
 // visibility) so the forward button stays in the keyboard tab order.
 .msg-when,
 .msg-action {
-  opacity: 0;
-  transition: opacity 0.12s ease;
-
-  .msg-row:hover & {
-    opacity: 1;
+  .msg-row:hover &,
+  .msg-side:focus-within & {
     pointer-events: auto;
-    transition-delay: 0.35s;
   }
 }
 
+// The time: a dark chip — time in bold, date lighter — with a small arrow toward
+// the bubble when it sits right beside it (sent messages; on received ones the
+// forward button is between them).
 .msg-when {
-  padding: 5px 9px;
+  position: relative;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 6px 10px;
   border-radius: 8px;
-  background: rgba(15, 23, 42, 0.88);
+  background: #0f172a;
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.18), 0 1px 3px rgba(15, 23, 42, 0.2);
   font-size: 11.5px;
-  font-weight: 600;
-  color: #fff;
-}
+  line-height: 1.2;
+  color: rgba(255, 255, 255, 0.7);
+  font-variant-numeric: tabular-nums;
 
-// Keyboard: tabbing onto the forward button shows it.
-.msg-action:focus-visible {
-  opacity: 1;
-  pointer-events: auto;
-}
+  strong {
+    font-weight: 700;
+    color: #fff;
+  }
 
-// No hover on touch screens: keep the forward action in view, skip the tooltip.
-@media (hover: none) {
-  .msg-action {
-    opacity: 1;
-    pointer-events: auto;
+  .is-sent .msg-side:not(.is-stacked):not(.is-inside) &::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: -4px;
+    width: 8px;
+    height: 8px;
+    background: inherit;
+    border-radius: 1px;
+    transform: translateY(-50%) rotate(45deg);
   }
 }
 
-// "Forward reply" beside a received bubble: a small secondary button, brand icon.
+// "Forward" beside a received bubble: a soft brand pill with the icon in its own
+// circle; fills solid brand blue on hover.
 .msg-action {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  height: 28px;
-  padding: 0 12px 0 10px;
-  border: 1px solid $kx-border;
+  gap: 7px;
+  height: 32px;
+  padding: 0 14px 0 4px;
+  border: 1px solid #d5e2f4;
   border-radius: 999px;
-  background: #fff;
+  background: #eef4fe;
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
-  font-size: 12px;
-  font-weight: 600;
-  color: $kx-ink;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: $kx-primary-deep;
   cursor: pointer;
-  transition: border-color 0.12s ease, background 0.12s ease, color 0.12s ease;
+  // No delay, one easing for everything, so the fill, lift and shadow move together.
+  transition:
+    background-color 0.18s cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-color 0.18s cubic-bezier(0.2, 0.8, 0.2, 1),
+    color 0.18s cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 0.18s cubic-bezier(0.2, 0.8, 0.2, 1),
+    transform 0.18s cubic-bezier(0.2, 0.8, 0.2, 1);
 
-  .fa {
+  .msg-action-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: $kx-primary-deep;
+    color: #fff;
     font-size: 11px;
-    color: $kx-primary-deep;
+    transition:
+      background-color 0.18s cubic-bezier(0.2, 0.8, 0.2, 1),
+      color 0.18s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
 
   &:hover:not(:disabled) {
-    border-color: #bcd3f5;
-    background: #f3f7fe;
-    color: $kx-primary-deep;
+    border-color: $kx-primary-deep;
+    background: $kx-primary-deep;
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(9, 93, 209, 0.28);
+    transform: translateY(-1px);
+
+    .msg-action-icon {
+      background: #fff;
+      color: $kx-primary-deep;
+    }
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: 0 1px 2px rgba(9, 93, 209, 0.25);
   }
 
   &:focus-visible {
+    pointer-events: auto;
     outline: 2px solid rgba(9, 93, 209, 0.35);
     outline-offset: 2px;
   }
@@ -279,6 +335,21 @@ $avatar-w: 34px;
   &:disabled {
     cursor: default;
     opacity: 0.6;
+  }
+}
+
+// No hover on touch screens: keep the forward action in view, skip the tooltip.
+@media (hover: none) {
+  .msg-side {
+    opacity: 1;
+  }
+
+  .msg-action {
+    pointer-events: auto;
+  }
+
+  .msg-when {
+    display: none;
   }
 }
 

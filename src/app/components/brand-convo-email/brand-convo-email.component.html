@@ -36,21 +36,27 @@
         ></iframe>
       </div>
 
-      <!--Beside the bubble on hover, like Messenger: the full date and time, and on
-          received messages the forward action. (A title tooltip can't work here —
-          the pointer is over the iframe, not this document.)-->
+      <!--Beside the bubble on hover, like Messenger, vertically centred on it: on
+          received messages the forward action first (closest to the message), then
+          the time. (A title tooltip can't work here — the pointer is over the
+          iframe, not this document.)-->
       <div class="msg-side">
-        <time class="msg-when" [attr.datetime]="email.messageSentAt">{{ fullTime }}</time>
         <button
           type="button"
           class="msg-action"
           *ngIf="received"
           [disabled]="isLoading"
           (click)="handleClickSentToUser(sendTestEmailModal)"
+          aria-label="Forward this reply"
         >
-          <i class="fa" [ngClass]="isLoading ? 'fa-spinner fa-spin' : 'fa-share'" aria-hidden="true"></i>
-          Forward reply
+          <span class="msg-action-icon" aria-hidden="true">
+            <i class="fa" [ngClass]="isLoading ? 'fa-spinner fa-spin' : 'fa-share'"></i>
+          </span>
+          Forward
         </button>
+        <time class="msg-when" [attr.datetime]="email.messageSentAt" [title]="whenFull">
+          <strong>{{ whenTime }}</strong><span>{{ whenDate }}</span>
+        </time>
       </div>
     </div>
   </div>
