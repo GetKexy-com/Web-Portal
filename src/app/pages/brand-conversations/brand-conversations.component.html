@@ -250,13 +250,21 @@
         Prospect has unsubscribed
       </div>
 
-      <div class="pane-thread">
+      <div
+        class="pane-thread"
+        #threadPane
+        (scroll)="onThreadScroll()"
+        (wheel)="onThreadInput()"
+        (touchstart)="onThreadInput()"
+        (keydown)="onThreadInput()"
+        (pointerdown)="onThreadInput()"
+      >
         <div class="conv-loading-overlay" *ngIf="showSpinner">
           <i class="fa fa-spinner fa-spin" aria-hidden="true"></i>
         </div>
         <!--Messages stay laid out (so their iframes load + size) but invisible
             until every frame is ready — do NOT change this to *ngIf.-->
-        <div class="conv-messages" [class.hidden]="messagesLoading">
+        <div class="conv-messages" #threadMessages [class.hidden]="messagesLoading">
           <ng-container *ngFor="let email of selectedConversation['messages']">
             <brand-convo-email
               [email]="email"
