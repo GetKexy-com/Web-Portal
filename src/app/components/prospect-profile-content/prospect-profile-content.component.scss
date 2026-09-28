@@ -400,18 +400,23 @@ $kx-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
 // ── What happened so far ─────────────────────────────────────────────────────
 .pp-timeline {
+  // One grid for the whole list (rows are `display: contents`), so the date column is
+  // exactly as wide as the longest date shown and every row still lines up.
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  column-gap: 12px;
   margin: 0;
   padding: 0;
   list-style: none;
 
   li {
-    display: grid;
-    // Fixed, not max-content: each row is its own grid, so an auto width would misalign them.
-    grid-template-columns: 158px minmax(0, 1fr);
-    gap: 12px;
-    padding: 7px 0;
+    display: contents;
     font-size: 13px;
     color: $kx-body;
+
+    > * {
+      padding: 7px 0;
+    }
   }
 
   strong {
@@ -460,9 +465,15 @@ $kx-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   text-transform: uppercase;
 }
 
+// Proportional, not the mono accent: mono uppercase made "JUL 16, 2026 · 1:52 PM" the
+// widest thing in the card. Tabular digits keep the times aligned down the column.
 .pp-timeline .pp-when {
-  font-size: 11px;
+  font-family: inherit !important;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  text-transform: none;
   white-space: nowrap;
+  padding-top: 8px;
 }
 
 // ── Lead strength ────────────────────────────────────────────────────────────

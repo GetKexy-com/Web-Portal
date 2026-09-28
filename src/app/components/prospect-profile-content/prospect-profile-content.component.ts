@@ -105,6 +105,8 @@ const EMAIL_NOT_VALIDATED: IEmailStatusView = {
 interface ITimelineView extends IProspectTimelineEvent {
   /** Rescores only: which way the score went, for the badge colour. */
   scoreMove: 'up' | 'down' | 'same' | null;
+  /** Leaves the year off the date — it's only noise for this year. */
+  thisYear: boolean;
 }
 
 interface ISignalView extends IProspectSignal {
@@ -233,7 +235,11 @@ export class ProspectProfileContentComponent implements OnInit {
       // KexyApi already sends them oldest first; sorted again (stable) so the order is
       // guaranteed by time here too, never by how the list happened to be built.
       this.timeline = res.events
-        .map((e) => ({ ...e, scoreMove: this.__scoreMove(e) }))
+        .map((e) => ({
+          ...e,
+          scoreMove: this.__scoreMove(e),
+          thisYear: new Date(e.at).getFullYear() === new Date().getFullYear(),
+        }))
         .sort((a, b) => new Date(a.at).getTime() - new Date(b.at).getTime());
       this.score = res.score;
       this.__recomputeScore();

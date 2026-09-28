@@ -160,8 +160,9 @@
           <ng-container *ngIf="timelineState === 'ready'">
             <ol class="pp-timeline" *ngIf="timeline.length">
               <li *ngFor="let t of timeline" [ngClass]="'is-' + t.kind">
-                <!--Date and time: several things often happen on one day, and the time is what orders them.-->
-                <time class="pp-when" [attr.datetime]="t.at" [title]="t.at | date: 'medium'">{{ t.at | date: 'MMM d, y · h:mm a' }}</time>
+                <!--Date and time: several things often happen on one day, and the time is what orders them.
+                    The year only when it isn't this one.-->
+                <time class="pp-when" [attr.datetime]="t.at" [title]="t.at | date: 'medium'">{{ t.at | date: (t.thisYear ? 'MMM d · h:mm a' : 'MMM d, y · h:mm a') }}</time>
                 <span>
                   <strong>{{ t.title }}</strong> {{ t.detail }}
                   <span class="pp-score-move" *ngIf="t.scoreMove as m" [ngClass]="'is-' + m">
