@@ -170,11 +170,13 @@ export class ProspectProfileContentComponent implements OnInit {
 
   // ── Derived: header ─────────────────────────────────────────────────────
   displayName = '';
+  /** Two-letter avatar initials, same rule as the contacts table (`getContactInitials`). */
+  initials = '';
+  /** One of 6 gradients (`av-0`..`av-5`), same rule as the contacts table (`getAvatarClass`). */
+  avatarClass = '';
   jobTitle = '';
   company = '';
   location = '';
-  linkedinUrl = '';
-  linkedinLabel = '';
   sendPill: { label: string; tone: Tone; at: string | null } | null = null;
   emailStatus: IEmailStatusView = EMAIL_NOT_VALIDATED;
   /** Set only when the prospect replied to THIS email — drives the pill and the Lead strength box. */
@@ -268,11 +270,11 @@ export class ProspectProfileContentComponent implements OnInit {
     const p = item.profile ?? ({} as Partial<IEmailSendProfile>);
 
     this.displayName = item.name || this.email;
+    this.initials = this.__initialsFor(item.name, this.email);
+    this.avatarClass = this.__avatarClassFor(item.name || this.email);
     this.jobTitle = p.jobTitle || '';
     this.company = item.company || '';
     this.location = [p.city, p.state, p.country].filter(Boolean).join(', ');
-    this.linkedinUrl = p.linkedinUrl || '';
-    this.linkedinLabel = this.linkedinUrl.replace(/^https?:\/\/(www\.)?/i, '').replace(/\/$/, '');
 
     const meta = STATUS_META[item.status];
     this.sendPill = meta
@@ -403,6 +405,23 @@ export class ProspectProfileContentComponent implements OnInit {
   private __scoreMove(e: IProspectTimelineEvent): ITimelineView['scoreMove'] {
     if (e.kind !== 'rescored' || !e.score || e.score.from == null) return null;
     return e.score.to > e.score.from ? 'up' : e.score.to < e.score.from ? 'down' : 'same';
+  }
+
+  /** Same rule as the contacts table's `getContactInitials`, minus its per-row memoization. */
+  private __initialsFor(name: string | null, email: string): string {
+    const trimmed = (name || '').trim();
+    if (trimmed) {
+      const parts = trimmed.split(/\s+/).filter(Boolean);
+      return (parts.length >= 2 ? parts[0][0] + parts[1][0] : trimmed.substring(0, 2)).toUpperCase();
+    }
+    return email ? email.substring(0, 2).toUpperCase() : '?';
+  }
+
+  /** Same rule as the contacts table's `getAvatarClass`: one of 6 gradients, by name/email hash. */
+  private __avatarClassFor(seed: string): string {
+    let h = 0;
+    for (let i = 0; i < seed.length; i++) h = (h + seed.charCodeAt(i)) % 6;
+    return 'av-' + h;
   }
 
   /**

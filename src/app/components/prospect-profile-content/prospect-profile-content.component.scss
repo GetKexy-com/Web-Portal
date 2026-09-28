@@ -58,38 +58,76 @@ $kx-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   }
 }
 
-// ── Header ───────────────────────────────────────────────────────────────────
-.pp-head {
-  flex: 0 0 auto;
+// ── Header (drawer chrome) ──────────────────────────────────────────────────
+// Overrides `_insights-drawer.scss`'s generic `.head-area`/`.head-title`/`.head-subtitle`
+// so it leads with the prospect's identity instead of a static "Prospect profile" label.
+// Nesting matches the partial's own selectors (`.canvas-content-wrap .head-area …`) so
+// this wins the cascade without `!important`; it's still scoped to this component only,
+// since Angular's emulated encapsulation re-scopes the partial's CSS per consumer.
+.canvas-content-wrap {
+  // No wrap: the identity block shrinks and wraps its own text instead, so the close
+  // button stays pinned top-right instead of dropping below a long name/subtitle.
+  .head-area {
+    align-items: flex-start;
+  }
+
+  .head-identity {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+  }
+
+  .head-text {
+    min-width: 0;
+  }
+
+  .head-title {
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    text-transform: capitalize;
+    overflow-wrap: anywhere;
+  }
+
+  .head-subtitle {
+    margin-top: 6px;
+    margin-bottom: 0;
+    font-size: 14px;
+    color: $kx-muted;
+  }
 }
 
-.pp-name {
-  margin: 0 0 6px;
-  font-size: 26px;
-  font-weight: 800;
-  line-height: 1.2;
-  letter-spacing: -0.01em;
-  color: $kx-ink;
-  overflow-wrap: anywhere;
-}
+// Same gradient-initial avatar as the contacts table (`contact-list-card`'s `.avatar`/
+// `av-0`..`av-5`), just bigger — so a prospect looks like the same person whether you're
+// looking at the list or their profile.
+.head-avatar {
+  flex-shrink: 0;
+  width: 52px;
+  height: 52px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
 
-.pp-sub {
-  margin: 0 0 10px;
-  font-size: 14px;
-  color: $kx-muted;
+  &.av-0 { background: linear-gradient(135deg, #6366f1, #4338ca); }
+  &.av-1 { background: linear-gradient(135deg, #06b6d4, #0e7490); }
+  &.av-2 { background: linear-gradient(135deg, #f59e0b, #b45309); }
+  &.av-3 { background: linear-gradient(135deg, #ec4899, #be185d); }
+  &.av-4 { background: linear-gradient(135deg, #10b981, #047857); }
+  &.av-5 { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
 }
 
 .pp-sub-part + .pp-sub-part::before {
   content: " · ";
   color: $kx-faint;
-}
-
-.pp-sub-link {
-  color: $kx-muted;
-
-  &:hover {
-    color: $kx-primary-deep;
-  }
 }
 
 .pp-pills {
