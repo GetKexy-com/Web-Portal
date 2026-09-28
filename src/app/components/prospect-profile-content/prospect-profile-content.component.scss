@@ -400,21 +400,61 @@ $kx-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
 // ── What happened so far ─────────────────────────────────────────────────────
 .pp-timeline {
+  // One grid for the whole list (rows are `display: contents`), so the date column is
+  // exactly as wide as the longest date shown and every row still lines up.
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  column-gap: 12px;
   margin: 0;
   padding: 0;
   list-style: none;
 
   li {
-    display: grid;
-    grid-template-columns: 66px minmax(0, 1fr);
-    gap: 12px;
-    padding: 7px 0;
+    display: contents;
     font-size: 13px;
     color: $kx-body;
+
+    > * {
+      padding: 7px 0;
+    }
   }
 
   strong {
     color: $kx-ink;
+  }
+
+  // What the prospect did stands out from what we did; a reply most of all.
+  .is-replied strong {
+    color: $kx-teal;
+  }
+
+  .is-clicked strong,
+  .is-opened strong {
+    color: $kx-live;
+  }
+}
+
+// "▲ 71" beside a rescore — the new score at a glance, coloured by direction.
+.pp-score-move {
+  @include mono;
+  display: inline-block;
+  margin-left: 4px;
+  padding: 0 6px;
+  border-radius: 999px;
+  font-size: 11px;
+  line-height: 18px;
+  white-space: nowrap;
+  color: $kx-muted;
+  background: $kx-hairline;
+
+  &.is-up {
+    color: $kx-good;
+    background: $kx-good-bg;
+  }
+
+  &.is-down {
+    color: $kx-red;
+    background: $kx-red-bg;
   }
 }
 
@@ -423,6 +463,17 @@ $kx-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   padding-top: 2px;
   color: $kx-muted;
   text-transform: uppercase;
+}
+
+// Proportional, not the mono accent: mono uppercase made "JUL 16, 2026 · 1:52 PM" the
+// widest thing in the card. Tabular digits keep the times aligned down the column.
+.pp-timeline .pp-when {
+  font-family: inherit !important;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  text-transform: none;
+  white-space: nowrap;
+  padding-top: 8px;
 }
 
 // ── Lead strength ────────────────────────────────────────────────────────────

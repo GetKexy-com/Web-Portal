@@ -102,6 +102,13 @@ const EMAIL_NOT_VALIDATED: IEmailStatusView = {
   tag: 'not validated',
 };
 
+interface ITimelineView extends IProspectTimelineEvent {
+  /** Rescores only: which way the score went, for the badge colour. */
+  scoreMove: 'up' | 'down' | 'same' | null;
+  /** Leaves the year off the date — it's only noise for this year. */
+  thisYear: boolean;
+}
+
 interface ISignalView extends IProspectSignal {
   usedInLabel: string | null;
 }
@@ -120,11 +127,13 @@ interface ISignalView extends IProspectSignal {
  * - The header and Contact card are REAL: the list row that was clicked, handed in as
  *   `prospect` — name, company, send status, and `profile` (title, location, LinkedIn,
  *   phone, email status) from the prospect's stored details.
- * - Lead strength: the score API.
- * - "Why we chose this lead" and "How we picked the opening topic": the insights API.
- * - "What happened so far": the timeline API (separate, not defined yet).
- * All three APIs are mocked until KexyApi ships them (`ProspectProfileService`), and they
- * load independently so a slow or failed one never blanks the others' cards.
+ * - "Why we chose this lead" and "How we picked the opening topic": the insights API,
+ *   mocked until KexyApi ships it (`ProspectProfileService`).
+ * - "What happened so far" AND Lead strength: the timeline API, one request. The score it
+ *   returns is the newest entry of the history the timeline narrates, so the card and the
+ *   "Rescored" lines agree. Loading it is what makes KexyApi rescore the prospect when
+ *   they've done something since the last score (the score model itself is still a mock).
+ * The two requests load independently so a slow or failed one never blanks the other's cards.
  *
  * ── Everything derived is a FIELD ───────────────────────────────────────────
  * Same rule as the drawer: computed once per response, not by getters on every
@@ -154,7 +163,7 @@ export class ProspectProfileContentComponent implements OnInit {
   score: IProspectScore | null = null;
   insights: IProspectInsights | null = null;
   /** "What happened so far", oldest first. */
-  timeline: IProspectTimelineEvent[] = [];
+  timeline: ITimelineView[] = [];
   scoreState: LoadState = 'loading';
   insightsState: LoadState = 'loading';
   timelineState: LoadState = 'loading';
@@ -201,23 +210,11 @@ export class ProspectProfileContentComponent implements OnInit {
   ngOnInit(): void {
     this.email = this.prospect.email;
     this.__recomputeProfile();
-    this.loadScore();
     this.loadInsights();
     this.loadTimeline();
   }
 
   // ── Loading ─────────────────────────────────────────────────────────────
-  loadScore = async (): Promise<void> => {
-    this.scoreState = 'loading';
-    try {
-      this.score = await this.prospectProfileService.getScore(this.campaignId, this.email);
-      this.__recomputeScore();
-      this.scoreState = 'ready';
-    } catch {
-      this.scoreState = 'error';
-    }
-  };
-
   loadInsights = async (): Promise<void> => {
     this.insightsState = 'loading';
     try {
@@ -229,13 +226,28 @@ export class ProspectProfileContentComponent implements OnInit {
     }
   };
 
+  /** Feeds both "What happened so far" and Lead strength. */
   loadTimeline = async (): Promise<void> => {
     this.timelineState = 'loading';
+    this.scoreState = 'loading';
     try {
-      this.timeline = await this.prospectProfileService.getTimeline(this.campaignId, this.email);
+      const res = await this.prospectProfileService.getTimeline(this.campaignId, this.email);
+      // KexyApi already sends them oldest first; sorted again (stable) so the order is
+      // guaranteed by time here too, never by how the list happened to be built.
+      this.timeline = res.events
+        .map((e) => ({
+          ...e,
+          scoreMove: this.__scoreMove(e),
+          thisYear: new Date(e.at).getFullYear() === new Date().getFullYear(),
+        }))
+        .sort((a, b) => new Date(a.at).getTime() - new Date(b.at).getTime());
+      this.score = res.score;
+      this.__recomputeScore();
       this.timelineState = 'ready';
+      this.scoreState = 'ready';
     } catch {
       this.timelineState = 'error';
+      this.scoreState = 'error';
     }
   };
 
@@ -386,6 +398,11 @@ export class ProspectProfileContentComponent implements OnInit {
         isWinner: c.key === op.winnerKey,
       }));
     }
+  }
+
+  private __scoreMove(e: IProspectTimelineEvent): ITimelineView['scoreMove'] {
+    if (e.kind !== 'rescored' || !e.score || e.score.from == null) return null;
+    return e.score.to > e.score.from ? 'up' : e.score.to < e.score.from ? 'down' : 'same';
   }
 
   /**

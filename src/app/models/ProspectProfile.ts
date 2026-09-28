@@ -85,14 +85,33 @@ export interface IProspectInsights {
   generatedAt: string;
 }
 
-// ── "What happened so far" ───────────────────────────────────────────────────
+// ── GET drip-campaigns/:campaignId/prospects/timeline?email= ─────────────────
 
-/**
- * One entry of the timeline. It comes from a separate API that is not defined yet, so it
- * has no schema in `docs/prospect-profile-api/` — the portal serves sample data for now.
- */
+/** `imported` = the contact coming in and being added to the drip — one step, always first. */
+export type ProspectTimelineKind = 'imported' | 'sent' | 'opened' | 'replied' | 'clicked' | 'rescored';
+
+/** One entry of "What happened so far". Worded by KexyApi; the portal shows it as-is. */
 export interface IProspectTimelineEvent {
   at: string;
+  kind: ProspectTimelineKind;
   title: string;
   detail: string | null;
+  /** The campaign email it is about (sent / opened / replied / clicked); null otherwise. */
+  emailSequence: number | null;
+  /** The starting score (on Imported) and rescores. `from` is null for the start. */
+  score: { from: number | null; to: number } | null;
+}
+
+/**
+ * The timeline, plus the prospect's CURRENT score in the score contract's shape — the
+ * newest entry of the history the timeline narrates, so the Lead strength card and the
+ * "Rescored" lines can never disagree. Loading it is what triggers a rescore server-side
+ * when the prospect has done something since the last one. The score is still a mock
+ * model on the server (`KexyApi/src/drip-campaigns/prospect-score.ts`).
+ */
+export interface IProspectTimeline {
+  email: string;
+  /** Oldest first — strictly by time; a rescore is dated at the action it reacted to. */
+  events: IProspectTimelineEvent[];
+  score: IProspectScore;
 }

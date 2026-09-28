@@ -9,8 +9,14 @@ serves the `*.example.json` payloads in this folder as mock data.
 | `GET /v2/drip-campaigns/:campaignId/prospects/score?email=<email>` | `prospect-score.schema.json` | `prospect-score.example.json` | Lead strength card: score, ring, bars. Also the warm-lead alert email (KexyApi): score, tier bars, current stage |
 | `GET /v2/drip-campaigns/:campaignId/prospects/insights?email=<email>` | `prospect-insights.schema.json` | `prospect-insights.example.json` | Why we chose this lead, How we picked the opening topic |
 
-**What happened so far** (the timeline) is not part of either API. It will come
-from a separate API. Until that is defined the portal shows sample data for it.
+**What happened so far** (the timeline) and the **current score** come from a third
+route that is already built: `GET /v2/drip-campaigns/:campaignId/prospects/timeline?email=<email>`
+→ `{ email, events, score }`, where `score` has exactly the shape of
+`prospect-score.schema.json`. The portal's Lead strength card reads it from there, not
+from `/prospects/score`. Loading it rescores the prospect when they have done something
+since the last score. The scoring model behind it is still a mock (see `KexyApi/CLAUDE.md`,
+*"What happened so far" + mock score history*); when the real model ships it plugs in
+server-side and this contract does not change.
 
 Who the prospect is — name, company, job title, location, LinkedIn, phone and email
 validation — is **not** part of either API, and neither is whether they replied to,
