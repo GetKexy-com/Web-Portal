@@ -10,6 +10,11 @@ import { BrandConvoAvatarComponent } from '../brand-convo-avatar/brand-convo-ava
  *  a bubble sized to its content. */
 const RICH_CONTENT = 'table, img, video, picture, svg, iframe, pre';
 
+/** Space between the bubble and the side bits (matches `.msg-side` offset in the SCSS). */
+const SIDE_GAP_PX = 8;
+/** Breathing room kept between the side bits and the thread's edge. */
+const SIDE_MARGIN_PX = 8;
+
 @Component({
   selector: 'brand-convo-email',
   imports: [
@@ -55,8 +60,11 @@ export class BrandConvoEmailComponent implements OnInit, OnDestroy {
   showDay = false;
   dayLabel = '';
   senderLabel = '';
-  /** "Sun, Jun 21, 2026, 10:43 PM" — the hover tooltip. */
-  fullTime = '';
+  /** The hover tooltip: "10:43 PM" in bold, then "Sun, Jun 21" (year only if not this year). */
+  whenTime = '';
+  whenDate = '';
+  /** "Sun, Jun 21, 2026, 10:43 PM" — the tooltip's own title, for the full stamp. */
+  whenFull = '';
   /** Plain text: the bubble is sized to the text instead of the full measure. */
   compact = false;
 
@@ -77,7 +85,12 @@ export class BrandConvoEmailComponent implements OnInit, OnDestroy {
     this.showDay = !prev || this.__dayKey(prev.messageSentAt) !== day;
     this.dayLabel = this.showDay ? this.__dayLabel(this.email.messageSentAt) : '';
     const sentAt = new Date(this.email.messageSentAt);
-    this.fullTime = isNaN(sentAt.getTime()) ? '' : formatDate(sentAt, 'EEE, MMM d, y, h:mm a', 'en-US');
+    if (!isNaN(sentAt.getTime())) {
+      const thisYear = sentAt.getFullYear() === new Date().getFullYear();
+      this.whenTime = formatDate(sentAt, 'h:mm a', 'en-US');
+      this.whenDate = formatDate(sentAt, thisYear ? 'EEE, MMM d' : 'MMM d, y', 'en-US');
+      this.whenFull = formatDate(sentAt, 'EEE, MMM d, y, h:mm a', 'en-US');
+    }
     this.grouped = BrandConvoEmailComponent.continues(prev, this.email);
     // No delivery/read status: `messageStatus` flips to "opened" when WE open the
     // conversation (KexyApi messages.update), so it says nothing about the prospect.
@@ -249,11 +262,12 @@ export class BrandConvoEmailComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * The hover tooltip + forward button sit beside the bubble, but next to a wide
-   * bubble on a narrow screen there's no room: they'd poke past the thread (which
-   * used to make it scroll sideways). On each hover, measure — and if they don't fit
-   * in the gap, tuck them inside the bubble's bottom corner instead (`is-inside`).
-   * Plain DOM, no change detection: it only toggles a class.
+   * The forward button + time sit beside the bubble, vertically centred. Beside a wide
+   * email the gap can be narrow, so on each hover measure and take the first layout
+   * that fits: one row, then stacked (`is-stacked`), then — no room at all — overlaid
+   * on the bubble's inner edge (`is-inside`), still centred. Never past the thread
+   * (that used to make it scroll sideways). Plain DOM, no change detection: it only
+   * toggles classes.
    */
   placeSide = (event: MouseEvent): void => {
     const row = event.currentTarget as HTMLElement;
@@ -261,11 +275,16 @@ export class BrandConvoEmailComponent implements OnInit, OnDestroy {
     const wrap = row.querySelector<HTMLElement>('.msg-bubble-wrap');
     const pane = row.closest<HTMLElement>('.pane-thread');
     if (!side || !wrap || !pane) return;
-    side.classList.remove('is-inside');
     const w = wrap.getBoundingClientRect();
     const p = pane.getBoundingClientRect();
-    const room = this.received ? p.right - w.right : w.left - p.left;
-    side.classList.toggle('is-inside', side.offsetWidth + 16 > room);
+    const room = (this.received ? p.right - w.right : w.left - p.left) - SIDE_GAP_PX - SIDE_MARGIN_PX;
+
+    side.classList.remove('is-inside', 'is-stacked');
+    if (side.offsetWidth <= room) return;
+    side.classList.add('is-stacked');
+    if (side.offsetWidth <= room) return;
+    side.classList.remove('is-stacked');
+    side.classList.add('is-inside');
   };
 
   /** How close two messages from one sender must be to share a name/time header. */
