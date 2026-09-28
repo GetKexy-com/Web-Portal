@@ -1,4 +1,4 @@
-import { IProspectInsights, IProspectScore, IProspectTimelineEvent } from '../models/ProspectProfile';
+import { IProspectInsights, IProspectScore } from '../models/ProspectProfile';
 
 /**
  * Stand-in responses for the prospect profile APIs until the backend ships them.
@@ -111,13 +111,3 @@ export const MOCK_PROSPECT_INSIGHTS: IProspectInsights = {
   },
   "generatedAt": "2026-09-19T15:42:05.000Z"
 };
-
-/**
- * "What happened so far" — NOT from the example files: the timeline comes from a separate
- * API that has no contract yet, so this is the only definition of it for now. Oldest first.
- */
-export const MOCK_PROSPECT_TIMELINE: IProspectTimelineEvent[] = [
-  { at: "2026-09-12T09:05:00.000Z", title: "Imported.", detail: "Score started at 62." },
-  { at: "2026-09-19T08:30:00.000Z", title: "Email 1 sent", detail: "— opened with his LinkedIn share." },
-  { at: "2026-09-19T15:42:00.000Z", title: "Rescored.", detail: "Score rose 65 → 95 after his company news was found." },
-];

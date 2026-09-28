@@ -14,13 +14,13 @@
 
   <div class="canvas-body">
 
-    <!--Until the APIs exist the score, research and timeline are the example payloads — say so,
-        or a sample "Peter replied" reads as a fact about this prospect.-->
+    <!--Until the insights API exists the research is the example payload — say so, or a
+        sample "Peter shared…" reads as a fact about this prospect.-->
     <div class="pp-mock" *ngIf="isMock" role="note">
       <i class="fa fa-flask" aria-hidden="true"></i>
       <span>
-        <strong>Preview.</strong> The prospect’s details, contact info and send status are real. The
-        score, why we picked this lead and what happened so far are sample data until their APIs are connected.
+        <strong>Preview.</strong> The prospect’s details, send status and what happened so far are real.
+        The score is an early estimate, and why we picked this lead is sample data until its API is connected.
       </span>
     </div>
 
@@ -147,7 +147,7 @@
           </ng-container>
         </section>
 
-        <!--── What happened so far: the timeline API ──-->
+        <!--── What happened so far: the timeline API (also feeds Lead strength) ──-->
         <section class="pp-card" aria-labelledby="pp-timeline">
           <h3 class="pp-card-title" id="pp-timeline">What happened so far</h3>
 
@@ -159,9 +159,15 @@
 
           <ng-container *ngIf="timelineState === 'ready'">
             <ol class="pp-timeline" *ngIf="timeline.length">
-              <li *ngFor="let t of timeline">
-                <time class="pp-when" [attr.datetime]="t.at" [title]="t.at | date: 'medium'">{{ t.at | date: 'MMM d' }}</time>
-                <span><strong>{{ t.title }}</strong> {{ t.detail }}</span>
+              <li *ngFor="let t of timeline" [ngClass]="'is-' + t.kind">
+                <!--Date and time: several things often happen on one day, and the time is what orders them.-->
+                <time class="pp-when" [attr.datetime]="t.at" [title]="t.at | date: 'medium'">{{ t.at | date: 'MMM d, y · h:mm a' }}</time>
+                <span>
+                  <strong>{{ t.title }}</strong> {{ t.detail }}
+                  <span class="pp-score-move" *ngIf="t.scoreMove as m" [ngClass]="'is-' + m">
+                    {{ m === 'up' ? '▲' : m === 'down' ? '▼' : '=' }} {{ t.score?.to }}
+                  </span>
+                </span>
               </li>
             </ol>
             <p class="pp-empty" *ngIf="!timeline.length">Nothing has happened yet.</p>
@@ -179,7 +185,7 @@
           <div class="pp-skel" style="height: 250px" *ngIf="scoreState === 'loading'"></div>
           <div class="pp-state is-error" *ngIf="scoreState === 'error'" role="alert">
             Could not load the score.
-            <button type="button" class="pp-link" (click)="loadScore()">Try again</button>
+            <button type="button" class="pp-link" (click)="loadTimeline()">Try again</button>
           </div>
 
           <ng-container *ngIf="scoreState === 'ready' && score">

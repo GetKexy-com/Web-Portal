@@ -1,13 +1,14 @@
 import { Injectable } from '@angular/core';
 
-import { MOCK_PROSPECT_INSIGHTS, MOCK_PROSPECT_SCORE, MOCK_PROSPECT_TIMELINE } from '../helpers/prospect-profile.mock';
-import { IProspectInsights, IProspectScore, IProspectTimelineEvent } from '../models/ProspectProfile';
+import { MOCK_PROSPECT_INSIGHTS } from '../helpers/prospect-profile.mock';
+import { IProspectInsights, IProspectTimeline } from '../models/ProspectProfile';
 import { HttpService } from './http.service';
 
 /**
- * The score and insights APIs do not exist yet (contract: `docs/prospect-profile-api/`).
- * While this is true the page is fed the example payloads and says so on screen. Flip to
- * `false` once KexyApi serves both routes — nothing else changes.
+ * The insights API does not exist yet (contract: `docs/prospect-profile-api/`). While this
+ * is true the page is fed the example payload and says so on screen. Flip to `false` once
+ * KexyApi serves it — nothing else changes. The score and timeline are already served
+ * (`getTimeline`), with a mock scoring model behind them.
  */
 export const PROSPECT_PROFILE_USE_MOCK = true;
 
@@ -24,12 +25,6 @@ const MOCK_LATENCY_MS = 450;
 export class ProspectProfileService {
   constructor(private httpService: HttpService) {}
 
-  /** Lead strength: the score, its breakdown, and what to do next. */
-  getScore = (campaignId: number, email: string): Promise<IProspectScore> =>
-    PROSPECT_PROFILE_USE_MOCK
-      ? this.__mock({ ...MOCK_PROSPECT_SCORE, email })
-      : this.__getData(`drip-campaigns/${campaignId}/prospects/score?email=${encodeURIComponent(email)}`);
-
   /** Signals and opener choice. */
   getInsights = (campaignId: number, email: string): Promise<IProspectInsights> =>
     PROSPECT_PROFILE_USE_MOCK
@@ -37,11 +32,11 @@ export class ProspectProfileService {
       : this.__getData(`drip-campaigns/${campaignId}/prospects/insights?email=${encodeURIComponent(email)}`);
 
   /**
-   * "What happened so far". Its own API, not defined yet — always sample data until it is,
-   * whatever `PROSPECT_PROFILE_USE_MOCK` says.
+   * "What happened so far" and the current score (Lead strength). Loading it records a
+   * rescore server-side when the prospect has done something since the last one.
    */
-  getTimeline = (campaignId: number, email: string): Promise<IProspectTimelineEvent[]> =>
-    this.__mock(MOCK_PROSPECT_TIMELINE);
+  getTimeline = (campaignId: number, email: string): Promise<IProspectTimeline> =>
+    this.__getData(`drip-campaigns/${campaignId}/prospects/timeline?email=${encodeURIComponent(email)}`);
 
   private __mock = <T>(data: T): Promise<T> =>
     new Promise((resolve) => setTimeout(() => resolve(structuredClone(data)), MOCK_LATENCY_MS));
