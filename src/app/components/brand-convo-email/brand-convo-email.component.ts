@@ -127,6 +127,22 @@ export class BrandConvoEmailComponent implements OnInit, OnDestroy {
     // its own keeps the full measure.
     this.compact = !doc.body?.querySelector(RICH_CONTENT);
 
+    // Our own (sent) HTML comes from the email editor, which bakes an inline white
+    // background into paragraphs, spans and cells. On the tinted sent bubble those
+    // read as white patches behind the text, so clear exactly-white backgrounds —
+    // any other colour was chosen on purpose and stays. Received replies are left
+    // alone: they sit on a white bubble anyway.
+    if (!received) {
+      const isWhite = (v: string | null) =>
+        !!v && /^\s*(#fff|#ffffff|white|rgba?\(\s*255\s*,\s*255\s*,\s*255\s*(,\s*1(\.0+)?\s*)?\))\s*$/i.test(v);
+      doc.body?.querySelectorAll<HTMLElement>('*').forEach((el) => {
+        // Covers `background:#fff` shorthand too (it sets backgroundColor), without
+        // touching a background image.
+        if (isWhite(el.style.backgroundColor)) el.style.backgroundColor = 'transparent';
+        if (isWhite(el.getAttribute('bgcolor'))) el.removeAttribute('bgcolor');
+      });
+    }
+
     const base = doc.createElement('base');
     base.setAttribute('target', '_blank');
     base.setAttribute('rel', 'noopener noreferrer');
@@ -138,8 +154,8 @@ export class BrandConvoEmailComponent implements OnInit, OnDestroy {
     // — and it rendered as a thick grey band with the message floating in the
     // middle, which is why only SOME messages looked over-padded: plain fragments
     // have no shell. Keyed on the shell's own width attributes, and applied only to
-    // SENT messages: a received reply is arbitrary third-party HTML, where making
-    // its card transparent could drop dark text onto the blue bubble.
+    // SENT messages: a received reply is arbitrary third-party HTML, and its own
+    // card already sits on a white bubble.
     const shellReset = received
       ? ''
       : `body>table[width="100%"]{background:transparent !important;width:100% !important;}` +
@@ -231,6 +247,26 @@ export class BrandConvoEmailComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.resizeObserver?.disconnect();
   }
+
+  /**
+   * The hover tooltip + forward button sit beside the bubble, but next to a wide
+   * bubble on a narrow screen there's no room: they'd poke past the thread (which
+   * used to make it scroll sideways). On each hover, measure — and if they don't fit
+   * in the gap, tuck them inside the bubble's bottom corner instead (`is-inside`).
+   * Plain DOM, no change detection: it only toggles a class.
+   */
+  placeSide = (event: MouseEvent): void => {
+    const row = event.currentTarget as HTMLElement;
+    const side = row.querySelector<HTMLElement>('.msg-side');
+    const wrap = row.querySelector<HTMLElement>('.msg-bubble-wrap');
+    const pane = row.closest<HTMLElement>('.pane-thread');
+    if (!side || !wrap || !pane) return;
+    side.classList.remove('is-inside');
+    const w = wrap.getBoundingClientRect();
+    const p = pane.getBoundingClientRect();
+    const room = this.received ? p.right - w.right : w.left - p.left;
+    side.classList.toggle('is-inside', side.offsetWidth + 16 > room);
+  };
 
   /** How close two messages from one sender must be to share a name/time header. */
   private static readonly GROUP_WINDOW_MS = 10 * 60 * 1000;
