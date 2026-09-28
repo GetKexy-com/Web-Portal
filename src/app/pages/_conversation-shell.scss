@@ -659,6 +659,9 @@ $page-h: calc(100vh - 70px);
       // Messages stay laid out (so their iframes load + size) but invisible until
       // every frame is ready, then fade in together — no per-message reflow jump.
       .conv-messages {
+        // A readable column on wide screens, like every mail/chat client.
+        max-width: 960px;
+        margin: 0 auto;
         transition: opacity 0.2s ease; // fades IN on reveal
 
         &.hidden {

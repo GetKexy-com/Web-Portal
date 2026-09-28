@@ -265,9 +265,14 @@
         <!--Messages stay laid out (so their iframes load + size) but invisible
             until every frame is ready — do NOT change this to *ngIf.-->
         <div class="conv-messages" #threadMessages [class.hidden]="messagesLoading">
-          <ng-container *ngFor="let email of selectedConversation['messages']">
+          <ng-container *ngFor="let email of selectedConversation['messages']; let i = index">
             <brand-convo-email
               [email]="email"
+              [previous]="i > 0 ? selectedConversation['messages'][i - 1] : null"
+              [contactName]="getFullName(selectedConversation.receiverDetails.details)"
+              [contactInitials]="getNameInitials(selectedConversation.receiverDetails.details)"
+              [contactSeed]="getFullName(selectedConversation.receiverDetails.details) || selectedConversation.receiverEmail"
+              [subject]="selectedConversation.emailSubject || selectedConversation.email_subject"
               [forwardToCampaignUser]="forwardToCampaignUser"
               [isLoading]="forwardToCampaignUserApiLoadig"
               (frameReady)="onFrameReady()"

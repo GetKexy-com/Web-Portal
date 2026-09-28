@@ -1281,7 +1281,16 @@ header#main-header #logo {
     max-width: 940px;
     width: calc(100% - 32px);
   }
+}
 
+/* "Forward reply" (brand-convo-email): the same shell, narrow — one field. */
+.kx-forward-modal .modal-dialog {
+  max-width: 500px;
+  width: calc(100% - 32px);
+}
+
+.kx-compose-modal,
+.kx-forward-modal {
   .modal-content {
     border: none;
     border-radius: 16px;
