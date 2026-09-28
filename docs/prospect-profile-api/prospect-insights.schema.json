@@ -31,7 +31,8 @@
     },
     "signals": {
       "type": "array",
-      "description": "Everything found about the prospect, ORDERED BY confidence DESCENDING. The UI shows the first two and puts the rest behind '+N more, lower confidence · view all'. May be empty.",
+      "maxItems": 10,
+      "description": "Everything found about the prospect, ORDERED BY confidence DESCENDING, at most 10 (keep the most confident). The UI shows the first two and puts the rest behind '+N more, lower confidence · view all'. May be empty.",
       "items": { "$ref": "#/$defs/signal" }
     },
     "openerSelection": {

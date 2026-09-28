@@ -73,7 +73,7 @@ export interface IProspectInsights {
     message: string;
     nextStep: string | null;
   } | null;
-  /** Sorted by confidence, highest first. */
+  /** At most 10, sorted by confidence, highest first. */
   signals: IProspectSignal[];
   openerSelection: {
     winnerKey: string;

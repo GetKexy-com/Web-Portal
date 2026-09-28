@@ -42,7 +42,8 @@ Score:
 - `stage` is one of the `components[].tier` values.
 
 Insights:
-- `signals` is ordered by `confidence`, highest first. The UI shows the first two.
+- `signals` has at most 10 entries (the most confident), ordered by `confidence`,
+  highest first. The UI shows the first two.
 - `openerSelection.candidates` is ordered by `score`, highest first, and
   `winnerKey` is one of the candidate keys.
 
