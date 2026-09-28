@@ -438,7 +438,7 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
   };
 
   openSlider = (component, sliderClass = 'contact-slide-content') => {
-    this.ngbOffcanvas.open(component, {
+    return this.ngbOffcanvas.open(component, {
       panelClass: `${sliderClass} edit-rep-canvas`,
       backdropClass: 'edit-rep-canvas-backdrop',
       position: 'end',
@@ -881,7 +881,11 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
   };
 
   handleAddToDripCampaign = () => {
-    this.openSlider(AddContactsToDripCampaignComponent, 'attributes-bg');
+    const ref = this.openSlider(AddContactsToDripCampaignComponent, 'attributes-bg');
+    // The drawer reloads the table after adding; it must use THIS page's request (its
+    // filters, search, page), or the table comes back unfiltered under filter chips
+    // that still say otherwise.
+    ref.componentInstance.refreshContacts = () => this.getContacts(true);
   };
 
   toggleSelectAllContactSelection = () => {

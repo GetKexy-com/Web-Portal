@@ -27,6 +27,24 @@ export interface IDripCampaignListCacheEntry {
   version: number;
 }
 
+/**
+ * What an enrolment does (or would do). Only verified and catch-all emails are enrolled —
+ * KexyApi skips invalid and unverified ones in every campaign status.
+ */
+export interface IEnrollmentSummary {
+  total: number;
+  toAdd: number;
+  skippedInvalid: number;
+  skippedUnverified: number;
+  alreadyEnrolled: number;
+}
+
+/** `GET drip-campaigns/:id/enrollment-preview`. */
+export interface IEnrollmentPreview extends IEnrollmentSummary {
+  /** Active/completed campaigns enroll on save; others when they are activated. */
+  enrollsNow: boolean;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -680,12 +698,13 @@ export class DripCampaignService {
     this.emailLength = value;
   };
 
-  assignContactsAndLabelsInCampaign = async (postData) => {
+  /** Resolves with what happened: added / skipped (invalid, unverified) / already enrolled. */
+  assignContactsAndLabelsInCampaign = async (postData): Promise<IEnrollmentSummary> => {
     return new Promise(async (resolve, reject) => {
       this.httpService
         .post('drip-campaigns/assignContactsAndList', postData)
         .subscribe({
-          next: () => resolve(true),
+          next: (res) => resolve(res?.data),
           error: (err) => {
             if (err.error) {
               reject(err.error);
@@ -1064,6 +1083,24 @@ export class DripCampaignService {
       });
     });
   };
+
+  /**
+   * What adding `listIds` would do, before saving: how many contacts get added, how many
+   * are skipped for an invalid email (never enrolled), and how many are already in the
+   * campaign. Feeds the confirmation modal on the Enrollment Triggers save.
+   */
+  getEnrollmentPreview = (
+    dripCampaignId: number | string,
+    listIds: number[],
+    unEnrollListIds: number[] = [],
+  ): Promise<IEnrollmentPreview> =>
+    new Promise((resolve, reject) => {
+      const q = `listIds=${listIds.join(',')}&unEnrollListIds=${unEnrollListIds.join(',')}`;
+      this.httpService.get(`drip-campaigns/${dripCampaignId}/enrollment-preview?${q}`).subscribe({
+        next: (res) => resolve(res.data),
+        error: (err) => reject(err?.error ?? err),
+      });
+    });
 
   removeListFromCampaign = async (postData) => {
     return new Promise(async (resolve, reject) => {

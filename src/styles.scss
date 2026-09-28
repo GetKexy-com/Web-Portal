@@ -1284,13 +1284,17 @@ header#main-header #logo {
 }
 
 /* "Forward reply" (brand-convo-email): the same shell, narrow — one field. */
-.kx-forward-modal .modal-dialog {
+.kx-forward-modal .modal-dialog,
+.kx-dialog-modal .modal-dialog {
   max-width: 500px;
   width: calc(100% - 32px);
 }
 
+// `.kx-dialog-modal`: the same rounded frame for any small confirmation dialog built
+// as a component (e.g. enrollment-preview-modal).
 .kx-compose-modal,
-.kx-forward-modal {
+.kx-forward-modal,
+.kx-dialog-modal {
   .modal-content {
     border: none;
     border-radius: 16px;

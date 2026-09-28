@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { NgbActiveOffcanvas, NgbTooltip } from '@ng-bootstrap/ng-bootstrap';
+import { NgbActiveOffcanvas, NgbModal, NgbTooltip } from '@ng-bootstrap/ng-bootstrap';
 import Swal from 'sweetalert2';
 import { constants } from '../../helpers/constants';
 import { AuthService } from '../../services/auth.service';
@@ -15,6 +15,7 @@ import { CommonModule } from '@angular/common';
 import { ListDetail } from '../../models/List';
 import { DripCampaign } from '../../models/DripCampaign';
 import { ErrorMessageCardComponent } from '../error-message-card/error-message-card.component';
+import { EnrollmentPreviewModalComponent } from '../enrollment-preview-modal/enrollment-preview-modal.component';
 
 @Component({
   selector: 'email-time-settings-content',
@@ -99,6 +100,7 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
     public dripCampaignService: DripCampaignService,
     public prospectingService: ProspectingService,
     public pageUiService: PageUiService,
+    private modal: NgbModal,
   ) {
   }
 
@@ -702,6 +704,14 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
       }
     }
 
+    // Newly picked lists: show what saving will do — how many contacts get added and how
+    // many are skipped for an invalid email (KexyApi never enrolls those) — and only save
+    // once the user confirms. Nothing is written if they cancel.
+    const unEnrollListIds = this.unenrollmentLabelOptions.filter(i => i.isSelected).map(i => i.id);
+    if (newEnrollListIds.length && !(await this.__confirmEnrollment(newEnrollListIds, unEnrollListIds))) {
+      return;
+    }
+
     const postData = {
       drip_campaign_id: this.dripCampaignId,
       companyId: this.userData.supplier_id,
@@ -797,6 +807,47 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
       });
     } finally {
       this.isLoading = false;
+    }
+  };
+
+  /**
+   * Fetches the counts for the newly picked lists and asks for confirmation in
+   * `enrollment-preview-modal`. Resolves true to go ahead with the save. If the counts
+   * can't be loaded, falls back to a plain confirmation that still states the rule —
+   * the backend skips invalid emails either way.
+   */
+  private __confirmEnrollment = async (listIds: number[], unEnrollListIds: number[]): Promise<boolean> => {
+    this.isLoading = true;
+    let preview;
+    try {
+      preview = await this.dripCampaignService.getEnrollmentPreview(this.dripCampaignId, listIds, unEnrollListIds);
+    } catch {
+      preview = null;
+    } finally {
+      this.isLoading = false;
+    }
+
+    if (!preview) {
+      const res = await Swal.fire({
+        title: 'Add these lists?',
+        text: 'Contacts with an invalid email will be skipped — they are never added to a drip campaign.',
+        icon: 'info',
+        showCancelButton: true,
+        confirmButtonText: 'Save',
+        confirmButtonColor: '#095dd1',
+      });
+      return res.isConfirmed;
+    }
+
+    const ref = this.modal.open(EnrollmentPreviewModalComponent, { windowClass: 'kx-dialog-modal', centered: true });
+    ref.componentInstance.preview = preview;
+    ref.componentInstance.lists = this.enrollmentLabelOptions
+      .filter(o => listIds.includes(o.id))
+      .map(o => ({ id: o.id, name: o.value }));
+    try {
+      return (await ref.result) === true;
+    } catch {
+      return false; // dismissed (Cancel, ×, Esc, backdrop)
     }
   };
 }
