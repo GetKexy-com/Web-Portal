@@ -50,9 +50,10 @@
       <div class="sc-fill" [style.width.%]="isIndeterminate ? 100 : percentComplete"></div>
     </div>
 
+    <!--ETA from the API's `scrapeEstimate`, counted down locally between polls.-->
     <p class="sc-eta" *ngIf="phase !== 'done'">
-      About <strong>{{ estimatedMinutes }}</strong> minute{{ estimatedMinutes === 1 ? '' : 's' }}
-      remaining — this runs in the background, so you can safely leave this page.
+      <strong>{{ etaText }}</strong> — this runs in the background, so you can safely leave
+      this page.
     </p>
   </div>
 
