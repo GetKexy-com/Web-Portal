@@ -9,6 +9,20 @@ import { AuthService } from '../../services/auth.service';
 /** One of the two scrape passes, as rendered in the step list. */
 type StepState = 'pending' | 'running' | 'done';
 
+/**
+ * `scrapeEstimate` on `GET drip-campaigns/:id/prospects` (KexyApi `scrape-estimate.ts`):
+ * the ETA and time-weighted progress, worked out server-side from what is left, measured
+ * scrape speeds, newer campaigns that go first, and error stops. Absent (null) when the
+ * API predates it or could not work it out — the card then falls back to its own count.
+ */
+interface ScrapeEstimate {
+  state: 'done' | 'paused' | 'delayed' | 'running' | 'queued';
+  etaSeconds: number | null;
+  percent: number;
+  aheadCampaigns: number;
+  passes: { pass: 'web' | 'map' | 'sports'; total: number; remaining: number }[];
+}
+
 @Component({
   selector: 'app-scrape-progress-card',
   imports: [
@@ -36,6 +50,13 @@ export class ScrapeProgressCardComponent implements OnInit, OnDestroy {
   userData: any;
   dripCampaign;
   dripCampaignProspects: any = [];
+  scrapeEstimate: ScrapeEstimate | null = null;
+
+  /** When the ETA runs out, on the local clock — counted down between polls. */
+  private etaEndsAt: number | null = null;
+  /** Re-read every few seconds so the ETA counts down between the 30s polls. */
+  now = Date.now();
+  private clockInterval: any = null;
 
   private dripCampaignProspectsSubscription: Subscription;
 
@@ -46,6 +67,7 @@ export class ScrapeProgressCardComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    if (this.clockInterval) clearInterval(this.clockInterval);
     this.stopAutoRefresh();
     this.stopMessageRotation();
     this.dripCampaignProspectsSubscription?.unsubscribe();
@@ -61,8 +83,11 @@ export class ScrapeProgressCardComponent implements OnInit, OnDestroy {
     this.dripCampaignProspectsSubscription =
       this.dripCampaignService.dripCampaignProspects.subscribe(data => {
         this.dripCampaignProspects = data?.['prospects'] ?? [];
+        this.__setEstimate(data?.['scrapeEstimate'] ?? null);
         this.calculateProspectScrapeTime();
       });
+
+    this.clockInterval = setInterval(() => (this.now = Date.now()), 10000);
 
     await this.__refreshDripCampaign();
     await this.getDripCampaignProspects();
@@ -178,7 +203,9 @@ export class ScrapeProgressCardComponent implements OnInit, OnDestroy {
     const { webScrapeStatus, mapScrapeStatus, status } = this.dripCampaign;
 
     const isWebDone = webScrapeStatus === CAMPAIGN_STATUS.SUCCEEDED;
-    const isMapDone = mapScrapeStatus === CAMPAIGN_STATUS.SUCCEEDED;
+    // Map also stands in for sports: the API only includes sports in the estimate while
+    // the send gate waits for it, and then it has to finish too.
+    const isMapDone = mapScrapeStatus === CAMPAIGN_STATUS.SUCCEEDED && this.__isSportsDone();
 
     this.__setScrapeProgress(status !== constants.INACTIVE && (!isWebDone || !isMapDone));
 
@@ -211,6 +238,20 @@ export class ScrapeProgressCardComponent implements OnInit, OnDestroy {
     // Queued is still "work pending", so the card must keep moving here too.
     this.startMessageRotation();
   };
+
+  /** Sports only counts while the API includes it (i.e. `SPORTS_SCRAPER_ENABLED`). */
+  private __isSportsDone(campaign = this.dripCampaign): boolean {
+    const included = this.scrapeEstimate?.passes?.some(p => p.pass === 'sports');
+    return !included || campaign?.sportsScrapeStatus === CAMPAIGN_STATUS.SUCCEEDED;
+  }
+
+  private __setEstimate(estimate: ScrapeEstimate | null) {
+    this.scrapeEstimate = estimate;
+    this.now = Date.now();
+    // Relative to the moment it arrived, so a skewed client clock does not matter.
+    this.etaEndsAt =
+      estimate?.etaSeconds != null ? this.now + estimate.etaSeconds * 1000 : null;
+  }
 
   private __stepState(status: string): StepState {
     if (status === CAMPAIGN_STATUS.SUCCEEDED) return 'done';
@@ -263,6 +304,18 @@ export class ScrapeProgressCardComponent implements OnInit, OnDestroy {
   mapStep: StepState = 'pending';
 
   calculateProspectScrapeTime() {
+    const estimate = this.scrapeEstimate;
+    if (estimate?.passes?.length) {
+      // Server-side numbers: ACTIVE prospects only, every pass the send waits for, and a
+      // percent weighted by how long each pass takes (a map prospect costs ~3× a web
+      // one), so the bar moves at an even pace and agrees with the ETA.
+      this.totalProspects = estimate.passes[0].total;
+      this.scrapeRemainProspects = Math.max(...estimate.passes.map(p => p.remaining));
+      this.percentComplete = estimate.percent;
+      return;
+    }
+
+    // Fallback for an API without `scrapeEstimate`.
     this.totalProspects = this.dripCampaignProspects.length;
 
     const isRemaining = (s: string) =>
@@ -284,9 +337,41 @@ export class ScrapeProgressCardComponent implements OnInit, OnDestroy {
       : 0;
   }
 
-  /** Rough ETA — the map pass runs ~2 prospects per scheduler tick. */
-  get estimatedMinutes(): number {
-    return Math.max(1, this.scrapeRemainProspects * 2);
+  /** The ETA line under the bar. */
+  get etaText(): string {
+    const estimate = this.scrapeEstimate;
+    if (!estimate) {
+      // Fallback for an API without `scrapeEstimate`: the old rough guess.
+      return `About ${this.__duration(Math.max(1, this.scrapeRemainProspects * 2) * 60)} remaining`;
+    }
+    if (estimate.state === 'paused') return 'Research continues when the campaign is active';
+    if (estimate.state === 'delayed') return 'Research is delayed — our team has been notified';
+    if (this.etaEndsAt == null) return 'Estimating time remaining';
+
+    const seconds = Math.max(0, Math.round((this.etaEndsAt - this.now) / 1000));
+    // Past the estimate but not finished: say so instead of sitting at "0 minutes".
+    if (seconds === 0) return 'Finishing up';
+    const eta = `About ${this.__duration(seconds)} remaining`;
+    if (estimate.aheadCampaigns > 0) {
+      const n = estimate.aheadCampaigns;
+      return `${eta} — starts after ${n} other campaign${n === 1 ? '' : 's'}`;
+    }
+    return eta;
+  }
+
+  /** "less than a minute", "12 minutes", "2 h 5 min", "3 days 4 h". */
+  private __duration(seconds: number): string {
+    const minutes = Math.ceil(seconds / 60);
+    if (seconds < 60) return 'less than a minute';
+    if (minutes < 60) return `${minutes} minute${minutes === 1 ? '' : 's'}`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) {
+      const m = minutes % 60;
+      return m ? `${hours} h ${m} min` : `${hours} h`;
+    }
+    const days = Math.floor(hours / 24);
+    const h = hours % 24;
+    return `${days} day${days === 1 ? '' : 's'}${h ? ` ${h} h` : ''}`;
   }
 
   /**
@@ -319,7 +404,8 @@ export class ScrapeProgressCardComponent implements OnInit, OnDestroy {
       const isActive = campaign.status === constants.ACTIVE;
       const isScrapingDone =
         campaign.webScrapeStatus === CAMPAIGN_STATUS.SUCCEEDED &&
-        campaign.mapScrapeStatus === CAMPAIGN_STATUS.SUCCEEDED;
+        campaign.mapScrapeStatus === CAMPAIGN_STATUS.SUCCEEDED &&
+        this.__isSportsDone(campaign);
 
       // ❌ Stop if not active OR scraping finished
       if (!isActive || isScrapingDone || this.scrapeRemainProspects === 0) {
