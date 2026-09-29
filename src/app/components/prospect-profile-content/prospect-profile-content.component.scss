@@ -60,43 +60,62 @@ $kx-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
 // ── Header (drawer chrome) ──────────────────────────────────────────────────
 // Overrides `_insights-drawer.scss`'s generic `.head-area`/`.head-title`/`.head-subtitle`
-// so it leads with the prospect's identity instead of a static "Prospect profile" label.
+// with a compact identity header: name + status pills, then role · company · location.
 // Nesting matches the partial's own selectors (`.canvas-content-wrap .head-area …`) so
 // this wins the cascade without `!important`; it's still scoped to this component only,
 // since Angular's emulated encapsulation re-scopes the partial's CSS per consumer.
 .canvas-content-wrap {
-  // No wrap: the identity block shrinks and wraps its own text instead, so the close
-  // button stays pinned top-right instead of dropping below a long name/subtitle.
-  .head-area {
-    align-items: flex-start;
+  .head-area.pp-hero {
+    position: relative;
+    // No wrap: the identity block shrinks and wraps its own text, so the close button
+    // stays pinned top-right.
+    align-items: center;
+    padding-top: 16px;
+    padding-bottom: 14px;
+    background: #ffffff;
+
+    // Brand accent along the top edge.
+    &::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: 3px;
+      background: linear-gradient(90deg, $kx-primary-deep 0%, #6366f1 50%, #06b6d4 100%);
+    }
   }
 
   .head-identity {
     display: flex;
     flex: 1;
     align-items: center;
-    gap: 14px;
+    gap: 12px;
     min-width: 0;
   }
 
   .head-text {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
     min-width: 0;
   }
 
   .head-title {
-    font-size: 24px;
+    font-size: 20px;
     font-weight: 800;
+    line-height: 1.2;
     letter-spacing: -0.01em;
     text-transform: capitalize;
     overflow-wrap: anywhere;
   }
+}
 
-  .head-subtitle {
-    margin-top: 6px;
-    margin-bottom: 0;
-    font-size: 14px;
-    color: $kx-muted;
-  }
+// Name and status pills share the first line (pills wrap under the name when narrow).
+.pp-head-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+  min-width: 0;
 }
 
 // Same gradient-initial avatar as the contacts table (`contact-list-card`'s `.avatar`/
@@ -104,18 +123,18 @@ $kx-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 // looking at the list or their profile.
 .head-avatar {
   flex-shrink: 0;
-  width: 52px;
-  height: 52px;
+  width: 44px;
+  height: 44px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   color: #fff;
-  font-size: 17px;
+  font-size: 15px;
   font-weight: 700;
   letter-spacing: 0.02em;
   text-transform: uppercase;
   border-radius: 50%;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+  box-shadow: 0 4px 12px -6px rgba(15, 23, 42, 0.45);
 
   &.av-0 { background: linear-gradient(135deg, #6366f1, #4338ca); }
   &.av-1 { background: linear-gradient(135deg, #06b6d4, #0e7490); }
@@ -125,9 +144,29 @@ $kx-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   &.av-5 { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
 }
 
-.pp-sub-part + .pp-sub-part::before {
-  content: " · ";
-  color: $kx-faint;
+// Role · company · location — plain text with icons, one line where it fits.
+.pp-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
+  color: $kx-muted;
+
+  li {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  i {
+    color: $kx-faint;
+    font-size: 12px;
+  }
 }
 
 .pp-pills {
