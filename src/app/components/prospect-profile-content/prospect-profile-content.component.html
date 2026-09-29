@@ -3,18 +3,32 @@
       location at a glance — rather than a generic "Prospect profile" label you had to
       scroll past to find out who this even was. Status pills stay down in the body,
       beside the score they summarize.-->
-  <div class="head-area">
+  <!--Compact identity header, two lines: name + status pills, then role · company ·
+      location. Kept short so the cards below start high on the page.-->
+  <div class="head-area pp-hero">
     <div class="head-identity">
       <span class="head-avatar" [ngClass]="avatarClass" aria-hidden="true">{{ initials }}</span>
       <div class="head-text">
-        <h2 class="head-title">{{ displayName }}</h2>
-        <p class="head-subtitle">
-          <ng-container *ngFor="let part of [jobTitle, company, location]">
-            <span *ngIf="part" class="pp-sub-part">{{ part }}</span>
-          </ng-container>
-        </p>
+        <div class="pp-head-row">
+          <h2 class="head-title">{{ displayName }}</h2>
+          <div class="pp-pills">
+            <span class="pp-pill" *ngIf="replyPill as r" [ngClass]="r.urgent ? 'tone-urgent' : 'tone-positive'">
+              <span class="pp-dot" aria-hidden="true"></span>{{ r.label }}
+            </span>
+            <span class="pp-pill" [ngClass]="'email-' + emailStatus.tone">{{ emailStatus.pill }}</span>
+            <span class="pp-pill" *ngIf="sendPill as sp" [ngClass]="'send-' + sp.tone">
+              This email: {{ sp.label }}<ng-container *ngIf="sp.at"> · {{ sp.at | date: 'MMM d' }}</ng-container><ng-container *ngIf="sendEngagement"> · {{ sendEngagement }}</ng-container>
+            </span>
+          </div>
+        </div>
+        <ul class="pp-meta" *ngIf="jobTitle || company || location">
+          <li *ngIf="jobTitle"><i class="fa fa-briefcase" aria-hidden="true"></i>{{ jobTitle }}</li>
+          <li *ngIf="company"><i class="fa fa-building-o" aria-hidden="true"></i>{{ company }}</li>
+          <li *ngIf="location"><i class="fa fa-map-marker" aria-hidden="true"></i>{{ location }}</li>
+        </ul>
       </div>
     </div>
+
     <div class="head-actions">
       <!--Closes only this drawer — the Insights drawer underneath stays where it was.-->
       <button type="button" class="close-btn" aria-label="Close profile" (click)="activeCanvas.dismiss('Cross click')">
@@ -32,16 +46,6 @@
       <span>
         <strong>Preview.</strong> The prospect’s details, send status and what happened so far are real.
         The score is an early estimate, and why we picked this lead is sample data until its API is connected.
-      </span>
-    </div>
-
-    <div class="pp-pills">
-      <span class="pp-pill" *ngIf="replyPill as r" [ngClass]="r.urgent ? 'tone-urgent' : 'tone-positive'">
-        <span class="pp-dot" aria-hidden="true"></span>{{ r.label }}
-      </span>
-      <span class="pp-pill" [ngClass]="'email-' + emailStatus.tone">{{ emailStatus.pill }}</span>
-      <span class="pp-pill" *ngIf="sendPill as sp" [ngClass]="'send-' + sp.tone">
-        This email: {{ sp.label }}<ng-container *ngIf="sp.at"> · {{ sp.at | date: 'MMM d' }}</ng-container><ng-container *ngIf="sendEngagement"> · {{ sendEngagement }}</ng-container>
       </span>
     </div>
 
