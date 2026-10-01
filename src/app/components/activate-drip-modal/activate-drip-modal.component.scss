@@ -1,0 +1,353 @@
+// Same dialog family as enrollment-preview-modal: the rounded frame and width come from
+// `.kx-dialog-modal` in styles.scss; grey foot, same buttons. Tokens duplicated the same
+// way the other drawers/modals do.
+$kx-primary: #1a73e8;
+$kx-primary-deep: #095dd1;
+$kx-ink: #0f172a;
+$kx-body: #334155;
+$kx-muted: #64748b;
+$kx-border: #e2e8f0;
+$kx-field-bg: #f7f9fc;
+$kx-red: #dc2626;
+$kx-red-bg: #fdeaea;
+
+// "Super charged" — warm amber → orange, the only warm colour on the dialog so it is
+// what the eye lands on.
+$kx-bolt: #f59e0b;
+$kx-bolt-deep: #ea580c;
+$kx-bolt-bg: #fff8eb;
+$kx-bolt-ink: #9a3412;
+
+.ad-modal {
+  display: flex;
+  flex-direction: column;
+}
+
+// ── Hero ──────────────────────────────────────────────────────────────────────
+.ad-hero {
+  position: relative;
+  padding: 28px 24px 22px;
+  text-align: center;
+  background: radial-gradient(120% 90% at 50% 0%, #e8f1fe 0%, #fff 70%);
+  border-bottom: 1px solid $kx-border;
+
+  .icon-btn {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 34px;
+    height: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid $kx-border;
+    border-radius: 10px;
+    background: #fff;
+    color: $kx-muted;
+    font-size: 15px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    &:hover {
+      background: $kx-red-bg;
+      border-color: $kx-red;
+      color: $kx-red;
+    }
+  }
+}
+
+.ad-hero-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  margin-bottom: 12px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, $kx-primary, $kx-primary-deep);
+  color: #fff;
+  font-size: 24px;
+  box-shadow: 0 10px 24px -8px rgba(9, 93, 209, 0.55);
+}
+
+.ad-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1.25;
+  color: $kx-ink;
+}
+
+.ad-campaign {
+  margin: 4px auto 0;
+  max-width: 90%;
+  overflow: hidden;
+  font-size: 14px;
+  font-weight: 600;
+  color: $kx-muted;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+// ── Body ──────────────────────────────────────────────────────────────────────
+.ad-body {
+  padding: 18px 22px 20px;
+  background: #fff;
+}
+
+.ad-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.ad-stat {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 12px 14px;
+  border: 1px solid $kx-border;
+  border-radius: 12px;
+  background: $kx-field-bg;
+}
+
+.ad-stat-num {
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1.1;
+  color: $kx-ink;
+}
+
+.ad-stat-label {
+  margin-top: 2px;
+  font-size: 12px;
+  color: $kx-muted;
+}
+
+// ── Super charged ─────────────────────────────────────────────────────────────
+// A gradient border (padding-box/border-box trick) plus a slow glow, so it reads as the
+// highlight of the dialog even while off. Brighter and solid once switched on.
+.ad-boost {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  margin-top: 16px;
+  padding: 14px 16px;
+  border: 2px solid transparent;
+  border-radius: 14px;
+  background:
+    linear-gradient($kx-bolt-bg, $kx-bolt-bg) padding-box,
+    linear-gradient(135deg, $kx-bolt, $kx-bolt-deep, #f43f5e) border-box;
+  text-align: left;
+  cursor: pointer;
+  animation: ad-boost-glow 2.4s ease-in-out infinite;
+  transition: transform 0.15s ease, background 0.2s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+  }
+
+  &:focus-visible {
+    outline: 3px solid rgba(245, 158, 11, 0.45);
+    outline-offset: 2px;
+  }
+
+  &.is-on {
+    background:
+      linear-gradient(135deg, #fff1d6, #ffe4cc) padding-box,
+      linear-gradient(135deg, $kx-bolt, $kx-bolt-deep, #f43f5e) border-box;
+    animation: none;
+    box-shadow: 0 10px 26px -10px rgba(234, 88, 12, 0.6);
+  }
+}
+
+@keyframes ad-boost-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.35);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(245, 158, 11, 0);
+  }
+}
+
+.ad-boost-icon {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, $kx-bolt, $kx-bolt-deep);
+  color: #fff;
+  font-size: 20px;
+  box-shadow: 0 6px 16px -6px rgba(234, 88, 12, 0.7);
+
+  .is-on & i {
+    animation: ad-bolt-zap 1.6s ease-in-out infinite;
+  }
+}
+
+@keyframes ad-bolt-zap {
+  0%,
+  100% {
+    transform: scale(1);
+    text-shadow: none;
+  }
+  50% {
+    transform: scale(1.15);
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.9);
+  }
+}
+
+.ad-boost-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.ad-boost-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 800;
+  color: $kx-bolt-ink;
+}
+
+.ad-boost-badge {
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: $kx-bolt-deep;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.ad-boost-desc {
+  margin-top: 2px;
+  font-size: 12.5px;
+  color: $kx-body;
+}
+
+// The switch itself — display only; the whole card is the button.
+.ad-switch {
+  flex-shrink: 0;
+  position: relative;
+  width: 44px;
+  height: 24px;
+  border-radius: 999px;
+  background: #cbd5e1;
+  transition: background 0.2s ease;
+
+  .is-on & {
+    background: linear-gradient(135deg, $kx-bolt, $kx-bolt-deep);
+  }
+}
+
+.ad-switch-knob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.3);
+  transition: transform 0.2s ease;
+
+  .is-on & {
+    transform: translateX(20px);
+  }
+}
+
+.ad-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 14px 2px 0;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: $kx-muted;
+
+  i {
+    margin-top: 2px;
+  }
+}
+
+// ── Foot ──────────────────────────────────────────────────────────────────────
+.modal-foot {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 22px;
+  background: $kx-field-bg;
+  border-top: 1px solid $kx-border;
+}
+
+.ghost-btn,
+.primary-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 38px;
+  padding: 0 16px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.ghost-btn {
+  border: 1px solid $kx-border;
+  background: #fff;
+  color: $kx-ink;
+
+  &:hover {
+    border-color: $kx-muted;
+  }
+}
+
+.primary-btn {
+  border: 1px solid $kx-primary-deep;
+  background: $kx-primary-deep;
+  color: #fff;
+
+  &:hover {
+    background: #0850b6;
+  }
+
+  &.is-charged {
+    border-color: $kx-bolt-deep;
+    background: linear-gradient(135deg, $kx-bolt, $kx-bolt-deep);
+
+    &:hover {
+      filter: brightness(1.05);
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ad-boost,
+  .ad-boost-icon i {
+    animation: none !important;
+  }
+}
+
+@media (max-width: 420px) {
+  .ad-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .primary-btn {
+    padding: 0 12px;
+  }
+}
