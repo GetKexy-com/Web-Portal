@@ -244,7 +244,7 @@
               document a second heading.-->
           <nav class="page-crumbs" *ngIf="breadcrumbs?.length" aria-label="Breadcrumb">
             <ng-container *ngFor="let crumb of breadcrumbs; let last = last">
-              <a *ngIf="!last && crumb.link" class="crumb" [routerLink]="'/' + crumb.link">{{ crumb.label }}</a>
+              <a *ngIf="!last && crumb.link" class="crumb" [routerLink]="'/' + crumb.link" [queryParams]="crumb.queryParams">{{ crumb.label }}</a>
               <span *ngIf="!last && !crumb.link" class="crumb is-static">{{ crumb.label }}</span>
               <i *ngIf="!last" class="fa fa-angle-right crumb-sep" aria-hidden="true"></i>
               <h1 *ngIf="last" class="page-title" aria-current="page">{{ crumb.label }}</h1>

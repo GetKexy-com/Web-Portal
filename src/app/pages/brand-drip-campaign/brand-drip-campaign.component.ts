@@ -222,7 +222,11 @@ export class BrandDripCampaignComponent implements OnInit, OnDestroy {
    */
   private __setBreadcrumbs = () => {
     const crumbs: IBreadcrumb[] = [
-      { label: 'Manage Campaigns', link: routeConstants.BRAND.LIST_DRIP_CAMPAIGN },
+      {
+        label: 'Manage Campaigns',
+        link: routeConstants.BRAND.LIST_DRIP_CAMPAIGN,
+        queryParams: this.dripCampaignService.listQueryParams,
+      },
     ];
 
     // Duplicating starts a NEW campaign from an existing one, so the source's name

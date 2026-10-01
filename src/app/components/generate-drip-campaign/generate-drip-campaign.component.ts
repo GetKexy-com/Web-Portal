@@ -38,6 +38,7 @@ import { CommonModule } from '@angular/common';
 import { PageUiService } from '../../services/page-ui.service';
 import { Contact, IRawContact } from '../../models/Contact';
 import { PreviewDripEmailContentComponent } from '../preview-drip-email-content/preview-drip-email-content.component';
+import { ActivateDripModalComponent, IActivateDripResult } from '../activate-drip-modal/activate-drip-modal.component';
 import { LeadMagnetService } from '../../services/lead-magnet.service';
 import { CAMPAIGN_STATUS, DripCampaign } from '../../models/DripCampaign';
 import { StorageService } from '../../services/storage.service';
@@ -1122,18 +1123,22 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
     }
   };
 
-  __isConfirmed = async () => {
-    let isConfirm = await Swal.fire({
-      title: `Ready to activate?`,
-      text: 'Make sure all emails are in good shape.',
-      icon: 'success',
-      showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Yes, Activate It!',
-    });
+  /**
+   * The "Ready to activate?" dialog. Resolves with the user's choices, or null when it
+   * was cancelled. `superCharged` is not sent anywhere yet (UI only for now).
+   */
+  __isConfirmed = async (): Promise<IActivateDripResult | null> => {
+    const ref = this.modal.open(ActivateDripModalComponent, { windowClass: 'kx-dialog-modal', centered: true });
+    const modal = ref.componentInstance as ActivateDripModalComponent;
+    modal.campaignTitle = this.dripCampaign?.details?.title?.title ?? '';
+    modal.emailCount = this.emails.length;
+    modal.listCount = this.getEnrolledList()?.length ?? 0;
 
-    return !isConfirm.dismiss;
+    try {
+      return (await ref.result) as IActivateDripResult;
+    } catch {
+      return null; // dismissed
+    }
   };
 
 

@@ -1,0 +1,60 @@
+<div class="ad-modal">
+  <!--Hero: what is about to go live.-->
+  <div class="ad-hero">
+    <button type="button" class="icon-btn" aria-label="Close" (click)="activeModal.dismiss()">
+      <i class="fa fa-times" aria-hidden="true"></i>
+    </button>
+    <span class="ad-hero-icon" aria-hidden="true"><i class="fa fa-rocket"></i></span>
+    <h2 class="ad-title">Ready to activate?</h2>
+    <p class="ad-campaign" *ngIf="campaignTitle" [title]="campaignTitle">{{ campaignTitle }}</p>
+  </div>
+
+  <div class="ad-body">
+    <div class="ad-stats">
+      <div class="ad-stat">
+        <span class="ad-stat-num">{{ emailCount }}</span>
+        <span class="ad-stat-label">{{ emailCount === 1 ? 'email' : 'emails' }} in the sequence</span>
+      </div>
+      <div class="ad-stat">
+        <span class="ad-stat-num">{{ listCount }}</span>
+        <span class="ad-stat-label">{{ listCount === 1 ? 'list' : 'lists' }} enrolled</span>
+      </div>
+    </div>
+
+    <!--Super charged: the one thing on this dialog meant to catch the eye. The whole card
+        is the control, so a click anywhere on it flips the switch.-->
+    <button
+      type="button"
+      class="ad-boost"
+      [class.is-on]="superCharged"
+      role="switch"
+      [attr.aria-checked]="superCharged"
+      (click)="toggleSuperCharged()"
+    >
+      <span class="ad-boost-icon" aria-hidden="true"><i class="fa fa-bolt"></i></span>
+      <span class="ad-boost-text">
+        <span class="ad-boost-title">
+          Super charged
+          <span class="ad-boost-badge">New</span>
+        </span>
+        <span class="ad-boost-desc">
+          {{ superCharged ? 'On — this campaign launches super charged.' : 'Give this campaign an extra boost.' }}
+        </span>
+      </span>
+      <span class="ad-switch" aria-hidden="true"><span class="ad-switch-knob"></span></span>
+    </button>
+
+    <p class="ad-note">
+      <i class="fa fa-info-circle" aria-hidden="true"></i>
+      <span>Make sure all emails are in good shape — prospects start receiving them once the campaign is active.</span>
+    </p>
+  </div>
+
+  <div class="modal-foot">
+    <button type="button" class="ghost-btn" (click)="activeModal.dismiss()">Cancel</button>
+    <button type="button" class="primary-btn" [class.is-charged]="superCharged" (click)="activate()" ngbAutofocus>
+      <i class="fa" [ngClass]="superCharged ? 'fa-bolt' : 'fa-rocket'" aria-hidden="true"></i>
+      {{ superCharged ? 'Activate super charged' : 'Activate campaign' }}
+    </button>
+  </div>
+</div>
