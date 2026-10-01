@@ -5,8 +5,8 @@ import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 /** What the user chose in the dialog. */
 export interface IActivateDripResult {
   /**
-   * "Super charged" toggle. UI only for now — nothing sends it to KexyApi yet; it is
-   * returned so the activate call can pick it up once the backend supports it.
+   * "Super charged" toggle. Sent with the activate call; KexyApi saves it as the
+   * campaign's `super_charged` setting.
    */
   superCharged: boolean;
 }
@@ -30,7 +30,8 @@ export class ActivateDripModalComponent {
   /** How many lists are enrolled on activation. */
   @Input() listCount = 0;
 
-  superCharged = false;
+  /** Starting state — the campaign's current value, so re-activating keeps it. */
+  @Input() superCharged = false;
 
   constructor(public activeModal: NgbActiveModal) {}
 

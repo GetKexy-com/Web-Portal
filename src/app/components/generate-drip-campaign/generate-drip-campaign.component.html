@@ -4,6 +4,20 @@
       that measure.-->
   <div class="top-section">
 
+    <!--"Super charged" — on when the campaign was activated with the activate dialog's
+        toggle (the `super_charged` setting). Same warm look as that toggle.-->
+    <div class="super-charged-card" *ngIf="isSuperCharged()" role="status">
+      <span class="sc-icon" aria-hidden="true"><i class="fa fa-bolt"></i></span>
+      <div class="sc-text">
+        <p class="sc-title">Super charged</p>
+        <p class="sc-desc">This campaign is running super charged.</p>
+      </div>
+      <span class="sc-pill">
+        <span class="sc-dot" aria-hidden="true"></span>
+        On
+      </span>
+    </div>
+
     <app-scrape-progress-card
       *ngIf="showScrapeProgress"
       [dripCampaignId]="dripCampaignId"
