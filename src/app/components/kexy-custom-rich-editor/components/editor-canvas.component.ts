@@ -1236,14 +1236,29 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
    * INSIDE a text node — then step the caret back before that space and
    * insertHTML the chip there. Both steps go through execCommand, so Undo/Redo
    * still work. Acts on whatever contenteditable currently holds the caret.
+   *
+   * The mirror case — caret at the START of a line (`<p>`/`<div>`, or the first text
+   * inside one) — broke the same way: stepping back lands on offset 0, the block's
+   * start boundary, and insertHTML put the chip OUTSIDE the block, before it, pushing
+   * the line's text onto a new line. There a second space is typed so the chip lands
+   * mid-text-node, and that extra space is deleted afterwards (also execCommand, so
+   * undo still restores the original — in three steps instead of two).
    */
   private insertChipUndoable(chip: HTMLElement): void {
     // 1) trailing-space anchor (inline, undoable, never promotes to a new block)
     document.execCommand('insertText', false, ' ');
     // 2) caret is now AFTER that space — step back so the chip lands before it
     const sel = window.getSelection();
+    let padded = false;
     if (sel && sel.rangeCount) {
-      const r = sel.getRangeAt(0);
+      let r = sel.getRangeAt(0);
+      // The space is the first char of its text node: stepping back would put the
+      // caret on a boundary again (start of line), so pad with a second space.
+      if (r.startContainer.nodeType === Node.TEXT_NODE && r.startOffset === 1) {
+        document.execCommand('insertText', false, ' ');
+        r = sel.getRangeAt(0);
+        padded = true;
+      }
       if (r.startOffset > 0) {
         r.setStart(r.startContainer, r.startOffset - 1);
         r.collapse(true);
@@ -1253,6 +1268,70 @@ export class EditorCanvasComponent implements AfterViewInit, OnDestroy {
     }
     // 3) insert the chip inline (caret is inside a text node now → no promotion)
     document.execCommand('insertHTML', false, chip.outerHTML);
+    // 4) drop the pad space that now sits right before the chip
+    if (padded) this.removeSpaceBeforeInsertedChip();
+  }
+
+  /**
+   * After `insertChipUndoable` padded a start-of-line insert, deletes the one space
+   * left directly before the new chip, then puts the caret back where it was.
+   *
+   * The chip is found from the caret, not from the pad's text node: insertHTML splits
+   * that node and Chrome keeps the LATER half in the original, so holding a reference
+   * to it would delete the space after the chip instead.
+   */
+  private removeSpaceBeforeInsertedChip(): void {
+    const sel = window.getSelection();
+    if (!sel || !sel.rangeCount) return;
+    const caret = sel.getRangeAt(0).cloneRange();
+    const chip = this.chipBeforeCaret(caret);
+    const pad = chip && this.deepestLast(this.previousInDocument(chip));
+    if (!chip || !pad || pad.nodeType !== Node.TEXT_NODE) return;
+    const text = pad as Text;
+    if (!/[\s ]$/.test(text.data)) return;
+    // Never reach into the previous line.
+    const block = 'p,div,li,h1,h2,h3,h4,h5,h6,td,th,blockquote';
+    if (text.parentElement?.closest(block) !== chip.closest(block)) return;
+
+    const del = document.createRange();
+    del.setStart(text, text.data.length - 1);
+    del.setEnd(text, text.data.length);
+    sel.removeAllRanges();
+    sel.addRange(del);
+    document.execCommand('delete');
+    sel.removeAllRanges();
+    sel.addRange(caret);
+  }
+
+  /** The chip immediately before a collapsed caret (Chrome leaves the caret after the
+   *  space that follows a new chip, so leading whitespace is skipped), or null. */
+  private chipBeforeCaret(range: Range): HTMLElement | null {
+    const c = range.startContainer;
+    let n: Node | null;
+    if (c.nodeType === Node.TEXT_NODE) {
+      const before = (c as Text).data.slice(0, range.startOffset);
+      n = /^[\s ]*$/.test(before) ? this.previousInDocument(c) : null;
+    } else {
+      n = range.startOffset > 0 ? c.childNodes[range.startOffset - 1] : this.previousInDocument(c);
+    }
+    n = this.deepestLast(n);
+    return this.isChip(n) ? (n as HTMLElement) : null;
+  }
+
+  /** The previous sibling of `n` or of its nearest ancestor that has one. */
+  private previousInDocument(n: Node | null): Node | null {
+    while (n && !n.previousSibling) n = n.parentNode;
+    return n ? n.previousSibling : null;
+  }
+
+  /** Descends to the last leaf of `n`, stopping at a chip (its label is not text to edit). */
+  private deepestLast(n: Node | null): Node | null {
+    while (n && !this.isChip(n) && n.lastChild) n = n.lastChild;
+    return n;
+  }
+
+  private isChip(n: Node | null): boolean {
+    return !!n && n.nodeType === Node.ELEMENT_NODE && (n as HTMLElement).classList.contains('merge-tag-chip');
   }
 
   // ── Subject-line API (used by the host editor component + toolbar) ──
