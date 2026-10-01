@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { Params } from '@angular/router';
 import { BehaviorSubject } from 'rxjs';
 import Swal from 'sweetalert2';
 import { constants } from '../helpers/constants';
@@ -63,6 +64,14 @@ export class DripCampaignService {
    * call, since both `activateDripCampaign` and the follow-up `getCampaign` are
    * called `silent` there and would otherwise give no feedback at all.
    */
+  /**
+   * The drip list's own query params (`page`, `status`) as last shown, so the way back
+   * from a campaign — the "Manage Campaigns" crumb — returns to the same page instead
+   * of page 1. Written by `brand-list-of-drip-campaigns`. In memory: a reload or a
+   * fresh visit from the sidebar starts on page 1, as before.
+   */
+  listQueryParams: Params = {};
+
   private _activating = new BehaviorSubject(false);
   activating = this._activating.asObservable();
   setActivating = (value: boolean): void => this._activating.next(value);

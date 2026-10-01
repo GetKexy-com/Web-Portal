@@ -1,5 +1,5 @@
 import { Component, OnInit, ViewChild, Input, ElementRef, HostListener } from "@angular/core";
-import { ActivatedRoute, Router, RouterLink } from "@angular/router";
+import { ActivatedRoute, Params, Router, RouterLink } from "@angular/router";
 import {NgbDropdown, NgbDropdownItem, NgbDropdownMenu, NgbDropdownToggle, NgbModal} from "@ng-bootstrap/ng-bootstrap";
 import { AuthService } from "src/app/services/auth.service";
 import { User } from "src/app/models/user";
@@ -37,6 +37,8 @@ export interface IBreadcrumb {
   label: string;
   /** Omit on the current (last) page, or for a step that isn't navigable. */
   link?: string;
+  /** Sent with `link`, e.g. the page of the list you came from. */
+  queryParams?: Params;
 }
 
 @Component({

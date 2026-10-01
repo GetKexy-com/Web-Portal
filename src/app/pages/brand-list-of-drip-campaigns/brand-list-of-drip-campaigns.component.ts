@@ -138,6 +138,11 @@ export class BrandListOfDripCampaignsComponent implements OnInit {
       this.filterStatus.set(statusParam);
     }
 
+    // `?page=` — written by `__syncUrl`, so browser Back (and the campaign page's
+    // "Manage Campaigns" crumb) returns to the page you were on, not page 1.
+    const pageParam = Number(this.route.snapshot.queryParamMap.get('page'));
+    if (Number.isInteger(pageParam) && pageParam > 1) this.page.set(pageParam);
+
     const limit = localStorage.getItem(constants.BRAND_DRIP_CAMPAIGN_PAGE_LIMIT);
     this.setPageLimit(limit ? parseInt(limit) : this.limit());
 
@@ -224,6 +229,14 @@ export class BrandListOfDripCampaignsComponent implements OnInit {
 
     this.__applyDripCampaigns(data);
     this.lastUpdatedAt.set(Date.now());
+
+    // A remembered page can be past the end once campaigns were deleted (or the page
+    // size grew) — fall back to the last page rather than an empty table.
+    const last = Math.max(1, Number(data['totalPageCounts']) || 1);
+    if (this.page() > last) {
+      this.page.set(last);
+      await this.getListOfDripCampaigns();
+    }
   };
 
   /** Shared by the cached read and the live response so the two can't diverge. */
@@ -231,7 +244,31 @@ export class BrandListOfDripCampaignsComponent implements OnInit {
     this.dripCampaignList.set(data['dripCampaigns']);
     this.totalPageCounts.set(data['totalPageCounts']);
     this.totalRecordsCount.set(data['totalRecordsCount']);
+    this.__syncUrl();
     this.__loadNextSends().then();
+  };
+
+  /**
+   * Mirrors the page and status filter into the URL (replacing, not pushing, history)
+   * and into `DripCampaignService.listQueryParams`, so leaving for a campaign and
+   * coming back lands on the same page. Defaults are left out to keep the URL clean.
+   */
+  private __syncUrl = () => {
+    // A response landing after the user left must not navigate them back here.
+    if (this.destroyed) return;
+    const queryParams = {
+      page: this.page() > 1 ? this.page() : null,
+      status: this.filterStatus() !== constants.DRIP_CAMPAIGN_STATUS[0].key ? this.filterStatus() : null,
+    };
+    this.dripCampaignService.listQueryParams = Object.fromEntries(
+      Object.entries(queryParams).filter(([, v]) => v !== null),
+    );
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams,
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
   };
 
   /**
