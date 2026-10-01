@@ -254,7 +254,7 @@ export class ListOfDripCampaignTableComponent implements OnInit, AfterViewInit, 
 
   openShowAllLabelModal = (labelsArray) => {
     this.prospectingService.selectedContactLabels = labelsArray;
-    this.modal.open(ContactLabelsModalContentComponent);
+    this.modal.open(ContactLabelsModalContentComponent, { windowClass: 'kx-dialog-modal', centered: true });
   };
 
   selectedItemCount;
