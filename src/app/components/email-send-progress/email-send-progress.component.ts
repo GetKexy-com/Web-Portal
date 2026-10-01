@@ -84,6 +84,9 @@ const DELIVERY_META: Record<EmailDeliveryStatus, { label: string; tone: Tone; pr
   complained: { label: 'Marked as spam', tone: 'bad', problem: true },
 };
 
+/** Delivery outcomes that mean the email never arrived; see `rowStatus`. */
+const UNDELIVERED = new Set<string>(['bounced', 'rejected', 'failed']);
+
 /** Plain-language name for each failure/skip code; the code itself is still shown beside it. */
 const ERROR_TITLES: Record<string, string> = {
   ai_api_error: 'AI service unavailable',
@@ -281,7 +284,27 @@ export class EmailSendProgressComponent implements OnInit, OnDestroy {
   }
 
   // ── Template helpers ────────────────────────────────────────────────────
-  statusMeta = (status: EmailSendStatus): IStatusMeta => STATUS_META[status];
+  /**
+   * The Status pill for a row. A sent email reads "Delivered", unless SES then reported it
+   * never arrived (bounced, rejected, failed) — that outcome takes the pill instead, so a
+   * lost email never reads as a success. A delay shows as "Delivery delayed" on its own.
+   * An "Opened" pill joins "Delivered" once opened (see `hasOpened`).
+   */
+  rowStatus = (item: IEmailSendItem): IStatusMeta => {
+    const meta = STATUS_META[item.status];
+    if (item.status !== 'sent') return meta;
+    const d = item.delivery;
+    if (d && this.isUndelivered(d.status)) return { label: this.deliveryMeta(d.status).label, tone: 'bad', busy: false };
+    if (d?.status === 'delayed') return { ...meta, label: this.deliveryMeta(d.status).label, tone: 'wait' };
+    return { ...meta, label: 'Delivered' };
+  };
+
+  /** SES outcomes where the email never reached the inbox — shown AS the status. */
+  isUndelivered = (status: string): boolean => UNDELIVERED.has(status);
+
+  /** A secondary pill under the status, for what the status itself does not say (a spam report). */
+  showDeliveryPill = (status: string): boolean =>
+    status !== 'delivered' && status !== 'delayed' && !this.isUndelivered(status);
 
   /** An unknown status (a newer API) still reads sensibly rather than blank. */
   deliveryMeta = (status: string) =>
@@ -338,6 +361,13 @@ export class EmailSendProgressComponent implements OnInit, OnDestroy {
 
   /** A queued or scheduled prospect has nothing to show yet, so its row does not open. */
   canExpand = (item: IEmailSendItem): boolean => item.status !== 'scheduled' && item.status !== 'queued';
+
+  /**
+   * The profile/score is offered only once the prospect opened this email. A click or
+   * reply counts too — both mean it was opened even when the tracking pixel was blocked.
+   */
+  hasOpened = (item: IEmailSendItem): boolean =>
+    !!(item.engagement?.openedAt || item.engagement?.clickedAt || item.engagement?.repliedAt);
 
   // ── Actions ─────────────────────────────────────────────────────────────
   refresh = (): void => {

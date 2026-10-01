@@ -147,25 +147,33 @@
               </td>
 
               <td class="col-profile" *ngIf="showProfile">
+                <!--Scored only once they have opened this email; until then there is nothing to view.-->
                 <button
+                  *ngIf="hasOpened(item); else noScore"
                   type="button"
                   class="sp-profile-link"
                   [attr.aria-label]="'View profile and score for ' + (item.name || item.email)"
                   (click)="openProfile(item)"
                 >View</button>
+                <ng-template #noScore>
+                  <span class="sp-no-score" title="Available once the prospect opens this email">No score yet</span>
+                </ng-template>
               </td>
 
               <td class="col-status">
-                <span class="sp-pill" [ngClass]="'tone-' + statusMeta(item.status).tone">
-                  <i class="fa fa-circle-o-notch fa-spin" *ngIf="statusMeta(item.status).busy" aria-hidden="true"></i>
-                  {{ statusMeta(item.status).label }}
+                <span class="sp-pill" *ngIf="rowStatus(item) as st" [ngClass]="'tone-' + st.tone">
+                  <i class="fa fa-circle-o-notch fa-spin" *ngIf="st.busy" aria-hidden="true"></i>
+                  {{ st.label }}
                 </span>
+                <span class="sp-pill sp-delivery tone-live" *ngIf="item.status === 'sent' && hasOpened(item)">Opened</span>
                 <!--Whether it will be tried again depends on WHY it failed.-->
                 <span class="sp-attempt" *ngIf="retryNote(item, summary.maxAttempts) as note">{{ note }}</span>
-                <!--After "Sent": whether SES then got it to the inbox. Only once SES has
-                    reported something — no event yet leaves the row as plain "Sent".-->
+                <!--After a send: what SES then reported. Delivered, delayed, bounced, rejected and
+                    failed are already the status pill (`rowStatus`); a spam report gets
+                    its own pill. SES's reason follows any problem.-->
                 <ng-container *ngIf="item.delivery as d">
                   <span
+                    *ngIf="showDeliveryPill(d.status)"
                     class="sp-pill sp-delivery"
                     [ngClass]="'tone-' + deliveryMeta(d.status).tone"
                     [title]="d.detail || deliveryMeta(d.status).label"
