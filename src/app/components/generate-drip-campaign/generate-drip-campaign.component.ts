@@ -983,6 +983,13 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Whether the campaign was activated "Super charged" — the `super_charged` setting
+   * (`[{ value: boolean }]`), written by KexyApi on activate. Drives the card at the top
+   * of the page and the activate dialog's starting toggle.
+   */
+  isSuperCharged = (): boolean => this.__readSetting('super_charged')[0]?.value === true;
+
+  /**
    * One `drip_campaign_settings` row's value as an array.
    *
    * Defensive about the string form for the same reason `__getSelectedSmtpId` is:
@@ -1033,7 +1040,7 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
     // and the campaign refetch that follows it, not toggle off in between.
     this.dripCampaignService.setActivating(true);
     try {
-      const isSuccess = await this.__launchDripCampaign();
+      const isSuccess = await this.__launchDripCampaign(confirmed.superCharged);
       if (isSuccess) {
         await Swal.fire({
           title: `Congratulations!`,
@@ -1071,11 +1078,13 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
   };
 
 
-  __launchDripCampaign = async () => {
+  __launchDripCampaign = async (superCharged: boolean) => {
     try {
       const postData = {
         drip_campaign_id: this.dripCampaignId,
         companyId: this.userData.supplier_id,
+        // Saved by KexyApi as the `super_charged` setting (see `isSuperCharged`).
+        superCharged,
         // notify: "true",
       };
       // silent: see `setActivating` above — the button carries the feedback instead.
@@ -1122,7 +1131,7 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
 
   /**
    * The "Ready to activate?" dialog. Resolves with the user's choices, or null when it
-   * was cancelled. `superCharged` is not sent anywhere yet (UI only for now).
+   * was cancelled.
    */
   __isConfirmed = async (): Promise<IActivateDripResult | null> => {
     const ref = this.modal.open(ActivateDripModalComponent, { windowClass: 'kx-dialog-modal', centered: true });
@@ -1130,6 +1139,8 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
     modal.campaignTitle = this.dripCampaign?.details?.title?.title ?? '';
     modal.emailCount = this.emails.length;
     modal.listCount = this.getEnrolledList()?.length ?? 0;
+    // Re-activating a super-charged campaign starts with the toggle on.
+    modal.superCharged = this.isSuperCharged();
 
     try {
       return (await ref.result) as IActivateDripResult;

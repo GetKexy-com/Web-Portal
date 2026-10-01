@@ -1,15 +1,39 @@
-<div class="search-contact-modal">
-  <section class="header-area">
-    <p>Lists</p>
-    <img src="/assets/images/close-icon.png" alt="close-icon" style="cursor:pointer;"
-         (click)="activeModal.close('Close click')" />
-  </section>
+<div class="cl-modal">
+  <div class="cl-head">
+    <p class="cl-title">
+      <i class="fa fa-tags" aria-hidden="true"></i>
+      Lists
+      <span class="cl-count">{{ lists.length }}</span>
+    </p>
+    <button type="button" class="cl-icon-btn" aria-label="Close" (click)="activeModal.dismiss()">
+      <i class="fa fa-times" aria-hidden="true"></i>
+    </button>
+  </div>
 
-  <section class="middle-area">
-    <div class="labels-wrap">
-      <!-- Items are either { list: {...} } (drip campaigns) or the list itself (contacts). -->
-      <span *ngFor="let item of labels" class="label" [style.background-color]="(item.list ?? item).bgColor"
-            [style.color]="(item.list ?? item).textColor">{{ (item.list ?? item).label }}</span>
+  <div class="cl-body">
+    <div class="cl-search" *ngIf="lists.length > searchThreshold">
+      <i class="fa fa-search" aria-hidden="true"></i>
+      <input type="text" placeholder="Search lists" aria-label="Search lists" [value]="query" (input)="onSearch($event)" />
     </div>
-  </section>
+
+    <ul class="cl-list" *ngIf="filtered.length">
+      <li *ngFor="let l of filtered" class="cl-item">
+        <span class="cl-swatch" [style.background-color]="l.bgColor" aria-hidden="true"></span>
+        <span
+          class="cl-chip"
+          [style.background-color]="l.bgColor"
+          [style.color]="l.textColor"
+          [title]="l.label"
+        >{{ l.label }}</span>
+      </li>
+    </ul>
+
+    <p class="cl-empty" *ngIf="!filtered.length">
+      {{ lists.length ? 'No lists match "' + query + '".' : 'Not on any list.' }}
+    </p>
+  </div>
+
+  <div class="cl-foot">
+    <button type="button" class="cl-ghost-btn" (click)="activeModal.dismiss()" ngbAutofocus>Close</button>
+  </div>
 </div>

@@ -1065,3 +1065,111 @@ $tm-red-bg: #fdeaea;
     cursor: default;
   }
 }
+
+// ── "Super charged" card ────────────────────────────────────────────────────────
+// Same warm amber → orange as the activate dialog's toggle (activate-drip-modal), so
+// the two read as one feature: gradient border, bolt in a gradient tile, "On" pill.
+$sc-bolt: #f59e0b;
+$sc-bolt-deep: #ea580c;
+$sc-bolt-bg: #fff8eb;
+$sc-bolt-ink: #9a3412;
+
+.super-charged-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+  padding: 14px 16px;
+  border: 2px solid transparent;
+  border-radius: 14px;
+  background:
+    linear-gradient(135deg, #fff4e0, $sc-bolt-bg) padding-box,
+    linear-gradient(135deg, $sc-bolt, $sc-bolt-deep, #f43f5e) border-box;
+  box-shadow: 0 10px 26px -14px rgba(234, 88, 12, 0.55);
+
+  .sc-icon {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, $sc-bolt, $sc-bolt-deep);
+    color: #fff;
+    font-size: 20px;
+    box-shadow: 0 6px 16px -6px rgba(234, 88, 12, 0.7);
+
+    i {
+      animation: sc-bolt-zap 2.4s ease-in-out infinite;
+    }
+  }
+
+  .sc-text {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .sc-title {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 800;
+    color: $sc-bolt-ink;
+  }
+
+  .sc-desc {
+    margin: 2px 0 0;
+    font-size: 13px;
+    color: #7c2d12;
+  }
+
+  .sc-pill {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 11px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, $sc-bolt, $sc-bolt-deep);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .sc-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #fff;
+    animation: sc-dot-pulse 1.8s ease-in-out infinite;
+  }
+}
+
+@keyframes sc-bolt-zap {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.15);
+  }
+}
+
+@keyframes sc-dot-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .super-charged-card .sc-icon i,
+  .super-charged-card .sc-dot {
+    animation: none;
+  }
+}
