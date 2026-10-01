@@ -872,3 +872,196 @@ $settings-band: 2;
     }
   }
 }
+
+// ── "Send test campaign" dialog ─────────────────────────────────────────────────
+// Same shell as activate-drip-modal / enrollment-preview-modal: white head with a
+// bordered close button, body, grey foot. The rounded frame and width come from
+// `.kx-dialog-modal` in styles.scss. Tokens duplicated the way the other modals do.
+$tm-primary-deep: #095dd1;
+$tm-ink: #0f172a;
+$tm-body: #334155;
+$tm-muted: #64748b;
+$tm-border: #e2e8f0;
+$tm-field-bg: #f7f9fc;
+$tm-red: #dc2626;
+$tm-red-bg: #fdeaea;
+
+.tm-modal {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+}
+
+.tm-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 22px;
+  background: #fff;
+  border-bottom: 1px solid $tm-border;
+}
+
+.tm-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: $tm-ink;
+
+  i {
+    font-size: 14px;
+    color: $tm-primary-deep;
+  }
+}
+
+.tm-icon-btn {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid $tm-border;
+  border-radius: 10px;
+  background: #fff;
+  color: $tm-muted;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background: $tm-red-bg;
+    border-color: $tm-red;
+    color: $tm-red;
+  }
+}
+
+.tm-body {
+  padding: 18px 22px 20px;
+  background: #fff;
+}
+
+.tm-intro {
+  margin: 0 0 16px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: $tm-body;
+}
+
+.tm-label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: $tm-muted;
+}
+
+.tm-field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 42px;
+  padding: 0 12px;
+  border: 1px solid $tm-border;
+  border-radius: 10px;
+  background: $tm-field-bg;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+
+  i {
+    color: $tm-muted;
+  }
+
+  input {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 14px;
+    color: $tm-ink;
+
+    &::placeholder {
+      color: #94a3b8;
+    }
+  }
+
+  &:focus-within {
+    border-color: $tm-primary-deep;
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(9, 93, 209, 0.12);
+
+    i {
+      color: $tm-primary-deep;
+    }
+  }
+
+  &.is-invalid {
+    border-color: $tm-red;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+  }
+}
+
+.tm-error {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 8px 0 0;
+  font-size: 12.5px;
+  color: $tm-red;
+}
+
+.tm-foot {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 22px;
+  background: $tm-field-bg;
+  border-top: 1px solid $tm-border;
+}
+
+.tm-ghost-btn,
+.tm-primary-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 38px;
+  padding: 0 16px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.tm-ghost-btn {
+  border: 1px solid $tm-border;
+  background: #fff;
+  color: $tm-ink;
+
+  &:hover {
+    border-color: $tm-muted;
+  }
+}
+
+.tm-primary-btn {
+  border: 1px solid $tm-primary-deep;
+  background: $tm-primary-deep;
+  color: #fff;
+
+  &:hover:not(:disabled) {
+    background: #0850b6;
+  }
+
+  &:disabled {
+    opacity: 0.7;
+    cursor: default;
+  }
+}
