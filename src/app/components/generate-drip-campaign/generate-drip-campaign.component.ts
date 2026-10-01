@@ -17,8 +17,6 @@ import { ProspectingService } from '../../services/prospecting.service';
 import { CampaignService } from '../../services/campaign.service';
 import { KexySelectDropdownComponent } from '../kexy-select-dropdown/kexy-select-dropdown.component';
 import { KexyButtonComponent } from '../kexy-button/kexy-button.component';
-import { ErrorMessageCardComponent } from '../error-message-card/error-message-card.component';
-import { ModalComponent } from '../modal/modal.component';
 import { FormsModule } from '@angular/forms';
 import { DripCampaignCardComponent } from '../drip-campaign-card/drip-campaign-card.component';
 import { CampaignLayoutBottmBtnsComponent } from '../campaign-layout-bottm-btns/campaign-layout-bottm-btns.component';
@@ -49,8 +47,6 @@ import { ScrapeProgressCardComponent } from '../scrape-progress-card/scrape-prog
   imports: [
     KexySelectDropdownComponent,
     KexyButtonComponent,
-    ErrorMessageCardComponent,
-    ModalComponent,
     FormsModule,
     DripCampaignCardComponent,
     CampaignLayoutBottmBtnsComponent,
@@ -632,7 +628,8 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
   };
 
   openTestEmailPopUp = async (modalContent) => {
-    this.testEmailModalRef = this.modal.open(modalContent);
+    this.submittedTestEmailSend = false;
+    this.testEmailModalRef = this.modal.open(modalContent, { windowClass: 'kx-dialog-modal' });
   };
 
   getEnrolledList = () => {

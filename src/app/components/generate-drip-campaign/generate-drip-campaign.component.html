@@ -366,24 +366,51 @@
   rightSecondBtnLabel="Activate"
 ></campaign-layout-bottm-btns>
 
+<!--Same dialog family as activate-drip-modal / enrollment-preview-modal: opened with
+    windowClass `kx-dialog-modal` (rounded frame + width from styles.scss).-->
 <ng-template #sendTestEmailModal let-c="close" let-d="dismiss">
-  <modal [modalClose]="c" title="Send Test Campaign">
-    <div class="modal-body">
-      <div class="input-wrap">
-        <label class="input-label-text">Enter Email Address</label>
-        <input type="text" class="form-control" name="numberOfEmail" [(ngModel)]="testEmailText" />
-        <div *ngIf="submittedTestEmailSend && !isValidEmail">
-          <error-message-card message="Please enter valid email."></error-message-card>
-        </div>
-      </div>
-      <div class="mt-4" style="width: 150px">
-        <app-kexy-button
-          [disabled]="isSendEmailLoading"
-          [label]="isSendEmailLoading? 'Please wait...' : 'Send'"
-          [iconLeft]="isSendEmailLoading ? 'fa-refresh fa-spin' : 'fa-paper-plane-o'"
-          (click)="handleSendTestEmail()">
-        </app-kexy-button>
-      </div>
+  <form class="tm-modal" (ngSubmit)="handleSendTestEmail()" novalidate>
+    <div class="tm-head">
+      <p class="tm-title">
+        <i class="fa fa-paper-plane-o" aria-hidden="true"></i>
+        Send test campaign
+      </p>
+      <button type="button" class="tm-icon-btn" aria-label="Close" (click)="d()">
+        <i class="fa fa-times" aria-hidden="true"></i>
+      </button>
     </div>
-  </modal>
+
+    <div class="tm-body">
+      <p class="tm-intro">
+        All {{ emails.length }} {{ emails.length === 1 ? 'email' : 'emails' }} in this sequence are sent
+        to this address, so you can check how they look in a real inbox.
+      </p>
+
+      <label class="tm-label" for="testEmailInput">Email address</label>
+      <div class="tm-field" [class.is-invalid]="submittedTestEmailSend && !isValidEmail">
+        <i class="fa fa-envelope-o" aria-hidden="true"></i>
+        <input
+          id="testEmailInput"
+          type="email"
+          name="testEmail"
+          placeholder="you@company.com"
+          autocomplete="email"
+          [(ngModel)]="testEmailText"
+          ngbAutofocus
+        />
+      </div>
+      <p class="tm-error" *ngIf="submittedTestEmailSend && !isValidEmail">
+        <i class="fa fa-exclamation-circle" aria-hidden="true"></i>
+        Please enter a valid email address.
+      </p>
+    </div>
+
+    <div class="tm-foot">
+      <button type="button" class="tm-ghost-btn" (click)="d()">Cancel</button>
+      <button type="submit" class="tm-primary-btn" [disabled]="isSendEmailLoading">
+        <i class="fa" [ngClass]="isSendEmailLoading ? 'fa-refresh fa-spin' : 'fa-paper-plane-o'" aria-hidden="true"></i>
+        {{ isSendEmailLoading ? 'Sending…' : 'Send test' }}
+      </button>
+    </div>
+  </form>
 </ng-template>
