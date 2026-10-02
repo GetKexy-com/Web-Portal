@@ -640,29 +640,7 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
   getAndSetSmtps = async () => {
     this.smtpLoading = true;
     try {
-      const data: any = await this.dripCampaignService.getSmtpList({
-        companyId: this.userData.supplier_id,
-        page: 1,
-        limit: 100,
-      });
-      const list = Array.isArray(data)
-        ? data
-        : Array.isArray(data?.smtps)
-          ? data.smtps
-          : data?.smtp
-            ? [data.smtp]
-            : [];
-      this.smtpOptions = list.map((smtp) => {
-        const email = smtp.smtpFromEmail || smtp.smtpUsername || '';
-        const name = smtp.smtpFromName || '';
-        return {
-          key: smtp.id,
-          value: name && email ? `${name} <${email}>` : email || name || `SMTP #${smtp.id}`,
-          id: smtp.id,
-        };
-      });
-    } catch (e) {
-      this.smtpOptions = [];
+      this.smtpOptions = await this.dripCampaignService.getSmtpOptions(this.userData.supplier_id);
     } finally {
       this.smtpLoading = false;
       this.syncSelectedSmtpOption();

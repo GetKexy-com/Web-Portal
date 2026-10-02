@@ -18,6 +18,7 @@ import { BrandConvoCardComponent } from '../../components/brand-convo-card/brand
 import { BrandConvoAvatarComponent } from '../../components/brand-convo-avatar/brand-convo-avatar.component';
 import { BrandConvoEmailComponent } from '../../components/brand-convo-email/brand-convo-email.component';
 import { KexyCustomRichEditorComponent } from '../../components/kexy-custom-rich-editor/kexy-custom-rich-editor.component';
+import { KexySelectDropdownComponent } from '../../components/kexy-select-dropdown/kexy-select-dropdown.component';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -30,6 +31,7 @@ import { CommonModule } from '@angular/common';
     BrandConvoAvatarComponent,
     BrandConvoEmailComponent,
     KexyCustomRichEditorComponent,
+    KexySelectDropdownComponent,
     CommonModule,
     NgbDropdown,
     NgbDropdownMenu,
@@ -318,6 +320,31 @@ export class BrandConversationsComponent implements OnInit, OnDestroy {
     // cannot reach them. The class is styled globally in styles.scss; the template's
     // own content is still component-scoped as usual.
     this.modal.open(modalContent, { size: 'lg', windowClass: 'kx-compose-modal' });
+    if (!this.smtpOptions.length) this.loadSmtpOptions();
+  };
+
+  // Send-from SMTP for the compose modal — same single-select as the campaign
+  // settings. Nothing picked → the API sends from the user's own SMTP, as before.
+  smtpOptions: { key: any; value: string; id: any }[] = [];
+  selectedSmtpOption: any = null;
+  smtpLoading = false;
+
+  private loadSmtpOptions = async () => {
+    this.smtpLoading = true;
+    try {
+      this.smtpOptions = await this.dripCampaignService.getSmtpOptions(this.userData.supplier_id);
+      // Only one account → nothing to choose, so show it as the sender.
+      if (this.smtpOptions.length === 1 && !this.selectedSmtpOption) {
+        this.selectedSmtpOption = this.smtpOptions[0];
+      }
+    } finally {
+      this.smtpLoading = false;
+    }
+  };
+
+  onSmtpSelect = (selectedValue) => {
+    // Clearing passes { value:'', id:'', key:'' }; a pick passes the option.
+    this.selectedSmtpOption = selectedValue?.id ? selectedValue : null;
   };
 
   emailContent = '';
@@ -353,6 +380,7 @@ export class BrandConversationsComponent implements OnInit, OnDestroy {
       emailSubject: this.selectedConversation.emailSubject,
       receiverDetails: this.selectedConversation.receiverDetails,
       messageContent: this.updatedEmailContent,
+      ...(this.selectedSmtpOption ? { smtpId: this.selectedSmtpOption.id } : {}),
     };
     try {
       this.isLoading = true;
