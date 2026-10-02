@@ -153,26 +153,37 @@
       <!--Nothing to list. A search that matched nothing is a different situation from
           an empty mailbox - one the user can fix by clearing the search, the other not -
           so the icon, the wording and the action all differ.-->
-      <div class="rail-list rail-empty" *ngIf="!isLoading && filteredConversations.length === 0">
-        <div class="rail-empty-badge" [class.searching]="convSearchText">
-          <i class="fa" [ngClass]="convSearchText ? 'fa-search' : 'fa-inbox'" aria-hidden="true"></i>
-        </div>
+      <div
+        class="rail-list rail-empty"
+        [class.is-mailbox-empty]="!convSearchText"
+        *ngIf="!isLoading && filteredConversations.length === 0"
+      >
+        <!--Empty mailbox: outlined "ghost" rows, the shape a conversation will take.
+            Static and dashed, so they read as empty slots rather than a load in
+            progress (no shimmer). The right pane carries the full message.-->
+        <ng-container *ngIf="!convSearchText">
+          <div class="rail-ghosts" aria-hidden="true">
+            <div class="ghost-row" *ngFor="let g of [1, 2, 3, 4]">
+              <span class="ghost-avatar"></span>
+              <span class="ghost-lines"><span></span><span></span></span>
+            </div>
+          </div>
+          <p class="rail-empty-caption">
+            <i class="fa fa-inbox" aria-hidden="true"></i>
+            Your inbox is empty
+          </p>
+        </ng-container>
 
-        <p class="rail-empty-title">{{ convSearchText ? 'No matches' : 'No conversations yet' }}</p>
-
-        <p class="rail-empty-desc" *ngIf="!convSearchText">Replies from your prospects will show up here.</p>
-        <p class="rail-empty-desc" *ngIf="convSearchText">
-          Nothing matches &ldquo;{{ convSearchText }}&rdquo;.
-        </p>
-
-        <button
-          type="button"
-          class="rail-empty-action"
-          *ngIf="convSearchText"
-          (click)="clearConversationSearch()"
-        >
-          Clear search
-        </button>
+        <ng-container *ngIf="convSearchText">
+          <div class="rail-empty-badge">
+            <i class="fa fa-search" aria-hidden="true"></i>
+          </div>
+          <p class="rail-empty-title">No matches</p>
+          <p class="rail-empty-desc">Nothing matches &ldquo;{{ convSearchText }}&rdquo;.</p>
+          <button type="button" class="rail-empty-action" (click)="clearConversationSearch()">
+            Clear search
+          </button>
+        </ng-container>
       </div>
     </aside>
 
@@ -283,12 +294,22 @@
     </section>
 
     <div class="conv-empty" *ngIf="!selectedConversation">
-      <div class="empty-content" *ngIf="!isLoading && !totalConversationCount">
-        <div class="empty-badge">
-          <img src="/assets/icon/double-envelop.svg" alt="" aria-hidden="true"/>
+      <div class="empty-hero" *ngIf="!isLoading && !totalConversationCount">
+        <!--Pure CSS art: a stack of message cards with a floating badge.-->
+        <div class="empty-art" aria-hidden="true">
+          <span class="art-glow"></span>
+          <span class="art-card back"></span>
+          <span class="art-card mid"></span>
+          <span class="art-card front">
+            <span class="art-avatar"></span>
+            <span class="art-lines"><span></span><span></span><span></span></span>
+          </span>
+          <span class="art-badge"><i class="fa fa-reply"></i></span>
         </div>
-        <p class="empty-title">No conversations yet</p>
-        <p class="empty-desc">Replies from your prospects will show up here.</p>
+
+        <p class="empty-eyebrow">All quiet</p>
+        <h2 class="empty-title">No replies yet</h2>
+        <p class="empty-desc">When prospects reply to your drip campaigns, their messages land right here.</p>
       </div>
     </div>
   </div>
@@ -319,6 +340,33 @@
             <span class="chip-name">{{ getFullName(selectedConversation.receiverDetails.details) }}</span>
             <span class="chip-email">{{ selectedConversation.receiverEmail }}</span>
           </span>
+        </div>
+
+        <!--Send-from account — the same single-select as the campaign settings.-->
+        <div class="smtp-row">
+          <kexy-select-dropdown
+            class="full-select"
+            label="SMTP account"
+            shortNoteBesideLabel=""
+            [selectAllBtn]="false"
+            [required]="false"
+            [options]="smtpOptions"
+            [addNewBtn]="false"
+            [onAddNewClick]=""
+            [selectedOption]="selectedSmtpOption"
+            [onSelectSingleItem]="onSmtpSelect"
+            [rowIndex]="1"
+            [editIcon]="false"
+            [onEditClick]=""
+            [deleteIcon]="false"
+            [onDeleteClick]=""
+            [isSearchAble]="false"
+            [isClearable]="true"
+            [isContentLoading]="smtpLoading"
+            optionStyle="button"
+            backgroundColor="white"
+            placeholder="Default account"
+          ></kexy-select-dropdown>
         </div>
 
         <div class="text-area">

@@ -937,6 +937,33 @@ export class DripCampaignService {
     });
   };
 
+  // The company's SMTP accounts as single-select dropdown options
+  // ({ key, value: "Name <email>", id }). Shared by the campaign settings and the
+  // inbox compose modal so both list accounts the same way. Empty on failure.
+  getSmtpOptions = async (companyId: any): Promise<{ key: any; value: string; id: any }[]> => {
+    try {
+      const data: any = await this.getSmtpList({ companyId, page: 1, limit: 100 });
+      const list = Array.isArray(data)
+        ? data
+        : Array.isArray(data?.smtps)
+          ? data.smtps
+          : data?.smtp
+            ? [data.smtp]
+            : [];
+      return list.map((smtp) => {
+        const email = smtp.smtpFromEmail || smtp.smtpUsername || '';
+        const name = smtp.smtpFromName || '';
+        return {
+          key: smtp.id,
+          value: name && email ? `${name} <${email}>` : email || name || `SMTP #${smtp.id}`,
+          id: smtp.id,
+        };
+      });
+    } catch (e) {
+      return [];
+    }
+  };
+
   // Edit an existing account: PATCH /smtp/:id. All body fields are optional —
   // send only what changed. Omit smtpPassword to keep the existing one. The
   // backend re-verifies by sending a test email and only persists when a
