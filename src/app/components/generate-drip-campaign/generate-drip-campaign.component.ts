@@ -736,10 +736,9 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
   showLiveNotice = false;
   liveNoticeTitle = 'This campaign is live';
   liveNoticeStatus = '';
-  liveNoticePill = 'Sending';
   /**
    * The sequence has run its course (every prospect reached, or nothing left to send).
-   * Drives the calm styling — the pulsing "still running" dot would contradict the copy.
+   * Hides the "Next:" countdown chip — there is no next send once the sequence is done.
    * The API then marks the campaign `complete` (KexyApi `DripCampaignCompletionService`),
    * which hides this notice on the next load; until then this is what is on screen.
    */
@@ -837,21 +836,17 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
 
     if (isFinalising) {
       this.__stopSentCountPolling();
-      this.liveNoticePill = 'Finishing up';
       this.liveNoticeStatus =
-        'Research is complete for every prospect. Emails will start sending according to the schedule below.';
+        'Research complete for every prospect. Emails will start sending per the schedule below.';
     } else {
       this.__startSentCountPolling(campaign.id);
-      this.liveNoticePill = 'Sending';
       if (allSent) {
         this.liveNoticeTitle = 'Emails sent to all prospects';
-        this.liveNoticePill = 'Complete';
         this.liveNoticeStatus =
           `All ${plural(emailCount, 'email')} in the sequence have been sent to all ` +
           `${plural(seq.totalProspects, 'prospect')}. The campaign is now complete.`;
       } else if (finished) {
         this.liveNoticeTitle = 'Sequence finished';
-        this.liveNoticePill = 'Finished';
         this.liveNoticeStatus =
           `Every email has been processed. The last email reached ${seq.sent.toLocaleString()} of ` +
           `${plural(seq.totalProspects, 'prospect')} — ${(seq.totalProspects - seq.sent).toLocaleString()} ` +

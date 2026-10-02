@@ -730,146 +730,154 @@ $settings-band: 2;
   }
 }
 
-// Live notice — the green counterpart to .campaign-paused-warning above. Same
-// box (12px radius, tinted surface, 1px border + 3px accent edge) so an active
-// and a paused campaign put their status in exactly the same place, and the
-// page never silently drops the banner between the two.
-.campaign-live-notice {
+// Status bar — "Super charged" and the live state on one line, with the facts as
+// chips. Same slot as .campaign-paused-warning above, so an active and a paused
+// campaign put their status in the same place. Green by default; the warm amber →
+// orange of the activate dialog's toggle (activate-drip-modal) when super charged,
+// so the two read as one feature.
+$sc-bolt: #f59e0b;
+$sc-bolt-deep: #ea580c;
+$sc-bolt-ink: #c2410c;
+$live-ink: #0f766e;
+
+.campaign-status-bar {
   display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  background: #ecfdf5;
-  border: 1px solid #a7f3d0;
-  border-left: 3px solid #059669;
-  border-radius: 12px;
-  padding: 14px 16px;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
   margin-bottom: 16px;
+  padding: 12px 16px;
+  border: 1px solid #a7f3d0;
+  border-radius: 14px;
+  background: #ecfdf5;
+  font-size: 13px;
 
-  // Direct child only, so the fact icons below keep their own (muted) colour.
-  > i {
-    color: #059669;
-    font-size: 18px;
-    line-height: 1.4;
-  }
+  &.is-super-charged {
+    border: 1.5px solid transparent;
+    background:
+      linear-gradient(135deg, #fff7ed, #fdf0e6) padding-box,
+      linear-gradient(90deg, $sc-bolt, $sc-bolt-deep, #f43f5e) border-box;
 
-  .text {
-    flex: 1;
-    min-width: 0;
-
-    .title {
-      margin: 0;
-      font-weight: 700;
-      font-size: 14px;
-      color: #065f46;
-    }
-
-    .desc {
-      margin: 2px 0 0;
-      font-size: 13px;
-      color: #047857;
+    .chip {
+      background: #fbe7d3;
+      border-color: #f6d3b2;
+      color: #7c2d12;
     }
   }
 
-  .live-next-send {
+  .sc {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    margin: 8px 0 0;
-    padding: 4px 10px;
-    border: 1px solid #a7f3d0;
+    gap: 10px;
+  }
+
+  .sc-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
     border-radius: 8px;
-    background: #ffffff;
-    font-size: 12.5px;
-    cursor: pointer;
-
-    .fa {
-      color: #94a3b8;
-    }
-
-    &:hover,
-    &:focus-visible {
-      border-color: #059669;
-    }
+    background: linear-gradient(135deg, $sc-bolt, $sc-bolt-deep);
+    color: #fff;
+    font-size: 15px;
+    box-shadow: 0 4px 10px -4px rgba(234, 88, 12, 0.7);
   }
 
-  // Facts wrap rather than scroll: the send-window label can get long on a
-  // narrow column, and a clipped schedule is worse than a second line.
-  .facts {
-    list-style: none;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px 14px;
-    margin: 10px 0 0;
-    padding: 0;
-  }
-
-  .fact {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 12px;
-    font-weight: 600;
-    color: #0f766e;
-
-    i {
-      font-size: 12px;
-      opacity: 0.75;
-    }
-  }
-
-  .live-pill {
-    align-self: center;
-    flex-shrink: 0;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px 10px;
-    border-radius: 999px;
-    background: #d1fae5;
-    font-size: 12px;
-    font-weight: 700;
-    color: #047857;
+  .sc-title {
+    font-size: 15px;
+    font-weight: 800;
+    color: $sc-bolt-ink;
     white-space: nowrap;
   }
 
-  // The one moving element on the banner. A slow blink says "still running"
-  // without the banner competing with the page for attention.
-  .pill-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: currentColor;
-    animation: live-pulse 1.8s ease-in-out infinite;
+  // Looks like the activate dialog's switch, but read-only.
+  .sc-switch {
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    width: 58px;
+    height: 28px;
+    padding: 0 4px 0 10px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, $sc-bolt-deep, #ef4444);
+    box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.15);
   }
-}
 
-// The sequence has run its course. Still green — the campaign is healthy and active —
-// but the pulsing dot goes, since "still running" would contradict the copy.
-.campaign-live-notice.is-complete .pill-dot {
-  animation: none;
-}
+  .sc-switch-label {
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #fff;
+  }
 
-@keyframes live-pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.3; }
-}
+  .sc-switch-knob {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #fff;
+  }
 
-@media (prefers-reduced-motion: reduce) {
-  .campaign-live-notice .pill-dot {
-    animation: none;
+  .sep,
+  .dash {
+    color: $kx-faint;
+  }
+
+  .live-title {
+    font-size: 15px;
+    font-weight: 800;
+    color: $live-ink;
+    white-space: nowrap;
+  }
+
+  .live-desc {
+    color: $kx-muted;
+    min-width: 0;
+  }
+
+  // Wrap rather than scroll: the send-window label can get long on a narrow
+  // column, and a clipped schedule is worse than a second line.
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border: 1px solid #a7f3d0;
+    border-radius: 999px;
+    background: #d1fae5;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #065f46;
+    white-space: nowrap;
+
+    i {
+      font-size: 12px;
+      color: $live-ink;
+    }
+  }
+
+  .chip-btn {
+    cursor: pointer;
+
+    &:hover,
+    &:focus-visible {
+      border-color: $live-ink;
+    }
   }
 }
 
 @media (max-width: 767px) {
-  .campaign-live-notice {
-    flex-wrap: wrap;
-
-    // Below the text rather than beside it — at this width, keeping it on the
-    // right squeezes the schedule line into a very narrow column.
-    .live-pill {
-      order: 3;
-      align-self: flex-start;
-    }
+  // The dash only reads as punctuation on one line.
+  .campaign-status-bar .dash {
+    display: none;
   }
 }
 
@@ -1063,113 +1071,5 @@ $tm-red-bg: #fdeaea;
   &:disabled {
     opacity: 0.7;
     cursor: default;
-  }
-}
-
-// ── "Super charged" card ────────────────────────────────────────────────────────
-// Same warm amber → orange as the activate dialog's toggle (activate-drip-modal), so
-// the two read as one feature: gradient border, bolt in a gradient tile, "On" pill.
-$sc-bolt: #f59e0b;
-$sc-bolt-deep: #ea580c;
-$sc-bolt-bg: #fff8eb;
-$sc-bolt-ink: #9a3412;
-
-.super-charged-card {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  margin-bottom: 16px;
-  padding: 14px 16px;
-  border: 2px solid transparent;
-  border-radius: 14px;
-  background:
-    linear-gradient(135deg, #fff4e0, $sc-bolt-bg) padding-box,
-    linear-gradient(135deg, $sc-bolt, $sc-bolt-deep, #f43f5e) border-box;
-  box-shadow: 0 10px 26px -14px rgba(234, 88, 12, 0.55);
-
-  .sc-icon {
-    flex-shrink: 0;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 42px;
-    height: 42px;
-    border-radius: 12px;
-    background: linear-gradient(135deg, $sc-bolt, $sc-bolt-deep);
-    color: #fff;
-    font-size: 20px;
-    box-shadow: 0 6px 16px -6px rgba(234, 88, 12, 0.7);
-
-    i {
-      animation: sc-bolt-zap 2.4s ease-in-out infinite;
-    }
-  }
-
-  .sc-text {
-    flex: 1;
-    min-width: 0;
-  }
-
-  .sc-title {
-    margin: 0;
-    font-size: 15px;
-    font-weight: 800;
-    color: $sc-bolt-ink;
-  }
-
-  .sc-desc {
-    margin: 2px 0 0;
-    font-size: 13px;
-    color: #7c2d12;
-  }
-
-  .sc-pill {
-    flex-shrink: 0;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px 11px;
-    border-radius: 999px;
-    background: linear-gradient(135deg, $sc-bolt, $sc-bolt-deep);
-    color: #fff;
-    font-size: 11px;
-    font-weight: 800;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-  }
-
-  .sc-dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: #fff;
-    animation: sc-dot-pulse 1.8s ease-in-out infinite;
-  }
-}
-
-@keyframes sc-bolt-zap {
-  0%,
-  100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.15);
-  }
-}
-
-@keyframes sc-dot-pulse {
-  0%,
-  100% {
-    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7);
-  }
-  50% {
-    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .super-charged-card .sc-icon i,
-  .super-charged-card .sc-dot {
-    animation: none;
   }
 }

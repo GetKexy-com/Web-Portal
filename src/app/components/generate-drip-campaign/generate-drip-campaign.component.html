@@ -4,18 +4,61 @@
       that measure.-->
   <div class="top-section">
 
-    <!--"Super charged" — on when the campaign was activated with the activate dialog's
-        toggle (the `super_charged` setting). Same warm look as that toggle.-->
-    <div class="super-charged-card" *ngIf="isSuperCharged()" role="status">
-      <span class="sc-icon" aria-hidden="true"><i class="fa fa-bolt"></i></span>
-      <div class="sc-text">
-        <p class="sc-title">Super charged</p>
-        <p class="sc-desc">This campaign is running super charged.</p>
+    <!--Status bar — one line that says how the campaign is running: "Super charged"
+        (the activate dialog's toggle, the `super_charged` setting) and, once active,
+        the live state with its facts as chips. Either half can show alone; warm when
+        super charged, green otherwise. Everything here comes from the campaign that
+        is already loaded, so the bar costs no extra request.-->
+    <div
+      class="campaign-status-bar"
+      [class.is-super-charged]="isSuperCharged()"
+      *ngIf="isSuperCharged() || showLiveNotice"
+      role="status"
+    >
+      <div class="sc" *ngIf="isSuperCharged()">
+        <span class="sc-icon" aria-hidden="true"><i class="fa fa-bolt"></i></span>
+        <span class="sc-title">Super charged</span>
+        <!--Read-only: super charged is chosen in the activate dialog, not here.-->
+        <span class="sc-switch" aria-label="Super charged is on">
+          <span class="sc-switch-label" aria-hidden="true">On</span>
+          <span class="sc-switch-knob" aria-hidden="true"></span>
+        </span>
       </div>
-      <span class="sc-pill">
-        <span class="sc-dot" aria-hidden="true"></span>
-        On
-      </span>
+
+      <ng-container *ngIf="showLiveNotice">
+        <span class="sep" *ngIf="isSuperCharged()" aria-hidden="true">·</span>
+        <span class="live-title">{{ liveNoticeTitle }}</span>
+        <span class="dash" aria-hidden="true">—</span>
+        <span class="live-desc">{{ liveNoticeStatus }}</span>
+
+        <div class="chips">
+          <!--The soonest Delay card's countdown, so it is visible without scrolling the
+              sequence; click for that email's Insights on the tab the prospect is in. Not
+              "After research": this bar only shows once research is done for every
+              prospect (the campaign row can lag — "Finishing up"), and saying both would
+              contradict itself.-->
+          <button
+            *ngIf="campaignNextSend && !liveNoticeIsComplete && campaignNextSend.schedule.state !== 'research'"
+            type="button"
+            class="chip chip-btn"
+            (click)="campaignNextSendClick()"
+            aria-label="Show the next prospect to be emailed in Insights"
+          >
+            <send-countdown
+              [prefix]="'Next: Email #' + campaignNextSend.emailSequence + ' ·'"
+              [schedule]="campaignNextSend.schedule"
+              [clockOffsetMs]="prospectsClockOffsetMs"
+              [showAt]="false"
+            ></send-countdown>
+            <i class="fa fa-angle-right" aria-hidden="true"></i>
+          </button>
+
+          <span class="chip" *ngFor="let fact of liveNoticeFacts">
+            <i class="fa" [ngClass]="fact.icon" aria-hidden="true"></i>
+            {{ fact.label }}
+          </span>
+        </div>
+      </ng-container>
     </div>
 
     <app-scrape-progress-card
@@ -23,54 +66,6 @@
       [dripCampaignId]="dripCampaignId"
       (visibilityChange)="onScrapeCardVisibilityChange($event)">
     </app-scrape-progress-card>
-
-    <!--Live notice. Mirrors the paused warning's shape (leading icon, text block,
-        trailing element) so the two read as the same family of banner — one
-        amber and actionable, one green and purely informational.
-
-        Everything shown here comes from the campaign that is already loaded, so
-        the banner costs no extra request.-->
-    <div class="campaign-live-notice" [class.is-complete]="liveNoticeIsComplete" *ngIf="showLiveNotice">
-      <i class="fa" [ngClass]="liveNoticeIsComplete ? 'fa-check-circle-o' : 'fa-paper-plane-o'" aria-hidden="true"></i>
-
-      <div class="text">
-        <p class="title">{{ liveNoticeTitle }}</p>
-        <p class="desc">{{ liveNoticeStatus }}</p>
-
-        <!--The soonest Delay card's countdown, so it is visible without scrolling the
-            sequence; click for that email's Insights on the tab the prospect is in. Not
-            "After research": this notice only shows once research is done for every
-            prospect (the campaign row can lag — "Finishing up"), and saying both would
-            contradict itself.-->
-        <button
-          *ngIf="campaignNextSend && !liveNoticeIsComplete && campaignNextSend.schedule.state !== 'research'"
-          type="button"
-          class="live-next-send"
-          (click)="campaignNextSendClick()"
-          aria-label="Show the next prospect to be emailed in Insights"
-        >
-          <send-countdown
-            [prefix]="'Next: Email #' + campaignNextSend.emailSequence + ' ·'"
-            [schedule]="campaignNextSend.schedule"
-            [clockOffsetMs]="prospectsClockOffsetMs"
-            [showAt]="false"
-          ></send-countdown>
-          <i class="fa fa-angle-right" aria-hidden="true"></i>
-        </button>
-
-        <ul class="facts">
-          <li class="fact" *ngFor="let fact of liveNoticeFacts">
-            <i class="fa" [ngClass]="fact.icon" aria-hidden="true"></i>
-            {{ fact.label }}
-          </li>
-        </ul>
-      </div>
-
-      <span class="live-pill">
-        <span class="pill-dot" aria-hidden="true"></span>
-        {{ liveNoticePill }}
-      </span>
-    </div>
 
     <div class="campaign-paused-warning" *ngIf="dripCampaign?.status === constants.PAUSE">
       <i class="fa fa-exclamation-triangle" aria-hidden="true"></i>
