@@ -113,11 +113,26 @@ export class UploadFileModalContentComponent implements OnInit, OnDestroy {
   };
 
   openContactLabelCanvas = () => {
-    this.ngbOffcanvas.open(AddOrDeleteContactLabelComponent, {
+    const ref = this.ngbOffcanvas.open(AddOrDeleteContactLabelComponent, {
       panelClass: 'attributes-bg csv-label-create-offcanvas-panel',
       backdropClass: 'edit-rep-canvas-backdrop csv-label-create-offcanvas-backdrop',
       position: 'end',
       scroll: false,
     });
+    // A new list closes the canvas with the created row: select it. Cancel dismisses.
+    ref.result.then(
+      (created) => {
+        if (!created?.id) return;
+        const option = this.labelOptions.find((o) => `${o.id}` === `${created.id}`) ?? {
+          key: created.label,
+          value: created.label,
+          itemBgColor: created.bgColor,
+          itemTextColor: created.textColor,
+          id: created.id,
+        };
+        this.onLabelSelect(option);
+      },
+      () => {},
+    );
   };
 }

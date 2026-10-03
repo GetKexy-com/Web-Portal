@@ -103,11 +103,12 @@ export class AddOrDeleteContactLabelComponent implements OnInit, OnDestroy {
     };
     try {
       // Api call here
+      let created = null;
       if (this.selectedLabel?.value) {
         payload["labelId"] = this.selectedLabel.id;
         await this.prospectingService.updateLabel(payload);
       } else {
-        await this.prospectingService.createNewList(payload);
+        created = await this.prospectingService.createNewList(payload);
       }
 
       const getLabelApiPostData = {
@@ -117,7 +118,10 @@ export class AddOrDeleteContactLabelComponent implements OnInit, OnDestroy {
       }
       await this.prospectingService.getLists(getLabelApiPostData);
 
-      this.activeCanvas.dismiss("Cross click");
+      // A new list closes WITH the created list so the dropdown that opened this selects
+      // it; an edit just dismisses.
+      if (created) this.activeCanvas.close(created);
+      else this.activeCanvas.dismiss("Cross click");
       this.isLoading = false;
     } catch (e) {
       this.isLoading = false;

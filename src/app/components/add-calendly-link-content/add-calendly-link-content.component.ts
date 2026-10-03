@@ -96,8 +96,11 @@ export class AddCalendlyLinkContentComponent implements OnInit {
       const res = await this.httpService.patch(`company/${this.supplierId}`, payload).toPromise();
       if (res.success) {
         this.prospectingService.updateCalendlyLinks(this.previousLinks());
+        // Close WITH the new link so the dropdown that opened this selects it.
+        this.activeCanvas.close(formData.calendly_link);
+      } else {
+        this.activeCanvas.dismiss('Cross click');
       }
-      this.activeCanvas.dismiss('Cross click');
     } finally {
       this.isLoading.set(false);
     }

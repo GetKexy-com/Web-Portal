@@ -342,12 +342,42 @@ export class SaveContactsContentComponent implements OnInit {
   };
 
   openContactLabelCanvas = () => {
-    this.ngbOffcanvas.open(AddOrDeleteContactLabelComponent, {
+    const ref = this.ngbOffcanvas.open(AddOrDeleteContactLabelComponent, {
       panelClass: "attributes-bg edit-rep-canvas",
       backdropClass: "edit-rep-canvas-backdrop label-offcanvas-backdrop",
       position: "end",
       scroll: false,
     });
+    // A new list closes the canvas with the created row: tick it. This dropdown reads
+    // `labelsOnly`, which the canvas does not refresh, so the new list is added here
+    // too — before, it never appeared until the canvas was reopened. Edit/cancel
+    // dismiss, which is ignored.
+    ref.result.then(
+      (created) => {
+        if (!created?.id) return;
+        this.labelOptions.update((options) => {
+          const exists = options.some((o) => `${o.id}` === `${created.id}`);
+          const next = exists
+            ? options.map((o) => (`${o.id}` === `${created.id}` ? { ...o, isSelected: true } : o))
+            : [
+                {
+                  key: created.label,
+                  value: created.label,
+                  itemBgColor: created.bgColor,
+                  itemTextColor: created.textColor,
+                  id: created.id,
+                  isSelected: true,
+                },
+                ...options,
+              ];
+          return next;
+        });
+        if (this.submitted()) {
+          this.isLabelSelected.set(true);
+        }
+      },
+      () => {},
+    );
   };
 
   private async __isDeleteConfirmed(): Promise<boolean> {

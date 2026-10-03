@@ -296,6 +296,12 @@ export class ProspectingContactsComponent implements OnInit, AfterViewInit, OnDe
 
     // Set Label Subscription
     this.contactLabelsSubscription = this.prospectingService.lists.subscribe((labels) => {
+      // On a reload (e.g. after a list is created or edited from the canvas) keep what
+      // the user has already ticked — rebuilding with isSelected: false wiped it.
+      const previouslySelected = this.labelOptions.length
+        ? new Set(this.labelOptions.filter((o) => o.isSelected).map((o) => `${o.id}`))
+        : null;
+
       // Set label dropdown options
       this.labelOptions = [];
       console.log({ labels });
@@ -309,8 +315,10 @@ export class ProspectingContactsComponent implements OnInit, AfterViewInit, OnDe
           isSelected: false,
         };
 
-        // Set selected lists for edit for single contact
-        if (!this.isMultipleContactsSelected && this.selectedContacts?.length) {
+        if (previouslySelected) {
+          labelObj.isSelected = previouslySelected.has(`${i.id}`);
+        } else if (!this.isMultipleContactsSelected && this.selectedContacts?.length) {
+          // Set selected lists for edit for single contact
           const index = this.selectedContacts[0].lists.findIndex(
             (label) => i.id.toString() === label.id.toString(),
           );
@@ -526,12 +534,35 @@ export class ProspectingContactsComponent implements OnInit, AfterViewInit, OnDe
   };
 
   openContactLabelCanvas = () => {
-    this.ngbOffcanvas.open(AddOrDeleteContactLabelComponent, {
+    const ref = this.ngbOffcanvas.open(AddOrDeleteContactLabelComponent, {
       panelClass: 'attributes-bg edit-rep-canvas',
       backdropClass: 'edit-rep-canvas-backdrop label-offcanvas-backdrop',
       position: 'end',
       scroll: false,
     });
+    // A new list closes the canvas with the created row: tick it. An edit (or cancel)
+    // dismisses, which is ignored.
+    ref.result.then(
+      (created) => {
+        if (!created?.id) return;
+        let option = this.labelOptions.find((o) => `${o.id}` === `${created.id}`);
+        if (!option) {
+          // Not on the loaded page of lists — add it so it can still be ticked.
+          option = {
+            key: created.label,
+            value: created.label,
+            itemBgColor: created.bgColor,
+            itemTextColor: created.textColor,
+            id: created.id,
+            isSelected: false,
+          };
+          this.labelOptions.unshift(option);
+        }
+        option.isSelected = true;
+        this.setLabelFieldToPrimaryForm();
+      },
+      () => {},
+    );
   };
 
   onCountrySelect = async (selectedValue, index, rowIndex) => {

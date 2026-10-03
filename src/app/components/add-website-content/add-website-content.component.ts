@@ -99,9 +99,11 @@ export class AddWebsiteContentComponent implements OnInit {
       if (res?.success) {
         this.previousWebsites.set(updatedWebsites);
         this.prospectingService.updateWebsites(updatedWebsites);
+        // Close WITH the new website so the dropdown that opened this selects it.
+        this.activeCanvas.close(formData.website);
+      } else {
+        this.activeCanvas.dismiss('Cross click');
       }
-
-      this.activeCanvas.dismiss('Cross click');
     } catch (error) {
       console.error('Error submitting website', error);
     } finally {
