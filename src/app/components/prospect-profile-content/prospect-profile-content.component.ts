@@ -18,9 +18,12 @@ type LoadState = 'loading' | 'ready' | 'error' | 'locked';
 
 /**
  * How often the page re-reads the timeline while the score is being made. A Score API call
- * takes seconds; with retries (30s, then 60s backoff) a slow one can take minutes.
+ * takes seconds (90s at most).
  */
 const SCORE_POLL_MS = 5000;
+
+/** Re-check while a score is `due`: the 5-minute run starts it, so every 5s would be waste. */
+const SCORE_DUE_POLL_MS = 30000;
 
 /** Signals shown before "view all" — the design's two strongest. */
 const SIGNALS_PREVIEW = 2;
@@ -281,6 +284,7 @@ export class ProspectProfileContentComponent implements OnInit, OnDestroy {
       this.timelineState = 'ready';
       this.scoreState = 'ready';
       if (this.scoreStatus === 'scoring') this.__schedulePoll();
+      else if (this.scoreStatus === 'due') this.__schedulePoll(SCORE_DUE_POLL_MS);
     } catch (e: any) {
       if (this.destroyed) return;
       if (e?.statusCode === 403 || e?.status === 403) {
@@ -298,8 +302,8 @@ export class ProspectProfileContentComponent implements OnInit, OnDestroy {
     }
   };
 
-  private __schedulePoll(): void {
-    this.pollTimer = setTimeout(() => this.loadTimeline(true), SCORE_POLL_MS);
+  private __schedulePoll(ms = SCORE_POLL_MS): void {
+    this.pollTimer = setTimeout(() => this.loadTimeline(true), ms);
   }
 
   private __stopPolling(): void {

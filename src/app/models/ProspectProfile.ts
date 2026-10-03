@@ -105,18 +105,18 @@ export interface IProspectTimelineEvent {
 /**
  * Where the prospect's score stands:
  * - `scored`: `score` is set;
- * - `scoring`: a Score API call is queued or running — show a loader and poll (`poll=true`);
- * - `unavailable`: the call failed for good — the next (non-poll) load retries it;
+ * - `scoring`: a Score API call is queued or running — show a loader and poll;
+ * - `due`: no score yet, and the next 5-minute scoring run will start one — say it is coming;
+ * - `unavailable`: every call failed and none is coming;
  * - `not_scored`: nothing to show yet (see `scoreNote`).
  */
-export type ProspectScoreStatus = 'scored' | 'scoring' | 'unavailable' | 'not_scored';
+export type ProspectScoreStatus = 'scored' | 'scoring' | 'due' | 'unavailable' | 'not_scored';
 
 /**
  * The timeline, plus the prospect's CURRENT score — the real Score API's answer as KexyApi
  * stored it, the newest of the score lines the timeline narrates, so the Lead strength card
- * and the "Scored/Rescored" lines can never disagree. A normal load can start a (paid)
- * rescore server-side (new clicks/replies, or a failed score to retry); a `poll=true` load
- * never does. 403 until the prospect has opened an email.
+ * and the "Scored/Rescored" lines can never disagree. Reads only — the Score API is called by
+ * KexyApi's 5-minute run, never by this page. 403 until the prospect has opened an email.
  */
 export interface IProspectTimeline {
   email: string;

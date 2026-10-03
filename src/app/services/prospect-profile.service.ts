@@ -32,9 +32,9 @@ export class ProspectProfileService {
       : this.__getData(`drip-campaigns/${campaignId}/prospects/insights?email=${encodeURIComponent(email)}`);
 
   /**
-   * "What happened so far" and the current score (Lead strength). A normal load may start
-   * a (paid) rescore server-side; `poll` — the page refreshing itself while the score is
-   * `scoring` — only reads, so it can never start one.
+   * "What happened so far" and the current score (Lead strength). Reads only — the Score API
+   * is called by KexyApi's 5-minute run. `poll` marks the page refreshing itself while a
+   * score is coming (KexyApi ignores it).
    */
   getTimeline = (campaignId: number, email: string, poll = false): Promise<IProspectTimeline> =>
     this.__getData(

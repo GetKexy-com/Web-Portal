@@ -194,6 +194,10 @@
             <i class="fa fa-circle-o-notch fa-spin" aria-hidden="true"></i>
             <span><strong>Scoring this prospect…</strong> The score appears here as soon as it’s ready.</span>
           </div>
+          <!--Nothing blocks a score and the 5-minute run will start it; the page re-checks.-->
+          <div class="pp-state" *ngIf="scoreState === 'ready' && scoreStatus === 'due'" role="status">
+            <strong>Score coming soon.</strong> It will appear here within about 5 minutes.
+          </div>
           <div class="pp-state" *ngIf="scoreState === 'ready' && scoreStatus === 'unavailable'" role="status">
             <strong>Score unavailable</strong> — please try again later.
           </div>
