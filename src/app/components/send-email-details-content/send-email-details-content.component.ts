@@ -110,7 +110,9 @@ export class SendEmailDetailsContentComponent implements OnInit, OnDestroy {
       },
     );
 
-    this.isSpintax = this.dripEmail.isSpintax;
+    // From the email's option, like the live send: the stored isSpintax could be stale
+    // (Save as draft used to update the option without it). On for Prospect Insights only.
+    this.isSpintax = this.dripEmail?.templateOptions === constants.PROSPECT_INSIGHTS_KEY;
 
     // Set email tone
     const emailTone = this.dripEmail['emailTone'];
