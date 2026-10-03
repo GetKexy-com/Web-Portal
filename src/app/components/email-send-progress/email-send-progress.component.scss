@@ -359,8 +359,9 @@ $kx-red-bg: #fdeaea;
 
 .sp-table {
   width: 100%;
-  // Below this Status and When get too tight; the wrap scrolls sideways instead.
-  min-width: 800px;
+  // Below this Status (up to four pills on one line) and When get too tight; the wrap
+  // scrolls sideways instead.
+  min-width: 1000px;
   border-collapse: collapse;
   table-layout: fixed;
 
@@ -394,11 +395,11 @@ $kx-red-bg: #fdeaea;
     width: 20%;
   }
   .col-status {
-    width: 18%;
+    width: 32%;
     text-align: center;
   }
   .col-subject {
-    width: 34%;
+    width: 20%;
   }
   .col-when {
     width: 18%;
@@ -420,8 +421,11 @@ $kx-red-bg: #fdeaea;
     .col-prospect {
       width: auto;
     }
+    .col-status {
+      width: 36%;
+    }
     .col-subject {
-      width: 24%;
+      width: 12%;
     }
   }
 }
@@ -549,11 +553,12 @@ $kx-red-bg: #fdeaea;
   color: $kx-faint;
 }
 
-// Delivery outcome under the "Sent" pill (SES events). Same pill design/size as
-// `.sp-pill` above it — only the stacking margin differs — so any status/delivery
-// combination reads as one consistent pill, not two different ones.
-.sp-delivery {
-  margin-top: 4px;
+// The status cell's pills: one line, never wrapping.
+.sp-pills {
+  display: inline-flex;
+  flex-wrap: nowrap;
+  gap: 4px;
+  white-space: nowrap;
 }
 
 // SES's reason can run long (a full bounce diagnostic) — two lines, the rest on hover.

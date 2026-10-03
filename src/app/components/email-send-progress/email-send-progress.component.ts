@@ -288,7 +288,7 @@ export class EmailSendProgressComponent implements OnInit, OnDestroy {
    * The Status pill for a row. A sent email reads "Delivered", unless SES then reported it
    * never arrived (bounced, rejected, failed) — that outcome takes the pill instead, so a
    * lost email never reads as a success. A delay shows as "Delivery delayed" on its own.
-   * An "Opened" pill joins "Delivered" once opened (see `hasOpened`).
+   * Opened / Clicked / Replied pills join it as the prospect engages (see `isEngaged`).
    */
   rowStatus = (item: IEmailSendItem): IStatusMeta => {
     const meta = STATUS_META[item.status];
@@ -363,10 +363,14 @@ export class EmailSendProgressComponent implements OnInit, OnDestroy {
   canExpand = (item: IEmailSendItem): boolean => item.status !== 'scheduled' && item.status !== 'queued';
 
   /**
-   * The profile/score is offered only once the prospect opened this email. A click or
-   * reply counts too — both mean it was opened even when the tracking pixel was blocked.
+   * Whether the prospect opened THIS send — the gate for the profile/score and the
+   * engagement pills. Only a sent row that actually arrived: a scheduled, queued or
+   * bounced row has nothing to open, whatever an earlier send left behind. The API sets
+   * `openedAt` for a click or reply too (the pixel may have been blocked).
    */
-  hasOpened = (item: IEmailSendItem): boolean =>
+  isEngaged = (item: IEmailSendItem): boolean =>
+    item.status === 'sent' &&
+    !(item.delivery && this.isUndelivered(item.delivery.status)) &&
     !!(item.engagement?.openedAt || item.engagement?.clickedAt || item.engagement?.repliedAt);
 
   // ── Actions ─────────────────────────────────────────────────────────────
