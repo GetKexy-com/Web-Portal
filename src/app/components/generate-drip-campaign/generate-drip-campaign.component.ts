@@ -612,11 +612,14 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
     // So the panel can follow the live list: the prospects still waiting on this email.
     this.dripCampaignService.emailProspectsSequence = parseInt(prospects?.[0]?.emailSequence) || null;
     this.dripCampaignService.emailProspectsClockOffsetMs = this.prospectsClockOffsetMs;
-    this.__createRightSideSlide(ActiveContactsInCampaignComponent, 'contact-slide-content');
+    const ref = this.__createRightSideSlide(ActiveContactsInCampaignComponent, 'contact-slide-content');
+    // Hand the panel the campaign it belongs to. It used to read `?id=` itself and got
+    // nothing, so Un-enroll posted with no dripCampaignId and the API answered 400.
+    ref.componentInstance.dripCampaignId = this.dripCampaign?.id ?? this.dripCampaignId;
   };
 
   __createRightSideSlide = (Component, panelClass = 'email-time-settings-slider') => {
-    this.ngbOffcanvas.open(Component, {
+    return this.ngbOffcanvas.open(Component, {
       panelClass: `${panelClass} edit-rep-canvas`,
       backdropClass: 'edit-rep-canvas-backdrop',
       position: 'end',

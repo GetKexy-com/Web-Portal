@@ -39,8 +39,9 @@ export class ActiveContactsInCampaignComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
+    // Normally set by the drip page when it opens this panel; the URL is only a fallback.
     this.route.queryParams.subscribe((params) => {
-      if (params["id"]) {
+      if (!this.dripCampaignId && params["id"]) {
         this.dripCampaignId = params["id"];
       }
     });
@@ -130,6 +131,13 @@ export class ActiveContactsInCampaignComponent implements OnInit, OnDestroy {
       showLoaderOnConfirm: true,
     });
     if (isConfirm.dismiss) {
+      return;
+    }
+
+    // Never post without the campaign: the API rejects it, and the user would only see
+    // a raw validation message.
+    if (!this.dripCampaignId) {
+      await Swal.fire("Error", "Could not tell which campaign this is. Please reload the page and try again.");
       return;
     }
 
