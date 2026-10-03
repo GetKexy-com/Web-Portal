@@ -699,7 +699,10 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (campaign.status === constants.INACTIVE) {
+    // Only an ACTIVE campaign is researched — the web, map and sports scrapers all skip
+    // anything else — so a paused or inactive one has no progress to show. The card's own
+    // poll hides on the same rule; showing it here for PAUSE made it flash for one poll.
+    if (campaign.status !== constants.ACTIVE) {
       this.showScrapeProgress = false;
       return;
     }
@@ -1250,9 +1253,10 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
       swal.showLoading();
       await this.dripCampaignService.createOrUpdateDripCampaign(payload);
       this.dripCampaign.status = constants.ACTIVE;
-      // The paused warning goes away here, so the live notice has to take its
-      // place immediately — otherwise resuming leaves the page with no status
-      // at all until the next reload.
+      // The paused warning goes away here, so the research card (if research is
+      // unfinished) or the live notice has to take its place immediately —
+      // otherwise resuming leaves the page with no status until the next reload.
+      this.__syncScrapeProgressVisibility();
       this.__syncCampaignLiveNotice();
     } catch (e) {
       Swal.fire('Error', e.message);
