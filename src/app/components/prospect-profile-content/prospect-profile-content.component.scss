@@ -740,6 +740,35 @@ $kx-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   }
 }
 
+.pp-scoring {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin-bottom: 12px;
+  padding: 14px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: $kx-body;
+  background: $kx-field-bg;
+  border-radius: 8px;
+
+  .fa {
+    margin-top: 3px;
+    color: #0b5bd3;
+  }
+}
+
+.pp-score-note {
+  margin: 8px 0 4px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: $kx-muted;
+
+  .fa {
+    margin-right: 4px;
+  }
+}
+
 .pp-skel {
   margin-bottom: 12px;
   background: linear-gradient(90deg, $kx-hairline 25%, #e9eef5 50%, $kx-hairline 75%);

@@ -98,20 +98,33 @@ export interface IProspectTimelineEvent {
   detail: string | null;
   /** The campaign email it is about (sent / opened / replied / clicked); null otherwise. */
   emailSequence: number | null;
-  /** The starting score (on Imported) and rescores. `from` is null for the start. */
+  /** Score lines ("Scored." / "Rescored."). `from` is null for the first score. */
   score: { from: number | null; to: number } | null;
 }
 
 /**
- * The timeline, plus the prospect's CURRENT score in the score contract's shape — the
- * newest entry of the history the timeline narrates, so the Lead strength card and the
- * "Rescored" lines can never disagree. Loading it is what triggers a rescore server-side
- * when the prospect has done something since the last one. The score is still a mock
- * model on the server (`KexyApi/src/drip-campaigns/prospect-score.ts`).
+ * Where the prospect's score stands:
+ * - `scored`: `score` is set;
+ * - `scoring`: a Score API call is queued or running — show a loader and poll (`poll=true`);
+ * - `unavailable`: the call failed for good — the next (non-poll) load retries it;
+ * - `not_scored`: nothing to show yet (see `scoreNote`).
+ */
+export type ProspectScoreStatus = 'scored' | 'scoring' | 'unavailable' | 'not_scored';
+
+/**
+ * The timeline, plus the prospect's CURRENT score — the real Score API's answer as KexyApi
+ * stored it, the newest of the score lines the timeline narrates, so the Lead strength card
+ * and the "Scored/Rescored" lines can never disagree. A normal load can start a (paid)
+ * rescore server-side (new clicks/replies, or a failed score to retry); a `poll=true` load
+ * never does. 403 until the prospect has opened an email.
  */
 export interface IProspectTimeline {
   email: string;
-  /** Oldest first — strictly by time; a rescore is dated at the action it reacted to. */
+  /** Oldest first — strictly by time; a score line is dated at what triggered it. */
   events: IProspectTimelineEvent[];
-  score: IProspectScore;
+  /** Null unless `scoreStatus` is `scored`. */
+  score: IProspectScore | null;
+  scoreStatus: ProspectScoreStatus;
+  /** Why a due score was not made, e.g. "Not rescored: campaign is paused." Shown as-is. */
+  scoreNote: string | null;
 }

@@ -78,7 +78,14 @@ export interface IEmailSendProfile {
  * different email in the sequence never shows up here.
  */
 export interface IEmailSendEngagement {
+  /** First open — or first click/reply, which prove it was read with the pixel blocked. */
   openedAt: string | null;
+  /**
+   * First real open (the pixel) only. The Profile/Score page needs one — KexyApi refuses it
+   * until the prospect has opened an email — so "View" is gated on this. Absent from an API
+   * older than the field.
+   */
+  pixelOpenedAt?: string | null;
   clickedAt: string | null;
   repliedAt: string | null;
 }

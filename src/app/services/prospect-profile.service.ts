@@ -8,7 +8,7 @@ import { HttpService } from './http.service';
  * The insights API does not exist yet (contract: `docs/prospect-profile-api/`). While this
  * is true the page is fed the example payload and says so on screen. Flip to `false` once
  * KexyApi serves it — nothing else changes. The score and timeline are already served
- * (`getTimeline`), with a mock scoring model behind them.
+ * (`getTimeline`), the score by the real Score API.
  */
 export const PROSPECT_PROFILE_USE_MOCK = true;
 
@@ -32,11 +32,14 @@ export class ProspectProfileService {
       : this.__getData(`drip-campaigns/${campaignId}/prospects/insights?email=${encodeURIComponent(email)}`);
 
   /**
-   * "What happened so far" and the current score (Lead strength). Loading it records a
-   * rescore server-side when the prospect has done something since the last one.
+   * "What happened so far" and the current score (Lead strength). A normal load may start
+   * a (paid) rescore server-side; `poll` — the page refreshing itself while the score is
+   * `scoring` — only reads, so it can never start one.
    */
-  getTimeline = (campaignId: number, email: string): Promise<IProspectTimeline> =>
-    this.__getData(`drip-campaigns/${campaignId}/prospects/timeline?email=${encodeURIComponent(email)}`);
+  getTimeline = (campaignId: number, email: string, poll = false): Promise<IProspectTimeline> =>
+    this.__getData(
+      `drip-campaigns/${campaignId}/prospects/timeline?email=${encodeURIComponent(email)}${poll ? '&poll=true' : ''}`,
+    );
 
   private __mock = <T>(data: T): Promise<T> =>
     new Promise((resolve) => setTimeout(() => resolve(structuredClone(data)), MOCK_LATENCY_MS));

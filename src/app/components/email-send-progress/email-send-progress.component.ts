@@ -363,8 +363,8 @@ export class EmailSendProgressComponent implements OnInit, OnDestroy {
   canExpand = (item: IEmailSendItem): boolean => item.status !== 'scheduled' && item.status !== 'queued';
 
   /**
-   * Whether the prospect opened THIS send — the gate for the profile/score and the
-   * engagement pills. Only a sent row that actually arrived: a scheduled, queued or
+   * Whether the prospect opened THIS send — the gate for the engagement pills (and, with a
+   * real open, the profile: `canViewProfile`). Only a sent row that actually arrived: a scheduled, queued or
    * bounced row has nothing to open, whatever an earlier send left behind. The API sets
    * `openedAt` for a click or reply too (the pixel may have been blocked).
    */
@@ -372,6 +372,13 @@ export class EmailSendProgressComponent implements OnInit, OnDestroy {
     item.status === 'sent' &&
     !(item.delivery && this.isUndelivered(item.delivery.status)) &&
     !!(item.engagement?.openedAt || item.engagement?.clickedAt || item.engagement?.repliedAt);
+
+  /**
+   * The gate for "View": an engaged row whose email was really OPENED (the pixel). The
+   * score is made from opens, and KexyApi refuses the profile until there is one — a click
+   * or reply with the pixel blocked shows the pills but no profile yet.
+   */
+  canViewProfile = (item: IEmailSendItem): boolean => this.isEngaged(item) && !!item.engagement?.pixelOpenedAt;
 
   // ── Actions ─────────────────────────────────────────────────────────────
   refresh = (): void => {

@@ -44,8 +44,8 @@
     <div class="pp-mock" *ngIf="isMock" role="note">
       <i class="fa fa-flask" aria-hidden="true"></i>
       <span>
-        <strong>Preview.</strong> The prospect’s details, send status and what happened so far are real.
-        The score is an early estimate, and why we picked this lead is sample data until its API is connected.
+        <strong>Preview.</strong> The prospect’s details, send status, score and what happened so far are real.
+        Why we picked this lead is sample data until its API is connected.
       </span>
     </div>
 
@@ -154,6 +154,7 @@
             Could not load this section.
             <button type="button" class="pp-link" (click)="loadTimeline()">Try again</button>
           </div>
+          <div class="pp-state" *ngIf="timelineState === 'locked'">Available once the prospect opens an email.</div>
 
           <ng-container *ngIf="timelineState === 'ready'">
             <ol class="pp-timeline" *ngIf="timeline.length">
@@ -186,8 +187,21 @@
             Could not load the score.
             <button type="button" class="pp-link" (click)="loadTimeline()">Try again</button>
           </div>
+          <div class="pp-state" *ngIf="scoreState === 'locked'">Scored once the prospect opens an email.</div>
 
-          <ng-container *ngIf="scoreState === 'ready' && score">
+          <!--The Score API is working on it; the page polls and the score replaces this in place.-->
+          <div class="pp-scoring" *ngIf="scoreState === 'ready' && scoreStatus === 'scoring'" role="status">
+            <i class="fa fa-circle-o-notch fa-spin" aria-hidden="true"></i>
+            <span><strong>Scoring this prospect…</strong> The score appears here as soon as it’s ready.</span>
+          </div>
+          <div class="pp-state" *ngIf="scoreState === 'ready' && scoreStatus === 'unavailable'" role="status">
+            <strong>Score unavailable</strong> — please try again later.
+          </div>
+          <div class="pp-state" *ngIf="scoreState === 'ready' && scoreStatus === 'not_scored' && !scoreNote">
+            Not scored yet.
+          </div>
+
+          <ng-container *ngIf="scoreState === 'ready' && scoreStatus === 'scored' && score">
             <div class="pp-score">
               <svg class="pp-ring" viewBox="0 0 120 120" role="img" [attr.aria-label]="'Score ' + score.score + ' of ' + score.maxScore">
                 <circle cx="60" cy="60" [attr.r]="ringRadius" class="pp-ring-track" />
@@ -221,6 +235,11 @@
               </li>
             </ul>
           </ng-container>
+
+          <!--Why a due score wasn't made (paused campaign, unsubscribed, bounced), worded by KexyApi.-->
+          <p class="pp-score-note" *ngIf="scoreState === 'ready' && scoreNote">
+            <i class="fa fa-info-circle" aria-hidden="true"></i> {{ scoreNote }}
+          </p>
 
           <!--Where THIS email stands with them — our reply tracking, not the score API,
               so it shows even while the score is loading or failed.-->

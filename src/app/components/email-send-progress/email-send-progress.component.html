@@ -147,9 +147,10 @@
               </td>
 
               <td class="col-profile" *ngIf="showProfile">
-                <!--Scored only once they have opened this email; until then there is nothing to view.-->
+                <!--Scored only once they have opened this email (a real open, not just a click
+                    with images blocked); until then there is nothing to view.-->
                 <button
-                  *ngIf="isEngaged(item); else noScore"
+                  *ngIf="canViewProfile(item); else noScore"
                   type="button"
                   class="sp-profile-link"
                   [attr.aria-label]="'View profile and score for ' + (item.name || item.email)"

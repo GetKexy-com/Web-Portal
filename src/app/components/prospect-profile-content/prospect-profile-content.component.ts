@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { NgbActiveOffcanvas } from '@ng-bootstrap/ng-bootstrap';
 
 import { STATUS_META, Tone } from '../../helpers/email-send-status';
@@ -9,10 +9,18 @@ import {
   IProspectScore,
   IProspectSignal,
   IProspectTimelineEvent,
+  ProspectScoreStatus,
 } from '../../models/ProspectProfile';
 import { PROSPECT_PROFILE_USE_MOCK, ProspectProfileService } from '../../services/prospect-profile.service';
 
-type LoadState = 'loading' | 'ready' | 'error';
+/** `locked`: KexyApi refused it (403) — the prospect hasn't opened an email yet. */
+type LoadState = 'loading' | 'ready' | 'error' | 'locked';
+
+/**
+ * How often the page re-reads the timeline while the score is being made. A Score API call
+ * takes seconds; with retries (30s, then 60s backoff) a slow one can take minutes.
+ */
+const SCORE_POLL_MS = 5000;
 
 /** Signals shown before "view all" — the design's two strongest. */
 const SIGNALS_PREVIEW = 2;
@@ -130,9 +138,12 @@ interface ISignalView extends IProspectSignal {
  * - "Why we chose this lead" and "How we picked the opening topic": the insights API,
  *   mocked until KexyApi ships it (`ProspectProfileService`).
  * - "What happened so far" AND Lead strength: the timeline API, one request. The score it
- *   returns is the newest entry of the history the timeline narrates, so the card and the
- *   "Rescored" lines agree. Loading it is what makes KexyApi rescore the prospect when
- *   they've done something since the last score (the score model itself is still a mock).
+ *   returns is the real Score API's answer — the newest of the score lines the timeline
+ *   narrates, so the card and the "Scored/Rescored" lines agree. Opening the page may make
+ *   KexyApi rescore (new clicks/replies) or retry a failed score; while that runs the card
+ *   shows a loader and the page polls (`poll=true`, which never starts another call), then
+ *   renders the score in place. KexyApi refuses the page (403) until the prospect opened an
+ *   email — the "View" button is gated on that, so it only shows if the two disagree.
  * The two requests load independently so a slow or failed one never blanks the other's cards.
  *
  * ── Everything derived is a FIELD ───────────────────────────────────────────
@@ -145,7 +156,7 @@ interface ISignalView extends IProspectSignal {
   templateUrl: './prospect-profile-content.component.html',
   styleUrl: './prospect-profile-content.component.scss',
 })
-export class ProspectProfileContentComponent implements OnInit {
+export class ProspectProfileContentComponent implements OnInit, OnDestroy {
   // Set on the offcanvas `componentInstance` by the opener, before the first render.
   @Input() campaignId = 0;
   /** 1-based position of the email whose Insights this was opened from. */
@@ -165,6 +176,10 @@ export class ProspectProfileContentComponent implements OnInit {
   /** "What happened so far", oldest first. */
   timeline: ITimelineView[] = [];
   scoreState: LoadState = 'loading';
+  /** Where the score stands (KexyApi's `scoreStatus`); set once the timeline loaded. */
+  scoreStatus: ProspectScoreStatus | null = null;
+  /** Why a due score wasn't made, e.g. "Not rescored: campaign is paused." Shown as-is. */
+  scoreNote: string | null = null;
   insightsState: LoadState = 'loading';
   timelineState: LoadState = 'loading';
 
@@ -209,11 +224,19 @@ export class ProspectProfileContentComponent implements OnInit {
     private prospectProfileService: ProspectProfileService,
   ) {}
 
+  private destroyed = false;
+  private pollTimer: ReturnType<typeof setTimeout> | null = null;
+
   ngOnInit(): void {
     this.email = this.prospect.email;
     this.__recomputeProfile();
     this.loadInsights();
     this.loadTimeline();
+  }
+
+  ngOnDestroy(): void {
+    this.destroyed = true;
+    this.__stopPolling();
   }
 
   // ── Loading ─────────────────────────────────────────────────────────────
@@ -228,12 +251,20 @@ export class ProspectProfileContentComponent implements OnInit {
     }
   };
 
-  /** Feeds both "What happened so far" and Lead strength. */
-  loadTimeline = async (): Promise<void> => {
-    this.timelineState = 'loading';
-    this.scoreState = 'loading';
+  /**
+   * Feeds both "What happened so far" and Lead strength. `poll` = refreshing itself while
+   * the score is `scoring`: it keeps what is on screen until the new answer arrives, and
+   * never makes KexyApi start a call.
+   */
+  loadTimeline = async (poll = false): Promise<void> => {
+    this.__stopPolling();
+    if (!poll) {
+      this.timelineState = 'loading';
+      this.scoreState = 'loading';
+    }
     try {
-      const res = await this.prospectProfileService.getTimeline(this.campaignId, this.email);
+      const res = await this.prospectProfileService.getTimeline(this.campaignId, this.email, poll);
+      if (this.destroyed) return;
       // KexyApi already sends them oldest first; sorted again (stable) so the order is
       // guaranteed by time here too, never by how the list happened to be built.
       this.timeline = res.events
@@ -243,15 +274,38 @@ export class ProspectProfileContentComponent implements OnInit {
           thisYear: new Date(e.at).getFullYear() === new Date().getFullYear(),
         }))
         .sort((a, b) => new Date(a.at).getTime() - new Date(b.at).getTime());
-      this.score = res.score;
-      this.__recomputeScore();
+      this.score = res.score ?? null;
+      this.scoreStatus = res.scoreStatus ?? (res.score ? 'scored' : 'not_scored');
+      this.scoreNote = res.scoreNote ?? null;
+      if (this.score) this.__recomputeScore();
       this.timelineState = 'ready';
       this.scoreState = 'ready';
-    } catch {
+      if (this.scoreStatus === 'scoring') this.__schedulePoll();
+    } catch (e: any) {
+      if (this.destroyed) return;
+      if (e?.statusCode === 403 || e?.status === 403) {
+        this.timelineState = 'locked';
+        this.scoreState = 'locked';
+        return;
+      }
+      // A failed poll leaves the loader up and tries again; a failed load shows the error.
+      if (poll) {
+        this.__schedulePoll();
+        return;
+      }
       this.timelineState = 'error';
       this.scoreState = 'error';
     }
   };
+
+  private __schedulePoll(): void {
+    this.pollTimer = setTimeout(() => this.loadTimeline(true), SCORE_POLL_MS);
+  }
+
+  private __stopPolling(): void {
+    if (this.pollTimer) clearTimeout(this.pollTimer);
+    this.pollTimer = null;
+  }
 
   // ── Template actions ────────────────────────────────────────────────────
   toggleSignals = (): void => {
