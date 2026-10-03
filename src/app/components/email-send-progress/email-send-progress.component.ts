@@ -576,7 +576,7 @@ export class EmailSendProgressComponent implements OnInit, OnDestroy {
         conversationId: item.conversationId,
       });
       if (this.destroyed) return;
-      this.details[key] = { state: 'ready', data, forStatus: item.status, steps: this.__steps(data) };
+      this.details[key] = { state: 'ready', data, forStatus: item.status, steps: this.__steps(data, item) };
     } catch (e: any) {
       if (this.destroyed) return;
       this.details[key] = previous?.data
@@ -660,18 +660,25 @@ export class EmailSendProgressComponent implements OnInit, OnDestroy {
     return s.totalProspects ? 'Everything for this email has been processed.' : '';
   }
 
-  private __steps(d: IEmailSendDetail): ITimelineStep[] {
+  private __steps(d: IEmailSendDetail, item: IEmailSendItem): ITimelineStep[] {
     const step = (label: string, at: string | null): ITimelineStep => ({
       label,
       at,
       tone: at ? 'done' : 'todo',
     });
+    // No "Sending" step: it is stamped the same second as the send, so it only repeated
+    // it. The last step reads like the row's status pill ("Delivered"), or SES's outcome
+    // in red when the email never arrived (bounced, rejected, failed).
+    const outcome = this.rowStatus(item);
+    const last: ITimelineStep =
+      d.status === 'sent' && outcome.tone === 'bad'
+        ? { label: outcome.label, at: item.delivery?.updatedAt || d.sentAt, tone: 'bad' }
+        : step(d.status === 'sent' ? outcome.label : 'Delivered', d.sentAt);
     const steps = [
       step('Queued', d.queuedAt),
       step('Generating', d.generationStartedAt),
       step('AI ready', d.generatedAt),
-      step('Sending', d.sendingAt),
-      step('Sent', d.sentAt),
+      last,
     ];
     // A finished send lists only the stages it has times for. Sends from before the send
     // log existed have a sent time and nothing else, and greyed-out "Generating…" steps
