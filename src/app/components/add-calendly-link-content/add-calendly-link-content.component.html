@@ -1,31 +1,43 @@
 <div class="canvas-content-wrap">
   <div class="head-area">
-    <p>Add Calendly or Scheduling Link</p>
-    <img src="/assets/images/close-icon.png" alt="Close" (click)="activeCanvas.dismiss('Cross click')" />
+    <div class="head-text">
+      <p class="head-title">Add Calendly or Scheduling Link</p>
+      <span class="head-subtitle">Where prospects go to book time with you</span>
+    </div>
+    <button type="button" class="close-btn" aria-label="Close" (click)="activeCanvas.dismiss('Cross click')">
+      <i class="fa fa-times" aria-hidden="true"></i>
+    </button>
   </div>
 
-  <div class="canvas-body">
-    <form [formGroup]="primaryForm" (ngSubmit)="onSubmit()">
-      <div class="input-wrap">
-        <div class="label-and-input">
-          <p>Calendly or Scheduling Link</p>
-          <input class="form-control" formControlName="calendly_link" type="text" />
+  <form class="canvas-form" [formGroup]="primaryForm" (ngSubmit)="onSubmit()">
+    <div class="canvas-body">
+      <div class="form-section">
+        <div class="section-head">
+          <i class="fa fa-calendar section-icon" aria-hidden="true"></i>
+          <span class="section-title">Link details</span>
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="calendly-link-input">Calendly or scheduling link</label>
+          <input id="calendly-link-input" class="form-control" formControlName="calendly_link" type="text" placeholder="www.calendly.com/your-name" />
+          <span class="field-hint">Prospects use this link to book a meeting.</span>
           @if (formValidationErrorCheck('calendly_link') || invalidWebsite) {
             <error-message-card message="Url is missing or invalid!"></error-message-card>
           }
         </div>
       </div>
-      <div class="buttons mt-4">
-        <button type="submit" class="blue-button me-3">
-          Save
-          @if (isLoading()) {
-            <i class="fa fa-spinner fa-spin ms-2" aria-hidden="true" style="color: white"></i>
-          }
-        </button>
-        <button type="button" class="blue-border-white-bg-button" (click)="activeCanvas.dismiss('Cross click')">
-          Cancel
-        </button>
-      </div>
-    </form>
-  </div>
+    </div>
+
+    <div class="buttons">
+      <button class="blue-border-white-bg-button" type="button" (click)="activeCanvas.dismiss('Cross click')">
+        Cancel
+      </button>
+      <button class="blue-button" type="submit" [disabled]="isLoading()">
+        @if (isLoading()) {
+          <i class="fa fa-spinner fa-spin me-2" aria-hidden="true"></i>
+        }
+        Save
+      </button>
+    </div>
+  </form>
 </div>
