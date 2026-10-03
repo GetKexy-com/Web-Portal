@@ -21,33 +21,63 @@
       </div>
     </div>
 
-    <!--Super charged: the one thing on this dialog meant to catch the eye. The whole card
-        is the control, so a click anywhere on it flips the switch.-->
-    <button
-      type="button"
-      class="ad-boost"
-      [class.is-on]="superCharged"
-      role="switch"
-      [attr.aria-checked]="superCharged"
-      (click)="toggleSuperCharged()"
-    >
-      <span class="ad-boost-icon" aria-hidden="true"><i class="fa fa-bolt"></i></span>
-      <span class="ad-boost-text">
+    <!--Super charged: the one thing on this dialog meant to catch the eye. The header row
+        is the switch (a click anywhere on it flips it); "What is Super charged?" is a
+        separate disclosure, so the card itself can't be one button.-->
+    <div class="ad-boost" [class.is-on]="superCharged">
+      <button
+        type="button"
+        class="ad-boost-head"
+        role="switch"
+        [attr.aria-checked]="superCharged"
+        (click)="toggleSuperCharged()"
+      >
+        <span class="ad-boost-icon" aria-hidden="true"><i class="fa fa-bolt"></i></span>
         <span class="ad-boost-title">
           Super charged
           <span class="ad-boost-badge">New</span>
         </span>
-        <span class="ad-boost-desc">
-          {{ superCharged ? 'On — this campaign launches super charged.' : 'Give this campaign an extra boost.' }}
-        </span>
-      </span>
-      <span class="ad-switch" aria-hidden="true"><span class="ad-switch-knob"></span></span>
-    </button>
+        <span class="ad-switch" aria-hidden="true"><span class="ad-switch-knob"></span></span>
+      </button>
 
-    <p class="ad-note">
-      <i class="fa fa-info-circle" aria-hidden="true"></i>
-      <span>Make sure all emails are in good shape — prospects start receiving them once the campaign is active.</span>
-    </p>
+      <p class="ad-boost-desc">
+        <strong>Every email lands like you researched them that morning</strong> — no matter where they are in
+        the sequence.
+      </p>
+
+      <button
+        type="button"
+        class="ad-boost-more"
+        [attr.aria-expanded]="showDetails"
+        aria-controls="ad-boost-details"
+        (click)="toggleDetails()"
+      >
+        What is Super charged?
+        <i class="fa fa-angle-down" [class.is-open]="showDetails" aria-hidden="true"></i>
+      </button>
+
+      <div class="ad-boost-details" id="ad-boost-details" *ngIf="showDetails">
+        <p class="ad-boost-explain">
+          While your campaign runs, we keep re-scraping every contact — profile, company news, socials, job
+          listings — so each email is written against what was true <strong>that morning</strong>.
+        </p>
+
+        <ul class="ad-sources">
+          <li *ngFor="let source of sources" class="ad-source">
+            <i class="fa" [ngClass]="source.icon" aria-hidden="true"></i>
+            {{ source.label }}
+          </li>
+        </ul>
+
+        <p class="ad-boost-callout">
+          <i class="fa fa-bolt" aria-hidden="true"></i>
+          <span>
+            Receiving the latest prospect intelligence at the point you engage with the client, could be the
+            difference between <em>closing the deal</em> or losing it to a competitor.
+          </span>
+        </p>
+      </div>
+    </div>
   </div>
 
   <div class="modal-foot">
