@@ -812,7 +812,9 @@ export class ProspectingService {
   createNewList = async (postData) => {
     return new Promise(async (resolve, reject) => {
       this.httpService.post('lists', postData).subscribe({
-        next: () => resolve(true),
+        // Resolve with the created list ({ id, label, bgColor, textColor }) so the
+        // opener can select it.
+        next: (res) => resolve(res.data),
         error: (err) => {
           if (err.error) {
             reject(err.error);

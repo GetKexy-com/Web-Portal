@@ -33,10 +33,27 @@ export class ActivateDripModalComponent {
   /** Starting state — the campaign's current value, so re-activating keeps it. */
   @Input() superCharged = false;
 
+  /** "What is Super charged?" disclosure — collapsed by default. */
+  showDetails = false;
+
+  /** What Super charged keeps re-scraping, shown as chips in the disclosure. */
+  readonly sources = [
+    { label: 'Prospect profile', icon: 'fa-user-o' },
+    { label: 'Company news', icon: 'fa-newspaper-o' },
+    { label: 'Social media', icon: 'fa-share-alt' },
+    { label: 'Job listings', icon: 'fa-briefcase' },
+    { label: 'Personal posts', icon: 'fa-comment-o' },
+    { label: 'Company posts', icon: 'fa-file-text-o' },
+  ];
+
   constructor(public activeModal: NgbActiveModal) {}
 
   toggleSuperCharged = (): void => {
     this.superCharged = !this.superCharged;
+  };
+
+  toggleDetails = (): void => {
+    this.showDetails = !this.showDetails;
   };
 
   activate = (): void => {

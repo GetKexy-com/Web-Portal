@@ -78,10 +78,12 @@ export class CreateDripCampaignTitleComponent implements OnInit {
       if (this.editData?.title) {
         payload['title_id'] = this.editData.id;
         await this.dripCampaignService.editDripCampaignTitle(payload);
+        this.activeCanvas.dismiss('Cross click');
       } else {
-        await this.dripCampaignService.addDripCampaignTitle(payload);
+        // Close WITH the new title so the dropdown that opened this selects it.
+        const created = await this.dripCampaignService.addDripCampaignTitle(payload);
+        this.activeCanvas.close(created);
       }
-      this.activeCanvas.dismiss('Cross click');
     } catch (e) {
       console.error(e);
     } finally {

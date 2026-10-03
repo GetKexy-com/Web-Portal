@@ -346,7 +346,7 @@ export class DripCampaignContentComponent implements OnInit, OnDestroy {
   };
 
   __createRightSideSlide = (Component) => {
-    this.ngbOffcanvas.open(Component, {
+    return this.ngbOffcanvas.open(Component, {
       panelClass: 'attributes-bg edit-rep-canvas',
       backdropClass: 'edit-rep-canvas-backdrop',
       position: 'end',
@@ -355,7 +355,15 @@ export class DripCampaignContentComponent implements OnInit, OnDestroy {
   };
 
   openCreateDripCampaignTitleCanvas = () => {
-    this.__createRightSideSlide(CreateDripCampaignTitleComponent);
+    const ref = this.__createRightSideSlide(CreateDripCampaignTitleComponent);
+    // A new title closes the canvas with the created row: select it so the user doesn't
+    // have to find it again. An edit (or cancel) dismisses, which is ignored.
+    ref.result.then(
+      (created) => {
+        if (created?.id) this.onDripCampaignTitleSelect({ ...created, value: created.title });
+      },
+      () => {},
+    );
   };
 
   setFormGroupField = async () => {
@@ -379,12 +387,19 @@ export class DripCampaignContentComponent implements OnInit, OnDestroy {
   };
 
   openAddCalendlyLinkCanvas = () => {
-    this.ngbOffcanvas.open(AddCalendlyLinkContentComponent, {
+    const ref = this.ngbOffcanvas.open(AddCalendlyLinkContentComponent, {
       panelClass: 'attributes-bg edit-rep-canvas',
       backdropClass: 'edit-rep-canvas-backdrop',
       position: 'end',
       scroll: false,
     });
+    // Select the link just added (the canvas closes with it; cancel dismisses).
+    ref.result.then(
+      (link) => {
+        if (link) this.selectedCalendlyLinkKey = link;
+      },
+      () => {},
+    );
   };
 
   onCalendlyLinkSelect = (calendlyLink, index, rowIndex) => {
@@ -397,12 +412,19 @@ export class DripCampaignContentComponent implements OnInit, OnDestroy {
   };
 
   openAddWebsiteCanvas = () => {
-    this.ngbOffcanvas.open(AddWebsiteContentComponent, {
+    const ref = this.ngbOffcanvas.open(AddWebsiteContentComponent, {
       panelClass: 'attributes-bg edit-rep-canvas',
       backdropClass: 'edit-rep-canvas-backdrop',
       position: 'end',
       scroll: false,
     });
+    // Select the website just added (the canvas closes with it; cancel dismisses).
+    ref.result.then(
+      (website) => {
+        if (website) this.selectedWebsiteKey = website;
+      },
+      () => {},
+    );
   };
 
   onWebsiteSelect = (website, index, rowIndex) => {

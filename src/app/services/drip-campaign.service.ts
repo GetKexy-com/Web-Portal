@@ -377,7 +377,8 @@ export class DripCampaignService {
         next: (res) => {
           let item = { ...res.data };
           campaignTitles.push(item);
-          resolve(true);
+          // Resolve with the created title so the opener can select it.
+          resolve(item);
           this._dripCampaignTitles.next(campaignTitles);
         },
         error: (err) => {

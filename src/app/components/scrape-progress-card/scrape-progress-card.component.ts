@@ -207,7 +207,8 @@ export class ScrapeProgressCardComponent implements OnInit, OnDestroy {
     // the send gate waits for it, and then it has to finish too.
     const isMapDone = mapScrapeStatus === CAMPAIGN_STATUS.SUCCEEDED && this.__isSportsDone();
 
-    this.__setScrapeProgress(status !== constants.INACTIVE && (!isWebDone || !isMapDone));
+    // Same rule as the poll below: only an ACTIVE campaign is being researched.
+    this.__setScrapeProgress(status === constants.ACTIVE && (!isWebDone || !isMapDone));
 
     this.webStep = this.__stepState(webScrapeStatus);
     this.mapStep = this.__stepState(mapScrapeStatus);
@@ -246,11 +247,29 @@ export class ScrapeProgressCardComponent implements OnInit, OnDestroy {
   }
 
   private __setEstimate(estimate: ScrapeEstimate | null) {
+    const previous = this.scrapeEstimate;
     this.scrapeEstimate = estimate;
     this.now = Date.now();
     // Relative to the moment it arrived, so a skewed client clock does not matter.
-    this.etaEndsAt =
-      estimate?.etaSeconds != null ? this.now + estimate.etaSeconds * 1000 : null;
+    const next = estimate?.etaSeconds != null ? this.now + estimate.etaSeconds * 1000 : null;
+
+    // Prospects settle a batch at a time, so between batches the server sends the SAME
+    // ETA on every poll. Re-basing on it restarted the countdown every 30s — the time
+    // went back UP instead of down. While the countdown is still running, only move it
+    // EARLIER, unless there is really more work than before (prospects added, newer
+    // campaigns queued ahead). Once it runs out, take whatever the server says.
+    const counting = this.etaEndsAt != null && this.etaEndsAt > this.now;
+    if (counting && next != null && next > this.etaEndsAt! && !this.__hasMoreWork(previous, estimate)) {
+      return;
+    }
+    this.etaEndsAt = next;
+  }
+
+  /** More work than at the last poll: more prospects left, or more campaigns ahead. */
+  private __hasMoreWork(before: ScrapeEstimate | null, after: ScrapeEstimate | null): boolean {
+    if (!before || !after) return true;
+    const left = (e: ScrapeEstimate) => Math.max(0, ...(e.passes ?? []).map(p => p.remaining));
+    return left(after) > left(before) || after.aheadCampaigns > before.aheadCampaigns;
   }
 
   private __stepState(status: string): StepState {
