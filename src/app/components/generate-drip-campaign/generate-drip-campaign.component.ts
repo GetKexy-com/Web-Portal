@@ -1160,10 +1160,17 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
     //   this.onDeleteUpdateEmail();
     // });
 
+    // isSpintax travels with the option: it was left out, so switching a campaign to
+    // Prospect Insights and saving kept is_spintax = false, and the live send passed
+    // that to the AI.
+    const isSpintax = this.selectedEmailTemplate.key === constants.PROSPECT_INSIGHTS_KEY;
     for (const email of this.emails) {
+      email.templateOptions = this.selectedEmailTemplate.key;
+      email.isSpintax = isSpintax;
       this.dripCampaignService.updateDripCampaignEmail({
         drip_campaign_email_id: email.id,
         templateOptions: this.selectedEmailTemplate.key,
+        isSpintax,
       });
     }
 
