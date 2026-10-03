@@ -149,7 +149,7 @@
               <td class="col-profile" *ngIf="showProfile">
                 <!--Scored only once they have opened this email; until then there is nothing to view.-->
                 <button
-                  *ngIf="hasOpened(item); else noScore"
+                  *ngIf="isEngaged(item); else noScore"
                   type="button"
                   class="sp-profile-link"
                   [attr.aria-label]="'View profile and score for ' + (item.name || item.email)"
@@ -161,23 +161,31 @@
               </td>
 
               <td class="col-status">
-                <span class="sp-pill" *ngIf="rowStatus(item) as st" [ngClass]="'tone-' + st.tone">
-                  <i class="fa fa-circle-o-notch fa-spin" *ngIf="st.busy" aria-hidden="true"></i>
-                  {{ st.label }}
+                <!--Every pill on one line: the status, then what the prospect did with it
+                    (each only once it happened), then a spam report if SES sent one.
+                    Delivered, delayed, bounced, rejected and failed are already the status
+                    pill (`rowStatus`).-->
+                <span class="sp-pills">
+                  <span class="sp-pill" *ngIf="rowStatus(item) as st" [ngClass]="'tone-' + st.tone">
+                    <i class="fa fa-circle-o-notch fa-spin" *ngIf="st.busy" aria-hidden="true"></i>
+                    {{ st.label }}
+                  </span>
+                  <ng-container *ngIf="isEngaged(item)">
+                    <span class="sp-pill tone-live" [title]="item.engagement.openedAt | date: 'medium'">Opened</span>
+                    <span class="sp-pill tone-live" *ngIf="item.engagement.clickedAt" [title]="item.engagement.clickedAt | date: 'medium'">Clicked</span>
+                    <span class="sp-pill tone-good" *ngIf="item.engagement.repliedAt" [title]="item.engagement.repliedAt | date: 'medium'">Replied</span>
+                  </ng-container>
+                  <span
+                    *ngIf="item.delivery && showDeliveryPill(item.delivery.status)"
+                    class="sp-pill"
+                    [ngClass]="'tone-' + deliveryMeta(item.delivery.status).tone"
+                    [title]="item.delivery.detail || deliveryMeta(item.delivery.status).label"
+                  >{{ deliveryMeta(item.delivery.status).label }}</span>
                 </span>
-                <span class="sp-pill sp-delivery tone-live" *ngIf="item.status === 'sent' && hasOpened(item)">Opened</span>
                 <!--Whether it will be tried again depends on WHY it failed.-->
                 <span class="sp-attempt" *ngIf="retryNote(item, summary.maxAttempts) as note">{{ note }}</span>
-                <!--After a send: what SES then reported. Delivered, delayed, bounced, rejected and
-                    failed are already the status pill (`rowStatus`); a spam report gets
-                    its own pill. SES's reason follows any problem.-->
+                <!--SES's reason follows any problem.-->
                 <ng-container *ngIf="item.delivery as d">
-                  <span
-                    *ngIf="showDeliveryPill(d.status)"
-                    class="sp-pill sp-delivery"
-                    [ngClass]="'tone-' + deliveryMeta(d.status).tone"
-                    [title]="d.detail || deliveryMeta(d.status).label"
-                  >{{ deliveryMeta(d.status).label }}</span>
                   <span class="sp-attempt sp-delivery-detail" *ngIf="deliveryMeta(d.status).problem && d.detail" [title]="d.detail">
                     {{ d.detail }}
                   </span>
