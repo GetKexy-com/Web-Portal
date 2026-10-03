@@ -1,31 +1,43 @@
 <div class="canvas-content-wrap">
   <div class="head-area">
-    <p>Add Website</p>
-    <img src="/assets/images/close-icon.png" alt="Close" (click)="activeCanvas.dismiss('Cross click')" />
+    <div class="head-text">
+      <p class="head-title">Add Website</p>
+      <span class="head-subtitle">Add a website KEXY can use for this campaign</span>
+    </div>
+    <button type="button" class="close-btn" aria-label="Close" (click)="activeCanvas.dismiss('Cross click')">
+      <i class="fa fa-times" aria-hidden="true"></i>
+    </button>
   </div>
 
-  <div class="canvas-body">
-    <form [formGroup]="primaryForm" (ngSubmit)="onSubmit()">
-      <div class="input-wrap">
-        <div class="label-and-input">
-          <p>Website</p>
-          <input class="form-control" formControlName="website" type="text" />
+  <form class="canvas-form" [formGroup]="primaryForm" (ngSubmit)="onSubmit()">
+    <div class="canvas-body">
+      <div class="form-section">
+        <div class="section-head">
+          <i class="fa fa-globe section-icon" aria-hidden="true"></i>
+          <span class="section-title">Website details</span>
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="website-input">Website</label>
+          <input id="website-input" class="form-control" formControlName="website" type="text" placeholder="www.example.com" />
+          <span class="field-hint">Include the full address, e.g. www.example.com.</span>
           @if (formValidationErrorCheck('website') || invalidWebsite) {
             <error-message-card message="Website is missing or invalid!"></error-message-card>
           }
         </div>
       </div>
-      <div class="buttons mt-4">
-        <button type="submit" class="blue-button me-3">
-          Save
-          @if (isLoading()) {
-            <i class="fa fa-spinner fa-spin ms-2" aria-hidden="true" style="color: white"></i>
-          }
-        </button>
-        <button type="button" class="blue-border-white-bg-button" (click)="activeCanvas.dismiss('Cross click')">
-          Cancel
-        </button>
-      </div>
-    </form>
-  </div>
+    </div>
+
+    <div class="buttons">
+      <button class="blue-border-white-bg-button" type="button" (click)="activeCanvas.dismiss('Cross click')">
+        Cancel
+      </button>
+      <button class="blue-button" type="submit" [disabled]="isLoading()">
+        @if (isLoading()) {
+          <i class="fa fa-spinner fa-spin me-2" aria-hidden="true"></i>
+        }
+        Save
+      </button>
+    </div>
+  </form>
 </div>

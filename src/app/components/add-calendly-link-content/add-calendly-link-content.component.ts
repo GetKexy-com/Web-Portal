@@ -84,6 +84,7 @@ export class AddCalendlyLinkContentComponent implements OnInit {
     formData.calendly_link = this.pageUiService.urlValidate(formData.calendly_link);
     if (!formData.calendly_link) {
       this.invalidWebsite = true;
+      this.isLoading.set(false);
       return;
     }
     this.previousLinks.update(links => [...links, formData.calendly_link]);
