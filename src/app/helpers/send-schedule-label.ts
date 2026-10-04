@@ -61,6 +61,18 @@ export function scheduleLabel(sc: IEmailSendSchedule | null, now: number): ISche
       );
     case 'sending_paused':
       return mute('Sending paused', 'Sending is paused on our side and the KEXY team has been alerted. It picks up again once that is cleared.');
+    case 'insights_retry':
+      return insightsRetryLabel(sc, now);
+    case 'insights_paused':
+      return mute(
+        'Waiting on Insights',
+        'The service that picks how each email opens is paused on our side, and the KEXY team has been alerted. AI-written emails wait until it is back; Template emails still send.',
+      );
+    case 'insights_daily_limit':
+      return mute(
+        'Retries tomorrow',
+        'Picking how this email opens failed 5 times today for this prospect, so it is tried again after midnight. Nothing is sent until it works.',
+      );
     default:
       return mute('—', '');
   }
@@ -139,6 +151,17 @@ function queuedLabel(sc: IEmailSendSchedule, now: number): IScheduleLabel {
   };
 }
 
+/** In the queue, but picking its opener failed: the next send run tries again. */
+function insightsRetryLabel(sc: IEmailSendSchedule, now: number): IScheduleLabel {
+  const title =
+    'Picking how this email opens failed, so it is tried again on the next send run. Nothing is sent until it works.';
+  const sendAt = parse(sc.sendAt);
+  if (sendAt !== null && now < sendAt) {
+    return { text: `Retrying in ~${formatDuration(sendAt - now)}`, at: sc.sendAt as string, title, tone: 'count' };
+  }
+  return { text: 'Retrying shortly', at: null, title, tone: 'soon' };
+}
+
 /**
  * The moment this schedule next changes stage, for ordering (the soonest on a Delay card)
  * and for knowing when to poll again. `sending` is 0 (it is already happening); blocked
@@ -150,6 +173,7 @@ export function scheduleEventAt(sc: IEmailSendSchedule | null): number | null {
     case 'sending':
       return 0;
     case 'queued':
+    case 'insights_retry':
       return parse(sc.sendAt) ?? 1;
     case 'estimated':
       return parse(sc.queueAt) ?? parse(sc.earliestSendAt);
@@ -195,6 +219,9 @@ export function scheduleProspectsFilter(sc: IEmailSendSchedule | null): EmailSen
     case 'no_window':
       return 'scheduled';
     case 'queued':
+    case 'insights_retry':
+    case 'insights_paused':
+    case 'insights_daily_limit':
       return 'queued';
     case 'sending':
       return 'in_progress';

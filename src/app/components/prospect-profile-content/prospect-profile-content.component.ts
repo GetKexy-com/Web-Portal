@@ -249,8 +249,9 @@ export class ProspectProfileContentComponent implements OnInit, OnDestroy {
       this.insights = await this.prospectProfileService.getInsights(this.campaignId, this.email);
       this.__recomputeInsights();
       this.insightsState = 'ready';
-    } catch {
-      this.insightsState = 'error';
+    } catch (e: any) {
+      // Like the timeline, KexyApi refuses it (403) until the prospect has opened an email.
+      this.insightsState = e?.statusCode === 403 || e?.status === 403 ? 'locked' : 'error';
     }
   };
 
@@ -439,7 +440,8 @@ export class ProspectProfileContentComponent implements OnInit, OnDestroy {
   private __recomputeInsights(): void {
     const ins = this.insights;
 
-    this.signals = ins.signals.map((sig) => ({
+    // The contract promises highest confidence first; hold to it whatever arrives.
+    this.signals = [...(ins.signals ?? [])].sort((a, b) => (b.confidence ?? 0) - (a.confidence ?? 0)).map((sig) => ({
       ...sig,
       usedInLabel: sig.usedIn
         ? [`Opened email ${sig.usedIn.emailSequence}`, USED_IN_OUTCOME[sig.usedIn.outcome]].filter(Boolean).join(' · ')

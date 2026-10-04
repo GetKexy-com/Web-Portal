@@ -95,14 +95,14 @@ export const MOCK_PROSPECT_INSIGHTS: IProspectInsights = {
     }
   ],
   "openerSelection": {
-    "winnerKey": "linkedin_post",
+    "winnerKey": "personal",
     "outcome": "sent",
     "candidates": [
-      { "key": "linkedin_post", "label": "His LinkedIn post", "score": 87 },
-      { "key": "company_news", "label": "Company news", "score": 74 },
-      { "key": "city", "label": "His city", "score": 66 },
-      { "key": "pain_points", "label": "Pain points", "score": 41 },
-      { "key": "free_guide", "label": "Free guide", "score": 38 }
+      { "key": "personal", "label": "His LinkedIn post", "score": 87 },
+      { "key": "business", "label": "Company news", "score": 74 },
+      { "key": "local", "label": "His city", "score": 66 },
+      { "key": "pain_point", "label": "Pain points", "score": 41 },
+      { "key": "lead_magnet", "label": "Free guide", "score": 38 }
     ],
     "rule": {
       "label": "Rule in action",

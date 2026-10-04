@@ -5,12 +5,12 @@ import { IProspectInsights, IProspectTimeline } from '../models/ProspectProfile'
 import { HttpService } from './http.service';
 
 /**
- * The insights API does not exist yet (contract: `docs/prospect-profile-api/`). While this
- * is true the page is fed the example payload and says so on screen. Flip to `false` once
- * KexyApi serves it — nothing else changes. The score and timeline are already served
- * (`getTimeline`), the score by the real Score API.
+ * `true` feeds the insights section the example payload (`docs/prospect-profile-api/`) and
+ * says so on screen — for working on the page without KexyApi. KexyApi now serves the real
+ * Prospect Insights answer, so this is off. The score and timeline are always real
+ * (`getTimeline`).
  */
-export const PROSPECT_PROFILE_USE_MOCK = true;
+export const PROSPECT_PROFILE_USE_MOCK = false;
 
 /**
  * Shows the "Profile/Score" column in Insights → Prospects, the only way into the

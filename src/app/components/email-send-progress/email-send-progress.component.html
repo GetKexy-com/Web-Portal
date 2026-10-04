@@ -85,6 +85,23 @@
       </span>
     </div>
 
+    <!--Same idea for the Insights API, which picks each AI email's opener: while its safety
+        switch is off every AI-written email waits (Template emails still send).-->
+    <div
+      class="sp-banner is-error"
+      *ngIf="insightsPaused?.paused && !aiPaused?.paused && summary.sent < summary.totalProspects"
+      role="alert"
+    >
+      <i class="fa fa-pause-circle" aria-hidden="true"></i>
+      <span>
+        <strong>AI emails are waiting.</strong>
+        The service that picks how each email opens failed {{ insightsPaused.failCount }} times in a
+        row, so AI-written emails are on hold for every campaign until it is reset. Template emails
+        still send. Your prospects and queued emails are fine and are being kept. Contact support if
+        this persists.
+      </span>
+    </div>
+
     <!--A failed background poll must not look like "nothing is happening".-->
     <div class="sp-banner" *ngIf="pollError" role="status">
       <i class="fa fa-exclamation-triangle" aria-hidden="true"></i>

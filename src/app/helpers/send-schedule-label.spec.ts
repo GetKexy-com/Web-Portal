@@ -66,6 +66,23 @@ describe('scheduleLabel', () => {
     expect(label({ ...blocked, state: 'unknown' }, 0).text).toBe('—');
     expect(label(null, 0).text).toBe('—');
   });
+
+  it('says why a queued AI email is waiting on Insights', () => {
+    const retry = { ...queued, state: 'insights_retry' as const };
+    expect(label(retry, sendAt - 220_000)).toEqual(
+      jasmine.objectContaining({ text: 'Retrying in ~3m 40s', tone: 'count' }),
+    );
+    expect(label(retry, sendAt + 5_000).text).toBe('Retrying shortly');
+    expect(label({ ...queued, state: 'insights_paused', sendAt: null }, 0)).toEqual(
+      jasmine.objectContaining({ text: 'Waiting on Insights', tone: 'mute' }),
+    );
+    expect(label({ ...queued, state: 'insights_daily_limit', sendAt: null }, 0).text).toBe('Retries tomorrow');
+    // A retry moves on the next send run; the other two wait on a person or the clock.
+    expect(scheduleEventAt(retry)).toBe(sendAt);
+    expect(scheduleEventAt({ ...queued, state: 'insights_paused' })).toBeNull();
+    expect(scheduleProspectsFilter(retry)).toBe('queued');
+    expect(scheduleProspectsFilter({ ...queued, state: 'insights_daily_limit' })).toBe('queued');
+  });
 });
 
 describe('scheduleEventAt', () => {

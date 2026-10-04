@@ -111,7 +111,11 @@
             </button>
 
             <p class="pp-empty" *ngIf="!insights.callout && !signals.length">
-              Nothing has been found about this prospect yet.
+              {{
+                insights.generatedAt
+                  ? 'Nothing has been found about this prospect yet.'
+                  : 'This appears once the next AI-written email to this prospect is prepared.'
+              }}
             </p>
           </ng-container>
         </section>
@@ -292,4 +296,5 @@
     Could not load this section.
     <button type="button" class="pp-link" (click)="loadInsights()">Try again</button>
   </div>
+  <div class="pp-state" *ngIf="insightsState === 'locked'">Available once the prospect opens an email.</div>
 </ng-template>

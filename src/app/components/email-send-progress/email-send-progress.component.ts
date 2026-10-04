@@ -205,6 +205,8 @@ export class EmailSendProgressComponent implements OnInit, OnDestroy {
 
   summary: IEmailSendSummary | null = null;
   aiPaused: IAiPausedState | null = null;
+  /** The Insights safety switch (same shape): while paused, AI-written emails wait. */
+  insightsPaused: IAiPausedState | null = null;
   items: IEmailSendItem[] = [];
   total = 0;
   /** "Profile/Score" column; toggled by PROSPECT_PROFILE_ENABLED. */
@@ -496,6 +498,7 @@ export class EmailSendProgressComponent implements OnInit, OnDestroy {
 
       this.summary = res.summary;
       this.aiPaused = res.aiPaused ?? null;
+      this.insightsPaused = res.insightsPaused ?? null;
       this.items = res.prospects.items;
       this.total = res.prospects.total;
       this.totalPages = Math.max(1, Math.ceil(res.prospects.total / PAGE_SIZE));

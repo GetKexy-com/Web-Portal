@@ -34,14 +34,14 @@ export interface IProspectScore {
 
 // ── GET drip-campaigns/:campaignId/prospects/insights?email= ─────────────────
 
-export type ProspectSignalKind =
-  | 'linkedin_share'
-  | 'linkedin_post'
-  | 'city'
-  | 'company_news'
-  | 'pain_point'
-  | 'lead_magnet'
-  | 'other';
+/**
+ * What kind of fact a signal is, as the Insights API labels it (e.g. `company_news`). The
+ * full list isn't published, so any string is accepted; the page shows `title`, never this.
+ */
+export type ProspectSignalKind = string;
+
+/** The opening angles Insights picks between (`openerSelection.winnerKey`). */
+export type OpenerAngle = 'local' | 'personal' | 'business' | 'pain_point' | 'lead_magnet';
 
 export interface IProspectSignal {
   id: string;
@@ -68,7 +68,8 @@ export interface IOpenerCandidate {
 export interface IProspectInsights {
   email: string;
   callout: {
-    tone: 'replied' | 'positive' | 'neutral' | 'warning';
+    /** Known tones get their own colour; any other is shown neutral. */
+    tone: 'replied' | 'positive' | 'neutral' | 'warning' | string;
     title: string;
     message: string;
     nextStep: string | null;
@@ -76,13 +77,15 @@ export interface IProspectInsights {
   /** At most 10, sorted by confidence, highest first. */
   signals: IProspectSignal[];
   openerSelection: {
-    winnerKey: string;
+    winnerKey: OpenerAngle;
+    /** From KexyApi's own tracking of the email the opener was used in, never from the AI. */
     outcome: 'pending' | 'sent' | 'opened' | 'replied' | 'no_response';
     /** Sorted by score, highest first. */
     candidates: IOpenerCandidate[];
     rule: { label: string; text: string } | null;
   } | null;
-  generatedAt: string;
+  /** When the answer was produced; null when there is no answer yet (every section empty). */
+  generatedAt: string | null;
 }
 
 // ── GET drip-campaigns/:campaignId/prospects/timeline?email= ─────────────────

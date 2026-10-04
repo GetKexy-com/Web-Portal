@@ -150,6 +150,12 @@ export interface IEmailSendItem {
  * - `held`: due, but the last queue run passed over them (suppression list, duplicate).
  * - `stuck`: writing the email failed too many times; set aside for review.
  * - `sending_paused`: sending is paused platform-wide.
+ * - `insights_retry`: queued, but picking its opening angle (the Insights API) failed; the
+ *   next send run tries again — `sendAt` is that run.
+ * - `insights_paused`: queued, but the Insights safety switch is off; AI emails wait for
+ *   the KEXY team to reset it.
+ * - `insights_daily_limit`: queued, but this prospect's Insights calls failed 5 times today;
+ *   tried again after midnight.
  * - `unknown`: nothing honest to say.
  */
 export type EmailSendScheduleState =
@@ -164,6 +170,9 @@ export type EmailSendScheduleState =
   | 'held'
   | 'stuck'
   | 'sending_paused'
+  | 'insights_retry'
+  | 'insights_paused'
+  | 'insights_daily_limit'
   | 'unknown';
 
 export interface IEmailSendSchedule {
@@ -240,6 +249,8 @@ export interface IAiPausedState {
 export interface IEmailSendProgress {
   summary: IEmailSendSummary;
   aiPaused: IAiPausedState;
+  /** The Insights safety switch: while paused, every AI-written email waits. */
+  insightsPaused?: IAiPausedState;
   prospects: {
     items: IEmailSendItem[];
     page: number;

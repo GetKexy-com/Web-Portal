@@ -1,22 +1,25 @@
 # Prospect profile — API contract
 
 The prospect profile page (opened from **View Profile/Score** in a drip email's
-Insights drawer → Prospects) reads two endpoints. Until they exist, the portal
-serves the `*.example.json` payloads in this folder as mock data.
+Insights drawer → Prospects) reads two KexyApi routes, both live:
 
 | Endpoint | Schema | Example | Feeds |
 |---|---|---|---|
-| `GET /v2/drip-campaigns/:campaignId/prospects/score?email=<email>` | `prospect-score.schema.json` | `prospect-score.example.json` | Lead strength card: score, ring, bars. Also the warm-lead alert email (KexyApi): score, tier bars, current stage |
+| `GET /v2/drip-campaigns/:campaignId/prospects/timeline?email=<email>` | — (`IProspectTimeline`) | — | What happened so far, and Lead strength: its `score` has exactly the shape of `prospect-score.schema.json` (the real Score API's answer, as stored) |
 | `GET /v2/drip-campaigns/:campaignId/prospects/insights?email=<email>` | `prospect-insights.schema.json` | `prospect-insights.example.json` | Why we chose this lead, How we picked the opening topic |
 
-**What happened so far** (the timeline) and the **current score** come from a third
-route that is already built: `GET /v2/drip-campaigns/:campaignId/prospects/timeline?email=<email>`
-→ `{ email, events, score }`, where `score` has exactly the shape of
-`prospect-score.schema.json`. The portal's Lead strength card reads it from there, not
-from `/prospects/score`. Loading it rescores the prospect when they have done something
-since the last score. The scoring model behind it is still a mock (see `KexyApi/CLAUDE.md`,
-*"What happened so far" + mock score history*); when the real model ships it plugs in
-server-side and this contract does not change.
+**Insights** is the newest answer KexyApi stored from the Prospect Insights API, which it
+calls once per AI-written email, just before the email is written (KexyApi
+`docs/insights-api-mapping.md`). The route only reads; it never calls the API. Its
+opener `outcome` comes from KexyApi's own tracking. With no answer yet (e.g. the prospect
+was emailed before Insights launched, or only Template emails were sent), every section
+is empty and `generatedAt` is null. Both routes answer **403** until the prospect has
+opened an email; the page shows "Available once the prospect opens an email."
+
+`PROSPECT_PROFILE_USE_MOCK` (`services/prospect-profile.service.ts`) is `false`. Set it to
+`true` to feed the Insights section `prospect-insights.example.json` while working on the
+page without KexyApi. `prospect-score.example.json` documents the score shape; there is no
+separate `/prospects/score` route.
 
 Who the prospect is — name, company, job title, location, LinkedIn, phone and email
 validation — is **not** part of either API, and neither is whether they replied to,
