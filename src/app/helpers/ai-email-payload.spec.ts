@@ -1,4 +1,4 @@
-import { companyLinkedinUrl, isSuperChargedSetting, linkedinUsername } from './ai-email-payload';
+import { companyLinkedinUrl, isSuperChargedSetting, linkedinUsername, superchargeForAi } from './ai-email-payload';
 
 describe('isSuperChargedSetting', () => {
   it('reads the toggle, string or parsed', () => {
@@ -34,5 +34,11 @@ describe('companyLinkedinUrl', () => {
   it("ignores the CSV import's bare placeholder", () => {
     expect(companyLinkedinUrl({ organization: { linkedinUrl: 'https://www.linkedin.com' } })).toBeNull();
     expect(companyLinkedinUrl({})).toBeNull();
+  });
+});
+
+describe('superchargeForAi', () => {
+  it('is false for now, even when the campaign was activated Super charged', () => {
+    expect(superchargeForAi([{ settingsType: 'super_charged', settingsValue: '[{"value":true}]' }])).toBe(false);
   });
 });
