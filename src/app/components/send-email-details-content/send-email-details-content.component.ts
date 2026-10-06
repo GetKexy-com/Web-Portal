@@ -299,12 +299,8 @@ export class SendEmailDetailsContentComponent implements OnInit, OnDestroy {
         location: `${this.contactList[0]?.details?.city}, ${this.contactList[0].details?.state}, ${this.contactList[0].details?.country}`,
         website: "",
         linkedinUrl: this.contactList[0]?.details?.linkedinUrl,
-        ...(supercharge
-          ? {
-              username: linkedinUsername(contactDetails?.linkedinUrl),
-              companyLinkedinUrl: companyLinkedinUrl(contactDetails),
-            }
-          : {}),
+        username: linkedinUsername(contactDetails?.linkedinUrl),
+        ...(supercharge ? { companyLinkedinUrl: companyLinkedinUrl(contactDetails) } : {}),
       }
     };
     await this.sseService.getDripFollowUpEmailContentStream(data);
