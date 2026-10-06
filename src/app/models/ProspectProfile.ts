@@ -128,9 +128,15 @@ export interface IProspectTimeline {
   email: string;
   /** Oldest first — strictly by time; a score line is dated at what triggered it. */
   events: IProspectTimelineEvent[];
-  /** Null unless `scoreStatus` is `scored`. */
+  /** The newest saved score. Also present during `scoring` when it is a RESCORE (kept on screen). */
   score: IProspectScore | null;
   scoreStatus: ProspectScoreStatus;
   /** Why a due score was not made, e.g. "Not rescored: campaign is paused." Shown as-is. */
   scoreNote: string | null;
+  /**
+   * The saved score is being replaced because of newer activity: `running` (the call is under
+   * way), `soon` (KexyApi's next 5-minute run) or `tomorrow` (today's call limit is used up).
+   * Null when the score is current. Absent from an older KexyApi.
+   */
+  scoreUpdate?: { state: 'running' | 'soon' | 'tomorrow'; event: 'reply' | 'click' | 'open' } | null;
 }
