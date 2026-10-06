@@ -53,8 +53,10 @@ Score:
 Insights:
 - `signals` has at most 10 entries (the most confident), ordered by `confidence`,
   highest first. The UI shows the first two.
-- `openerSelection.candidates` is ordered by `score`, highest first, and
-  `winnerKey` is one of the candidate keys.
+- `openerSelection.candidates` is ordered by `score`, highest first. `winnerKey` is
+  usually one of the candidate keys, but not when no angle cleared its floor (the
+  candidates can then be empty).
+- `openerSelection.signalId`, when not null, is the `id` of one of `signals`.
 
 ## Validate a response
 

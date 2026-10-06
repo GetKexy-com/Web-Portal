@@ -81,6 +81,7 @@
           "required": [
             "winnerKey",
             "outcome",
+            "signalId",
             "candidates",
             "rule"
           ],
@@ -94,7 +95,7 @@
                 "pain_point",
                 "lead_magnet"
               ],
-              "description": "The opening angle chosen for the email (Insights' openerSelection.winnerKey). Must be present in candidates."
+              "description": "The opening angle chosen for the email (Insights' openerSelection.winnerKey). Usually one of candidates; when no angle cleared its floor the Lambda still names the best one and candidates may not include it (the page then names it from the angle)."
             },
             "outcome": {
               "type": "string",
@@ -107,11 +108,18 @@
               ],
               "description": "What happened with the email the winning opener was used in, from KexyApi's tracking. pending = not sent yet; no_response = nothing yet and a later email has gone out."
             },
+            "signalId": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "description": "The signals[].id behind the winning angle (Insights' openerSelection.signalId). null when the answer names none (answers from before the Lambda added it) or names a signal not in signals."
+            },
             "candidates": {
               "type": "array",
-              "minItems": 1,
+              "minItems": 0,
               "maxItems": 8,
-              "description": "Every opener that was compared, ORDERED BY score DESCENDING.",
+              "description": "Every opener that cleared its floor, used ones included, ORDERED BY score DESCENDING. May be empty (see winnerKey).",
               "items": {
                 "type": "object",
                 "additionalProperties": false,
@@ -203,7 +211,7 @@
         },
         "kind": {
           "type": "string",
-          "description": "The kind of fact, as the Insights API labels it (e.g. 'company_news'). The full list isn't published; the page shows title, never this."
+          "description": "The kind of fact, as the Insights API labels it: linkedin_share, linkedin_post, city, company_news, pain_point, lead_magnet or other. Kept a plain string so a new value never fails a response; the page shows title, never this."
         },
         "title": {
           "type": "string",
@@ -259,7 +267,7 @@
           }
         },
         "usedIn": {
-          "description": "Set when this signal opened a sent email. Shows a badge like 'OPENED EMAIL 1 · GOT THE REPLY'.",
+          "description": "Set when this signal opened a sent email, from KexyApi's records (the stored openerSelection.signalId of each sent email), never from the AI. Shows a badge like 'OPENED EMAIL 1 · GOT THE REPLY'.",
           "oneOf": [
             {
               "type": "null"
