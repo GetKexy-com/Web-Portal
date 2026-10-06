@@ -120,6 +120,12 @@ export interface IEmailSendItem {
   profile: IEmailSendProfile;
   engagement: IEmailSendEngagement;
   /**
+   * The prospect has opened SOME email of this campaign, so their Profile/Score page exists
+   * (KexyApi's rule for the page). Not tied to this row's email: scored after opening Email 1,
+   * they can be viewed from every email's list. Absent from an API older than the field.
+   */
+  profileReady?: boolean;
+  /**
    * What Amazon SES did with the email AFTER accepting it — "Sent" only means SES said OK.
    * Null until SES reports something (and always for older sends or non-SES servers).
    */

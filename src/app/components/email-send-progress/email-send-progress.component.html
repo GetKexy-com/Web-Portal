@@ -164,8 +164,8 @@
               </td>
 
               <td class="col-profile" *ngIf="showProfile">
-                <!--Scored only once they have opened this email (a real open, not just a click
-                    with images blocked); until then there is nothing to view.-->
+                <!--Viewable once they have opened ANY email of the sequence (a real open, not just a
+                    click with images blocked); until then there is nothing to view.-->
                 <button
                   *ngIf="canViewProfile(item); else noScore"
                   type="button"
@@ -174,7 +174,7 @@
                   (click)="openProfile(item)"
                 >View</button>
                 <ng-template #noScore>
-                  <span class="sp-no-score" title="Available once the prospect opens this email">No score yet</span>
+                  <span class="sp-no-score" title="Available once the prospect opens an email in this sequence">No score yet</span>
                 </ng-template>
               </td>
 

@@ -376,11 +376,13 @@ export class EmailSendProgressComponent implements OnInit, OnDestroy {
     !!(item.engagement?.openedAt || item.engagement?.clickedAt || item.engagement?.repliedAt);
 
   /**
-   * The gate for "View": an engaged row whose email was really OPENED (the pixel). The
-   * score is made from opens, and KexyApi refuses the profile until there is one — a click
-   * or reply with the pixel blocked shows the pills but no profile yet.
+   * The gate for "View": the prospect has opened any email of this campaign (KexyApi's
+   * `profileReady`, the same rule as the profile page), so a prospect scored after opening
+   * Email 1 can be viewed from Email 2's list too. An older API without the field falls
+   * back to this row's own open (the pixel — a click or reply with images blocked is not one).
    */
-  canViewProfile = (item: IEmailSendItem): boolean => this.isEngaged(item) && !!item.engagement?.pixelOpenedAt;
+  canViewProfile = (item: IEmailSendItem): boolean =>
+    item.profileReady ?? (this.isEngaged(item) && !!item.engagement?.pixelOpenedAt);
 
   // ── Actions ─────────────────────────────────────────────────────────────
   refresh = (): void => {
