@@ -3,6 +3,9 @@
     <!--Same single-row toolbar pattern as List Contacts: snapshot (last-updated +
         refresh) on the left, actions on the right, one set of buttons that wraps
         at any width instead of swapping in a second icon-only row per breakpoint.-->
+    <!--Import / verification progress, above the toolbar: the toolbar and the table are one card.-->
+    <ng-container [ngTemplateOutlet]="contactCard.progressBanners"></ng-container>
+
     <div class="actions-bar">
       <div class="actions-bar-snapshot">
         <app-time-ago class="updated-stamp" [value]="lastUpdatedAt" />
@@ -127,6 +130,7 @@
 
       <contact-list-card
         #contactCard
+        [bannersOutside]="true"
         tableHeaderBg="#f1f5f9"
         tableHeaderColor="#475569"
         [searchLabels]="searchLabels"

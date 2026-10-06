@@ -11,6 +11,8 @@ import {
   OnInit,
   Output,
   SimpleChanges,
+  TemplateRef,
+  ViewChild,
 } from '@angular/core';
 import { AuthService } from '../../services/auth.service';
 import { constants } from '../../helpers/constants';
@@ -42,6 +44,9 @@ import Swal from 'sweetalert2';
   styleUrl: './contact-list-card.component.scss',
 })
 export class ContactListCardComponent implements OnInit, OnChanges, OnDestroy, AfterViewInit {
+  /** The page renders `progressBanners` itself (above its toolbar) instead of this card. */
+  @Input() bannersOutside = false;
+  @ViewChild('progressBanners', { static: true }) progressBanners: TemplateRef<unknown>;
   @Input() tableHeaderBg;
   @Input() tableHeaderColor;
   @Input() contacts: Contact[] = [];
