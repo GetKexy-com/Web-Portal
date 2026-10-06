@@ -758,6 +758,24 @@ $kx-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   }
 }
 
+// A newer score is on its way: the current one stays, this says why it will change.
+.pp-score-update {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 10px 0 4px;
+  padding: 8px 10px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: #1b3aa0;
+  background: #eef4ff;
+  border-radius: 8px;
+
+  .fa {
+    margin-top: 3px;
+  }
+}
+
 .pp-score-note {
   margin: 8px 0 4px;
   font-size: 12.5px;

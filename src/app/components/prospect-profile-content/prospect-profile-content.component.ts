@@ -8,6 +8,7 @@ import {
   IProspectInsights,
   IProspectScore,
   IProspectSignal,
+  IProspectTimeline,
   IProspectTimelineEvent,
   OpenerAngle,
   ProspectScoreStatus,
@@ -25,6 +26,29 @@ const SCORE_POLL_MS = 5000;
 
 /** Re-check while a score is `due`: the 5-minute run starts it, so every 5s would be waste. */
 const SCORE_DUE_POLL_MS = 30000;
+
+/** What the prospect did that the score on screen doesn't count yet. */
+const SCORE_UPDATE_EVENT: Record<'reply' | 'click' | 'open', string> = {
+  reply: 'replied',
+  click: 'clicked a link',
+  open: 'opened an email',
+};
+
+/** The line under a score that is being replaced (KexyApi's `scoreUpdate`). */
+function scoreUpdateText(u: IProspectTimeline['scoreUpdate']): string | null {
+  if (!u) return null;
+  const did = SCORE_UPDATE_EVENT[u.event] ?? 'did something new';
+  switch (u.state) {
+    case 'running':
+      return `They ${did} since this score. Recalculating now…`;
+    case 'soon':
+      return `They ${did} since this score. It will be recalculated within about 5 minutes.`;
+    case 'tomorrow':
+      return `They ${did} since this score. It will be recalculated tomorrow (today's scoring limit is used up).`;
+    default:
+      return null;
+  }
+}
 
 /** Signals shown before "view all" — the design's two strongest. */
 const SIGNALS_PREVIEW = 2;
@@ -193,6 +217,9 @@ export class ProspectProfileContentComponent implements OnInit, OnDestroy {
   scoreStatus: ProspectScoreStatus | null = null;
   /** Why a due score wasn't made, e.g. "Not rescored: campaign is paused." Shown as-is. */
   scoreNote: string | null = null;
+  /** Shown under a score that newer activity is replacing; null when the score is current. */
+  scoreUpdateText: string | null = null;
+  scoreUpdateRunning = false;
   insightsState: LoadState = 'loading';
   timelineState: LoadState = 'loading';
 
@@ -291,11 +318,17 @@ export class ProspectProfileContentComponent implements OnInit, OnDestroy {
       this.score = res.score ?? null;
       this.scoreStatus = res.scoreStatus ?? (res.score ? 'scored' : 'not_scored');
       this.scoreNote = res.scoreNote ?? null;
+      this.scoreUpdateText = scoreUpdateText(res.scoreUpdate);
+      this.scoreUpdateRunning = res.scoreUpdate?.state === 'running';
       if (this.score) this.__recomputeScore();
       this.timelineState = 'ready';
       this.scoreState = 'ready';
+      // A rescore that is due soon is re-checked like a first score, so the new one replaces
+      // the old in place without a reload.
       if (this.scoreStatus === 'scoring') this.__schedulePoll();
-      else if (this.scoreStatus === 'due') this.__schedulePoll(SCORE_DUE_POLL_MS);
+      else if (this.scoreStatus === 'due' || res.scoreUpdate?.state === 'soon') {
+        this.__schedulePoll(SCORE_DUE_POLL_MS);
+      }
     } catch (e: any) {
       if (this.destroyed) return;
       if (e?.statusCode === 403 || e?.status === 403) {

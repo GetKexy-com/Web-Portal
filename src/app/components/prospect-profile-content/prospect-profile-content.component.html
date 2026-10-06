@@ -194,7 +194,7 @@
           <div class="pp-state" *ngIf="scoreState === 'locked'">Scored once the prospect opens an email.</div>
 
           <!--The Score API is working on it; the page polls and the score replaces this in place.-->
-          <div class="pp-scoring" *ngIf="scoreState === 'ready' && scoreStatus === 'scoring'" role="status">
+          <div class="pp-scoring" *ngIf="scoreState === 'ready' && scoreStatus === 'scoring' && !score" role="status">
             <i class="fa fa-circle-o-notch fa-spin" aria-hidden="true"></i>
             <span><strong>Scoring this prospect…</strong> The score appears here as soon as it’s ready.</span>
           </div>
@@ -209,7 +209,8 @@
             Not scored yet.
           </div>
 
-          <ng-container *ngIf="scoreState === 'ready' && scoreStatus === 'scored' && score">
+          <!--A rescore keeps the current score on screen; the line below says a new one is coming.-->
+          <ng-container *ngIf="scoreState === 'ready' && (scoreStatus === 'scored' || scoreStatus === 'scoring') && score">
             <div class="pp-score">
               <svg class="pp-ring" viewBox="0 0 120 120" role="img" [attr.aria-label]="'Score ' + score.score + ' of ' + score.maxScore">
                 <circle cx="60" cy="60" [attr.r]="ringRadius" class="pp-ring-track" />
@@ -243,6 +244,13 @@
               </li>
             </ul>
           </ng-container>
+
+          <!--New activity since this score: it is being, or will be, recalculated.-->
+          <p class="pp-score-update" *ngIf="scoreState === 'ready' && score && scoreUpdateText" role="status">
+            <i class="fa" [class.fa-circle-o-notch]="scoreUpdateRunning" [class.fa-spin]="scoreUpdateRunning"
+               [class.fa-refresh]="!scoreUpdateRunning" aria-hidden="true"></i>
+            {{ scoreUpdateText }}
+          </p>
 
           <!--Why a due score wasn't made (paused campaign, unsubscribed, bounced), worded by KexyApi.-->
           <p class="pp-score-note" *ngIf="scoreState === 'ready' && scoreNote">
