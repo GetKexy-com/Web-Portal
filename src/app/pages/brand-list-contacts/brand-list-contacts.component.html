@@ -19,6 +19,9 @@
         screen size: snapshot (last-updated + refresh) first/left, actions last/right.
         Wired to the same handlers the card's own row used to call; validate goes
         through #contactCard since that logic lives on the card.-->
+    <!--Import / verification progress, above the toolbar: the toolbar and the table are one card.-->
+    <ng-container [ngTemplateOutlet]="contactCard.progressBanners"></ng-container>
+
     <div class="actions-bar">
       <div class="actions-bar-snapshot">
         <app-time-ago class="updated-stamp" [value]="lastUpdatedAt" />
@@ -101,6 +104,7 @@
     <section>
       <contact-list-card
         #contactCard
+        [bannersOutside]="true"
         tableHeaderBg="#f1f5f9"
         tableHeaderColor="#475569"
         [searchLabels]="[]"

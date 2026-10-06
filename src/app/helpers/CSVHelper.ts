@@ -96,9 +96,26 @@ export class CsvHelper {
     return typeof value === 'object' ? JSON.stringify(value) : String(value);
   }
 
+  /**
+   * The text of a CSV given as a base64 data URL, decoded properly. `atob` alone yields one
+   * character per BYTE, so a UTF-8 file's BOM showed up as "ï»¿" on the first header and every
+   * accented letter was garbled ("José" → "JosÃ©"). Read as UTF-8 (the BOM is dropped); a file
+   * that isn't valid UTF-8 is Excel's legacy "CSV (Comma delimited)", which is Windows-1252.
+   */
+  static decodeCsvDataUrl(dataUrl: string): string {
+    const binary = atob(dataUrl.split(',')[1] ?? '');
+    const bytes = Uint8Array.from(binary, (c) => c.charCodeAt(0));
+    let text: string;
+    try {
+      text = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+    } catch {
+      text = new TextDecoder('windows-1252').decode(bytes);
+    }
+    return text.replace(/^\uFEFF/, '');
+  }
+
   static getCsvFileData = (file) => {
-    const base64Data = file.split(',')[1];
-    const decodedString = atob(base64Data);
+    const decodedString = CsvHelper.decodeCsvDataUrl(file);
     return Papa.parse(decodedString, {
       header: true,  // Set to true if the first contact contains headers
       skipEmptyLines: true,  // Skip empty lines in the CSV

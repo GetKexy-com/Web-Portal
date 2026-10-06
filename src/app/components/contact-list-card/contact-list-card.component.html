@@ -1,3 +1,8 @@
+<!--The import / verification banners. A page whose toolbar sits flush on top of this card
+    (Manage Contacts, List Contacts) sets [bannersOutside] and renders them ABOVE its toolbar
+    through #contactCard.progressBanners: rendered here they split the toolbar and the table,
+    which are styled as one card.-->
+<ng-template #progressBanners>
 <section
   *ngIf="isImportProgress()"
   class="list-verification-progress"
@@ -24,6 +29,8 @@
     <p class="desc">You'll receive an email notification once email verification is complete.</p>
   </div>
 </section>
+</ng-template>
+<ng-container *ngIf="!bannersOutside" [ngTemplateOutlet]="progressBanners"></ng-container>
 <div class="kexy-table-card">
   <section class="card-header">
     <p class="d-flex align-items-center">
