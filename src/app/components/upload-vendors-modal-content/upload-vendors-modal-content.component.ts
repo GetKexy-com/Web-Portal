@@ -5,6 +5,7 @@ import { AuthService } from '../../services/auth.service';
 import { DripCampaignService } from '../../services/drip-campaign.service';
 import { KexyButtonComponent } from '../kexy-button/kexy-button.component';
 import { FileDropComponent } from '../file-drop/file-drop.component';
+import { CsvHelper } from '../../helpers/CSVHelper';
 
 interface SuppressionUser {
   contactFirstName: string;
@@ -40,8 +41,7 @@ export class UploadVendorsModalContentComponent implements OnInit {
   fileInfo;
   getSelectedFile = (file, fileInfo) => {
     this.fileInfo = fileInfo;
-    const base64Data = file.split(',')[1];
-    const decodedString = atob(base64Data);
+    const decodedString = CsvHelper.decodeCsvDataUrl(file);
     const rows = this.parseCSV(decodedString);
     this.userObjList = rows.map((row: any) => ({
       contactFirstName: row['First Name'],
