@@ -1,5 +1,11 @@
 import { AfterViewChecked, Component, ElementRef, HostListener, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { constants } from '../../helpers/constants';
+import {
+  companyLinkedinUrl,
+  isSuperChargedSetting,
+  linkedinUsername,
+  readDripSetting,
+} from '../../helpers/ai-email-payload';
 import { NgbModal, NgbOffcanvas } from '@ng-bootstrap/ng-bootstrap';
 import { AuthService } from '../../services/auth.service';
 import { Subscription } from 'rxjs';
@@ -469,6 +475,8 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
     const linkedinData: any = await this.dripCampaignService.getLinkedinData({ contactId: contact.id });
     const websiteData: any = await this.dripCampaignService.getWebsiteData({ contactId: contact.id });
     const locationData: any = await this.dripCampaignService.getLocationData({ contactId: contact.id });
+    // The activate dialog's "Super charged" toggle; false until the campaign is activated.
+    const supercharge = this.isSuperCharged();
     const data = {
       count: this.dripCampaign.details.numberOfEmails,
       email_tone: this.selectedEmailToneKey || this.dripCampaign.details.emailTone,
@@ -490,6 +498,7 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
       promotion_info: !!this.selectedPromotionsProductName,
       prospect_email_address: contact?.email,
       drip_campaign_id: this.dripCampaign.id,
+      supercharge,
       lead_magnet: this.dripCampaign.leadMagnet,
       linkedin_scrapper: linkedinData,
       sports_scrapper: {},
@@ -503,6 +512,7 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
         website: '',
         linkedinUrl: contact?.details?.linkedinUrl,
         username: linkedinUsername,
+        ...(supercharge ? { companyLinkedinUrl: companyLinkedinUrl(contact?.details) } : {}),
       },
     };
     try {
@@ -514,11 +524,7 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
   };
 
   getLinkedInUsername(url) {
-    if (!url) {
-      return '';
-    }
-    const match = url.match(/linkedin\.com\/in\/([^/?]+)/i);
-    return match ? match[1] : '';
+    return linkedinUsername(url);
   }
 
   showAiEmailError = () => {
@@ -988,7 +994,7 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
    * (`[{ value: boolean }]`), written by KexyApi on activate. Drives the card at the top
    * of the page and the activate dialog's starting toggle.
    */
-  isSuperCharged = (): boolean => this.__readSetting('super_charged')[0]?.value === true;
+  isSuperCharged = (): boolean => isSuperChargedSetting(this.dripCampaign?.settings);
 
   /**
    * One `drip_campaign_settings` row's value as an array.
@@ -998,20 +1004,7 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
    * through the app hands it over already parsed.
    */
   private __readSetting(settingsType: string): any[] {
-    const setting = (this.dripCampaign?.settings || []).find(
-      (s: any) => s?.settingsType === settingsType,
-    );
-    if (!setting) return [];
-
-    let value = setting.settingsValue;
-    if (typeof value === 'string') {
-      try {
-        value = JSON.parse(value);
-      } catch {
-        return [];
-      }
-    }
-    return Array.isArray(value) ? value : [];
+    return readDripSetting(this.dripCampaign?.settings, settingsType);
   }
 
   handleClickNextButton = async () => {
