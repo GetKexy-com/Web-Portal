@@ -9,6 +9,7 @@ import {
   IProspectScore,
   IProspectSignal,
   IProspectTimelineEvent,
+  OpenerAngle,
   ProspectScoreStatus,
 } from '../../models/ProspectProfile';
 import { PROSPECT_PROFILE_USE_MOCK, ProspectProfileService } from '../../services/prospect-profile.service';
@@ -46,6 +47,15 @@ const USED_IN_OUTCOME: Record<NonNullable<IProspectSignal['usedIn']>['outcome'],
   opened: 'was opened',
   clicked: 'got a click',
   replied: 'got the reply',
+};
+
+/** The winner's name when Insights picked an angle outside its candidates (nothing cleared its floor). */
+const ANGLE_LABEL: Record<OpenerAngle, string> = {
+  local: 'Their city',
+  personal: 'Their LinkedIn post',
+  business: 'Company news',
+  pain_point: 'A problem they mentioned',
+  lead_magnet: 'A guide that fits their role',
 };
 
 const OPENER_OUTCOME: Record<NonNullable<IProspectInsights['openerSelection']>['outcome'], string> = {
@@ -451,8 +461,10 @@ export class ProspectProfileContentComponent implements OnInit, OnDestroy {
     const op = ins.openerSelection;
     if (op) {
       const n = op.candidates.length;
-      this.openerIntro = `We compare ${NUMBER_WORDS[n] ?? n} possible opener${n === 1 ? '' : 's'} and use the strongest.`;
-      this.openerWinner = op.candidates.find((c) => c.key === op.winnerKey)?.label || '';
+      this.openerIntro = n
+        ? `We compare ${NUMBER_WORDS[n] ?? n} possible opener${n === 1 ? '' : 's'} and use the strongest.`
+        : 'No opener was strong enough on its own, so we used the best one we had.';
+      this.openerWinner = op.candidates.find((c) => c.key === op.winnerKey)?.label || ANGLE_LABEL[op.winnerKey] || '';
       this.openerOutcome = OPENER_OUTCOME[op.outcome] ?? '';
       this.openerBars = op.candidates.map((c) => ({
         label: c.label,

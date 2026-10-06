@@ -35,8 +35,9 @@ export interface IProspectScore {
 // ── GET drip-campaigns/:campaignId/prospects/insights?email= ─────────────────
 
 /**
- * What kind of fact a signal is, as the Insights API labels it (e.g. `company_news`). The
- * full list isn't published, so any string is accepted; the page shows `title`, never this.
+ * What kind of fact a signal is, as the Insights API labels it: `linkedin_share`,
+ * `linkedin_post`, `city`, `company_news`, `pain_point`, `lead_magnet` or `other`. Any string
+ * is accepted so a new value never breaks the page; the page shows `title`, never this.
  */
 export type ProspectSignalKind = string;
 
@@ -80,7 +81,9 @@ export interface IProspectInsights {
     winnerKey: OpenerAngle;
     /** From KexyApi's own tracking of the email the opener was used in, never from the AI. */
     outcome: 'pending' | 'sent' | 'opened' | 'replied' | 'no_response';
-    /** Sorted by score, highest first. */
+    /** The `signals[].id` behind the winning angle; null for answers from before Insights named it. */
+    signalId: string | null;
+    /** Sorted by score, highest first. Usually holds the winner, but not always (it can be empty). */
     candidates: IOpenerCandidate[];
     rule: { label: string; text: string } | null;
   } | null;

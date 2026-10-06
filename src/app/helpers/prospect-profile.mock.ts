@@ -97,6 +97,7 @@ export const MOCK_PROSPECT_INSIGHTS: IProspectInsights = {
   "openerSelection": {
     "winnerKey": "personal",
     "outcome": "sent",
+    "signalId": "sig_01",
     "candidates": [
       { "key": "personal", "label": "His LinkedIn post", "score": 87 },
       { "key": "business", "label": "Company news", "score": 74 },
