@@ -1,3 +1,4 @@
+import { isResearchDone } from '../../models/DripCampaign';
 import { ScrapeProgressCardComponent } from './scrape-progress-card.component';
 
 /**
@@ -7,7 +8,10 @@ import { ScrapeProgressCardComponent } from './scrape-progress-card.component';
 describe('ScrapeProgressCardComponent.__areHiddenPassesDone', () => {
   const done = (campaign: any, passes: string[] = ['web', 'map', 'linkedin']) =>
     (ScrapeProgressCardComponent.prototype as any).__areHiddenPassesDone.call(
-      { scrapeEstimate: { passes: passes.map(pass => ({ pass })) } },
+      {
+        scrapeEstimate: { passes: passes.map(pass => ({ pass })) },
+        __withSportsApplies: (ScrapeProgressCardComponent.prototype as any).__withSportsApplies,
+      },
       campaign,
     );
 
@@ -26,5 +30,25 @@ describe('ScrapeProgressCardComponent.__areHiddenPassesDone', () => {
     expect(
       done({ sportsScrapeStatus: 'PENDING', linkedinScrapeStatus: 'SUCCEEDED' }, ['web', 'map', 'sports', 'linkedin']),
     ).toBe(false);
+  });
+});
+
+describe('isResearchDone', () => {
+  const done = { webScrapeStatus: 'SUCCEEDED', mapScrapeStatus: 'SUCCEEDED' };
+
+  it('waits for LinkedIn and, when it applies, sports — not web and map alone', () => {
+    expect(isResearchDone({ ...done, linkedinScrapeStatus: 'RUNNING' })).toBe(false);
+    expect(isResearchDone({ ...done, linkedinScrapeStatus: 'SUCCEEDED' })).toBe(true);
+    expect(
+      isResearchDone({ ...done, linkedinScrapeStatus: 'SUCCEEDED', sportsApplies: true, sportsScrapeStatus: 'PENDING' }),
+    ).toBe(false);
+  });
+
+  it("an older drip's leftover sports status is ignored, and a missing status counts as done", () => {
+    expect(
+      isResearchDone({ ...done, linkedinScrapeStatus: 'SUCCEEDED', sportsApplies: false, sportsScrapeStatus: 'PENDING' }),
+    ).toBe(true);
+    expect(isResearchDone(done)).toBe(true);
+    expect(isResearchDone({ ...done, mapScrapeStatus: 'RUNNING' })).toBe(false);
   });
 });

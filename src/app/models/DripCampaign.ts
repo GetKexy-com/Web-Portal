@@ -7,6 +7,43 @@ export const CAMPAIGN_STATUS = {
 
 export type CampaignStatus = typeof CAMPAIGN_STATUS[keyof typeof CAMPAIGN_STATUS];
 
+type ResearchStatuses = {
+  webScrapeStatus?: string;
+  mapScrapeStatus?: string;
+  linkedinScrapeStatus?: string;
+  sportsScrapeStatus?: string;
+  sportsApplies?: boolean;
+};
+
+/**
+ * Whether every research pass the send waits for has finished — the same rule as KexyApi's
+ * send gate: web, map and LinkedIn, plus sports when it applies to the drip (`sportsApplies`,
+ * new drips only). A status missing from an older API counts as done, so the portal can deploy
+ * first. The page and the scrape card both use this, so they never disagree.
+ */
+export function isResearchDone(c: ResearchStatuses | null | undefined): boolean {
+  if (!c) return false;
+  const done = (s?: string) => s === CAMPAIGN_STATUS.SUCCEEDED;
+  return (
+    done(c.webScrapeStatus) &&
+    done(c.mapScrapeStatus) &&
+    (c.linkedinScrapeStatus == null || done(c.linkedinScrapeStatus)) &&
+    (!c.sportsApplies || done(c.sportsScrapeStatus))
+  );
+}
+
+/** Whether any research pass the send waits for is running right now (see `isResearchDone`). */
+export function isResearchRunning(c: ResearchStatuses | null | undefined): boolean {
+  if (!c) return false;
+  const running = (s?: string) => s === CAMPAIGN_STATUS.RUNNING;
+  return (
+    running(c.webScrapeStatus) ||
+    running(c.mapScrapeStatus) ||
+    running(c.linkedinScrapeStatus) ||
+    (!!c.sportsApplies && running(c.sportsScrapeStatus))
+  );
+}
+
 export class DripCampaign {
   id: number;
   company: object;
@@ -19,6 +56,14 @@ export class DripCampaign {
   contactStatus: string;
   webScrapeStatus: CampaignStatus;
   mapScrapeStatus: CampaignStatus;
+  /** Undefined from an API older than the LinkedIn pass. */
+  linkedinScrapeStatus?: CampaignStatus;
+  sportsScrapeStatus?: CampaignStatus;
+  /**
+   * Whether the sports pass applies to this drip (KexyApi `sportsAppliesToDrip`: sports on,
+   * and the drip created after go-live). Older drips keep a meaningless PENDING sports status.
+   */
+  sportsApplies?: boolean;
   createdAt: string;
   details: IDripCampaignDetails;
   emails: ICampaignEmail[];
@@ -39,6 +84,11 @@ export class DripCampaign {
     this.contactStatus = rawData.contactStatus;
     this.webScrapeStatus = rawData.webScrapeStatus;
     this.mapScrapeStatus = rawData.mapScrapeStatus;
+    // Copied explicitly like every field here: dropping these made the page and the scrape
+    // card treat LinkedIn and sports as done, so a drip still being researched said "live".
+    this.linkedinScrapeStatus = rawData.linkedinScrapeStatus;
+    this.sportsScrapeStatus = rawData.sportsScrapeStatus;
+    this.sportsApplies = rawData.sportsApplies;
     this.createdAt = rawData.createdAt;
 
     this.details = {
@@ -154,6 +204,9 @@ export interface IRawDripCampaign {
   contactStatus: string;
   webScrapeStatus: CampaignStatus;
   mapScrapeStatus: CampaignStatus;
+  linkedinScrapeStatus?: CampaignStatus;
+  sportsScrapeStatus?: CampaignStatus;
+  sportsApplies?: boolean;
   createdAt: string;
   details: IRawDripCampaignDetails;
   emails: IRawCampaignEmail[];
