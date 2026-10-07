@@ -2,7 +2,7 @@ import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { NgbActiveOffcanvas } from '@ng-bootstrap/ng-bootstrap';
 import { AuthService } from 'src/app/services/auth.service';
 import { constants } from '../../helpers/constants';
-import { companyLinkedinUrl, linkedinUsername, superchargeForAi } from '../../helpers/ai-email-payload';
+import { linkedinUsername, superchargeForAi } from '../../helpers/ai-email-payload';
 import { DripCampaignService } from '../../services/drip-campaign.service';
 import { DripEmail } from '../../models/DripEmail';
 import Swal from 'sweetalert2';
@@ -300,7 +300,6 @@ export class SendEmailDetailsContentComponent implements OnInit, OnDestroy {
         website: "",
         linkedinUrl: this.contactList[0]?.details?.linkedinUrl,
         username: linkedinUsername(contactDetails?.linkedinUrl),
-        ...(supercharge ? { companyLinkedinUrl: companyLinkedinUrl(contactDetails) } : {}),
       }
     };
     await this.sseService.getDripFollowUpEmailContentStream(data);

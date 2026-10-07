@@ -1,4 +1,4 @@
-import { companyLinkedinUrl, isSuperChargedSetting, linkedinUsername, superchargeForAi } from './ai-email-payload';
+import { isSuperChargedSetting, linkedinUsername, superchargeForAi } from './ai-email-payload';
 
 describe('isSuperChargedSetting', () => {
   it('reads the toggle, string or parsed', () => {
@@ -18,22 +18,6 @@ describe('linkedinUsername', () => {
     expect(linkedinUsername('https://www.linkedin.com/in/maria-chen?x=1')).toBe('maria-chen');
     expect(linkedinUsername('https://www.linkedin.com/company/acme')).toBe('');
     expect(linkedinUsername(undefined)).toBe('');
-  });
-});
-
-describe('companyLinkedinUrl', () => {
-  it('reads organization in either key style', () => {
-    expect(companyLinkedinUrl({ organization: { linkedinUrl: 'https://www.linkedin.com/company/acme' } })).toBe(
-      'https://www.linkedin.com/company/acme',
-    );
-    expect(companyLinkedinUrl({ organization: { linkedin_url: 'https://linkedin.com/school/ut' } })).toBe(
-      'https://linkedin.com/school/ut',
-    );
-  });
-
-  it("ignores the CSV import's bare placeholder", () => {
-    expect(companyLinkedinUrl({ organization: { linkedinUrl: 'https://www.linkedin.com' } })).toBeNull();
-    expect(companyLinkedinUrl({})).toBeNull();
   });
 });
 

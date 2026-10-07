@@ -1,7 +1,6 @@
 import { AfterViewChecked, Component, ElementRef, HostListener, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { constants } from '../../helpers/constants';
 import {
-  companyLinkedinUrl,
   isSuperChargedSetting,
   linkedinUsername,
   readDripSetting,
@@ -513,7 +512,6 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
         website: '',
         linkedinUrl: contact?.details?.linkedinUrl,
         username: linkedinUsername,
-        ...(supercharge ? { companyLinkedinUrl: companyLinkedinUrl(contact?.details) } : {}),
       },
     };
     try {
