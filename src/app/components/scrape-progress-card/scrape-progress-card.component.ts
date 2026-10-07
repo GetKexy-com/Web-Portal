@@ -20,7 +20,7 @@ interface ScrapeEstimate {
   etaSeconds: number | null;
   percent: number;
   aheadCampaigns: number;
-  passes: { pass: 'web' | 'map' | 'sports'; total: number; remaining: number }[];
+  passes: { pass: 'web' | 'map' | 'sports' | 'linkedin'; total: number; remaining: number }[];
 }
 
 @Component({
@@ -203,9 +203,9 @@ export class ScrapeProgressCardComponent implements OnInit, OnDestroy {
     const { webScrapeStatus, mapScrapeStatus, status } = this.dripCampaign;
 
     const isWebDone = webScrapeStatus === CAMPAIGN_STATUS.SUCCEEDED;
-    // Map also stands in for sports: the API only includes sports in the estimate while
-    // the send gate waits for it, and then it has to finish too.
-    const isMapDone = mapScrapeStatus === CAMPAIGN_STATUS.SUCCEEDED && this.__isSportsDone();
+    // Map also stands in for the passes with no step of their own (sports, LinkedIn): the
+    // send gate waits for them, so the card must not say "complete" before they finish.
+    const isMapDone = mapScrapeStatus === CAMPAIGN_STATUS.SUCCEEDED && this.__areHiddenPassesDone();
 
     // Same rule as the poll below: only an ACTIVE campaign is being researched.
     this.__setScrapeProgress(status === constants.ACTIVE && (!isWebDone || !isMapDone));
@@ -213,8 +213,11 @@ export class ScrapeProgressCardComponent implements OnInit, OnDestroy {
     this.webStep = this.__stepState(webScrapeStatus);
     this.mapStep = this.__stepState(mapScrapeStatus);
 
+    // LinkedIn has no step, but while it runs the card says "Researching", not "queued".
     const isRunning =
-      webScrapeStatus === CAMPAIGN_STATUS.RUNNING || mapScrapeStatus === CAMPAIGN_STATUS.RUNNING;
+      webScrapeStatus === CAMPAIGN_STATUS.RUNNING ||
+      mapScrapeStatus === CAMPAIGN_STATUS.RUNNING ||
+      this.dripCampaign.linkedinScrapeStatus === CAMPAIGN_STATUS.RUNNING;
 
     if (isWebDone && isMapDone) {
       this.phase = 'done';
@@ -240,10 +243,18 @@ export class ScrapeProgressCardComponent implements OnInit, OnDestroy {
     this.startMessageRotation();
   };
 
-  /** Sports only counts while the API includes it (i.e. `SPORTS_SCRAPER_ENABLED`). */
-  private __isSportsDone(campaign = this.dripCampaign): boolean {
-    const included = this.scrapeEstimate?.passes?.some(p => p.pass === 'sports');
-    return !included || campaign?.sportsScrapeStatus === CAMPAIGN_STATUS.SUCCEEDED;
+  /**
+   * The passes the send gate waits for that have no step on the card:
+   * - sports, only while the API includes it (i.e. `SPORTS_SCRAPER_ENABLED`);
+   * - LinkedIn, always (KexyApi `docs/linkedin-scraper-mapping.md`, decision 16: no step of
+   *   its own). A campaign from an API without the column counts as done.
+   */
+  private __areHiddenPassesDone(campaign = this.dripCampaign): boolean {
+    const sportsIncluded = this.scrapeEstimate?.passes?.some(p => p.pass === 'sports');
+    const sportsDone = !sportsIncluded || campaign?.sportsScrapeStatus === CAMPAIGN_STATUS.SUCCEEDED;
+    const linkedin = campaign?.linkedinScrapeStatus;
+    const linkedinDone = linkedin == null || linkedin === CAMPAIGN_STATUS.SUCCEEDED;
+    return sportsDone && linkedinDone;
   }
 
   private __setEstimate(estimate: ScrapeEstimate | null) {
@@ -424,7 +435,7 @@ export class ScrapeProgressCardComponent implements OnInit, OnDestroy {
       const isScrapingDone =
         campaign.webScrapeStatus === CAMPAIGN_STATUS.SUCCEEDED &&
         campaign.mapScrapeStatus === CAMPAIGN_STATUS.SUCCEEDED &&
-        this.__isSportsDone(campaign);
+        this.__areHiddenPassesDone(campaign);
 
       // ❌ Stop if not active OR scraping finished
       if (!isActive || isScrapingDone || this.scrapeRemainProspects === 0) {
