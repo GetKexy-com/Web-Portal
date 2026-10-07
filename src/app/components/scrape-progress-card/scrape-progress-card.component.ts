@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
-import { CAMPAIGN_STATUS } from '../../models/DripCampaign';
+import { CAMPAIGN_STATUS, isResearchDone, isResearchRunning } from '../../models/DripCampaign';
 import { constants } from '../../helpers/constants';
 import { DripCampaignService } from '../../services/drip-campaign.service';
 import { NgClass, NgIf } from '@angular/common';
@@ -213,11 +213,8 @@ export class ScrapeProgressCardComponent implements OnInit, OnDestroy {
     this.webStep = this.__stepState(webScrapeStatus);
     this.mapStep = this.__stepState(mapScrapeStatus);
 
-    // LinkedIn has no step, but while it runs the card says "Researching", not "queued".
-    const isRunning =
-      webScrapeStatus === CAMPAIGN_STATUS.RUNNING ||
-      mapScrapeStatus === CAMPAIGN_STATUS.RUNNING ||
-      this.dripCampaign.linkedinScrapeStatus === CAMPAIGN_STATUS.RUNNING;
+    // LinkedIn and sports have no step, but while either runs the card says "Researching".
+    const isRunning = isResearchRunning(this.__withSportsApplies(this.dripCampaign));
 
     if (isWebDone && isMapDone) {
       this.phase = 'done';
@@ -244,17 +241,28 @@ export class ScrapeProgressCardComponent implements OnInit, OnDestroy {
   };
 
   /**
-   * The passes the send gate waits for that have no step on the card:
-   * - sports, only while the API includes it (i.e. `SPORTS_SCRAPER_ENABLED`);
-   * - LinkedIn, always (KexyApi `docs/linkedin-scraper-mapping.md`, decision 16: no step of
-   *   its own). A campaign from an API without the column counts as done.
+   * The passes the send gate waits for that have no step on the card: LinkedIn, and sports
+   * when it applies to this drip. Same rule as the page (`isResearchDone`), read for those two
+   * passes only, as web and map have their own steps.
    */
   private __areHiddenPassesDone(campaign = this.dripCampaign): boolean {
-    const sportsIncluded = this.scrapeEstimate?.passes?.some(p => p.pass === 'sports');
-    const sportsDone = !sportsIncluded || campaign?.sportsScrapeStatus === CAMPAIGN_STATUS.SUCCEEDED;
-    const linkedin = campaign?.linkedinScrapeStatus;
-    const linkedinDone = linkedin == null || linkedin === CAMPAIGN_STATUS.SUCCEEDED;
-    return sportsDone && linkedinDone;
+    const c = this.__withSportsApplies(campaign);
+    return isResearchDone({
+      ...c,
+      webScrapeStatus: CAMPAIGN_STATUS.SUCCEEDED,
+      mapScrapeStatus: CAMPAIGN_STATUS.SUCCEEDED,
+    });
+  }
+
+  /**
+   * `sportsApplies` comes with the campaign from the API. An API older than that flag still
+   * says whether sports applies through the estimate's passes, so fall back to those.
+   */
+  private __withSportsApplies(campaign: any) {
+    if (!campaign) return campaign;
+    const sportsApplies =
+      campaign.sportsApplies ?? !!this.scrapeEstimate?.passes?.some(p => p.pass === 'sports');
+    return { ...campaign, sportsApplies };
   }
 
   private __setEstimate(estimate: ScrapeEstimate | null) {

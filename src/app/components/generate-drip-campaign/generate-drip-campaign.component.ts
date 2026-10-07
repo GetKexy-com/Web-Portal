@@ -44,7 +44,7 @@ import { Contact, IRawContact } from '../../models/Contact';
 import { PreviewDripEmailContentComponent } from '../preview-drip-email-content/preview-drip-email-content.component';
 import { ActivateDripModalComponent, IActivateDripResult } from '../activate-drip-modal/activate-drip-modal.component';
 import { LeadMagnetService } from '../../services/lead-magnet.service';
-import { CAMPAIGN_STATUS, DripCampaign } from '../../models/DripCampaign';
+import { CAMPAIGN_STATUS, DripCampaign, isResearchDone } from '../../models/DripCampaign';
 import { StorageService } from '../../services/storage.service';
 import { ScrapeProgressCardComponent } from '../scrape-progress-card/scrape-progress-card.component';
 
@@ -715,9 +715,9 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const scrapingDone =
-      campaign.webScrapeStatus === CAMPAIGN_STATUS.SUCCEEDED &&
-      campaign.mapScrapeStatus === CAMPAIGN_STATUS.SUCCEEDED;
+    // Every pass the send waits for, LinkedIn and sports included: checking web and map
+    // alone showed "This campaign is live" while LinkedIn/sports still held the first email.
+    const scrapingDone = isResearchDone(campaign);
 
     // The card itself still decides what (and whether) to render from the
     // per-prospect data; this only governs whether it is mounted at all.
