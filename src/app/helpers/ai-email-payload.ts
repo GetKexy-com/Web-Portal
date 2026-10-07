@@ -25,7 +25,7 @@ export function readDripSetting(settings: any[] | null | undefined, settingsType
 
 /**
  * Off switch for sending the toggle to the AI email lambdas. While false every payload says
- * `supercharge: false` (and carries no `companyLinkedinUrl`); the campaign page and the
+ * `supercharge: false`; the campaign page and the
  * activate dialog still show the saved toggle. Keep in step with KexyApi `super-charged.ts`.
  */
 export const SUPERCHARGE_TO_AI_ENABLED = false;
@@ -44,21 +44,4 @@ export function isSuperChargedSetting(settings: any[] | null | undefined): boole
 export function linkedinUsername(url: string | null | undefined): string {
   const match = url?.match(/linkedin\.com\/in\/([^/?]+)/i);
   return match ? match[1] : '';
-}
-
-/**
- * The company's LinkedIn page from contact `details.organization`, in either key style.
- * Only a real page counts: the CSV import stores a bare `https://www.linkedin.com` when
- * the column is empty.
- */
-export function companyLinkedinUrl(details: any): string | null {
-  const org = details?.organization;
-  for (const raw of [org?.linkedinUrl, org?.linkedin_url]) {
-    if (typeof raw !== 'string') continue;
-    const url = raw.replace(/\\\//g, '/').trim();
-    if (/linkedin\.com\/(company|school|showcase)\/[^/?#\s]+/i.test(url)) {
-      return url;
-    }
-  }
-  return null;
 }
