@@ -67,15 +67,15 @@ const RING_GAP = 3;
 const NUMBER_WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'];
 
 /**
- * What the prospect did with the email a signal opened, for its badge ("Used in Email 2 ·
- * they clicked"). Nothing yet → no suffix: the badge must never read as an open that didn't
- * happen (it used to say "Opened email 2", meaning "opening line of Email 2").
+ * A signal's badge: what the prospect did with the email that signal opened, the email named
+ * by its place in the sequence ("Clicked in Email 2"). Before anything happens it says so
+ * plainly ("Email 2 not opened yet"), so it never reads as an open that didn't happen.
  */
-const USED_IN_OUTCOME: Record<NonNullable<IProspectSignal['usedIn']>['outcome'], string> = {
-  sent: '',
-  opened: 'they opened it',
-  clicked: 'they clicked',
-  replied: 'they replied',
+const USED_IN_LABEL: Record<NonNullable<IProspectSignal['usedIn']>['outcome'], (n: number) => string> = {
+  sent: (n) => `Email ${n} not opened yet`,
+  opened: (n) => `Opened Email ${n}`,
+  clicked: (n) => `Clicked in Email ${n}`,
+  replied: (n) => `Replied to Email ${n}`,
 };
 
 /** The winner's name when Insights picked an angle outside its candidates (nothing cleared its floor). */
@@ -492,7 +492,7 @@ export class ProspectProfileContentComponent implements OnInit, OnDestroy {
     this.signals = [...(ins.signals ?? [])].sort((a, b) => (b.confidence ?? 0) - (a.confidence ?? 0)).map((sig) => ({
       ...sig,
       usedInLabel: sig.usedIn
-        ? [`Used in Email ${sig.usedIn.emailSequence}`, USED_IN_OUTCOME[sig.usedIn.outcome]].filter(Boolean).join(' · ')
+        ? (USED_IN_LABEL[sig.usedIn.outcome] ?? USED_IN_LABEL.sent)(sig.usedIn.emailSequence)
         : null,
     }));
 
