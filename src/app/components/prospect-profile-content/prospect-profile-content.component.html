@@ -158,7 +158,7 @@
             Could not load this section.
             <button type="button" class="pp-link" (click)="loadTimeline()">Try again</button>
           </div>
-          <div class="pp-state" *ngIf="timelineState === 'locked'">Available once the prospect opens an email.</div>
+          <div class="pp-state" *ngIf="timelineState === 'locked'">Available once the prospect opens, clicks or replies to an email.</div>
 
           <ng-container *ngIf="timelineState === 'ready'">
             <ol class="pp-timeline" *ngIf="timeline.length">
@@ -191,7 +191,7 @@
             Could not load the score.
             <button type="button" class="pp-link" (click)="loadTimeline()">Try again</button>
           </div>
-          <div class="pp-state" *ngIf="scoreState === 'locked'">Scored once the prospect opens an email.</div>
+          <div class="pp-state" *ngIf="scoreState === 'locked'">Scored once the prospect opens, clicks or replies to an email.</div>
 
           <!--The Score API is working on it; the page polls and the score replaces this in place.-->
           <div class="pp-scoring" *ngIf="scoreState === 'ready' && scoreStatus === 'scoring' && !score" role="status">
@@ -304,5 +304,5 @@
     Could not load this section.
     <button type="button" class="pp-link" (click)="loadInsights()">Try again</button>
   </div>
-  <div class="pp-state" *ngIf="insightsState === 'locked'">Available once the prospect opens an email.</div>
+  <div class="pp-state" *ngIf="insightsState === 'locked'">Available once the prospect opens, clicks or replies to an email.</div>
 </ng-template>

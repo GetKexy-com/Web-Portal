@@ -382,7 +382,8 @@ export class EmailSendProgressComponent implements OnInit, OnDestroy {
    * back to this row's own open (the pixel — a click or reply with images blocked is not one).
    */
   canViewProfile = (item: IEmailSendItem): boolean =>
-    item.profileReady ?? (this.isEngaged(item) && !!item.engagement?.pixelOpenedAt);
+    // Fallback for an API without `profileReady`: any open, click or reply, like the API rule.
+    item.profileReady ?? this.isEngaged(item);
 
   // ── Actions ─────────────────────────────────────────────────────────────
   refresh = (): void => {
