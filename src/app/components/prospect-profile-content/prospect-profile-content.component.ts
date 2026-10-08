@@ -66,11 +66,16 @@ const RING_GAP = 3;
 
 const NUMBER_WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'];
 
+/**
+ * What the prospect did with the email a signal opened, for its badge ("Used in Email 2 ·
+ * they clicked"). Nothing yet → no suffix: the badge must never read as an open that didn't
+ * happen (it used to say "Opened email 2", meaning "opening line of Email 2").
+ */
 const USED_IN_OUTCOME: Record<NonNullable<IProspectSignal['usedIn']>['outcome'], string> = {
   sent: '',
-  opened: 'was opened',
-  clicked: 'got a click',
-  replied: 'got the reply',
+  opened: 'they opened it',
+  clicked: 'they clicked',
+  replied: 'they replied',
 };
 
 /** The winner's name when Insights picked an angle outside its candidates (nothing cleared its floor). */
@@ -487,7 +492,7 @@ export class ProspectProfileContentComponent implements OnInit, OnDestroy {
     this.signals = [...(ins.signals ?? [])].sort((a, b) => (b.confidence ?? 0) - (a.confidence ?? 0)).map((sig) => ({
       ...sig,
       usedInLabel: sig.usedIn
-        ? [`Opened email ${sig.usedIn.emailSequence}`, USED_IN_OUTCOME[sig.usedIn.outcome]].filter(Boolean).join(' · ')
+        ? [`Used in Email ${sig.usedIn.emailSequence}`, USED_IN_OUTCOME[sig.usedIn.outcome]].filter(Boolean).join(' · ')
         : null,
     }));
 
