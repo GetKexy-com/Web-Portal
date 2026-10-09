@@ -471,7 +471,10 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
     this.isContentLoading = true;
     const contact: Contact = this.contactList[0];
     const linkedinUsername = this.getLinkedInUsername(contact?.details?.linkedinUrl);
-    const linkedinData: any = await this.dripCampaignService.getLinkedinData({ contactId: contact.id });
+    const linkedinData: any = await this.dripCampaignService.getLinkedinData({
+      contactId: contact.id,
+      campaignId: this.dripCampaign?.id,
+    });
     const websiteData: any = await this.dripCampaignService.getWebsiteData({ contactId: contact.id });
     const locationData: any = await this.dripCampaignService.getLocationData({ contactId: contact.id });
     const data = {

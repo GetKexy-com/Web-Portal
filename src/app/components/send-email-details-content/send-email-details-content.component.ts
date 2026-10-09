@@ -270,7 +270,10 @@ export class SendEmailDetailsContentComponent implements OnInit, OnDestroy {
     this.isLoading = true;
     this.contactList = this.dripCampaignService.generateDripCampaignListContact;
     const contact: Contact = this.contactList[0];
-    const linkedinData: any = await this.dripCampaignService.getLinkedinData({ contactId: contact.id });
+    const linkedinData: any = await this.dripCampaignService.getLinkedinData({
+      contactId: contact.id,
+      campaignId: this.dripCampaign?.id,
+    });
     const websiteData: any = await this.dripCampaignService.getWebsiteData({ contactId: contact.id });
     const locationData: any = await this.dripCampaignService.getLocationData({ contactId: contact.id });
 

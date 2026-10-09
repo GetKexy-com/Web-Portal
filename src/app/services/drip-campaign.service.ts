@@ -175,9 +175,15 @@ export class DripCampaignService {
     });
   };
 
-  getLinkedinData = async (postData) => {
+  /**
+   * The prospect's saved LinkedIn data. When nothing is saved yet (a draft written before
+   * activation) the API scrapes it first, so this can take ~20s; `campaignId` labels that
+   * scrape.
+   */
+  getLinkedinData = async (postData: { contactId: number; campaignId?: number }) => {
     return new Promise(async (resolve, reject) => {
-      const url = `drip-campaigns/getLinkedinData/${postData.contactId}`;
+      const campaign = postData.campaignId ? `?campaignId=${postData.campaignId}` : '';
+      const url = `drip-campaigns/getLinkedinData/${postData.contactId}${campaign}`;
       this.httpService.get(url).subscribe({
         next: (res) => {
           if (res) {
