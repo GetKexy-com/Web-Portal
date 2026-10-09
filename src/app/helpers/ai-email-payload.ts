@@ -24,11 +24,11 @@ export function readDripSetting(settings: any[] | null | undefined, settingsType
 }
 
 /**
- * Off switch for sending the toggle to the AI email lambdas. While false every payload says
- * `supercharge: false`; the campaign page and the
- * activate dialog still show the saved toggle. Keep in step with KexyApi `super-charged.ts`.
+ * Switch for sending the toggle to the AI email lambdas. On (2026-10-09): `supercharge` is the
+ * campaign's saved toggle. Set false to send `supercharge: false` whatever was saved.
+ * Keep in step with KexyApi `super-charged.ts`.
  */
-export const SUPERCHARGE_TO_AI_ENABLED = false;
+export const SUPERCHARGE_TO_AI_ENABLED = true;
 
 /** The `supercharge` flag for an AI email payload: the saved toggle, behind the off switch. */
 export function superchargeForAi(settings: any[] | null | undefined): boolean {

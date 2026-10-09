@@ -276,7 +276,7 @@ export class SendEmailDetailsContentComponent implements OnInit, OnDestroy {
 
     const subject = this.editor?.getSubject() ?? this.emailSubject ?? '';
     const content = subject + (this.editor?.getRawHtml() || this.emailContent);
-    // The activate dialog's "Super charged" toggle, behind `SUPERCHARGE_TO_AI_ENABLED` (off for now).
+    // The activate dialog's "Super charged" toggle, behind `SUPERCHARGE_TO_AI_ENABLED`.
     const supercharge = superchargeForAi(this.dripCampaign?.settings);
     const contactDetails = this.contactList[0]?.details;
     const data = {
