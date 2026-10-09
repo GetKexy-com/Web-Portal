@@ -475,7 +475,7 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
     const linkedinData: any = await this.dripCampaignService.getLinkedinData({ contactId: contact.id });
     const websiteData: any = await this.dripCampaignService.getWebsiteData({ contactId: contact.id });
     const locationData: any = await this.dripCampaignService.getLocationData({ contactId: contact.id });
-    // The activate dialog's "Super charged" toggle, behind `SUPERCHARGE_TO_AI_ENABLED` (off for now).
+    // The activate dialog's "Super charged" toggle, behind `SUPERCHARGE_TO_AI_ENABLED`.
     const supercharge = superchargeForAi(this.dripCampaign?.settings);
     const data = {
       count: this.dripCampaign.details.numberOfEmails,

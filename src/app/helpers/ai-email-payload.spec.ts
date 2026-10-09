@@ -22,7 +22,13 @@ describe('linkedinUsername', () => {
 });
 
 describe('superchargeForAi', () => {
-  it('is false for now, even when the campaign was activated Super charged', () => {
-    expect(superchargeForAi([{ settingsType: 'super_charged', settingsValue: '[{"value":true}]' }])).toBe(false);
+  it('follows the saved toggle', () => {
+    expect(superchargeForAi([{ settingsType: 'super_charged', settingsValue: '[{"value":true}]' }])).toBe(true);
+    expect(superchargeForAi([{ settingsType: 'super_charged', settingsValue: '[{"value":false}]' }])).toBe(false);
+  });
+
+  it('is false when the campaign never saved the toggle', () => {
+    expect(superchargeForAi([])).toBe(false);
+    expect(superchargeForAi(null)).toBe(false);
   });
 });
