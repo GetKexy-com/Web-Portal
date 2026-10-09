@@ -325,6 +325,8 @@ export class ProspectProfileContentComponent implements OnInit, OnDestroy {
       this.scoreNote = res.scoreNote ?? null;
       this.scoreUpdateText = scoreUpdateText(res.scoreUpdate);
       this.scoreUpdateRunning = res.scoreUpdate?.state === 'running';
+      // The reply box can now see replies to the campaign's other emails.
+      this.__recomputeReply(this.prospect);
       if (this.score) this.__recomputeScore();
       this.timelineState = 'ready';
       this.scoreState = 'ready';
@@ -405,8 +407,9 @@ export class ProspectProfileContentComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * From KEXY's own reply tracking for this one email — a reply to a different email in
-   * the sequence never counts. What happens to the rest of the sequence depends on the
+   * From KEXY's own reply tracking for this one email. A reply to a different email in the
+   * sequence never makes THIS email "replied" (no pill), but the box names it once the
+   * timeline has loaded. What happens to the rest of the sequence depends on the
    * campaign's "un-enroll if reply" setting (`stopsOnReply`): on, KexyApi un-enrolls them
    * and cancels anything already queued; off, the later emails still go out.
    */
@@ -434,6 +437,20 @@ export class ProspectProfileContentComponent implements OnInit, OnDestroy {
     }
 
     this.replyPill = null;
+    // No reply to THIS email, but one to another email of the campaign (from the timeline):
+    // say so, or this box reads "No reply yet" beside a "Replied to Email 5" callout.
+    const otherReply = [...this.timeline]
+      .reverse()
+      .find((ev) => ev.kind === 'replied' && ev.emailSequence && ev.emailSequence !== this.emailSequence);
+    if (item.status === 'sent' && otherReply) {
+      const other = `Email ${otherReply.emailSequence}`;
+      this.replyBox = {
+        tone: 'positive',
+        title: `Replied to ${other} on ${day(otherReply.at)}.`,
+        message: `No reply to ${email} itself — the reply came on ${other}. Review it and respond.`,
+      };
+      return;
+    }
     if (item.status === 'sent') {
       const seen = e?.clickedAt
         ? `They clicked a link in it on ${day(e.clickedAt)}.`
