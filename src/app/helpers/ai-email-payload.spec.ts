@@ -1,4 +1,4 @@
-import { isSuperChargedSetting, linkedinUsername, superchargeForAi } from './ai-email-payload';
+import { isSuperChargedSetting, linkedinUsername } from './ai-email-payload';
 
 describe('isSuperChargedSetting', () => {
   it('reads the toggle, string or parsed', () => {
@@ -18,17 +18,5 @@ describe('linkedinUsername', () => {
     expect(linkedinUsername('https://www.linkedin.com/in/maria-chen?x=1')).toBe('maria-chen');
     expect(linkedinUsername('https://www.linkedin.com/company/acme')).toBe('');
     expect(linkedinUsername(undefined)).toBe('');
-  });
-});
-
-describe('superchargeForAi', () => {
-  it('follows the saved toggle', () => {
-    expect(superchargeForAi([{ settingsType: 'super_charged', settingsValue: '[{"value":true}]' }])).toBe(true);
-    expect(superchargeForAi([{ settingsType: 'super_charged', settingsValue: '[{"value":false}]' }])).toBe(false);
-  });
-
-  it('is false when the campaign never saved the toggle', () => {
-    expect(superchargeForAi([])).toBe(false);
-    expect(superchargeForAi(null)).toBe(false);
   });
 });

@@ -4,7 +4,6 @@ import {
   isSuperChargedSetting,
   linkedinUsername,
   readDripSetting,
-  superchargeForAi,
 } from '../../helpers/ai-email-payload';
 import { NgbModal, NgbOffcanvas } from '@ng-bootstrap/ng-bootstrap';
 import { AuthService } from '../../services/auth.service';
@@ -475,8 +474,6 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
     const linkedinData: any = await this.dripCampaignService.getLinkedinData({ contactId: contact.id });
     const websiteData: any = await this.dripCampaignService.getWebsiteData({ contactId: contact.id });
     const locationData: any = await this.dripCampaignService.getLocationData({ contactId: contact.id });
-    // The activate dialog's "Super charged" toggle, behind `SUPERCHARGE_TO_AI_ENABLED`.
-    const supercharge = superchargeForAi(this.dripCampaign?.settings);
     const data = {
       count: this.dripCampaign.details.numberOfEmails,
       email_tone: this.selectedEmailToneKey || this.dripCampaign.details.emailTone,
@@ -498,7 +495,6 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
       promotion_info: !!this.selectedPromotionsProductName,
       prospect_email_address: contact?.email,
       drip_campaign_id: this.dripCampaign.id,
-      supercharge,
       lead_magnet: this.dripCampaign.leadMagnet,
       linkedin_scrapper: linkedinData,
       sports_scrapper: {},
