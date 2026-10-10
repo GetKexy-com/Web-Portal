@@ -2,7 +2,7 @@ import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { NgbActiveOffcanvas } from '@ng-bootstrap/ng-bootstrap';
 import { AuthService } from 'src/app/services/auth.service';
 import { constants } from '../../helpers/constants';
-import { linkedinUsername } from '../../helpers/ai-email-payload';
+import { aiLeadMagnets, linkedinUsername } from '../../helpers/ai-email-payload';
 import { DripCampaignService } from '../../services/drip-campaign.service';
 import { DripEmail } from '../../models/DripEmail';
 import Swal from 'sweetalert2';
@@ -287,7 +287,7 @@ export class SendEmailDetailsContentComponent implements OnInit, OnDestroy {
       promotion_info: this.hasPromotion,
       isSpintax: this.isSpintax,
       content,
-      lead_magnet: this.dripCampaign.leadMagnet,
+      lead_magnet: aiLeadMagnets(this.dripCampaign.leadMagnet),
       linkedin_scrapper: linkedinData,
       sports_scrapper: {},
       google_map_scrapper: locationData ? locationData.scrapedData : {},

@@ -38,3 +38,20 @@ export function linkedinUsername(url: string | null | undefined): string {
   const match = url?.match(/linkedin\.com\/in\/([^/?]+)/i);
   return match ? match[1] : '';
 }
+
+/**
+ * The campaign's lead magnets as the AI email lambda's `lead_magnet` items, the same shape
+ * KexyApi sends (`lead-magnet-payload.ts`). The lambda was written for PHP-era rows, where the
+ * link is `lead_magnet_url`; KexyApi now returns `leadMagnetUrl`, so the AI got the title but
+ * no link and wrote `<a href="#">`. Both keys are sent.
+ */
+export function aiLeadMagnets(leadMagnets: any[] | null | undefined): any[] {
+  return (leadMagnets || []).map((m: any) => ({
+    id: m?.id,
+    title: m?.title,
+    summary: m?.summary,
+    lead_magnet_url: m?.leadMagnetUrl ?? m?.lead_magnet_url,
+    leadMagnetUrl: m?.leadMagnetUrl ?? m?.lead_magnet_url,
+    status: m?.status,
+  }));
+}

@@ -15,6 +15,7 @@ import { EmailSendFilter, IEmailSendSchedule, IEmailSendSummary } from '../../mo
 import { scheduleEventAt, schedulePollDelay, scheduleProspectsFilter } from '../../helpers/send-schedule-label';
 import { SendCountdownComponent } from '../send-countdown/send-countdown.component';
 import { routeConstants } from '../../helpers/routeConstants';
+import { aiLeadMagnets } from '../../helpers/ai-email-payload';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DripEmail, EmailDelay } from '../../models/DripEmail';
 import { SseService } from '../../services/sse.service';
@@ -498,7 +499,7 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
       promotion_info: !!this.selectedPromotionsProductName,
       prospect_email_address: contact?.email,
       drip_campaign_id: this.dripCampaign.id,
-      lead_magnet: this.dripCampaign.leadMagnet,
+      lead_magnet: aiLeadMagnets(this.dripCampaign.leadMagnet),
       linkedin_scrapper: linkedinData,
       sports_scrapper: {},
       google_map_scrapper: locationData ? locationData.scrapedData : {},
