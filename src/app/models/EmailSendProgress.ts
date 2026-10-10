@@ -126,6 +126,13 @@ export interface IEmailSendItem {
    */
   profileReady?: boolean;
   /**
+   * Their newest saved score in this campaign (Score column). Null when never scored. Belongs
+   * to the prospect, not this row's email. Absent from an API older than the field.
+   */
+  score?: { value: number; max: number; band: string } | null;
+  /** A Score API call is running for them now (first score or rescore). */
+  scoring?: boolean;
+  /**
    * What Amazon SES did with the email AFTER accepting it — "Sent" only means SES said OK.
    * Null until SES reports something (and always for older sends or non-SES servers).
    */

@@ -140,7 +140,8 @@
         <thead>
           <tr>
             <th scope="col" class="col-prospect">Prospect</th>
-            <th scope="col" class="col-profile" *ngIf="showProfile">Profile/Score</th>
+            <th scope="col" class="col-profile" *ngIf="showProfile">Profile</th>
+            <th scope="col" class="col-score" *ngIf="showProfile">Score</th>
             <th scope="col" class="col-status">Status</th>
             <th scope="col" class="col-subject">Subject</th>
             <th scope="col" class="col-when">When</th>
@@ -174,7 +175,18 @@
                   (click)="openProfile(item)"
                 >View</button>
                 <ng-template #noScore>
-                  <span class="sp-no-score" title="Available once the prospect opens, clicks or replies to an email in this sequence">No score yet</span>
+                  <span class="sp-no-score" title="Available once the prospect opens, clicks or replies to an email in this sequence">Not yet</span>
+                </ng-template>
+              </td>
+
+              <!--Their newest saved score (KexyApi `score`); a rescore keeps it on screen.-->
+              <td class="col-score" *ngIf="showProfile">
+                <span *ngIf="item.score as sc; else noScoreValue" class="sp-score" [title]="'Score ' + sc.value + ' of ' + sc.max">
+                  {{ sc.value }}<span class="sp-score-max">/{{ sc.max }}</span>
+                </span>
+                <ng-template #noScoreValue>
+                  <span *ngIf="item.scoring; else noScoreDash" class="sp-no-score">Scoring…</span>
+                  <ng-template #noScoreDash><span class="sp-no-score" title="No score yet">—</span></ng-template>
                 </ng-template>
               </td>
 
@@ -269,7 +281,7 @@
 
             <!--══════════ Expanded: timeline, error, AI vs sent ══════════-->
             <tr class="sp-detail-row" *ngIf="expanded[rowKey(item)]">
-              <td [attr.colspan]="showProfile ? 6 : 5">
+              <td [attr.colspan]="showProfile ? 7 : 5">
                 <ng-container *ngIf="details[rowKey(item)] as d">
 
                   <div class="sp-detail-state" *ngIf="d.state === 'loading'">
