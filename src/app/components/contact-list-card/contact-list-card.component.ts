@@ -27,6 +27,7 @@ import { CommonModule, DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Contact } from '../../models/Contact';
 import Swal from 'sweetalert2';
+import { stateShortForm } from '../../helpers/state-short-form';
 
 @Component({
   selector: 'contact-list-card',
@@ -505,7 +506,12 @@ export class ContactListCardComponent implements OnInit, OnChanges, OnDestroy, A
       .join(' ');
   };
 
-  getCellValueToDisplay = (row, column) => this.getCellValue(row, column);
+  // State shows as its postal code ("New York", "New York State" → "NY"); display only, the stored
+  // value is untouched (see `stateShortForm`).
+  getCellValueToDisplay = (row, column) => {
+    const value = this.getCellValue(row, column);
+    return column.key === 'state' ? stateShortForm(value) : value;
+  };
 
   // Parse the row's `details` ONCE and cache it on the row. This runs per-cell on
   // EVERY change-detection pass (a single checkbox click triggers a full CD tick),

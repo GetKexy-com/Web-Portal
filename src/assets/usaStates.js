@@ -124,7 +124,7 @@ export const usaStates = [
     code: "NM",
   },
   {
-    name: "New York State",
+    name: "New York",
     code: "NY",
   },
   {
@@ -189,7 +189,7 @@ export const usaStates = [
   },
   {
     name: "Washington D.C.",
-    code: "WA",
+    code: "DC",
   },
   {
     name: "West Virginia",
