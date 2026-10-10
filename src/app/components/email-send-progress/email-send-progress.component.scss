@@ -416,7 +416,7 @@ $kx-red-bg: #fdeaea;
     text-align: center;
   }
   .col-toggle {
-    width: 44px;
+    width: 140px; // the "✉ View email ⌄" pill (≈113px) + 24px padding
     text-align: right;
   }
 
@@ -504,8 +504,22 @@ $kx-red-bg: #fdeaea;
   border: none;
   cursor: pointer;
 
-  &:hover .sp-name {
+  // Reads as a link at rest (blue), underlined on hover.
+  .sp-name {
+    display: flex;
+    align-items: center;
+    gap: 5px;
     color: $kx-primary-deep;
+  }
+
+  .sp-name-text {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &:hover .sp-name-text,
+  &:focus-visible .sp-name-text {
     text-decoration: underline;
   }
 
@@ -618,20 +632,33 @@ $kx-red-bg: #fdeaea;
   color: $kx-red;
 }
 
+// "View email ⌄" / "Hide email ⌃" — a labelled pill, same family as the View button.
 .sp-toggle {
-  width: 28px;
-  height: 28px;
-  padding: 0;
-  font-size: 11px;
-  color: $kx-muted;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  color: $kx-primary-deep;
   background: transparent;
-  border: none;
-  border-radius: 7px;
+  border: 1px solid #d6e4fb;
+  border-radius: 999px;
   cursor: pointer;
 
-  &:hover {
-    color: $kx-ink;
-    background: $kx-hairline;
+  .fa {
+    font-size: 10px;
+  }
+
+  .sp-toggle-mail {
+    font-size: 12px;
+  }
+
+  &:hover,
+  &[aria-expanded='true'] {
+    background: $kx-live-bg;
+    border-color: transparent;
   }
 }
 

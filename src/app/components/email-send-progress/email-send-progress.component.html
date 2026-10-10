@@ -165,8 +165,8 @@
                   [attr.aria-label]="'Edit contact ' + (item.name || item.email)"
                   (click)="openContact(item)"
                 >
-                  <span class="sp-name" [title]="item.name || item.email">
-                    {{ item.name || item.email }}
+                  <span class="sp-name" title="Edit contact">
+                    <span class="sp-name-text">{{ item.name || item.email }}</span>
                     <i *ngIf="openingContact === rowKey(item)" class="fa fa-circle-o-notch fa-spin sp-opening" aria-hidden="true"></i>
                   </span>
                   <span class="sp-meta" [title]="item.email">
@@ -285,6 +285,9 @@
                   [attr.aria-label]="(expanded[rowKey(item)] ? 'Hide' : 'Show') + ' email for ' + (item.name || item.email)"
                   (click)="toggleRow(item)"
                 >
+                  <!--Labelled, not just a chevron: people did not see there was an email under it.-->
+                  <i class="fa fa-envelope-o sp-toggle-mail" aria-hidden="true"></i>
+                  <span>{{ expanded[rowKey(item)] ? 'Hide email' : 'View email' }}</span>
                   <i class="fa" [ngClass]="expanded[rowKey(item)] ? 'fa-chevron-up' : 'fa-chevron-down'" aria-hidden="true"></i>
                 </button>
               </td>
