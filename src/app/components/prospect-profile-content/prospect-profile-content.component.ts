@@ -235,6 +235,8 @@ export class ProspectProfileContentComponent implements OnInit, OnDestroy {
   /** One of 6 gradients (`av-0`..`av-5`), same rule as the contacts table (`getAvatarClass`). */
   avatarClass = '';
   jobTitle = '';
+  /** The prospect's LinkedIn profile, https and linkedin.com only; '' hides the icon. */
+  linkedinHref = '';
   company = '';
   location = '';
   sendPill: { label: string; tone: Tone; at: string | null } | null = null;
@@ -382,6 +384,7 @@ export class ProspectProfileContentComponent implements OnInit, OnDestroy {
     this.initials = this.__initialsFor(item.name, this.email);
     this.avatarClass = this.__avatarClassFor(item.name || this.email);
     this.jobTitle = p.jobTitle || '';
+    this.linkedinHref = this.__linkedinHref(p.linkedinUrl);
     this.company = item.company || '';
     this.location = [p.city, p.state, p.country].filter(Boolean).join(', ');
 
@@ -404,6 +407,19 @@ export class ProspectProfileContentComponent implements OnInit, OnDestroy {
     this.phoneSource = p.phoneSource || '';
     this.companyAddress = p.companyAddress || '';
     this.maskedPhone = this.__maskPhone(this.phone);
+  }
+
+  /** A stored LinkedIn URL as a safe link: https added when missing, linkedin.com hosts only. */
+  private __linkedinHref(url: string | null | undefined): string {
+    const raw = (url || '').trim();
+    if (!raw) return '';
+    const withScheme = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
+    try {
+      const host = new URL(withScheme).hostname.toLowerCase();
+      return host === 'linkedin.com' || host.endsWith('.linkedin.com') ? withScheme : '';
+    } catch {
+      return '';
+    }
   }
 
   /**

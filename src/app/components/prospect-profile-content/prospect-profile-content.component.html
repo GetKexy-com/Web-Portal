@@ -21,7 +21,14 @@
             </span>
           </div>
         </div>
-        <ul class="pp-meta" *ngIf="jobTitle || company || location">
+        <ul class="pp-meta" *ngIf="jobTitle || company || location || linkedinHref">
+          <!--First, and the same link as the Contact card's LinkedIn row.-->
+          <li *ngIf="linkedinHref">
+            <a class="pp-linkedin" [href]="linkedinHref" target="_blank" rel="noopener noreferrer">
+              <i class="fa fa-linkedin-square" aria-hidden="true"></i>View profile
+              <i class="fa fa-external-link pp-ext" aria-hidden="true"></i>
+            </a>
+          </li>
           <li *ngIf="jobTitle"><i class="fa fa-briefcase" aria-hidden="true"></i>{{ jobTitle }}</li>
           <li *ngIf="company"><i class="fa fa-building-o" aria-hidden="true"></i>{{ company }}</li>
           <li *ngIf="location"><i class="fa fa-map-marker" aria-hidden="true"></i>{{ location }}</li>
@@ -291,6 +298,17 @@
               <dt>Company address</dt>
               <dd *ngIf="companyAddress">{{ companyAddress }}</dd>
               <dd *ngIf="!companyAddress" class="pp-none">Not found</dd>
+            </div>
+            <!--Also on the details line under the name.-->
+            <div>
+              <dt>LinkedIn</dt>
+              <dd *ngIf="linkedinHref">
+                <a class="pp-linkedin" [href]="linkedinHref" target="_blank" rel="noopener noreferrer">
+                  <i class="fa fa-linkedin-square" aria-hidden="true"></i>View profile
+                  <i class="fa fa-external-link pp-ext" aria-hidden="true"></i>
+                </a>
+              </dd>
+              <dd *ngIf="!linkedinHref" class="pp-none">Not found</dd>
             </div>
           </dl>
         </section>
