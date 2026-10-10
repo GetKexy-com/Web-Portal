@@ -17,6 +17,10 @@ import { PROSPECT_PROFILE_ENABLED } from '../../services/prospect-profile.servic
 import { IStatusMeta, STATUS_META, Tone } from '../../helpers/email-send-status';
 import { IScheduleLabel, scheduleEventAt, scheduleLabel } from '../../helpers/send-schedule-label';
 import { ProspectProfileContentComponent } from '../prospect-profile-content/prospect-profile-content.component';
+import { ProspectingContactsComponent } from '../prospecting-contacts/prospecting-contacts.component';
+import { ProspectingService } from '../../services/prospecting.service';
+import { AuthService } from '../../services/auth.service';
+import Swal from 'sweetalert2';
 
 /**
  * Keeps a framed email's images inside the frame, in proportion.
@@ -260,10 +264,15 @@ export class EmailSendProgressComponent implements OnInit, OnDestroy {
   private requestSeq = 0;
   private destroyed = false;
 
+  /** The row whose contact is being looked up before the edit drawer opens. */
+  openingContact: string | null = null;
+
   constructor(
     private dripCampaignService: DripCampaignService,
     private ngbOffcanvas: NgbOffcanvas,
     private host: ElementRef<HTMLElement>,
+    private prospectingService: ProspectingService,
+    private authService: AuthService,
   ) {}
 
   ngOnInit(): void {
@@ -465,6 +474,54 @@ export class EmailSendProgressComponent implements OnInit, OnDestroy {
     document.addEventListener('keydown', onKeydown, true);
     const cleanup = (): void => document.removeEventListener('keydown', onKeydown, true);
     ref.result.then(cleanup, cleanup);
+  };
+
+  /**
+   * Clicking the prospect's name/email opens the same edit drawer as Manage Contacts, on top
+   * of Insights. The drawer needs the full contact row (lists, details), which this table
+   * does not have, so it is looked up by email first. Reloads the table when it closes, so
+   * an edited name shows.
+   */
+  openContact = async (item: IEmailSendItem): Promise<void> => {
+    if (this.openingContact) return;
+    const key = this.rowKey(item);
+    this.openingContact = key;
+    let contact = null;
+    try {
+      const companyId = this.authService.userTokenValue?.supplier_id;
+      contact = await this.prospectingService.findContactByEmail(companyId, item.email);
+    } catch {
+      contact = null;
+    } finally {
+      this.openingContact = null;
+    }
+    if (!contact) {
+      await Swal.fire('Contact not found', `${item.email} is no longer in your contacts.`, 'info');
+      return;
+    }
+
+    this.prospectingService.isAddNewButtonClickedInContactPage = false;
+    this.prospectingService.clickedContactInContactPage = [contact];
+    const ref = this.ngbOffcanvas.open(ProspectingContactsComponent, {
+      // `contact-over-insights`: stacked above the Insights drawer (styles.scss).
+      panelClass: 'contact-slide-content edit-rep-canvas contact-over-insights',
+      backdropClass: 'edit-rep-canvas-backdrop contact-over-insights-backdrop',
+      position: 'end',
+      scroll: false,
+    });
+
+    // Esc closes the TOP drawer only — same reason as `openProfile`.
+    const onKeydown = (event: KeyboardEvent): void => {
+      if (event.key !== 'Escape') return;
+      event.preventDefault();
+      ref.dismiss(OffcanvasDismissReasons.ESC);
+    };
+    document.addEventListener('keydown', onKeydown, true);
+    const done = (): void => {
+      document.removeEventListener('keydown', onKeydown, true);
+      if (!this.destroyed) this.__load('user');
+    };
+    ref.result.then(done, done);
   };
 
   clearFilters = (): void => {

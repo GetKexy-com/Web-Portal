@@ -435,7 +435,9 @@ $kx-red-bg: #fdeaea;
 }
 
 .sp-profile-link {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   padding: 3px 10px;
   font-size: 12px;
   font-weight: 700;
@@ -488,6 +490,34 @@ $kx-red-bg: #fdeaea;
 
 .sp-name {
   font-weight: 600;
+}
+
+// The name/email cell is a button that opens the contact's edit drawer.
+.sp-prospect-link {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  text-align: left;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+
+  &:hover .sp-name {
+    color: $kx-primary-deep;
+    text-decoration: underline;
+  }
+
+  &:disabled {
+    cursor: progress;
+  }
+}
+
+.sp-opening {
+  margin-left: 4px;
+  font-size: 11px;
+  color: #8a94a6;
 }
 
 .sp-meta {

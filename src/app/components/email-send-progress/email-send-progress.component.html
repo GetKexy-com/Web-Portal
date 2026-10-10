@@ -157,11 +157,22 @@
               [class.is-static]="!canExpand(item)"
             >
               <td class="col-prospect">
-                <span class="sp-name" [title]="item.name || item.email">{{ item.name || item.email }}</span>
-                <span class="sp-meta" [title]="item.email">
-                  <ng-container *ngIf="item.name">{{ item.email }}</ng-container>
-<!--                  <ng-container *ngIf="item.company"><ng-container *ngIf="item.name"> · </ng-container>{{ item.company }}</ng-container>-->
-                </span>
+                <!--Opens the contact's edit drawer (same as Manage Contacts).-->
+                <button
+                  type="button"
+                  class="sp-prospect-link"
+                  [disabled]="openingContact === rowKey(item)"
+                  [attr.aria-label]="'Edit contact ' + (item.name || item.email)"
+                  (click)="openContact(item)"
+                >
+                  <span class="sp-name" [title]="item.name || item.email">
+                    {{ item.name || item.email }}
+                    <i *ngIf="openingContact === rowKey(item)" class="fa fa-circle-o-notch fa-spin sp-opening" aria-hidden="true"></i>
+                  </span>
+                  <span class="sp-meta" [title]="item.email">
+                    <ng-container *ngIf="item.name">{{ item.email }}</ng-container>
+                  </span>
+                </button>
               </td>
 
               <td class="col-profile" *ngIf="showProfile">
@@ -173,7 +184,7 @@
                   class="sp-profile-link"
                   [attr.aria-label]="'View profile and score for ' + (item.name || item.email)"
                   (click)="openProfile(item)"
-                >View</button>
+                ><i class="fa fa-eye" aria-hidden="true"></i>View</button>
                 <ng-template #noScore>
                   <span class="sp-no-score" title="Available once the prospect opens, clicks or replies to an email in this sequence">Not yet</span>
                 </ng-template>

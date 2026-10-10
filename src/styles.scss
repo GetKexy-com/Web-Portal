@@ -469,6 +469,16 @@ button[disabled] {
   }
 }
 
+// The contact edit drawer opened from INSIDE Insights (`email-send-progress.openContact`):
+// same stacking as the prospect profile above, or it opens UNDER the Insights drawer.
+.contact-over-insights-backdrop {
+  z-index: 1050 !important;
+}
+
+.contact-over-insights {
+  z-index: 1055 !important;
+}
+
 .label-offcanvas-backdrop {
   z-index: 1045 !important;
 }
