@@ -795,6 +795,29 @@ export class ProspectingService {
     });
   };
 
+  /**
+   * The company's active contact with exactly this email, in the same shape Manage Contacts
+   * hands the edit drawer (lists included), or null. Reads `GET contacts` directly — not `getContacts`, whose
+   * cache and `contacts` stream belong to the contacts pages. The API's `email` filter is a
+   * LIKE, so the exact (case-insensitive) match is picked here.
+   */
+  findContactByEmail = async (companyId: number, email: string): Promise<Contact | null> => {
+    const wanted = (email || '').trim().toLowerCase();
+    if (!wanted) return null;
+    const query = `companyId=${encodeURIComponent(companyId)}&email=${encodeURIComponent(wanted)}&page=1&limit=25`;
+    const res: any = await this.httpService.get(`contacts?${query}`).toPromise();
+    const raw = (res?.data?.contacts || []).find(
+      (c: IRawContact) => (c?.email || '').trim().toLowerCase() === wanted,
+    );
+    if (!raw) return null;
+    // The edit drawer reads `contact.lists`, which Manage Contacts fills from the loaded
+    // lists (`setLabelsInContactsList`). Opened from elsewhere they may not be loaded yet.
+    if (!this._labels.getValue()?.length) {
+      await this.getLists({ companyId, page: this.manageListCurrentPage || 1, limit: this.manageListLimit || 100 });
+    }
+    return this.setLabelsInContactsList([new Contact(raw)])[0];
+  };
+
   getContact = async (postData) => {
     return new Promise(async (resolve, reject) => {
       const url = `contacts/${postData.contactId}?companyId=${postData.companyId}`;
