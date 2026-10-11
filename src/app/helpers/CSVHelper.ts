@@ -114,6 +114,50 @@ export class CsvHelper {
     return text.replace(/^\uFEFF/, '');
   }
 
+  /**
+   * What kind of contacts file this is, by EXTENSION. `file.type` is unreliable for
+   * this: Windows reports a .csv as `application/vnd.ms-excel` when Excel is installed,
+   * and some browsers leave it empty.
+   */
+  static importFileKind(name: string): 'csv' | 'xlsx' | 'xls' | null {
+    const ext = (name || '').toLowerCase().split('.').pop();
+    return ext === 'csv' || ext === 'xlsx' || ext === 'xls' ? ext : null;
+  }
+
+  /**
+   * An Excel (.xlsx) file, in EXACTLY the shape `getCsvFileData` returns, so column
+   * mapping, preview and import need no Excel branch. The first sheet is used, as a
+   * CSV export of the workbook would.
+   *
+   * Cells go through Papa as text: numbers as written in the sheet (a phone stays
+   * "4087289800", not 4087289800.0), dates as YYYY-MM-DD. The reader is loaded on
+   * demand so it only ships to people who import a spreadsheet.
+   */
+  static async getSpreadsheetFileData(file: Blob): Promise<Papa.ParseResult<any>> {
+    const { readSheet } = await import('read-excel-file/browser');
+    const rows = await readSheet<string>(file, { parseNumber: (n) => n });
+    return CsvHelper.rowsToParseResult(rows);
+  }
+
+  /** Spreadsheet rows (first row = headers) → the same result `getCsvFileData` gives. */
+  static rowsToParseResult(rows: unknown[][]): Papa.ParseResult<any> {
+    // Blank rows (formatting, a gap between blocks) would become empty contacts:
+    // Papa's `skipEmptyLines` keeps a ",,," line.
+    const text = (rows || [])
+      .map((row) => (row || []).map(CsvHelper._sheetCell))
+      .filter((row) => row.some((cell) => cell !== ''));
+    return Papa.parse(Papa.unparse(text), { header: true, skipEmptyLines: true });
+  }
+
+  private static _sheetCell(value: unknown): string {
+    if (value === null || value === undefined) return '';
+    if (value instanceof Date) {
+      // Excel stores a date-only cell as UTC midnight; read it in UTC so it can't shift a day.
+      return isNaN(value.getTime()) ? '' : value.toISOString().slice(0, 10);
+    }
+    return String(value).trim();
+  }
+
   static getCsvFileData = (file) => {
     const decodedString = CsvHelper.decodeCsvDataUrl(file);
     return Papa.parse(decodedString, {

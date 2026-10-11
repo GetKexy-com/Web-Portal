@@ -25,3 +25,27 @@ describe('CsvHelper.decodeCsvDataUrl', () => {
     expect(parsed.data[0]['First Name']).toBe('Brian');
   });
 });
+
+describe('CsvHelper spreadsheet import', () => {
+  it('tells file kinds apart by extension, whatever the browser says the type is', () => {
+    expect(CsvHelper.importFileKind('Contacts.CSV')).toBe('csv');
+    expect(CsvHelper.importFileKind('leads.xlsx')).toBe('xlsx');
+    expect(CsvHelper.importFileKind('old.xls')).toBe('xls');
+    expect(CsvHelper.importFileKind('notes.txt')).toBeNull();
+    expect(CsvHelper.importFileKind('')).toBeNull();
+  });
+
+  it('turns sheet rows into the same result a CSV parse gives', () => {
+    const parsed: any = CsvHelper.rowsToParseResult([
+      ['First Name', 'Email', 'Phone', 'Signed Up'],
+      ['José', 'j@x.com', '4087289800', new Date(Date.UTC(2026, 9, 1))],
+      [null, null, null, null],
+      ['Ann, Jr.', 'a@x.com', null, true],
+    ]);
+    expect(parsed.meta.fields).toEqual(['First Name', 'Email', 'Phone', 'Signed Up']);
+    expect(parsed.data).toEqual([
+      { 'First Name': 'José', Email: 'j@x.com', Phone: '4087289800', 'Signed Up': '2026-10-01' },
+      { 'First Name': 'Ann, Jr.', Email: 'a@x.com', Phone: '', 'Signed Up': 'true' },
+    ]);
+  });
+});
