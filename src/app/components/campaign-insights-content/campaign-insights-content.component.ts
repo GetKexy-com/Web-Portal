@@ -188,7 +188,7 @@ export class CampaignInsightsContentComponent implements OnInit {
 
   /** Nothing to export before the data lands, or when the scope has no rows. */
   get canExport(): boolean {
-    return this.isEmailScope ? !!this.engagedContacts.length : !!this.perEmail.length;
+    return this.isEmailScope ? !!this.__allEngagedContacts().length : !!this.perEmail.length;
   }
 
   /**
@@ -206,8 +206,8 @@ export class CampaignInsightsContentComponent implements OnInit {
     const name = this.__csvCell(this.campaignTitle || 'campaign').replace(/\s+/g, '-');
 
     if (this.isEmailScope) {
-      const headers = 'Name,Email,Job Title,Company,Opens,Clicks,Replies,Last Activity';
-      const rows = this.engagedContacts
+      const headers = 'Name,Email,Job Title,Company,Opens,Clicks,Replies,Last Activity,Score,Score Band';
+      const rows = this.__allEngagedContacts()
         .map((c) =>
           [
             this.__csvCell(c.name),
@@ -218,6 +218,8 @@ export class CampaignInsightsContentComponent implements OnInit {
             c.clicks,
             c.replies,
             this.__csvCell(c.lastActivity),
+            c.score ? c.score.value : '',
+            this.__csvCell(c.score?.band),
           ].join(','),
         )
         .join('\n');
@@ -294,6 +296,23 @@ export class CampaignInsightsContentComponent implements OnInit {
       this.isExportingPdf = false;
     }
   };
+
+  /**
+   * Everyone in ANY of the three rankings, once each, ordered by the ranking on screen.
+   * The CSV used to take only the selected tab, so an email nobody had clicked (the
+   * default tab) exported nothing — and Export → CSV was disabled — although people had
+   * opened and replied to it.
+   */
+  private __allEngagedContacts(): ICampaignAnalyticsContact[] {
+    const lists = this.data?.engagedContacts;
+    if (!lists) return [];
+    const byId = new Map<number, ICampaignAnalyticsContact>();
+    [...lists.byOpens, ...lists.byClicks, ...lists.byReplies].forEach((c) => byId.set(c.contactId, c));
+    const m = this.engagementMetric;
+    return [...byId.values()].sort(
+      (a, b) => b[m] - a[m] || b.replies - a.replies || b.clicks - a.clicks || b.opens - a.opens,
+    );
+  }
 
   /**
    * The Prospects panel's summary as it stands now — already loaded (and kept live) by
