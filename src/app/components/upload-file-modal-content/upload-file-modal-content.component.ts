@@ -77,18 +77,42 @@ export class UploadFileModalContentComponent implements OnInit, OnDestroy {
   };
 
   fileInfo;
-  getSelectedFile = (file, fileInfo) => {
+  /** An Excel file is read asynchronously; Import waits for it. */
+  isReadingFile = false;
+  fileError = '';
+  getSelectedFile = async (file, fileInfo: File) => {
     this.fileInfo = fileInfo;
-    this.parsedData = CsvHelper.getCsvFileData(file);
+    this.fileError = '';
+    if (CsvHelper.importFileKind(fileInfo?.name) !== 'xlsx') {
+      this.parsedData = CsvHelper.getCsvFileData(file);
+      return;
+    }
+    this.isReadingFile = true;
+    this.parsedData = null;
+    try {
+      const parsed = await CsvHelper.getSpreadsheetFileData(fileInfo);
+      // A newer pick replaced this file while it was being read.
+      if (this.fileInfo !== fileInfo) return;
+      this.parsedData = parsed;
+      if (!parsed.data.length) this.fileError = 'This spreadsheet has no rows under its header row.';
+    } catch {
+      if (this.fileInfo !== fileInfo) return;
+      this.fileError = 'Could not read this Excel file. Save it as .xlsx or CSV and try again.';
+    } finally {
+      if (this.fileInfo === fileInfo) this.isReadingFile = false;
+    }
   };
 
   removeSelectedFile = () => {
     this.fileInfo = '';
+    this.fileError = '';
+    this.isReadingFile = false;
   };
 
   parsedData = [];
   submitted: boolean = false;
   saveBtnClicked = async () => {
+    if (this.isReadingFile || this.fileError) return;
     if (this.selectedLabel?.['id']) {
       this.selectedLists.emit(this.selectedLabel);
     }

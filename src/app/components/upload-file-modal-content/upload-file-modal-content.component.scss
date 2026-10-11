@@ -31,6 +31,14 @@
     padding: 0 15px;
     margin-top: 24px;
 
+    .file-error {
+      margin: 10px 0 0;
+      font-size: 13px;
+      color: #dc2626;
+    }
+
+    .file-reading { color: #64748b; font-weight: 400; }
+
     .show-selected-file {
       background: #e7f6fe;
       border: 1px dashed rgba(0, 71, 204, 0.3);
