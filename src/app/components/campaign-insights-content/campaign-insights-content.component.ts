@@ -1,7 +1,8 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { NgbActiveOffcanvas } from '@ng-bootstrap/ng-bootstrap';
+import { NgbActiveOffcanvas, NgbDropdownModule } from '@ng-bootstrap/ng-bootstrap';
 
+import { downloadCampaignInsightsPdf } from '../../helpers/campaign-insights-pdf';
 import { CsvHelper } from '../../helpers/CSVHelper';
 import {
   CAMPAIGN_INSIGHT_RANGES,
@@ -51,7 +52,13 @@ interface IChartPoint {
  */
 @Component({
   selector: 'campaign-insights-content',
-  imports: [CommonModule, EmailSendProgressComponent, InsightsStatisticsCardComponent, KexyButtonComponent],
+  imports: [
+    CommonModule,
+    NgbDropdownModule,
+    EmailSendProgressComponent,
+    InsightsStatisticsCardComponent,
+    KexyButtonComponent,
+  ],
   templateUrl: './campaign-insights-content.component.html',
   styleUrl: './campaign-insights-content.component.scss',
 })
@@ -95,6 +102,8 @@ export class CampaignInsightsContentComponent implements OnInit {
 
   isLoading = true;
   loadError = '';
+  /** jsPDF is fetched on first use, so the first PDF takes a moment. */
+  isExportingPdf = false;
   data: ICampaignAnalytics = null;
 
   // ── Derived ─────────────────────────────────────────────────────────────
@@ -239,6 +248,72 @@ export class CampaignInsightsContentComponent implements OnInit {
 
     await CsvHelper.download(`${name}-insights.csv`, `${headers}\n${rows}`);
   };
+
+  /**
+   * The drawer as a designed report — every panel, not just one table, because a PDF is
+   * what gets forwarded to someone who will never open the drawer. Follows the scope
+   * (the per-email table is left out at email scope) and the range and contact ranking
+   * selected on screen.
+   */
+  exportPDF = async (): Promise<void> => {
+    if (!this.data || this.isExportingPdf) return;
+    this.isExportingPdf = true;
+    try {
+      const campaign = this.data.campaign;
+      const name = this.__csvCell(this.campaignTitle || 'campaign').replace(/\s+/g, '-');
+      await downloadCampaignInsightsPdf(
+        {
+          scopeLabel: this.isEmailScope ? 'Email Insights' : 'Campaign Insights',
+          campaignTitle: this.campaignTitle || campaign.title,
+          eyebrow: this.isEmailScope
+            ? `Email #${this.emailSequence} · ${this.emailSubject || '(no subject)'}`
+            : `${campaign.status} · ${campaign.numberOfEmails} emails`,
+          from: this.data.meta.from,
+          to: this.data.meta.to,
+          days: this.selectedDays,
+          sent: this.data.totals.sent,
+          sentDelta: this.sentDelta,
+          reach: this.data.reach,
+          openRate: this.openRate,
+          clickRate: this.clickRate,
+          replyRate: this.replyRate,
+          trend: this.data.trend,
+          funnel: this.funnel,
+          topLinks: this.data.topLinks,
+          perEmail: this.isEmailScope ? [] : this.perEmail,
+          contacts: this.engagedContacts,
+          contactsRankedBy: this.engagementMetric,
+          sendStatus: this.isEmailScope ? this.__sendStatusSnapshot() : null,
+          scoreBands: this.data.scoreBands ?? null,
+        },
+        this.isEmailScope
+          ? `${name}-email-${this.emailSequence ?? this.emailId}-insights.pdf`
+          : `${name}-insights.pdf`,
+      );
+    } finally {
+      this.isExportingPdf = false;
+    }
+  };
+
+  /**
+   * The Prospects panel's summary as it stands now — already loaded (and kept live) by
+   * that panel, so the PDF costs no request. Null until it has loaded.
+   */
+  private __sendStatusSnapshot() {
+    const s = this.prospects?.summary;
+    if (!s) return null;
+    return {
+      asOf: new Date(),
+      total: s.totalProspects,
+      sent: s.sent,
+      inProgress: s.generating + s.generated + s.sending,
+      queued: s.queued,
+      scheduled: s.scheduled,
+      failed: s.failed,
+      stopped: s.skippedAfterFailures + s.declinedByAi,
+      skipped: s.skipped,
+    };
+  }
 
   private async __load(): Promise<void> {
     this.isLoading = true;

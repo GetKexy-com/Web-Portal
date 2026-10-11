@@ -26,16 +26,39 @@
         >{{ r.label }}</button>
       </div>
 
-      <app-kexy-button
-        (click)="exportCSV()"
-        label="Export"
-        iconLeft="fa-cloud-download"
-        [disabled]="isLoading || !canExport"
-        bgColor="#ffffff"
-        textColor="#095dd1"
-        borderColor="#e2e8f0"
-        radius="10px"
-      ></app-kexy-button>
+      <!--Export asks for a format: CSV is the one table as rows to work with, PDF the
+          whole drawer as a designed report to forward. CSV has nothing to give when
+          the scope has no rows; the PDF still has the charts, so only needs data.-->
+      <div ngbDropdown #exportMenu="ngbDropdown" class="export-menu" placement="bottom-end">
+        <app-kexy-button
+          ngbDropdownAnchor
+          (click)="exportMenu.toggle()"
+          [label]="isExportingPdf ? 'Exporting…' : 'Export'"
+          iconLeft="fa-cloud-download"
+          iconRight="fa-angle-down"
+          [disabled]="isLoading || !data || isExportingPdf"
+          bgColor="#ffffff"
+          textColor="#095dd1"
+          borderColor="#e2e8f0"
+          radius="10px"
+        ></app-kexy-button>
+        <div ngbDropdownMenu class="export-dropdown">
+          <button ngbDropdownItem type="button" class="export-option" (click)="exportPDF()">
+            <span class="export-ic is-pdf"><i class="fa fa-file-pdf-o" aria-hidden="true"></i></span>
+            <span class="export-text">
+              <span class="export-name">PDF report</span>
+              <span class="export-desc">Charts, funnel and tables</span>
+            </span>
+          </button>
+          <button ngbDropdownItem type="button" class="export-option" [disabled]="!canExport" (click)="exportCSV()">
+            <span class="export-ic is-csv"><i class="fa fa-file-excel-o" aria-hidden="true"></i></span>
+            <span class="export-text">
+              <span class="export-name">CSV</span>
+              <span class="export-desc">{{ isEmailScope ? 'Engaged contacts' : 'Performance by email' }}</span>
+            </span>
+          </button>
+        </div>
+      </div>
 
       <!--Export is a content action, Close dismisses the drawer — the rule keeps
           them from reading as one cluster.-->
