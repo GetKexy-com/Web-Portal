@@ -79,6 +79,20 @@ export interface ICampaignAnalyticsContact {
   clicks: number;
   replies: number;
   lastActivity: string;
+  /**
+   * Their newest SAVED score in this campaign; null when never scored. Never fetched from
+   * the Score API for a report (it is paid). Absent from an API older than the field.
+   */
+  score?: { value: number; max: number; band: string } | null;
+}
+
+/** Prospects of the campaign by score band (newest score each). Not windowed by range. */
+export interface ICampaignScoreBands {
+  scored: number;
+  strong: number;
+  good: number;
+  fair: number;
+  weak: number;
 }
 
 export interface ICampaignAnalytics {
@@ -111,6 +125,8 @@ export interface ICampaignAnalytics {
     byClicks: ICampaignAnalyticsContact[];
     byReplies: ICampaignAnalyticsContact[];
   };
+  /** Absent from an API older than the field. */
+  scoreBands?: ICampaignScoreBands;
   meta: {
     days: number;
     limit: number;
