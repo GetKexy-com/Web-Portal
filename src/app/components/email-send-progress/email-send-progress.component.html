@@ -193,7 +193,7 @@
               <!--Their newest saved score (KexyApi `score`); a rescore keeps it on screen.-->
               <td class="col-score" *ngIf="showProfile">
                 <span *ngIf="item.score as sc; else noScoreValue" class="sp-score" [title]="'Score ' + sc.value + ' of ' + sc.max">
-                  {{ sc.value }}<span class="sp-score-max">/{{ sc.max }}</span>
+                  {{ sc.value }}
                 </span>
                 <ng-template #noScoreValue>
                   <span *ngIf="item.scoring; else noScoreDash" class="sp-no-score">Scoring…</span>
