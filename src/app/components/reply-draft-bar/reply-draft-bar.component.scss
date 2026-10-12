@@ -1,0 +1,107 @@
+// Same tokens as the compose modal (`pages/_conversation-shell.scss`).
+$kx-primary-deep: #095dd1;
+$kx-live-bg: #e8f2fe;
+$kx-ink: #0f172a;
+$kx-muted: #64748b;
+$kx-border: #e2e8f0;
+$kx-red: #dc2626;
+
+:host {
+  display: block;
+}
+
+.rd-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 10px;
+  margin-bottom: 10px;
+  background: $kx-live-bg;
+  border-radius: 10px;
+
+  &.is-error .rd-status {
+    color: $kx-red;
+  }
+}
+
+.rd-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.rd-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: $kx-primary-deep;
+}
+
+.rd-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.rd-link {
+  padding: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: $kx-muted;
+  background: none;
+  border: none;
+  cursor: pointer;
+
+  &:hover,
+  &.is-on {
+    color: $kx-ink;
+  }
+  &:disabled {
+    cursor: default;
+    opacity: 0.5;
+  }
+}
+
+.rd-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  background: $kx-primary-deep;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+
+  &:disabled {
+    cursor: progress;
+    opacity: 0.6;
+  }
+}
+
+.rd-input {
+  width: 100%;
+  padding: 7px 10px;
+  font-size: 13px;
+  color: $kx-ink;
+  background: #fff;
+  border: 1px solid $kx-border;
+  border-radius: 8px;
+  outline: none;
+
+  &:focus {
+    border-color: $kx-primary-deep;
+  }
+}
+
+.rd-note {
+  margin: 0 0 8px;
+  font-size: 12px;
+  color: $kx-muted;
+}
