@@ -287,7 +287,7 @@
                 >
                   <!--Labelled, not just a chevron: people did not see there was an email under it.-->
                   <i class="fa fa-envelope-o sp-toggle-mail" aria-hidden="true"></i>
-                  <span>{{ expanded[rowKey(item)] ? 'Hide email' : 'View email' }}</span>
+                  <span class="sp-toggle-label">{{ expanded[rowKey(item)] ? 'Hide email' : 'View email' }}</span>
                   <i class="fa" [ngClass]="expanded[rowKey(item)] ? 'fa-chevron-up' : 'fa-chevron-down'" aria-hidden="true"></i>
                 </button>
               </td>
