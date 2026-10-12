@@ -83,9 +83,6 @@ export class ProspectingService {
   public searchContactActiveFilterCount;
   public selectedCompanyDescription;
   public selectedAllContacts;
-  private companyInfoApiUrl =
-    'https://l777t7f5reetofkbbji7uq7jsy0oydzw.lambda-url.us-east-1.on.aws/';
-
   private authService = inject(AuthService);
 
   constructor(
@@ -480,26 +477,6 @@ export class ProspectingService {
     this.jobTitles = [];
   };
 
-  getContactCompanyInfo = async (companyName) => {
-    const data = {
-      company_name: companyName,
-    };
-
-    return new Promise(async (resolve, reject) => {
-      fetch(this.companyInfoApiUrl, {
-        method: 'POST',
-        headers: {
-          Accept: 'text/event-stream,application/json',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      })
-        .then((response) => {
-          resolve(response);
-        })
-        .catch((err) => reject(err));
-    });
-  };
 
   setSelectedProduct = (product) => {
     this.selectedProduct = product;
