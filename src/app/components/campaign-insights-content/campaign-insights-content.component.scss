@@ -233,6 +233,14 @@
   // ── Tables ──────────────────────────────────────────────────────────────
   .ins-table-scroll { overflow-x: auto; }
 
+  // Most engaged contacts is drawn like the Prospects table (`.sp-table-wrap`, `.sp-table`
+  // in email-send-progress) — boxed, grey header bar, roomier rows — since the two list the
+  // same people side by side. Keep in step with that component.
+  .ins-table-scroll.is-boxed {
+    border: 1px solid ins.$kx-hairline;
+    border-radius: 10px;
+  }
+
   .ins-table {
     width: 100%;
     border-collapse: collapse;
@@ -312,6 +320,81 @@
     }
 
     .e-seen { color: ins.$kx-muted; }
+
+    // Sized like the Prospects list's Profile/Score columns (`.col-profile`, `.col-score`).
+    .profile-col,
+    .score-col {
+      padding-left: 12px;
+      padding-right: 12px;
+      text-align: center;
+    }
+    .profile-col { width: 90px; }
+    .score-col { width: 80px; }
+
+    // Same pill as the Prospects list's "View" (`.sp-profile-link`).
+
+    .e-profile-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      color: ins.$kx-primary-deep;
+      background: #e8f2fe;
+      border: none;
+      border-radius: 999px;
+      cursor: pointer;
+
+      &:hover { background: #dcebfd; }
+      &:disabled { cursor: progress; opacity: 0.7; }
+    }
+
+    // Same figure as the Prospects list's Score (`.sp-score`).
+
+    .e-score {
+      font-size: 14px;
+      font-weight: 800;
+      color: ins.$kx-primary-deep;
+      white-space: nowrap;
+    }
+
+    .e-score-max {
+      margin-left: 1px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #8a94a6;
+    }
+
+    &.engaged {
+      // Fixed layout, like `.sp-table`: Contact gets a set share and Profile/Score a set
+      // size, so they sit right beside it; the count columns split what is left evenly
+      // instead of Contact swallowing the spare width. Below this it scrolls sideways.
+      table-layout: fixed;
+      min-width: 640px;
+
+      .contact-col { width: 26%; }
+
+      .contact-col .e-subject,
+      .contact-col .e-meta { max-width: 100%; }
+
+      .num,
+      .num:not(:last-child) {
+        width: auto;
+        text-align: center;
+      }
+
+      .num:last-child { text-align: right; }
+
+      th {
+        padding: 9px 12px;
+        letter-spacing: 0.06em;
+        color: ins.$kx-muted;
+        background: #f8fafc;
+      }
+
+      td { padding: 10px 12px; }
+    }
 
     &.links {
       .l-rank {

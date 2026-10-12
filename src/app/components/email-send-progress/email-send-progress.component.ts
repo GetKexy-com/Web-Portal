@@ -16,7 +16,7 @@ import { DripCampaignService } from '../../services/drip-campaign.service';
 import { PROSPECT_PROFILE_ENABLED } from '../../services/prospect-profile.service';
 import { IStatusMeta, STATUS_META, Tone } from '../../helpers/email-send-status';
 import { IScheduleLabel, scheduleEventAt, scheduleLabel } from '../../helpers/send-schedule-label';
-import { ProspectProfileContentComponent } from '../prospect-profile-content/prospect-profile-content.component';
+import { openProspectProfile } from '../../helpers/open-prospect-profile';
 import { ProspectingContactsComponent } from '../prospecting-contacts/prospecting-contacts.component';
 import { ProspectingService } from '../../services/prospecting.service';
 import { AuthService } from '../../services/auth.service';
@@ -438,42 +438,15 @@ export class EmailSendProgressComponent implements OnInit, OnDestroy {
     this.__loadDetail(item);
   };
 
-  /**
-   * Opens the prospect's profile as a second drawer STACKED on this one — the Insights
-   * drawer stays open underneath, so closing the profile returns to the same list, page
-   * and open rows.
-   *
-   * `scroll: true` is deliberate: ng-bootstrap tracks one scroll lock, and the Insights
-   * drawer already holds it. If this drawer took it too, closing this one would release
-   * it and the page behind Insights would start scrolling. The panel/backdrop classes
-   * lift it above Insights (global `styles.scss`).
-   */
+  /** The prospect's Profile/Score, stacked on the Insights drawer (`openProspectProfile`). */
   openProfile = (item: IEmailSendItem): void => {
-    const ref = this.ngbOffcanvas.open(ProspectProfileContentComponent, {
-      panelClass: 'prospect-profile-drawer',
-      backdropClass: 'prospect-profile-backdrop',
-      position: 'end',
-      scroll: true,
+    openProspectProfile(this.ngbOffcanvas, {
+      campaignId: this.campaignId,
+      emailSequence: this.emailSequence,
+      // `?? true` for an API from before the field existed — on is the default setting.
+      stopsOnReply: this.summary?.stopsOnReply ?? true,
+      prospect: item,
     });
-    ref.componentInstance.campaignId = this.campaignId;
-    ref.componentInstance.emailSequence = this.emailSequence;
-    // `?? true` for an API from before the field existed — on is the default setting.
-    ref.componentInstance.stopsOnReply = this.summary?.stopsOnReply ?? true;
-    ref.componentInstance.prospect = item;
-
-    // Esc must close the TOP drawer. ng-bootstrap listens for Esc on each panel's own
-    // element, so it goes to whichever panel has focus — and focus is still on this
-    // "View" button, inside Insights, until the profile has animated in. Esc then closed
-    // Insights and left the profile floating. Both panels ignore an Esc whose default is
-    // already prevented, so claim it first, for as long as the profile is open.
-    const onKeydown = (event: KeyboardEvent): void => {
-      if (event.key !== 'Escape') return;
-      event.preventDefault();
-      ref.dismiss(OffcanvasDismissReasons.ESC);
-    };
-    document.addEventListener('keydown', onKeydown, true);
-    const cleanup = (): void => document.removeEventListener('keydown', onKeydown, true);
-    ref.result.then(cleanup, cleanup);
   };
 
   /**
@@ -510,7 +483,7 @@ export class EmailSendProgressComponent implements OnInit, OnDestroy {
       scroll: false,
     });
 
-    // Esc closes the TOP drawer only — same reason as `openProfile`.
+    // Esc closes the TOP drawer only — same reason as `openProspectProfile`.
     const onKeydown = (event: KeyboardEvent): void => {
       if (event.key !== 'Escape') return;
       event.preventDefault();

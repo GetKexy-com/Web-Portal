@@ -341,12 +341,14 @@
           </div>
         </div>
 
-        <div class="ins-table-scroll" *ngIf="engagedContacts.length">
-          <table class="ins-table">
+        <div class="ins-table-scroll is-boxed" *ngIf="engagedContacts.length">
+          <table class="ins-table engaged">
             <thead>
               <tr>
                 <th class="seq-col">#</th>
-                <th>Contact</th>
+                <th class="contact-col">Contact</th>
+                <th class="profile-col" *ngIf="showProfile">Profile</th>
+                <th class="score-col" *ngIf="showProfile">Score</th>
                 <th class="num" [class.is-ranked]="engagementMetric === 'opens'">Opens</th>
                 <th class="num" [class.is-ranked]="engagementMetric === 'clicks'">Clicks</th>
                 <th class="num" [class.is-ranked]="engagementMetric === 'replies'">Replies</th>
@@ -356,9 +358,34 @@
             <tbody>
               <tr *ngFor="let c of engagedContacts; let i = index">
                 <td class="seq-col">{{ i + 1 }}</td>
-                <td>
+                <td class="contact-col">
                   <span class="e-subject" [title]="c.name">{{ c.name || c.email }}</span>
                   <span class="e-meta" [title]="c.email">{{ c.email }}</span>
+                </td>
+                <!--Same Profile/Score drawer as the Prospects list's "View".-->
+                <td class="profile-col" *ngIf="showProfile">
+                  <button
+                    type="button"
+                    class="e-profile-link"
+                    [disabled]="openingProfile === c.contactId"
+                    [attr.aria-label]="'View profile and score for ' + (c.name || c.email)"
+                    (click)="openProfile(c)"
+                  >
+                    <i
+                      class="fa"
+                      [class.fa-eye]="openingProfile !== c.contactId"
+                      [class.fa-circle-o-notch]="openingProfile === c.contactId"
+                      [class.fa-spin]="openingProfile === c.contactId"
+                      aria-hidden="true"
+                    ></i>View
+                  </button>
+                </td>
+                <!--Their newest SAVED score in this campaign — never fetched from the (paid) Score API here.-->
+                <td class="score-col" *ngIf="showProfile">
+                  <span *ngIf="c.score as sc; else noScore" class="e-score" [title]="'Score ' + sc.value + ' of ' + sc.max">
+                    {{ sc.value }}<span class="e-score-max">/{{ sc.max }}</span>
+                  </span>
+                  <ng-template #noScore><span class="dash" title="No score yet">—</span></ng-template>
                 </td>
                 <td class="num" [class.is-ranked]="engagementMetric === 'opens'">{{ c.opens | number }}</td>
                 <td class="num" [class.is-ranked]="engagementMetric === 'clicks'">{{ c.clicks | number }}</td>
