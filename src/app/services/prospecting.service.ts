@@ -1,7 +1,8 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { constants } from '../helpers/constants';
 import { HttpService } from './http.service';
+import { AuthService } from './auth.service';
 import { CACHE_SCOPE, SNAPSHOT_MAX_AGE_MS, maxAgeForScope } from './cache-version.service';
 import { ProspectContact } from '../models/ProspectContact';
 import { offPremiseQOrganizationKeywordTags } from '../helpers/campaign-premise-constants';
@@ -84,6 +85,8 @@ export class ProspectingService {
   public selectedAllContacts;
   private companyInfoApiUrl =
     'https://l777t7f5reetofkbbji7uq7jsy0oydzw.lambda-url.us-east-1.on.aws/';
+
+  private authService = inject(AuthService);
 
   constructor(
     private httpService: HttpService,
@@ -294,19 +297,69 @@ export class ProspectingService {
    * the upstream circular-reference fix (in setConversation) resolves this.
    */
   /**
-   * An AI draft of the user's reply to a prospect (KexyApi `POST messages/conversations/:id/draft-reply`).
-   * Paid per call, so only on request; nothing is saved or sent. Rejects with the API's
-   * `{ statusCode, message }` — 503 when AI drafts are not set up, 404 when the prospect
-   * has not replied.
+   * An AI draft of the user's reply to a prospect (KexyApi `POST messages/conversations/:id/draft-reply`),
+   * STREAMED: `onText` gets the whole text so far each time a piece arrives, so the compose
+   * editor can show it being typed. Resolves with the final `{ html, text, model }`.
+   *
+   * Paid per call, so only on request; nothing is saved or sent. `signal` aborts it (modal
+   * closed), which also stops the paid call server-side. Rejects with `{ statusCode, message }`:
+   * the API's own body for checks made before the stream opens (503 not set up, 404 no reply
+   * yet, 403), or 503 for a failure mid-stream — the caller must then discard the partial text.
+   *
+   * `fetch`, not HttpClient: HttpClient only hands over the body once it is complete. So the
+   * JWT header the interceptor normally adds is set here.
    */
-  draftReplySrv = (conversationId: number, instructions = ''): Promise<{ html: string; text: string; model: string }> =>
-    new Promise((resolve, reject) => {
-      const body = instructions.trim() ? { instructions: instructions.trim() } : {};
-      this.httpService.post(`messages/conversations/${conversationId}/draft-reply`, body).subscribe({
-        next: (res) => resolve(res.data),
-        error: (err) => reject(err?.error ?? err),
-      });
+  draftReplyStream = async (
+    conversationId: number,
+    instructions: string,
+    onText: (soFar: string) => void,
+    signal?: AbortSignal,
+  ): Promise<{ html: string; text: string; model: string }> => {
+    const body = instructions.trim() ? { instructions: instructions.trim() } : {};
+    const token = this.authService.userTokenValue?.token;
+    const res = await fetch(`${this.httpService.apiUrl}messages/conversations/${conversationId}/draft-reply`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'text/event-stream',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify(body),
+      signal,
     });
+    if (!res.ok || !res.body) {
+      const err = await res.json().catch(() => null);
+      throw { statusCode: err?.statusCode ?? res.status, message: err?.message || 'Could not draft a reply.' };
+    }
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let soFar = '';
+    while (true) {
+      const { done, value } = await reader.read();
+      if (value) buffer += decoder.decode(value, { stream: true });
+      // Events are separated by a blank line; the last piece may be incomplete.
+      const events = buffer.split('\n\n');
+      buffer = events.pop() ?? '';
+      for (const raw of events) {
+        const event = /^event: (.*)$/m.exec(raw)?.[1];
+        const data = /^data: (.*)$/m.exec(raw)?.[1];
+        if (!event || data === undefined) continue;
+        const payload = JSON.parse(data);
+        if (event === 'delta') {
+          soFar += payload.text ?? '';
+          onText(soFar);
+        } else if (event === 'done') {
+          return payload;
+        } else if (event === 'error') {
+          throw { statusCode: 503, message: payload.message || 'Could not draft a reply.' };
+        }
+      }
+      if (done) break;
+    }
+    throw { statusCode: 503, message: 'The draft was cut off. Try again.' };
+  };
 
   addMessageToConversationSrv = (postData) => {
     const url = `messages/conversations/${postData.prospectingConversationId}`;
