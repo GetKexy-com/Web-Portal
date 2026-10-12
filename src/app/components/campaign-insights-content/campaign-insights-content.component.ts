@@ -1,9 +1,10 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { NgbActiveOffcanvas, NgbDropdownModule } from '@ng-bootstrap/ng-bootstrap';
+import { NgbActiveOffcanvas, NgbDropdownModule, NgbOffcanvas } from '@ng-bootstrap/ng-bootstrap';
 
 import { downloadCampaignInsightsPdf } from '../../helpers/campaign-insights-pdf';
 import { CsvHelper } from '../../helpers/CSVHelper';
+import { openProspectProfile } from '../../helpers/open-prospect-profile';
 import {
   CAMPAIGN_INSIGHT_RANGES,
   ICampaignAnalytics,
@@ -11,8 +12,10 @@ import {
   ICampaignAnalyticsEmailRow,
   ICampaignAnalyticsTrendPoint,
 } from '../../models/CampaignAnalytics';
-import { EmailSendFilter } from '../../models/EmailSendProgress';
+import { EmailSendFilter, IEmailSendItem } from '../../models/EmailSendProgress';
 import { DashboardService } from '../../services/dashboard.service';
+import { DripCampaignService } from '../../services/drip-campaign.service';
+import { PROSPECT_PROFILE_ENABLED } from '../../services/prospect-profile.service';
 import { EmailSendProgressComponent } from '../email-send-progress/email-send-progress.component';
 import { InsightsStatisticsCardComponent } from '../insights-statistics-card/insights-statistics-card.component';
 import { KexyButtonComponent } from '../kexy-button/kexy-button.component';
@@ -130,9 +133,16 @@ export class CampaignInsightsContentComponent implements OnInit {
   xTicks: { pct: number; label: string }[] = [];
   hoverIndex = -1;
 
+  /** "View" profile in Most engaged contacts; toggled by PROSPECT_PROFILE_ENABLED, like Prospects. */
+  readonly showProfile = PROSPECT_PROFILE_ENABLED;
+  /** The contact whose send row is being looked up before their profile opens. */
+  openingProfile: number | null = null;
+
   constructor(
     public activeCanvas: NgbActiveOffcanvas,
     private dashboardService: DashboardService,
+    private dripCampaignService: DripCampaignService,
+    private ngbOffcanvas: NgbOffcanvas,
   ) {}
 
   ngOnInit(): void {
@@ -184,6 +194,49 @@ export class CampaignInsightsContentComponent implements OnInit {
 
   clearHover = (): void => {
     this.hoverIndex = -1;
+  };
+
+  /**
+   * Opens the same Profile/Score drawer as the Prospects list's "View". That drawer reads the
+   * prospect's SEND ROW (profile details, send status, engagement), which this report does not
+   * carry, so it is looked up by email from one email's send list: this email at email scope,
+   * Email 1 at campaign scope (every enrolled prospect gets it first). If it cannot be found
+   * the drawer still opens from what the report has — its score and timeline come from their
+   * own requests either way.
+   */
+  openProfile = async (c: ICampaignAnalyticsContact): Promise<void> => {
+    if (this.openingProfile) return;
+    const source = this.isEmailScope
+      ? { emailId: this.emailId, sequence: this.emailSequence ?? null }
+      : [...(this.data?.perEmail ?? [])]
+          .sort((a, b) => a.sequence - b.sequence)
+          .map((e) => ({ emailId: e.emailId, sequence: e.sequence }))[0];
+
+    this.openingProfile = c.contactId;
+    let row: IEmailSendItem | null = null;
+    let stopsOnReply = true;
+    try {
+      if (source?.emailId) {
+        const res = await this.dripCampaignService.getEmailSendProgress(this.campaignId, source.emailId, {
+          search: c.email,
+          limit: 5,
+        });
+        row = res.prospects.items.find((i) => i.email.toLowerCase() === c.email.toLowerCase()) ?? null;
+        // `?? true` for an API from before the field existed — on is the default setting.
+        stopsOnReply = res.summary?.stopsOnReply ?? true;
+      }
+    } catch {
+      row = null;
+    } finally {
+      this.openingProfile = null;
+    }
+
+    openProspectProfile(this.ngbOffcanvas, {
+      campaignId: this.campaignId,
+      emailSequence: row ? (source?.sequence ?? null) : null,
+      stopsOnReply,
+      prospect: row ?? this.__contactAsSendItem(c),
+    });
   };
 
   /** Nothing to export before the data lands, or when the scope has no rows. */
@@ -312,6 +365,29 @@ export class CampaignInsightsContentComponent implements OnInit {
     return [...byId.values()].sort(
       (a, b) => b[m] - a[m] || b.replies - a.replies || b.clicks - a.clicks || b.opens - a.opens,
     );
+  }
+
+  /** The fallback when the send row cannot be found: what the report knows, nothing more. */
+  private __contactAsSendItem(c: ICampaignAnalyticsContact): IEmailSendItem {
+    return {
+      email: c.email,
+      name: c.name,
+      company: c.companyName,
+      status: 'sent',
+      profile: {
+        jobTitle: c.jobTitle || null,
+        city: null,
+        state: null,
+        country: null,
+        linkedinUrl: null,
+        phone: null,
+        phoneSource: null,
+        emailStatus: null,
+        companyAddress: null,
+      },
+      engagement: null,
+      score: c.score ?? null,
+    } as IEmailSendItem;
   }
 
   /**
