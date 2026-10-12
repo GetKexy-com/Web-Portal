@@ -360,7 +360,7 @@ $kx-red-bg: #fdeaea;
 .sp-table {
   width: 100%;
   // Below this even the narrowest layout gets too tight; the wrap scrolls sideways instead.
-  min-width: 700px;
+  min-width: 720px;
   border-collapse: collapse;
   table-layout: fixed;
 
@@ -388,23 +388,23 @@ $kx-red-bg: #fdeaea;
     border-bottom: none;
   }
 
-  // Widths by the table's own width (container queries on `.sp-table-wrap`). The name and
-  // email are what people scan, so Prospect always gets a real share; Status is the column
-  // that gives way — it takes what is left and its pills wrap to a second line rather than
-  // squeezing the name (it used to keep 32–36% and Prospect got the leftovers: ~70px in a
-  // 1,450px window). Profile, Score and the toggle hold fixed-size content.
+  // Widths by the table's own width (container queries on `.sp-table-wrap`). Status gets a
+  // fixed width that fits all four pills (Delivered · Opened · Clicked · Replied) on ONE line;
+  // When is fixed at what its longest content needs (a date, or a two-line countdown); Prospect
+  // takes everything left, and Subject narrows then hides so the name keeps room. Owner's
+  // calls, 2026-10-12: names readable at every size, statuses on one line.
   .col-prospect {
-    width: 24%;
+    width: auto;
   }
   .col-status {
-    width: auto;
+    width: 290px;
     text-align: center;
   }
   .col-subject {
-    width: 18%;
+    width: 20%;
   }
   .col-when {
-    width: 14%;
+    width: 150px;
     color: $kx-muted;
     white-space: nowrap;
     font-variant-numeric: tabular-nums;
@@ -422,41 +422,34 @@ $kx-red-bg: #fdeaea;
     text-align: right;
   }
 
-  // Medium (a drawer on a laptop): Subject narrows, Prospect and When keep their room.
   @container (max-width: 1300px) {
-    .col-prospect {
-      width: 26%;
-    }
     .col-subject {
-      width: 14%;
-    }
-    .col-when {
-      width: 16%;
+      width: 12%;
     }
   }
 
-  // Narrow: Subject is dropped (it is also in the expanded "View email" panel) so the
-  // name, status and time stay readable without scrolling.
-  @container (max-width: 1000px) {
-    .col-prospect {
-      width: 30%;
-    }
-    .col-when {
-      width: 18%;
-    }
+  // Subject is dropped (it is also in the expanded "View email" panel) so the name keeps room.
+  @container (max-width: 1100px) {
     .col-subject {
       display: none;
     }
   }
 
-  // Narrowest: the "View email" pill keeps its envelope and chevron but drops the words
-  // (the button's aria-label still says it), giving ~80px back to the name and status.
-  @container (max-width: 900px) {
+  // The "View email" pill keeps its envelope and chevron but drops the words (the button's
+  // aria-label still says it), giving ~80px back to the name.
+  @container (max-width: 1000px) {
     .col-toggle {
       width: 64px;
     }
     .sp-toggle-label {
       display: none;
+    }
+  }
+
+  // Narrowest: Status gives way — its pills wrap to a second line rather than squeezing the name.
+  @container (max-width: 860px) {
+    .col-status {
+      width: 200px;
     }
   }
 }
@@ -488,12 +481,6 @@ $kx-red-bg: #fdeaea;
   white-space: nowrap;
 }
 
-.sp-score-max {
-  margin-left: 1px;
-  font-size: 11px;
-  font-weight: 600;
-  color: #8a94a6;
-}
 
 .sp-no-score {
   font-size: 12px;
@@ -642,13 +629,18 @@ $kx-red-bg: #fdeaea;
   color: $kx-faint;
 }
 
-// The status cell's pills: one line when there is room, a second when Status is narrow.
+// The status cell's pills: one line, except on the narrowest tables.
 .sp-pills {
   display: inline-flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   justify-content: center;
   gap: 4px;
-  white-space: nowrap; // each pill stays whole; the row of pills wraps when Status is narrow
+  white-space: nowrap;
+
+  // Only on the narrowest tables (Status shrinks there, see `.sp-table`).
+  @container (max-width: 860px) {
+    flex-wrap: wrap;
+  }
 }
 
 // SES's reason can run long (a full bounce diagnostic) — two lines, the rest on hover.

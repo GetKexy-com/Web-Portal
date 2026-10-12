@@ -383,7 +383,7 @@
                 <!--Their newest SAVED score in this campaign — never fetched from the (paid) Score API here.-->
                 <td class="score-col" *ngIf="showProfile">
                   <span *ngIf="c.score as sc; else noScore" class="e-score" [title]="'Score ' + sc.value + ' of ' + sc.max">
-                    {{ sc.value }}<span class="e-score-max">/{{ sc.max }}</span>
+                    {{ sc.value }}
                   </span>
                   <ng-template #noScore><span class="dash" title="No score yet">—</span></ng-template>
                 </td>
