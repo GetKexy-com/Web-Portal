@@ -1,0 +1,47 @@
+<div class="dl-modal">
+  <div class="dl-hero">
+    <button type="button" class="icon-btn" aria-label="Close" (click)="activeModal.close()">
+      <i class="fa fa-times" aria-hidden="true"></i>
+    </button>
+    <span class="dl-hero-icon" aria-hidden="true"><i class="fa fa-check"></i></span>
+    <h2 class="dl-title">Your campaign is live</h2>
+    <p class="dl-campaign" *ngIf="campaignTitle" [title]="campaignTitle">{{ campaignTitle }}</p>
+  </div>
+
+  <div class="dl-body">
+    <div class="dl-stats">
+      <div class="dl-stat">
+        <span class="dl-stat-num">{{ emailCount }}</span>
+        <span class="dl-stat-label">{{ emailCount === 1 ? 'email' : 'emails' }} in the sequence</span>
+      </div>
+      <div class="dl-stat">
+        <span class="dl-stat-num">{{ listCount }}</span>
+        <span class="dl-stat-label">{{ listCount === 1 ? 'list' : 'lists' }} enrolled</span>
+      </div>
+    </div>
+
+    <p class="dl-charged" *ngIf="superCharged">
+      <i class="fa fa-bolt" aria-hidden="true"></i> Super charged is on
+    </p>
+
+    <h3 class="dl-next-title">What happens next</h3>
+    <ol class="dl-steps">
+      <li *ngIf="researchFirst">
+        <span class="dl-step-icon" aria-hidden="true"><i class="fa fa-search"></i></span>
+        <span>We research each prospect — their website, location and LinkedIn.</span>
+      </li>
+      <li>
+        <span class="dl-step-icon" aria-hidden="true"><i class="fa fa-paper-plane-o"></i></span>
+        <span>The first emails go out during your campaign's sending hours.</span>
+      </li>
+      <li>
+        <span class="dl-step-icon" aria-hidden="true"><i class="fa fa-clock-o"></i></span>
+        <span>Follow-ups send on their delays. Replies land in your Inbox.</span>
+      </li>
+    </ol>
+  </div>
+
+  <div class="modal-foot">
+    <button type="button" class="primary-btn" (click)="activeModal.close()" ngbAutofocus>Done</button>
+  </div>
+</div>

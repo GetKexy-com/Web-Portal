@@ -1314,6 +1314,123 @@ header#main-header #logo {
   }
 }
 
+// "Discard this message?" (Inbox compose window — helpers/confirm-discard.ts). SweetAlert
+// renders outside the page, so these are global. Same frame and type as `.kx-compose-modal`:
+// 16px radius, soft shadow, slate text; a small tinted badge instead of SweetAlert's 5em icon,
+// a preview of the text that would be lost, and pill buttons (quiet default + red action).
+.swal2-container:has(.kx-discard-popup) {
+  background: rgba(15, 23, 42, 0.45) !important;
+  backdrop-filter: blur(2px);
+}
+
+.kx-discard-popup {
+  padding: 28px 28px 22px;
+  border-radius: 16px;
+  box-shadow: 0 24px 60px -20px rgba(15, 23, 42, 0.35), 0 4px 12px rgba(15, 23, 42, 0.08);
+
+  .kx-discard-icon {
+    width: 52px;
+    height: 52px;
+    margin: 0 auto 14px;
+    border: none !important;
+    border-radius: 50%;
+    background: #fef2f2;
+    color: #dc2626 !important;
+    box-shadow: 0 0 0 8px #fff5f5;
+
+    .swal2-icon-content {
+      font-size: 22px;
+    }
+  }
+
+  .kx-discard-title {
+    padding: 0;
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.35;
+    color: #0f172a;
+  }
+
+  .kx-discard-body {
+    margin: 8px 0 0;
+    padding: 0;
+  }
+
+  .kx-discard-lead {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.55;
+    color: #64748b;
+  }
+
+  .kx-discard-preview {
+    margin: 14px 0 0;
+    padding: 10px 12px;
+    border-left: 3px solid #e2e8f0;
+    border-radius: 8px;
+    background: #f8fafc;
+    font-size: 13px;
+    line-height: 1.5;
+    color: #475569;
+    text-align: left;
+    font-style: italic;
+    overflow-wrap: anywhere;
+  }
+
+  .kx-discard-actions {
+    width: 100%;
+    margin: 22px 0 0;
+    padding: 0;
+    gap: 10px;
+    justify-content: stretch;
+    flex-wrap: nowrap;
+  }
+
+  .kx-discard-btn {
+    flex: 1 1 0;
+    margin: 0;
+    padding: 10px 16px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.2;
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(9, 93, 209, 0.25);
+    }
+  }
+
+  .kx-discard-btn--ghost {
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    color: #0f172a;
+
+    &:hover {
+      background: #f8fafc;
+      border-color: #cbd5e1;
+    }
+  }
+
+  .kx-discard-btn--danger {
+    border: 1px solid #dc2626;
+    background: #dc2626;
+    color: #fff;
+
+    &:hover {
+      background: #b91c1c;
+      border-color: #b91c1c;
+    }
+
+    &:focus-visible {
+      box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.3);
+    }
+  }
+}
+
 // "This list is in use" alert (manage-list delete). SweetAlert renders outside the
 // component, so these have to be global.
 .list-in-use-popup {

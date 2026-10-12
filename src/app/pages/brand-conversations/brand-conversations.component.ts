@@ -21,6 +21,7 @@ import { KexyCustomRichEditorComponent } from '../../components/kexy-custom-rich
 import { KexySelectDropdownComponent } from '../../components/kexy-select-dropdown/kexy-select-dropdown.component';
 import { CommonModule } from '@angular/common';
 import { ReplyDraftBarComponent } from '../../components/reply-draft-bar/reply-draft-bar.component';
+import { confirmDiscardMessage } from '../../helpers/confirm-discard';
 
 @Component({
   selector: 'app-brand-conversations',
@@ -445,17 +446,7 @@ export class BrandConversationsComponent implements OnInit, OnDestroy {
     if (this.confirmingDiscard) return false;
     this.confirmingDiscard = true;
     try {
-      const result = await Swal.fire({
-        title: 'Discard this message?',
-        text: "What you've written will be lost if you close this window.",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Discard',
-        cancelButtonText: 'Keep editing',
-        reverseButtons: true,
-        focusCancel: true,
-      });
-      return result.isConfirmed;
+      return await confirmDiscardMessage(canvas.textContent ?? '');
     } finally {
       this.confirmingDiscard = false;
     }
