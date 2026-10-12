@@ -1,0 +1,70 @@
+<div class="rd-bar" *ngIf="enabled && state !== 'unavailable'" [class.is-error]="state === 'error'">
+  <div class="rd-row">
+    <span class="rd-status" role="status" aria-live="polite">
+      <ng-container [ngSwitch]="state">
+        <ng-container *ngSwitchCase="'drafting'">
+          <i class="fa fa-circle-o-notch fa-spin" aria-hidden="true"></i> Drafting a reply…
+        </ng-container>
+        <ng-container *ngSwitchCase="'ready'">
+          <i class="fa fa-magic" aria-hidden="true"></i> AI draft — read and edit before sending.
+        </ng-container>
+        <ng-container *ngSwitchCase="'error'">
+          <i class="fa fa-exclamation-circle" aria-hidden="true"></i> {{ message }}
+        </ng-container>
+        <ng-container *ngSwitchDefault>
+          <i class="fa fa-magic" aria-hidden="true"></i> {{ message || 'Let AI draft your reply.' }}
+        </ng-container>
+      </ng-container>
+    </span>
+
+    <div class="rd-actions">
+      <button
+        type="button"
+        class="rd-link"
+        [class.is-on]="showInstructions"
+        [disabled]="state === 'drafting'"
+        (click)="showInstructions = !showInstructions"
+      >Add instructions</button>
+      <button
+        *ngIf="hasDrafted"
+        type="button"
+        class="rd-link"
+        [disabled]="state === 'drafting'"
+        (click)="startBlank()"
+      >Start blank</button>
+      <button
+        *ngIf="state === 'kept'; else generateBtn"
+        type="button"
+        class="rd-btn"
+        (click)="useKeptDraft()"
+      >
+        <i class="fa fa-exchange" aria-hidden="true"></i> Replace
+      </button>
+      <ng-template #generateBtn>
+        <button type="button" class="rd-btn" [disabled]="state === 'drafting'" (click)="generate()">
+          <i class="fa" [class.fa-magic]="!hasDrafted" [class.fa-refresh]="hasDrafted" aria-hidden="true"></i>
+          {{ hasDrafted ? 'Regenerate' : 'Generate reply' }}
+        </button>
+      </ng-template>
+    </div>
+  </div>
+
+  <input
+    *ngIf="showInstructions"
+    type="text"
+    class="rd-input"
+    maxlength="500"
+    placeholder="e.g. shorter, answer their pricing question, suggest a call"
+    [(ngModel)]="instructions"
+    [disabled]="state === 'drafting'"
+    (keydown.enter)="generate()"
+  />
+</div>
+
+<p class="rd-note" *ngIf="enabled && state === 'unavailable'">
+  <i class="fa fa-magic" aria-hidden="true"></i> {{ message }}
+</p>
+<p class="rd-note" *ngIf="!enabled">
+  <i class="fa fa-magic" aria-hidden="true"></i>
+  {{ prospectName || 'The prospect' }} hasn't replied yet. AI drafts answer a prospect's reply, so write this one yourself.
+</p>

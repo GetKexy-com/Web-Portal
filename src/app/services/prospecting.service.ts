@@ -293,24 +293,33 @@ export class ProspectingService {
    * in place from the current investigation -- remove once you've confirmed
    * the upstream circular-reference fix (in setConversation) resolves this.
    */
+  /**
+   * An AI draft of the user's reply to a prospect (KexyApi `POST messages/conversations/:id/draft-reply`).
+   * Paid per call, so only on request; nothing is saved or sent. Rejects with the API's
+   * `{ statusCode, message }` — 503 when AI drafts are not set up, 404 when the prospect
+   * has not replied.
+   */
+  draftReplySrv = (conversationId: number, instructions = ''): Promise<{ html: string; text: string; model: string }> =>
+    new Promise((resolve, reject) => {
+      const body = instructions.trim() ? { instructions: instructions.trim() } : {};
+      this.httpService.post(`messages/conversations/${conversationId}/draft-reply`, body).subscribe({
+        next: (res) => resolve(res.data),
+        error: (err) => reject(err?.error ?? err),
+      });
+    });
+
   addMessageToConversationSrv = (postData) => {
     const url = `messages/conversations/${postData.prospectingConversationId}`;
     delete postData.prospectingConversationId;
     return new Promise((resolve, reject) => {
       console.log(postData);
       this.httpService.post(url, postData).subscribe({
-        next: (res) => {
-          console.log(res);
-          resolve(true);
-        },
-        error: (err) => {
-          console.log('FULL ERROR:', err);
-          console.log('status:', err?.status, 'url:', err?.url, 'message:', err?.message);
-
-          if (err?.error) {
-            reject(err?.error);
-          }
-        },
+        // The saved message, so the page can show it without reloading the thread.
+        next: (res) => resolve(res?.data ?? null),
+        // Always settle: the error interceptor already unwraps to the API's body, so
+        // `err.error` is usually undefined, and the old `if (err?.error)` left the promise
+        // pending — the Send button stayed on "Please wait..." forever.
+        error: (err) => reject(err?.error ?? err),
       });
     });
   };

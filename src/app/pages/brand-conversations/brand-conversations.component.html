@@ -370,6 +370,15 @@
         </div>
 
         <div class="text-area">
+          <!--AI draft of the reply, loaded into the editor below (paid per draft; nothing sends
+              until the user presses Send).-->
+          <reply-draft-bar
+            *ngIf="selectedConversation"
+            [conversationId]="selectedConversation.id"
+            [editor]="composeEditor"
+            [enabled]="prospectReplied(selectedConversation)"
+            [prospectName]="replyLabel(selectedConversation.receiverDetails.details).replace('Reply to ', '')"
+          ></reply-draft-bar>
           <div class="textarea-wrap">
             <kexy-custom-rich-editor
               #composeEditor
@@ -391,9 +400,9 @@
           <button type="button" class="ghost-btn" (click)="c()">Cancel</button>
           <app-kexy-button
             (click)="addMessageToConversation(composeEditor)"
-            [disabled]="isLoading"
-            [label]="isLoading ? 'Please wait...' : 'Send email' "
-            [iconLeft]="isLoading ? 'fa-refresh fa-spin' : 'fa-paper-plane-o'"
+            [disabled]="isSending"
+            [label]="isSending ? 'Sending...' : 'Send email' "
+            [iconLeft]="isSending ? 'fa-refresh fa-spin' : 'fa-paper-plane-o'"
             bgColor="#095dd1"
             textColor="#ffffff"
             radius="10px"

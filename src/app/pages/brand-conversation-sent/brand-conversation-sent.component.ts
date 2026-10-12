@@ -20,6 +20,7 @@ import { BrandConvoEmailComponent } from '../../components/brand-convo-email/bra
 import { KexyCustomRichEditorComponent } from '../../components/kexy-custom-rich-editor/kexy-custom-rich-editor.component';
 import { KexySelectDropdownComponent } from '../../components/kexy-select-dropdown/kexy-select-dropdown.component';
 import { CommonModule } from '@angular/common';
+import { ReplyDraftBarComponent } from '../../components/reply-draft-bar/reply-draft-bar.component';
 
 @Component({
   selector: 'app-brand-conversation-sent',
@@ -36,6 +37,7 @@ import { CommonModule } from '@angular/common';
     NgbDropdown,
     NgbDropdownToggle,
     NgbDropdownMenu,
+    ReplyDraftBarComponent,
   ],
   templateUrl: './brand-conversation-sent.component.html',
   styleUrl: './brand-conversation-sent.component.scss',
@@ -377,21 +379,53 @@ export class BrandConversationSentComponent {
       ...(this.selectedSmtpOption ? { smtpId: this.selectedSmtpOption.id } : {}),
     };
     try {
-      this.isLoading = true;
-      await this.prospectingService.addMessageToConversationSrv(data);
-      await this.getAllConversation(true);
+      this.isSending = true;
+      const saved = await this.prospectingService.addMessageToConversationSrv(data);
       this.emailContent = '';
       this.modal.dismissAll();
-      // this.scrollToBottom();
+      this.showSentMessage(saved, this.updatedEmailContent);
     } catch (e) {
       // Handle error here
-      const message = e.message;
+      const message = e?.message || 'The email could not be sent.';
       await Swal.fire('Error', message);
     } finally {
-      this.isLoading = false;
+      this.isSending = false;
       this.sendBtnClicked = false;
     }
   };
+
+  /** Locks the compose window only; the page behind it is never put into a loading state. */
+  isSending = false;
+
+  /**
+   * Puts a just-sent reply into the open thread and its list row, in place. Sending used to
+   * set the page's `isLoading` (the conversation list swapped to its skeleton) and re-fetch
+   * every conversation, which re-opened the first one from scratch behind the thread loader —
+   * the whole page jumped. Now the existing frames stay put, one is added, and the thread
+   * scrolls smoothly down to it. The next page visit re-fetches as usual.
+   */
+  private showSentMessage(saved, html: string): void {
+    const conv = this.selectedConversation;
+    if (!conv) return;
+    const message = {
+      id: saved?.id,
+      senderEmail: saved?.senderEmail ?? this.userData.email,
+      messageContent: saved?.messageContent ?? html,
+      messageSentAt: saved?.messageSentAt ?? new Date().toISOString(),
+      messageStatus: saved?.messageStatus,
+    };
+    // A new array holding the same message objects: Angular keeps every existing frame.
+    conv.messages = [...(conv.messages ?? []), message];
+    // The list row holds the API's order, newest first.
+    const row = (this.conversations ?? []).find((c) => c.id === conv.id);
+    if (row && row !== conv) row.messages = [message, ...(row.messages ?? [])];
+
+    this.pinToBottom = true;
+    setTimeout(() => {
+      const el = this.threadPane;
+      if (el) el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
+    });
+  }
 
   forwardToCampaignUserApiLoadig = false;
   forwardToCampaignUser = async (conv) => {
@@ -684,6 +718,21 @@ export class BrandConversationSentComponent {
 
   getFullName = (obj) => {
     return this.prospectingService.getSalesLeadName(obj);
+  };
+
+  /**
+   * The prospect has written back, so there is something for an AI draft to answer. A message
+   * is ours when it came from the campaign's sending address or this user (the thread view's own
+   * rule); anything else is the prospect — who often replies from another address than the one
+   * we wrote to (`a+tag@` → `a@`). KexyApi applies the same rule with all the company's users.
+   */
+  prospectReplied = (conversation): boolean => {
+    const norm = (e) => (e || '').trim().toLowerCase();
+    const ours = new Set([norm(conversation?.senderEmail), norm(this.userData?.email)].filter(Boolean));
+    return (conversation?.messages || []).some((m) => {
+      const from = norm(m?.senderEmail);
+      return !!from && !ours.has(from);
+    });
   };
 
   /** "Reply to Sarah" — their first name, or "Reply to Prospect" when the contact has none. */
