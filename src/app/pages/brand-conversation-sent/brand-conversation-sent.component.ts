@@ -686,6 +686,12 @@ export class BrandConversationSentComponent {
     return this.prospectingService.getSalesLeadName(obj);
   };
 
+  /** "Reply to Sarah" — their first name, or "Reply to Prospect" when the contact has none. */
+  replyLabel = (obj): string => {
+    const first = (obj?.firstName || obj?.first_name || '').trim();
+    return `Reply to ${first || 'Prospect'}`;
+  };
+
 
   deleteConversations = async () => {
     let isConfirm = await Swal.fire({
