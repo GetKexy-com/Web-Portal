@@ -43,6 +43,7 @@ import { PageUiService } from '../../services/page-ui.service';
 import { Contact, IRawContact } from '../../models/Contact';
 import { PreviewDripEmailContentComponent } from '../preview-drip-email-content/preview-drip-email-content.component';
 import { ActivateDripModalComponent, IActivateDripResult } from '../activate-drip-modal/activate-drip-modal.component';
+import { DripLiveModalComponent } from '../drip-live-modal/drip-live-modal.component';
 import { LeadMagnetService } from '../../services/lead-magnet.service';
 import { CAMPAIGN_STATUS, DripCampaign, isResearchDone } from '../../models/DripCampaign';
 import { StorageService } from '../../services/storage.service';
@@ -1035,12 +1036,7 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
     try {
       const isSuccess = await this.__launchDripCampaign(confirmed.superCharged);
       if (isSuccess) {
-        await Swal.fire({
-          title: `Congratulations!`,
-          text: 'Drip campaign is now active.',
-          icon: 'success',
-        });
-
+        await this.__showCampaignLive(confirmed.superCharged);
         await this.__refreshDripCampaign();
       }
     } finally {
@@ -1126,6 +1122,18 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
    * The "Ready to activate?" dialog. Resolves with the user's choices, or null when it
    * was cancelled.
    */
+  /** "Your campaign is live" (`DripLiveModalComponent`) — the success half of `__isConfirmed`. */
+  private __showCampaignLive = async (superCharged: boolean): Promise<void> => {
+    const ref = this.modal.open(DripLiveModalComponent, { windowClass: 'kx-dialog-modal', centered: true });
+    const modal = ref.componentInstance as DripLiveModalComponent;
+    modal.campaignTitle = this.dripCampaign?.details?.title?.title ?? '';
+    modal.emailCount = this.emails.length;
+    modal.listCount = this.getEnrolledList()?.length ?? 0;
+    modal.superCharged = superCharged;
+    modal.researchFirst = this.dripCampaign?.emails?.[0]?.templateOptions !== constants.TEMPLATE_KEY;
+    await ref.result.catch(() => undefined); // closed or dismissed — either way, carry on
+  };
+
   __isConfirmed = async (): Promise<IActivateDripResult | null> => {
     const ref = this.modal.open(ActivateDripModalComponent, { windowClass: 'kx-dialog-modal', centered: true });
     const modal = ref.componentInstance as ActivateDripModalComponent;
