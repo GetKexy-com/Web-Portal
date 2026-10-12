@@ -903,7 +903,7 @@ $page-h: calc(100vh - 70px);
   }
 }
 
-// ── Compose modal ("Send next email") ─────────────────────────────────────
+// ── Compose modal ("Reply to <name>") ────────────────────────────────────
 // Only the PANEL CONTENT is styled here — the .modal-dialog width and the rounded
 // .modal-content shell are built by NgbModal outside this component, so they live
 // in styles.scss under `.kx-compose-modal`.

@@ -244,8 +244,8 @@
             Unsubscribe
           </button>
           <app-kexy-button
-            label="Send next email"
-            iconLeft="fa-paper-plane-o"
+            [label]="replyLabel(selectedConversation.receiverDetails.details)"
+            iconLeft="fa-reply"
             (click)="sendNextEmailTapped(sendEmailModal)"
             bgColor="#095dd1"
             textColor="#ffffff"

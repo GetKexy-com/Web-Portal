@@ -230,6 +230,12 @@ export class BrandConversationsComponent implements OnInit, OnDestroy {
     return this.prospectingService.getSalesLeadName(obj);
   };
 
+  /** "Reply to Sarah" — their first name, or "Reply to Prospect" when the contact has none. */
+  replyLabel = (obj): string => {
+    const first = (obj?.firstName || obj?.first_name || '').trim();
+    return `Reply to ${first || 'Prospect'}`;
+  };
+
 
   previousBtnClick = async () => {
     if (this.page === 1) return;
