@@ -281,6 +281,10 @@ export class SendEmailDetailsContentComponent implements OnInit, OnDestroy {
     const content = subject + (this.editor?.getRawHtml() || this.emailContent);
     const contactDetails = this.contactList[0]?.details;
     const data = {
+      // The follow-up Lambda rejects a payload without the sender
+      // ("@@Invalid payload: missing sender…@@"); same fields as "Generate email" sends.
+      sender_name: `${this.userData?.firstName ?? ''} ${this.userData?.lastName ?? ''}`.trim(),
+      sender_company_name: this.dripCampaign?.details?.companyDescription?.companyName,
       email_tone: this.selectedEmailToneKey,
       email_number: this.dripEmail.emailSequence,
       email_length: this.selectedEmailLength.key,

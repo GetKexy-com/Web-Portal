@@ -1,7 +1,8 @@
-import { Injectable, NgZone } from '@angular/core';
+import { inject, Injectable, NgZone } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { DripEmail, EmailDelay } from '../models/DripEmail';
 import { environment } from '../../environments/environment';
+import { AuthService } from './auth.service';
 
 @Injectable({
   providedIn: 'root',
@@ -58,77 +59,40 @@ export class SseService {
   // End of Drip Bulk Email Related Variables
   //********
 
-  newEmailGenerateApiUrl = environment.newEmailGenerateApiUrl;
-  oldConversationEmailGenerateApiUrl = environment.oldConversationEmailGenerateApiUrl;
-  dripBulkEmailApiUrl = environment.dripBulkEmailApiUrl;
-  dripBulkEmailApiUrlUserPrompt = environment.dripBulkEmailUserPromptApiUrl;
-  dripFollowUpEmailApiUrl = environment.dripFollowUpEmailApiUrl;
+  private authService = inject(AuthService);
 
-  getEmailContentStream = (data, newEmail = true) => {
-    this._prospectEmailContent.next('');
-    this._prospectEmailSubject.next('');
-    this._prospectEmailContentLoading.next(true);
-    let subjectReady = false;
-    const url = newEmail ? this.newEmailGenerateApiUrl : this.oldConversationEmailGenerateApiUrl;
-    fetch(url, {
+  /**
+   * Starts one of the AI email streams through KexyApi (`POST ai-stream/:kind`), which calls the
+   * Lambda and passes its stream through unchanged. These used to call the Lambda URLs straight
+   * from the browser, which put the URLs in this public bundle (KexyApi docs/lambda-security.md,
+   * step 2). Same request headers and body as before; the login token is added here because
+   * `fetch` does not go through the JWT interceptor.
+   *
+   * The parsers below never look at the HTTP status, only at the text (an error is `@@…@@`).
+   * So when KexyApi refuses before streaming (e.g. 401, expired login), its JSON error is turned
+   * into that same `@@message@@` text, and the existing error path handles it as before.
+   */
+  private __aiStream = async (
+    kind: 'drip-bulk' | 'drip-bulk-user-prompt' | 'drip-follow-up',
+    data,
+  ): Promise<Response> => {
+    const token = this.authService.userTokenValue?.token;
+    const response = await fetch(`${environment.baseUrl}ai-stream/${kind}`, {
       method: 'POST',
       headers: {
         Accept: 'text/event-stream,application/json',
         'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
       body: JSON.stringify(data), // body data type must match "Content-Type" header
-    })
-      // Retrieve its body as ReadableStream
-      .then(async (response) => {
-        const reader = response.body.getReader();
-        while (true) {
-          const { done, value } = await reader?.read();
-          if (value) {
-            let str = new TextDecoder().decode(value);
-            // @@ is a prefix ONLY show when an error occur
-            if (str.includes(this.emailErrorSign)) {
-              this.addToEmailError(str);
-              this._prospectEmailContentLoading.next(false);
-              return;
-            }
-
-            str = this.__filterSubject(str);
-            let contentStart = false;
-
-            if (str.indexOf('\n\n') === -1 && !subjectReady) {
-              this.addToEmailSubject(str);
-            } else if (str.indexOf('\n\n') > -1 && !subjectReady) {
-              let position = str.indexOf('\n\n');
-              let newStr = str.split('\n\n');
-              subjectReady = true;
-              if (position === 0) {
-                str = str.replace('\n\n', '');
-                this.addToEmailContent(str);
-              } else {
-                this.addToEmailSubject(newStr[0]);
-                const emailContent = newStr[1].replaceAll('\n\n', '<p>');
-                this.addToEmailContent(emailContent);
-              }
-            } else if (subjectReady) {
-              if (!contentStart) {
-                str = str.replaceAll('\n\n', '<p>');
-                contentStart = true;
-              } else {
-                str = str.replaceAll('\n\n', '</p><p>');
-              }
-              str = str.replaceAll('\n', '<br>');
-              this.addToEmailContent(str);
-            }
-
-          }
-          if (done) {
-            this._prospectEmailContentLoading.next(false);
-            return;
-          }
-        }
-
-      })
-      .catch((err) => console.error(err));
+    });
+    if (response.ok) return response;
+    const err = await response.json().catch(() => null);
+    const message =
+      response.status === 401
+        ? 'Your session has expired. Please log in again.'
+        : err?.message || 'Could not generate the email. Please try again.';
+    return new Response(`${this.emailErrorSign}${message}${this.emailErrorSign}`);
   };
 
   getDripFollowUpEmailContentStream = async (data) => {
@@ -138,15 +102,7 @@ export class SseService {
     let subjectReady = false;
     let emailContent = '';
     let fullStreamData = '';
-    const url = this.dripFollowUpEmailApiUrl;
-    fetch(url, {
-      method: 'POST',
-      headers: {
-        Accept: 'text/event-stream,application/json',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data), // body data type must match "Content-Type" header
-    })
+    this.__aiStream('drip-follow-up', data)
       // Retrieve its body as ReadableStream
       .then(async (response) => {
         const reader = response.body.getReader();
@@ -229,19 +185,8 @@ export class SseService {
 
     this._dripBulkEmailLoading.next(true);
 
-    const url = userPromptPriority
-      ? this.dripBulkEmailApiUrlUserPrompt
-      : this.dripBulkEmailApiUrl;
-
     try {
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          Accept: 'text/event-stream,application/json',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
+      const response = await this.__aiStream(userPromptPriority ? 'drip-bulk-user-prompt' : 'drip-bulk', data);
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
@@ -381,156 +326,6 @@ export class SseService {
       console.error(err);
       this._dripBulkEmailLoading.next(false);
     }
-  };
-
-  dripBulkEmailContentStreamOld = async (data, userPromptPriority = false) => {
-    let emails: DripEmail[] = [];
-    let emailSequence = 1;
-    let emailSubject = '';
-    let emailContent = '';
-    let aiEmailData = '';
-    let delayBetweenPreviousEmail: EmailDelay = EmailDelay.default();
-    this._dripBulkEmailLoading.next(true);
-    let subjectReady = false;
-    const url = userPromptPriority ? this.dripBulkEmailApiUrlUserPrompt : this.dripBulkEmailApiUrl;
-    fetch(url, {
-      method: 'POST',
-      headers: {
-        Accept: 'text/event-stream,application/json',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data), // body data type must match "Content-Type" header
-    })
-      // Retrieve its body as ReadableStream
-      .then(async (response) => {
-        const reader = response.body.getReader();
-        while (true) {
-          const { done, value } = await reader?.read();
-          if (value) {
-            let str = new TextDecoder().decode(value);
-            // console.log({ str });
-            // @@ is a prefix ONLY show when an error occur
-            if (str.includes(this.emailErrorSign)) {
-              this.addToEmailError(str);
-              this._dripBulkEmailLoading.next(false);
-              return;
-            }
-
-            // "#####" (newEmailStartSign variable) means a new dripEmail content is started here and
-            // completed previous dripEmail content So we push content of previous Email in here
-            // and start the new dripEmail content.
-            if (str.includes(this.newEmailStartSign)) {
-              let currentAiData = aiEmailData;
-              let current_subject = emailSubject;
-              let current_content = emailContent;
-              emailSubject = '';
-              emailContent = '';
-              subjectReady = false;
-
-              // There are times we get the stream like this - "thrilled##### \n\n^^Welcome to"
-              // In the case above, we have a part that is connect to the previous email and another
-              // part is the starting of subject for the next email.
-              // That's why we split the stream string with ### and
-              // add first part to the previous email_content, last part to the email_subject for next email
-              let cleanStr = str.split(this.newEmailStartSign);
-              current_content += cleanStr[0];
-              currentAiData += cleanStr[0];
-              aiEmailData = cleanStr[1];
-              emailSubject = cleanStr[1].replace(this.subjectStartSign, '');
-
-              // Check if the subject has the end sign in here.
-              // If it has then we have to end the subject and start the content
-              if (emailSubject.indexOf(this.subjectEndSign) > -1 && !subjectReady) {
-                let newStr = emailSubject.split(this.subjectEndSign);
-                emailSubject = newStr[0];
-                // If subject and content in one stream then before content start '\n\n' needs to be
-                // replaced by [[[para]]] so we can parse it nicely later.
-                emailContent += newStr[1].replaceAll('\n\n', this.paraStartSign);
-                subjectReady = true;
-              }
-
-              if (current_content) {
-                current_content = this.__formatEmailContent(current_content);
-                // First email starts almost immediately; the rest keep the default delay.
-                const emailDelay: EmailDelay =
-                  emailSequence === 1
-                    ? EmailDelay.firstEmail()
-                    : delayBetweenPreviousEmail;
-                const email: DripEmail = {
-                  delayBetweenPreviousEmail: emailDelay,
-                  emailSequence,
-                  emailSubject: current_subject,
-                  emailContent: current_content,
-                  rawEditorContent: current_content,
-                  aiRawData: currentAiData,
-                };
-                console.log({ email });
-                emails.push(email);
-                this.addToDripBulkEmails(emails);
-                // Increment email_sequence by 1 so next dripEmail sequence is set to next number.
-                emailSequence += 1;
-              }
-
-              // !!!! IMPORTANT !!!
-              // We have to stop the current loop here and reset 'email_content' variable because new Email is started
-              // and content needs to be restarted from scratch. If we do not stop current loop then
-              // new Email content will be added to the previous dripEmail instead of new dripEmail.
-              // email_content = "";
-
-              continue;
-            }
-
-            if (str.includes(this.subjectStartSign)) {
-              aiEmailData += str;
-              // AI send "^^" as one stream object for 1st dripEmail. So we filter it here.
-              str = str.replace(this.subjectStartSign, '');
-              emailSubject += str;
-            } else {
-              aiEmailData += str;
-              let contentStart = false;
-
-              if (str.indexOf(this.subjectEndSign) === -1 && !subjectReady) {
-                emailSubject += str;
-              } else if (str.indexOf(this.subjectEndSign) > -1 && !subjectReady) {
-                let newStr = str.split(this.subjectEndSign);
-                emailSubject += newStr[0];
-                subjectReady = true;
-              } else if (subjectReady) {
-                if (!contentStart) {
-                  contentStart = true;
-                }
-                emailContent += str;
-              }
-            }
-          }
-
-          if (done) {
-            if (emailSubject && emailContent) {
-              emailContent = this.__formatEmailContent(emailContent);
-              // First email starts almost immediately; the rest keep the default delay.
-              const emailDelay: EmailDelay =
-                emailSequence === 1
-                  ? EmailDelay.firstEmail()
-                  : delayBetweenPreviousEmail;
-              const email: DripEmail = {
-                delayBetweenPreviousEmail: emailDelay,
-                emailSequence,
-                emailSubject,
-                emailContent,
-                rawEditorContent: emailContent,
-                aiRawData: aiEmailData,
-              };
-              console.log({ email });
-              emails.push(email);
-              this.addToDripBulkEmails(emails);
-            }
-            this._dripBulkEmailLoading.next(false);
-            return;
-          }
-        }
-
-      })
-      .catch((err) => console.error(err));
   };
 
   setupEmptyDripEmailTemplate = ({ count }) => {
