@@ -51,6 +51,8 @@ export class ReplyDraftBarComponent implements OnDestroy {
 
   ngOnDestroy(): void {
     this.destroyed = true;
+    // Modal closed mid-draft: stop paying for text nobody will see.
+    this.abort?.abort();
   }
 
   /** At least one draft has been made in this modal (button reads "Regenerate"). */
@@ -64,6 +66,7 @@ export class ReplyDraftBarComponent implements OnDestroy {
 
   startBlank = (): void => {
     this.seq++;
+    this.abort?.abort();
     this.pendingHtml = '';
     this.editor?.loadContent('<p></p>');
     this.state = 'idle';
@@ -73,23 +76,54 @@ export class ReplyDraftBarComponent implements OnDestroy {
   private draft = async (replace: boolean): Promise<void> => {
     if (this.state === 'drafting' || this.destroyed) return;
     const seq = ++this.seq;
+    this.abort?.abort();
+    this.abort = new AbortController();
     this.state = 'drafting';
     this.message = '';
+
+    // Type it into the editor as it arrives — unless the editor holds the user's own text,
+    // which is never overwritten silently (the draft is then held for "Replace").
+    const live = replace || this.__editorIsEmpty();
+    const before = this.editor?.getBodyHtml?.() ?? '';
+    let shown = false;
+    let pending: string | null = null;
+    let frame = 0;
+    const paint = () => {
+      frame = 0;
+      if (pending === null || seq !== this.seq || this.destroyed) return;
+      this.editor?.loadContent(textToHtml(pending));
+      shown = true;
+      pending = null;
+    };
+
     try {
-      const res = await this.prospectingService.draftReplySrv(this.conversationId, this.instructions);
+      const res = await this.prospectingService.draftReplyStream(
+        this.conversationId,
+        this.instructions,
+        (soFar) => {
+          if (!live || seq !== this.seq) return;
+          // At most one editor re-render per frame, however fast the pieces arrive.
+          pending = soFar;
+          if (!frame) frame = requestAnimationFrame(paint);
+        },
+        this.abort.signal,
+      );
+      if (frame) cancelAnimationFrame(frame);
       if (this.destroyed || seq !== this.seq) return;
       this.hasDrafted = true;
-      if (replace || this.__editorIsEmpty()) {
+      if (live) {
         this.editor?.loadContent(res.html);
         this.state = 'ready';
       } else {
-        // Their own words are in the editor: keep them, and replace only on a second click.
         this.pendingHtml = res.html;
         this.state = 'kept';
         this.message = 'Your text was kept. Click Replace to swap it for the AI draft.';
       }
     } catch (err: any) {
+      if (frame) cancelAnimationFrame(frame);
       if (this.destroyed || seq !== this.seq) return;
+      // A draft that failed part-way is not a draft: put back what was there before.
+      if (shown) this.editor?.loadContent(before || '<p></p>');
       const status = err?.statusCode ?? err?.status;
       if (status === 503 && /not set up/i.test(err?.message ?? '')) {
         this.state = 'unavailable';
@@ -103,6 +137,9 @@ export class ReplyDraftBarComponent implements OnDestroy {
       }
     }
   };
+
+  /** The in-flight draft; aborting it also stops the paid call server-side. */
+  private abort: AbortController | null = null;
 
   /** The draft held back while the user's own text was kept (`kept`). */
   private pendingHtml = '';
@@ -120,4 +157,19 @@ export class ReplyDraftBarComponent implements OnDestroy {
     const html = this.editor?.getBodyHtml?.() ?? '';
     return !html.replace(/<[^>]*>/g, '').replace(/&nbsp;|\s/g, '').trim();
   }
+}
+
+/**
+ * The text so far → editor HTML, the same rule as KexyApi's `draftTextToHtml` (a `<p>` per
+ * paragraph, `<br>` inside). Only for the live preview; the final HTML comes from the API.
+ */
+function textToHtml(text: string): string {
+  const escape = (v: string) => v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const paras = text
+    .trim()
+    .split(/\n\s*\n/)
+    .map((p) => p.trim())
+    .filter(Boolean)
+    .map((p) => `<p>${escape(p).replace(/\n/g, '<br>')}</p>`);
+  return paras.join('') || '<p></p>';
 }

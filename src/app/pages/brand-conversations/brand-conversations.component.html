@@ -321,7 +321,7 @@
           <i class="fa fa-paper-plane-o" aria-hidden="true"></i>
           New message
         </p>
-        <button type="button" class="icon-btn" aria-label="Close" (click)="c()">
+        <button type="button" class="icon-btn" aria-label="Close" (click)="d('close')">
           <i class="fa fa-times" aria-hidden="true"></i>
         </button>
       </div>
@@ -397,7 +397,7 @@
       <div class="modal-foot">
         <span class="foot-hint">Replies land in this conversation.</span>
         <div class="foot-actions">
-          <button type="button" class="ghost-btn" (click)="c()">Cancel</button>
+          <button type="button" class="ghost-btn" (click)="d('cancel')">Cancel</button>
           <app-kexy-button
             (click)="addMessageToConversation(composeEditor)"
             [disabled]="isSending"

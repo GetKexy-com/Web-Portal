@@ -6,7 +6,7 @@ import { lastValueFrom, Subscription } from 'rxjs';
 import { AuthService } from 'src/app/services/auth.service';
 import { HttpService } from 'src/app/services/http.service';
 import { ActivatedRoute, Router } from '@angular/router';
-import { NgbDropdown, NgbDropdownMenu, NgbDropdownToggle, NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { NgbDropdown, NgbDropdownMenu, NgbDropdownToggle, NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { PageUiService } from 'src/app/services/page-ui.service';
 import { ProspectingService } from 'src/app/services/prospecting.service';
 import Swal from 'sweetalert2';
@@ -342,7 +342,13 @@ export class BrandConversationsComponent implements OnInit, OnDestroy {
     // <body>, so those wrappers carry no _ngcontent attribute and component styles
     // cannot reach them. The class is styled globally in styles.scss; the template's
     // own content is still component-scoped as usual.
-    this.modal.open(modalContent, { size: 'lg', windowClass: 'kx-compose-modal' });
+    // Every way out except Send (×, Cancel, backdrop, Esc) is a DISMISS, so it goes through
+    // `confirmDiscard` first — what was written is not kept once the window closes.
+    this.composeRef = this.modal.open(modalContent, {
+      size: 'lg',
+      windowClass: 'kx-compose-modal',
+      beforeDismiss: () => this.confirmDiscard(),
+    });
     if (!this.smtpOptions.length) this.loadSmtpOptions();
   };
 
@@ -409,7 +415,8 @@ export class BrandConversationsComponent implements OnInit, OnDestroy {
       this.isSending = true;
       const saved = await this.prospectingService.addMessageToConversationSrv(data);
       this.emailContent = '';
-      this.modal.dismissAll();
+      // `close`, not dismiss: the message went out, so there is nothing to confirm.
+      this.composeRef?.close();
       this.showSentMessage(saved, this.updatedEmailContent);
     } catch (e) {
       // Handle error here
@@ -418,6 +425,39 @@ export class BrandConversationsComponent implements OnInit, OnDestroy {
     } finally {
       this.isSending = false;
       this.sendBtnClicked = false;
+    }
+  };
+
+  private composeRef: NgbModalRef | null = null;
+  private confirmingDiscard = false;
+
+  /**
+   * Leaving the compose window without sending loses what was written (typed or an AI draft),
+   * so ask first. An empty window closes straight away. The editor is read from the DOM: the
+   * modal's view is attached to the app, not to this page, so a @ViewChild cannot reach it.
+   */
+  private confirmDiscard = async (): Promise<boolean> => {
+    if (this.isSending) return false;
+    const canvas = document.querySelector('.kx-compose-modal .editor-canvas');
+    const written = !!canvas && (!!canvas.textContent?.trim() || !!canvas.querySelector('img, video, table'));
+    if (!written) return true;
+    // Esc on the dialog also reaches the modal; never stack a second dialog.
+    if (this.confirmingDiscard) return false;
+    this.confirmingDiscard = true;
+    try {
+      const result = await Swal.fire({
+        title: 'Discard this message?',
+        text: "What you've written will be lost if you close this window.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Discard',
+        cancelButtonText: 'Keep editing',
+        reverseButtons: true,
+        focusCancel: true,
+      });
+      return result.isConfirmed;
+    } finally {
+      this.confirmingDiscard = false;
     }
   };
 
