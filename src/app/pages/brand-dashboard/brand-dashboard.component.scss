@@ -1176,8 +1176,14 @@ $kx-red-bg: #fdeaea;
         font-variant-numeric: tabular-nums;
       }
 
-      .e-score-col,
-      .e-score-cell { width: 26%; }
+      // Left-aligned, unlike the count columns: two lines of different width each
+      // centred on their own made the column ragged. The rule above centres every
+      // column from the 3rd on, so this has to be at least as specific and come later.
+      th.e-score-col,
+      td.e-score-cell {
+        width: 26%;
+        text-align: left;
+      }
 
       // Band colours match the Insights PDF (`BAND_META`): strong mint, good primary,
       // fair amber, weak faint.
@@ -1211,15 +1217,55 @@ $kx-red-bg: #fdeaea;
         color: $kx-muted;
       }
 
+      // Second line: which campaign the score is from. Icon + muted text so it reads
+      // as metadata, not as another person.
       .sc-campaign {
-        display: block;
-        max-width: 220px;
-        margin-top: 2px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        max-width: 230px;
+        margin-top: 3px;
         font-size: 11.5px;
+        color: $kx-muted;
+      }
+
+      .sc-campaign-ic {
+        flex-shrink: 0;
+        font-size: 10px;
         color: $kx-faint;
+      }
+
+      .sc-campaign-name {
+        min-width: 0;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+      }
+
+      .sc-more {
+        flex-shrink: 0;
+        padding: 0 7px;
+        border: 0;
+        border-radius: 999px;
+        background: $kx-hairline;
+        color: $kx-muted;
+        font: inherit;
+        font-size: 10.5px;
+        font-weight: 600;
+        line-height: 17px;
+        cursor: pointer;
+        transition: background-color 0.15s ease, color 0.15s ease;
+
+        &:hover,
+        &[aria-describedby] {
+          background: #e0ecfb;
+          color: $kx-primary-deep;
+        }
+
+        &:focus-visible {
+          outline: none;
+          box-shadow: 0 0 0 3px rgba(9, 93, 209, 0.25);
+        }
       }
 
       .sc-none {

@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { NgbOffcanvas } from '@ng-bootstrap/ng-bootstrap';
+import { NgbOffcanvas, NgbPopover } from '@ng-bootstrap/ng-bootstrap';
 import { Router } from '@angular/router';
 import { BrandLayoutComponent } from '../../layouts/brand-layout/brand-layout.component';
 import { DashboardLayoutDrawerComponent } from '../../components/dashboard-layout-drawer/dashboard-layout-drawer.component';
@@ -28,6 +28,7 @@ import {
   IDashboardCampaignMeta,
   IDashboardCampaignRow,
   IDashboardCampaignTrendPoint,
+  IDashboardCampaignScore,
   IDashboardContactScore,
   IDashboardEngagedContacts,
   IDashboardLinkCount,
@@ -120,7 +121,7 @@ interface IEngagedContactRow {
 
 @Component({
   selector: 'app-brand-dashboard',
-  imports: [CommonModule, BrandLayoutComponent],
+  imports: [CommonModule, BrandLayoutComponent, NgbPopover],
   templateUrl: './brand-dashboard.component.html',
   styleUrl: './brand-dashboard.component.scss',
 })
@@ -1213,14 +1214,8 @@ export class BrandDashboardComponent implements OnInit, OnDestroy {
     return band ? band.charAt(0).toUpperCase() + band.slice(1) : '';
   }
 
-  /** Hover text: every campaign's score, best first. */
-  scoreTooltip(score: IDashboardContactScore): string {
-    return [score, ...score.others]
-      .map((s) => {
-        const band = this.scoreBandLabel(s.band);
-        return `${s.campaignTitle || 'Campaign #' + s.campaignId}: ${s.value}/${s.max}${band ? ' ' + band : ''}`;
-      })
-      .join('\n');
+  campaignName(s: IDashboardCampaignScore): string {
+    return s.campaignTitle || `Campaign #${s.campaignId}`;
   }
 
   /** Emphasise whichever count column the list is currently ranked by. */

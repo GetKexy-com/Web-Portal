@@ -461,7 +461,6 @@
           <h2 class="panel-title">Most engaged contacts</h2>
           <p class="panel-sub">
             Ranked by {{ engagementMetricLabel | lowercase }} over the last {{ selectedDays }} days · {{ scopeLabel | lowercase }}
-            <ng-container *ngIf="showScoreCampaign"> · lead score is per campaign; we show their best one</ng-container>
           </p>
         </div>
         <div class="head-actions">
@@ -502,7 +501,9 @@
               <th class="num" [class.is-ranked]="isRankedBy('opens')">Opens</th>
               <th class="num" [class.is-ranked]="isRankedBy('clicks')">Clicks</th>
               <th class="num" [class.is-ranked]="isRankedBy('replies')">Replies</th>
-              <th class="e-score-col">Lead score</th>
+              <!--"Best" only when scores can come from several campaigns: then the one
+                  shown is the highest of them, and the header is where people look.-->
+              <th class="e-score-col">{{ showScoreCampaign ? 'Best lead score' : 'Lead score' }}</th>
               <th class="num">Last seen</th>
             </tr>
           </thead>
@@ -542,13 +543,33 @@
                   campaign, so it is named unless the dashboard is scoped to one.-->
               <td class="e-score-cell">
                 <ng-container *ngIf="c.score as sc; else noScore">
-                  <span class="sc-line" [title]="scoreTooltip(sc)">
+                  <span class="sc-line">
                     <span class="sc-dot" [ngClass]="'band-' + (sc.band || 'none')" aria-hidden="true"></span>
                     <span class="sc-value">{{ sc.value }}</span>
                     <span class="sc-band" *ngIf="sc.band">{{ scoreBandLabel(sc.band) }}</span>
                   </span>
-                  <span class="sc-campaign" *ngIf="showScoreCampaign" [title]="scoreTooltip(sc)">
-                    {{ sc.campaignTitle || 'Campaign #' + sc.campaignId }}<ng-container *ngIf="sc.others.length"> · +{{ sc.others.length }} more</ng-container>
+                  <!--Marked as a campaign: titles are often a person's name, which read
+                      as a second contact without the icon.-->
+                  <span class="sc-campaign" *ngIf="showScoreCampaign">
+                    <i class="fa fa-bullhorn sc-campaign-ic" aria-hidden="true"></i>
+                    <span class="visually-hidden">Campaign:</span>
+                    <span class="sc-campaign-name" [title]="sc.campaignTitle">{{ campaignName(sc) }}</span>
+                    <!--Their scores in the other campaigns, on click/tap (a native title
+                        tooltip is slow, plain, and never shows on touch screens).-->
+                    <button
+                      type="button"
+                      class="sc-more"
+                      *ngIf="sc.others.length"
+                      [ngbPopover]="scoresPopover"
+                      [popoverContext]="{ $implicit: sc }"
+                      popoverClass="kx-score-popover"
+                      container="body"
+                      placement="bottom-start bottom-end top-start top-end"
+                      autoClose="outside"
+                      [attr.aria-label]="'Show lead scores in ' + (sc.others.length + 1) + ' campaigns'"
+                    >
+                      +{{ sc.others.length }}
+                    </button>
                   </span>
                 </ng-container>
                 <ng-template #noScore><span class="sc-none">— Not scored yet</span></ng-template>
@@ -566,6 +587,21 @@
         No {{ engagementMetricLabel | lowercase }} recorded in this window for the selected campaigns.
       </div>
     </article>
+  </ng-template>
+
+  <!--Popover body for the "+N" tag: every campaign's score, best first, the one the
+      row shows marked.-->
+  <ng-template #scoresPopover let-sc>
+    <div class="ksp-title">Lead score by campaign</div>
+    <ul class="ksp-list">
+      <li *ngFor="let s of [sc].concat(sc.others); let first = first" class="ksp-row" [class.is-shown]="first">
+        <span class="ksp-dot" [ngClass]="'band-' + (s.band || 'none')" aria-hidden="true"></span>
+        <span class="ksp-value">{{ s.value }}</span>
+        <span class="ksp-band">{{ scoreBandLabel(s.band) }}</span>
+        <span class="ksp-name" [title]="s.campaignTitle">{{ campaignName(s) }}</span>
+        <span class="ksp-shown" *ngIf="first">Shown</span>
+      </li>
+    </ul>
   </ng-template>
 
   <!--══════════ Engagement funnel ══════════

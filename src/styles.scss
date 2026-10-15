@@ -1457,6 +1457,91 @@ header#main-header #logo {
   }
 }
 
+// Dashboard "Most engaged contacts" → the "+N" tag's popover: a contact's lead score in
+// every campaign, best first (brand-dashboard, `#scoresPopover`). Rendered on <body>,
+// so global. Band colours match the score column and the Insights PDF.
+.popover.kx-score-popover {
+  --bs-popover-max-width: 340px;
+  --bs-popover-border-color: #e2e8f0;
+  --bs-popover-border-radius: 12px;
+  --bs-popover-body-padding-x: 14px;
+  --bs-popover-body-padding-y: 12px;
+  box-shadow: 0 12px 32px -12px rgba(15, 23, 42, 0.25), 0 2px 6px rgba(15, 23, 42, 0.06);
+  font-family: inherit;
+
+  .ksp-title {
+    margin-bottom: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #94a3b8;
+  }
+
+  .ksp-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .ksp-row {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 8px;
+    margin: 0 -8px;
+    border-radius: 8px;
+    font-size: 12.5px;
+    color: #475569;
+
+    &.is-shown { background: #f8fafc; }
+  }
+
+  .ksp-dot {
+    flex-shrink: 0;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #94a3b8;
+
+    &.band-strong { background: #10a36b; }
+    &.band-good { background: #12a5f4; }
+    &.band-fair { background: #f59e0b; }
+    &.band-weak { background: #94a3b8; }
+  }
+
+  .ksp-value {
+    min-width: 18px;
+    font-weight: 700;
+    color: #0f172a;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .ksp-band {
+    min-width: 38px;
+    color: #64748b;
+  }
+
+  .ksp-name {
+    min-width: 0;
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .ksp-shown {
+    flex-shrink: 0;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: #e0ecfb;
+    color: #095dd1;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 16px;
+  }
+}
+
 // "This list is in use" alert (manage-list delete). SweetAlert renders outside the
 // component, so these have to be global.
 .list-in-use-popup {
