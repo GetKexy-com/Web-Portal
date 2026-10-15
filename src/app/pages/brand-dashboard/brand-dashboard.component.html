@@ -461,6 +461,7 @@
           <h2 class="panel-title">Most engaged contacts</h2>
           <p class="panel-sub">
             Ranked by {{ engagementMetricLabel | lowercase }} over the last {{ selectedDays }} days · {{ scopeLabel | lowercase }}
+            <ng-container *ngIf="showScoreCampaign"> · lead score is per campaign; we show their best one</ng-container>
           </p>
         </div>
         <div class="head-actions">
@@ -501,9 +502,7 @@
               <th class="num" [class.is-ranked]="isRankedBy('opens')">Opens</th>
               <th class="num" [class.is-ranked]="isRankedBy('clicks')">Clicks</th>
               <th class="num" [class.is-ranked]="isRankedBy('replies')">Replies</th>
-              <!--The bar shows the ranked metric, so its header names it rather
-                  than saying something vague like "Engagement".-->
-              <th class="e-bar-col">{{ engagementMetricLabel }} share</th>
+              <th class="e-score-col">Lead score</th>
               <th class="num">Last seen</th>
             </tr>
           </thead>
@@ -511,16 +510,48 @@
             <tr *ngFor="let c of engagedContacts; let i = index">
               <td class="e-rank">{{ i + 1 }}</td>
               <td>
-                <span class="c-title" [title]="c.name">{{ c.name }}</span>
-                <span class="c-meta" [title]="c.email">{{ c.email }}</span>
+                <!--A contact deleted since engaging still ranks, but has nothing to edit.-->
+                <div class="c-deleted" *ngIf="c.deleted; else editableContact">
+                  <span class="c-title" [title]="c.name">
+                    {{ c.name || c.email }}
+                    <span class="c-tag" title="This contact was deleted after engaging">Deleted</span>
+                  </span>
+                  <span class="c-meta" [title]="c.email">{{ c.email }}</span>
+                </div>
+                <ng-template #editableContact>
+                <!--Opens the contact's edit drawer (same as Manage Contacts).-->
+                <button
+                  type="button"
+                  class="c-link"
+                  [disabled]="openingContactId === c.contactId"
+                  [attr.aria-label]="'Edit contact ' + (c.name || c.email)"
+                  (click)="openEngagedContact(c)"
+                >
+                  <span class="c-title" title="Edit contact">
+                    {{ c.name || c.email }}
+                    <i *ngIf="openingContactId === c.contactId" class="fa fa-circle-o-notch fa-spin" aria-hidden="true"></i>
+                  </span>
+                  <span class="c-meta" [title]="c.email">{{ c.email }}</span>
+                </button>
+                </ng-template>
               </td>
               <td class="num" [class.is-ranked]="isRankedBy('opens')">{{ c.opens | number }}</td>
               <td class="num" [class.is-ranked]="isRankedBy('clicks')">{{ c.clicks | number }}</td>
               <td class="num" [class.is-ranked]="isRankedBy('replies')">{{ c.replies | number }}</td>
-              <td class="e-bar">
-                <span class="f-track">
-                  <span class="f-fill step-3" [style.width.%]="c.barPct"></span>
-                </span>
+              <!--Saved scores only (the Score API is paid). A score belongs to one
+                  campaign, so it is named unless the dashboard is scoped to one.-->
+              <td class="e-score-cell">
+                <ng-container *ngIf="c.score as sc; else noScore">
+                  <span class="sc-line" [title]="scoreTooltip(sc)">
+                    <span class="sc-dot" [ngClass]="'band-' + (sc.band || 'none')" aria-hidden="true"></span>
+                    <span class="sc-value">{{ sc.value }}</span>
+                    <span class="sc-band" *ngIf="sc.band">{{ scoreBandLabel(sc.band) }}</span>
+                  </span>
+                  <span class="sc-campaign" *ngIf="showScoreCampaign" [title]="scoreTooltip(sc)">
+                    {{ sc.campaignTitle || 'Campaign #' + sc.campaignId }}<ng-container *ngIf="sc.others.length"> · +{{ sc.others.length }} more</ng-container>
+                  </span>
+                </ng-container>
+                <ng-template #noScore><span class="sc-none">— Not scored yet</span></ng-template>
               </td>
               <td class="num e-seen">{{ c.lastActivity | date: 'MMM d' }}</td>
             </tr>
@@ -549,29 +580,46 @@
   <ng-template #tplFunnel>
     <article class="panel">
       <div class="panel-head">
-        <h2 class="panel-title">Engagement funnel</h2>
-        <span class="panel-note">step conversion</span>
+        <div>
+          <h2 class="panel-title">Engagement funnel</h2>
+          <!--Says what the two percentages mean in words: "step conversion" alone
+              left users guessing which number was measured against what.-->
+          <p class="panel-sub">
+            How many people reached each stage, and how many moved on from the stage before · last {{ selectedDays }} days
+          </p>
+        </div>
       </div>
 
       <table class="funnel-table">
+        <thead>
+          <tr>
+            <th scope="col">Stage</th>
+            <th scope="col"><span class="visually-hidden">Share of people emailed</span></th>
+            <th scope="col" class="f-num">People</th>
+            <th scope="col" class="f-step">Moved on</th>
+          </tr>
+        </thead>
         <tbody>
           <tr *ngFor="let s of funnel">
             <th scope="row">{{ s.label }}</th>
-            <td class="f-bar">
+            <td class="f-bar" [title]="s.pct + '% of people emailed'">
               <span class="f-track">
                 <span class="f-fill" [ngClass]="s.step" [style.width.%]="s.pct"></span>
               </span>
             </td>
             <td class="f-num">{{ s.value | number }}</td>
             <!--Conversion from the stage ABOVE — this is where drop-off shows.
-                Share-of-sent alone hides that opens→clicks is the weak link.-->
+                The label names the base, so "5% of openers" can't be misread as
+                5% of everyone emailed.-->
             <td class="f-step">
-              <span *ngIf="s.stepPct !== null">{{ s.stepPct }}%</span>
+              <span *ngIf="s.stepPct !== null">{{ s.stepPct }}% <span class="f-base">{{ s.stepBase }}</span></span>
               <span *ngIf="s.stepPct === null" class="dash">—</span>
             </td>
           </tr>
         </tbody>
       </table>
+
+      <p class="funnel-summary" *ngIf="funnelSummary">{{ funnelSummary }}</p>
     </article>
   </ng-template>
 

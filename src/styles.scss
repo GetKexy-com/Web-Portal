@@ -1431,6 +1431,32 @@ header#main-header #logo {
   }
 }
 
+// Info variant (helpers/contact-not-found.ts): blue badge and a single primary button.
+.kx-discard-popup--info {
+  .kx-discard-icon {
+    background: #eff6ff;
+    color: #095dd1 !important;
+    box-shadow: 0 0 0 8px #f5f9ff;
+  }
+
+  .kx-discard-lead strong {
+    color: #0f172a;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+  }
+
+  .kx-discard-btn--primary {
+    border: 1px solid #095dd1;
+    background: #095dd1;
+    color: #fff;
+
+    &:hover {
+      background: #074bb0;
+      border-color: #074bb0;
+    }
+  }
+}
+
 // "This list is in use" alert (manage-list delete). SweetAlert renders outside the
 // component, so these have to be global.
 .list-in-use-popup {

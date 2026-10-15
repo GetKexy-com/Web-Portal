@@ -845,6 +845,18 @@ $kx-red-bg: #fdeaea;
     width: 100%;
     border-collapse: collapse;
 
+    thead th {
+      padding: 0 0 6px;
+      font-size: 11px;
+      font-weight: 600;
+      color: $kx-faint;
+      text-align: left;
+      border-bottom: 1px solid #eef2f7;
+
+      &.f-num { text-align: center; }
+      &.f-step { text-align: right; }
+    }
+
     th[scope='row'] {
       width: 74px;
       padding: 7px 0;
@@ -859,22 +871,32 @@ $kx-red-bg: #fdeaea;
 
     .f-bar { padding-right: 14px; width: auto; }
 
+    .f-num { width: 68px; }
+    .f-step { width: 112px; }
+
     .f-num,
     .f-step {
-      width: 68px;
       text-align: right;
       font-size: 12.5px;
       font-variant-numeric: tabular-nums;
       white-space: nowrap;
     }
 
-    .f-num { color: $kx-muted; }
+    .f-num { color: $kx-muted; text-align: center; }
     .f-step {
       font-weight: 700;
       color: $kx-ink;
 
       .dash { color: #cbd5e1; font-weight: 400; }
+      .f-base { font-weight: 400; color: $kx-muted; }
     }
+  }
+
+  .funnel-summary {
+    margin: 12px 0 0;
+    font-size: 12px;
+    line-height: 1.4;
+    color: $kx-muted;
   }
 
   // Magnitude → ONE hue, light to dark. The track is a lighter step of the same
@@ -1038,6 +1060,41 @@ $kx-red-bg: #fdeaea;
       }
     }
 
+    // The whole name/email cell is the button, so the hit target isn't just the text.
+    .c-link {
+      display: block;
+      max-width: 100%;
+      padding: 0;
+      border: 0;
+      background: none;
+      color: inherit;
+      font: inherit;
+      text-align: left;
+      cursor: pointer;
+
+      &:hover .c-title,
+      &:focus-visible .c-title {
+        color: $kx-primary-deep;
+        text-decoration: underline;
+      }
+
+      &:disabled { cursor: progress; }
+    }
+
+    .c-deleted .c-title { color: $kx-muted; }
+
+    .c-tag {
+      display: inline-block;
+      margin-left: 6px;
+      padding: 1px 7px;
+      border-radius: 999px;
+      background: $kx-hairline;
+      color: $kx-muted;
+      font-size: 10.5px;
+      font-weight: 600;
+      vertical-align: 1px;
+    }
+
     .c-title {
       display: block;
       max-width: 250px;
@@ -1119,8 +1176,56 @@ $kx-red-bg: #fdeaea;
         font-variant-numeric: tabular-nums;
       }
 
-      .e-bar-col,
-      .e-bar { width: 26%; }
+      .e-score-col,
+      .e-score-cell { width: 26%; }
+
+      // Band colours match the Insights PDF (`BAND_META`): strong mint, good primary,
+      // fair amber, weak faint.
+      .sc-line {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        white-space: nowrap;
+      }
+
+      .sc-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: $kx-faint;
+
+        &.band-strong { background: #10a36b; }
+        &.band-good { background: $kx-primary; }
+        &.band-fair { background: #f59e0b; }
+        &.band-weak { background: $kx-faint; }
+      }
+
+      .sc-value {
+        font-weight: 700;
+        color: $kx-ink;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .sc-band {
+        font-size: 12px;
+        color: $kx-muted;
+      }
+
+      .sc-campaign {
+        display: block;
+        max-width: 220px;
+        margin-top: 2px;
+        font-size: 11.5px;
+        color: $kx-faint;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .sc-none {
+        font-size: 12px;
+        color: $kx-faint;
+      }
 
       .e-seen { color: $kx-muted; }
 

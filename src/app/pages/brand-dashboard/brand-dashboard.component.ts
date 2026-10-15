@@ -4,9 +4,12 @@ import { NgbOffcanvas } from '@ng-bootstrap/ng-bootstrap';
 import { Router } from '@angular/router';
 import { BrandLayoutComponent } from '../../layouts/brand-layout/brand-layout.component';
 import { DashboardLayoutDrawerComponent } from '../../components/dashboard-layout-drawer/dashboard-layout-drawer.component';
+import { ProspectingContactsComponent } from '../../components/prospecting-contacts/prospecting-contacts.component';
 import { AuthService } from '../../services/auth.service';
 import { DashboardService } from '../../services/dashboard.service';
 import { DashboardLayoutService } from '../../services/dashboard-layout.service';
+import { ProspectingService } from '../../services/prospecting.service';
+import { showContactNotFound } from '../../helpers/contact-not-found';
 import { routeConstants } from '../../helpers/routeConstants';
 import { constants } from '../../helpers/constants';
 import {
@@ -25,6 +28,7 @@ import {
   IDashboardCampaignMeta,
   IDashboardCampaignRow,
   IDashboardCampaignTrendPoint,
+  IDashboardContactScore,
   IDashboardEngagedContacts,
   IDashboardLinkCount,
   IDashboardReach,
@@ -104,13 +108,14 @@ interface IEngagedContactRow {
   contactId: number;
   name: string;
   email: string;
+  /** Deleted since — shown with a tag and not linked to the edit drawer. */
+  deleted: boolean;
   opens: number;
   clicks: number;
   replies: number;
   /** Most recent day with any activity, ISO date. */
   lastActivity: string;
-  /** Share of the leader's value for the ranked metric, 0-100. */
-  barPct: number;
+  score: IDashboardContactScore | null;
 }
 
 @Component({
@@ -207,8 +212,13 @@ export class BrandDashboardComponent implements OnInit, OnDestroy {
     pct: number;
     /** Conversion from the PREVIOUS stage — the number that shows where drop-off is. */
     stepPct: number | null;
+    /** Who `stepPct` is measured against, in words ("of openers"). */
+    stepBase: string;
     step: string;
   }[] = [];
+
+  /** The funnel as one plain sentence; empty when nothing was sent in range. */
+  funnelSummary = '';
 
   // ── Campaign scope ──────────────────────────────────────────────────────
   // An EMPTY set means "all campaigns". That is the honest default: the page opens
@@ -242,6 +252,7 @@ export class BrandDashboardComponent implements OnInit, OnDestroy {
     private layoutService: DashboardLayoutService,
     private offcanvas: NgbOffcanvas,
     private router: Router,
+    private prospectingService: ProspectingService,
   ) {}
 
   ngOnDestroy(): void {
@@ -523,6 +534,46 @@ export class BrandDashboardComponent implements OnInit, OnDestroy {
    * clicking through 7 → 30 → 90 quickly leaves three requests racing, and without the
    * token the slowest could land last and show the wrong window's leaderboard.
    */
+  /** `contactId` of the leaderboard row whose edit drawer is being looked up. */
+  openingContactId: number | null = null;
+
+  /**
+   * Clicking a leaderboard name opens the same edit drawer as Manage Contacts. The
+   * drawer needs the full contact row (lists, details), which the leaderboard does not
+   * carry, so it is looked up by email first. The leaderboard reloads when the drawer
+   * closes, so an edited name shows.
+   */
+  openEngagedContact = async (c: IEngagedContactRow): Promise<void> => {
+    if (c.deleted || this.openingContactId !== null) return;
+    this.openingContactId = c.contactId;
+    let contact = null;
+    try {
+      contact = await this.prospectingService.findContactByEmail(this.companyId, c.email);
+    } catch {
+      contact = null;
+    } finally {
+      this.openingContactId = null;
+    }
+    // Deleted rows are never clickable, so this is a contact deleted while the page
+    // was open (or a lookup that failed).
+    if (!contact) {
+      await showContactNotFound(c.name, c.email);
+      void this.__loadEngagedContacts();
+      return;
+    }
+
+    this.prospectingService.isAddNewButtonClickedInContactPage = false;
+    this.prospectingService.clickedContactInContactPage = [contact];
+    const ref = this.offcanvas.open(ProspectingContactsComponent, {
+      panelClass: 'contact-slide-content edit-rep-canvas',
+      backdropClass: 'edit-rep-canvas-backdrop',
+      position: 'end',
+      scroll: false,
+    });
+    const done = (): void => void this.__loadEngagedContacts();
+    ref.result.then(done, done);
+  };
+
   private async __loadEngagedContacts(): Promise<void> {
     if (!this.companyId) return;
 
@@ -1139,17 +1190,37 @@ export class BrandDashboardComponent implements OnInit, OnDestroy {
       contactId: c.contactId,
       name: c.name || c.email || 'Unknown contact',
       email: c.email,
+      deleted: !!c.deleted,
       opens: c.opens,
       clicks: c.clicks,
       replies: c.replies,
       lastActivity: c.lastActivity,
-      barPct: 0,
+      score: c.score ?? null,
     }));
 
-    // The list is already sorted by the ranked metric, so the leader is row 0.
-    const peak = rows[0]?.[metric] || 0;
-    for (const r of rows) r.barPct = peak ? Math.round((r[metric] / peak) * 100) : 0;
     this.engagedContacts = rows;
+  }
+
+  /**
+   * A score belongs to one campaign, so the campaign is named unless the dashboard is
+   * scoped to exactly one — then every score is from it and the name is noise.
+   */
+  get showScoreCampaign(): boolean {
+    return this.selectedCampaignIds.size !== 1;
+  }
+
+  scoreBandLabel(band: string): string {
+    return band ? band.charAt(0).toUpperCase() + band.slice(1) : '';
+  }
+
+  /** Hover text: every campaign's score, best first. */
+  scoreTooltip(score: IDashboardContactScore): string {
+    return [score, ...score.others]
+      .map((s) => {
+        const band = this.scoreBandLabel(s.band);
+        return `${s.campaignTitle || 'Campaign #' + s.campaignId}: ${s.value}/${s.max}${band ? ' ' + band : ''}`;
+      })
+      .join('\n');
   }
 
   /** Emphasise whichever count column the list is currently ranked by. */
@@ -1264,12 +1335,13 @@ export class BrandDashboardComponent implements OnInit, OnDestroy {
     // is where drop-off shows. Replies are measured against OPENED, not clicked: a
     // reply rarely involves a click, so replied/clicked would routinely pass 100%.
     this.funnel = [
-      { label: 'Prospects', value: sent, pct: 100, stepPct: null, step: 'step-1' },
+      { label: 'Emailed', value: sent, pct: 100, stepPct: null, stepBase: '', step: 'step-1' },
       {
         label: 'Opened',
         value: opens,
         pct: this.__pct(opens, sent),
         stepPct: this.__pct(opens, sent),
+        stepBase: 'opened',
         step: 'step-2',
       },
       {
@@ -1277,6 +1349,7 @@ export class BrandDashboardComponent implements OnInit, OnDestroy {
         value: clicks,
         pct: this.__pct(clicks, sent),
         stepPct: this.__pct(clicks, opens),
+        stepBase: 'of openers',
         step: 'step-3',
       },
       {
@@ -1284,8 +1357,14 @@ export class BrandDashboardComponent implements OnInit, OnDestroy {
         value: replies,
         pct: this.__pct(replies, sent),
         stepPct: this.__pct(replies, opens),
+        stepBase: 'of openers',
         step: 'step-4',
       },
     ];
+
+    const n = (v: number) => v.toLocaleString();
+    this.funnelSummary = sent
+      ? `Of ${n(sent)} ${sent === 1 ? 'person' : 'people'} emailed, ${n(opens)} opened, ${n(clicks)} clicked and ${n(replies)} replied.`
+      : '';
   }
 }

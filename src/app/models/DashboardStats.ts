@@ -207,11 +207,37 @@ export interface IDashboardEngagedContact {
   contactId: number;
   name: string;
   email: string;
+  /**
+   * The contact was deleted after engaging. They still rank (engagement is history),
+   * but there is no contact to edit. Optional: an older API omits it.
+   */
+  deleted?: boolean;
+  /**
+   * Their HIGHEST saved lead score among the campaigns in scope (a score belongs to a
+   * prospect in one campaign), with the others best first. Null = not scored. Saved
+   * scores only; the dashboard never calls the paid Score API. Optional: older API.
+   */
+  score?: IDashboardContactScore | null;
   opens: number;
   clicks: number;
   replies: number;
   /** ISO timestamp of the contact's most recent event in the window. */
   lastActivity: string;
+}
+
+/** One saved lead score, named by the campaign it belongs to. */
+export interface IDashboardCampaignScore {
+  value: number;
+  max: number;
+  /** strong | good | fair | weak ('' if the answer had none). */
+  band: string;
+  campaignId: number;
+  campaignTitle: string;
+}
+
+export interface IDashboardContactScore extends IDashboardCampaignScore {
+  /** Their scores in the other campaigns in scope, best first. */
+  others: IDashboardCampaignScore[];
 }
 
 /**

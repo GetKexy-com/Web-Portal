@@ -63,11 +63,13 @@ export interface IDashboardWidgetDef {
  */
 export const DASHBOARD_WIDGETS: IDashboardWidgetDef[] = [
   { id: 'metrics', title: 'Performance chart', defaultSpan: 6, minSpan: 4 },
+  // Directly under the chart: the contacts behind the numbers are the next thing a
+  // user acts on, so they lead rather than trailing the summary panels.
+  { id: 'engaged-contacts', title: 'Most engaged contacts', defaultSpan: 6, minSpan: 4 },
   { id: 'reach', title: 'Reach summary', defaultSpan: 6, minSpan: 3 },
   // 4 / 2 on a six-column canvas IS the 60/40 the old `.perf-grid` hardcoded.
   { id: 'campaign-performance', title: 'Campaign performance', defaultSpan: 4, minSpan: 3 },
   { id: 'activity', title: 'Activity', defaultSpan: 2, minSpan: 2 },
-  { id: 'engaged-contacts', title: 'Most engaged contacts', defaultSpan: 6, minSpan: 4 },
   // The four panels that used to hide behind the component's `showSecondaryPanels`
   // flag. They are not deleted or commented out — they are simply hidden widgets, so
   // a user who wants them can switch them on without a code change.
