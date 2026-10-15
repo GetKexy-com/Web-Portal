@@ -1,6 +1,7 @@
 import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
-import { provideRouter, withPreloading } from '@angular/router';
+import { provideRouter, TitleStrategy, withPreloading } from '@angular/router';
 import { IdleRoutePreloadStrategy } from './helpers/route-preload.strategy';
+import { PageTitleStrategy } from './helpers/page-title.strategy';
 import {HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi} from '@angular/common/http';
 import { JwtInterceptor } from "src/app/helpers/jwt.interceptor";
 import { CacheInvalidationInterceptor } from './helpers/cache-invalidation.interceptor';
@@ -18,5 +19,8 @@ export const appConfig: ApplicationConfig = {
     provideZoneChangeDetection({ eventCoalescing: true }),
     // Every route is a `loadComponent`, so without a preloading strategy the first
     // click on a nav item waited on a chunk download before anything moved on screen.
-    provideRouter(routes, withPreloading(IdleRoutePreloadStrategy))],
+    provideRouter(routes, withPreloading(IdleRoutePreloadStrategy)),
+    // Browser tab title from each route's name — see PageTitleStrategy.
+    { provide: TitleStrategy, useClass: PageTitleStrategy },
+  ],
 };

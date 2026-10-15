@@ -90,7 +90,6 @@ export class EditBrandComponent implements OnInit {
 
   async ngOnInit() {
     this._authService.loggedUserRedirectToProperDashboard();
-    document.title = 'Edit Brand - KEXY Brand Webportal';
 
     this.userData = this._authService.userTokenValue;
     let website = localStorage.getItem(constants.PROSPECTING_WEBSITE);

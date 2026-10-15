@@ -56,7 +56,6 @@ export class LandingPageComponent implements OnInit {
   }
 
   async ngOnInit() {
-    document.title = 'Landing Pages - KEXY';
     this.isWaitingFlag = true;
     this.userData = this._authService.userTokenValue;
 

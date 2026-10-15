@@ -57,7 +57,6 @@ export class BrandPriceComponent implements OnInit {
   ) {}
 
   async ngOnInit() {
-    document.title = 'Subscription Price - KEXY Brand Portal';
     this.userData = this.authService.userTokenValue;
     // this.getUsersList();
     await this.userOrganisationApiCall();

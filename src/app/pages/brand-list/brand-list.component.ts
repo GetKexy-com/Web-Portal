@@ -191,7 +191,6 @@ export class BrandListComponent implements OnInit {
 
   ngOnInit() {
     this._authService.loggedUserRedirectToProperDashboard();
-    document.title = "Brand List - KEXY Brand Webportal";
 
     this.screenWidth.set(window.innerWidth);
     this.screenHeight.set(window.innerHeight);

@@ -303,7 +303,6 @@ export class RegisterComponent implements OnInit {
   }
 
   ngOnInit() {
-    document.title = "User Register - KEXY Webportal";
 
     this._authService.loggedUserRedirectToProperDashboard();
 

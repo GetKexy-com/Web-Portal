@@ -60,7 +60,6 @@ export class BrandInvitePeopleComponent {
 
   async ngOnInit() {
     this._authService.loggedUserRedirectToProperDashboard();
-    document.title = "Invite Users - KEXY Brand Webportal";
 
     this.userData = this._authService.userTokenValue;
     this.isAdmin = this.userData.isAdmin;

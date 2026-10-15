@@ -36,7 +36,6 @@ export class ResetPasswordComponent {
   ) {}
 
   async ngOnInit() {
-    document.title = 'Reset Password - KEXY Webportal';
 
     this._authService.loggedUserRedirectToProperDashboard();
     this.route.queryParams.subscribe((params) => {

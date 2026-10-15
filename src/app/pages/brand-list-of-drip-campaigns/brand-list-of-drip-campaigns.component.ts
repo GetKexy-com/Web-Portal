@@ -123,7 +123,6 @@ export class BrandListOfDripCampaignsComponent implements OnInit {
    *  - `lastUpdatedAt` is rendered, so the age is disclosed rather than hidden.
    */
   async ngOnInit() {
-    document.title = 'List of Drip Campaign - KEXY Brand Portal';
     this.destroyRef.onDestroy(() => {
       this.destroyed = true;
       this.__clearNextSendsTimer();

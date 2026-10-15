@@ -355,7 +355,6 @@ export class BrandCreateComponent implements OnInit {
 
   async ngOnInit() {
     this._authService.loggedUserRedirectToProperDashboard();
-    document.title = 'Brand Create - KEXY Brand Portal';
 
     const jobTitleValue = localStorage.getItem('jobTitle');
     if (jobTitleValue === 'Admin') {

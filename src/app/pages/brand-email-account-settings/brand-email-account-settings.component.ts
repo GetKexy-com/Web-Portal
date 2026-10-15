@@ -59,7 +59,6 @@ export class BrandEmailAccountSettingsComponent implements OnInit {
   ) {}
 
   async ngOnInit() {
-    document.title = 'SMTP Settings - KEXY Webportal';
     this.userData = this._authService.userTokenValue;
     this.getQueryParams();
     if (this.googleAuthCode) {

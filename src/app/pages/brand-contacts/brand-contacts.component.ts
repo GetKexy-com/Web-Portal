@@ -111,7 +111,6 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
   }
 
   async ngOnInit() {
-    document.title = 'Contacts - KEXY Brand Portal';
     this.userData = this._authService.userTokenValue;
     this.supplierId = this.userData.supplier_id;
 

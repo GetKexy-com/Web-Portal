@@ -329,7 +329,6 @@ export class BrandSubscriptionSelectionComponent implements OnInit {
   ) {}
 
   async ngOnInit() {
-    document.title = 'Subscription - KEXY Brand Portal';
     this.userData = this.authService.userTokenValue;
     this.supplier_id.set(localStorage.getItem(constants.SUPPLIER_ID) ?? '');
   }

@@ -60,7 +60,6 @@ export class BrandLaunchDripCampaignComponent {
   }
 
   async ngOnInit() {
-    document.title = "Launch Drip Campaign - KEXY Brand Portal";
     this.userData = this._authService.userTokenValue;
 
     // Get DripCampaigns

@@ -23,7 +23,6 @@ export class BrandWelcomeComponent {
 
   ngOnInit() {
     this._authService.loggedUserRedirectToProperDashboard();
-    document.title = "Welcome - KEXY Brand Portal";
   }
 
   autoLogin(e) {

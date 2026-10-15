@@ -39,7 +39,6 @@ export class BrandFindLeadsComponent implements OnInit {
   constructor(private _authService: AuthService) {}
 
   ngOnInit() {
-    document.title = "Find Leads - KEXY Brand Portal";
     this.userData = this._authService.userTokenValue;
   }
 

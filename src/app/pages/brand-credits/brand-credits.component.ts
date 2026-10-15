@@ -15,6 +15,5 @@ import {
 })
 export class BrandCreditsComponent {
   ngOnInit(): void {
-    document.title = "Subscription & Credits - KEXY Brand Portal";
   }
 }

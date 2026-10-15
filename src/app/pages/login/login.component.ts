@@ -162,7 +162,6 @@ export class LoginComponent implements OnInit {
   }
 
   ngOnInit() {
-    document.title = 'Login - KEXY Webportal';
     this.authService.loggedUserRedirectToProperDashboard();
   }
 

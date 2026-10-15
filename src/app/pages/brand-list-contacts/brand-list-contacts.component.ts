@@ -106,7 +106,6 @@ export class BrandListContactsComponent implements OnInit, OnDestroy {
   };
 
   async ngOnInit() {
-    document.title = 'List Contacts - KEXY Brand Portal';
     this.userData = this._authService.userTokenValue;
 
     // Set pagination limit from localstorage if found

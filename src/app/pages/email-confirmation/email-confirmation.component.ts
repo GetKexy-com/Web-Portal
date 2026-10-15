@@ -247,7 +247,6 @@ export class EmailConfirmationComponent {
 
     // Initialize component
     this.authService.loggedUserRedirectToProperDashboard();
-    document.title = 'Email Confirmation - KEXY Webportal';
   }
 
   // Form control getters

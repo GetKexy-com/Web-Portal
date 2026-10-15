@@ -283,7 +283,6 @@ export class SuppressionListComponent {
   modalReference: any;
 
   constructor() {
-    document.title = "Suppression List - KEXY Brand Portal";
     this.userData.set(this.authService.userTokenValue);
     this.supplierId.set(this.userData().supplier_id);
 

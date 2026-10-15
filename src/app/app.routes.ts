@@ -9,38 +9,49 @@ import { AuthGuard } from './guard/auth.guard';
  *
  * A page that needs a DYNAMIC title (e.g. `brand-list-contacts` showing the list's
  * name) still passes `[headline]` to `<brand-layout>`, which takes precedence.
+ *
+ * The same name is the browser tab title ("<name> - KEXY Webportal", `PageTitleStrategy`).
+ * Pages without the brand header (login, register, …) declare only the route's `title`,
+ * which names the tab and nothing else. Every route needs one or the other.
  */
 export const routes: Routes = [
   { path: '', redirectTo: '/' + routeConstants.LOGIN, pathMatch: 'full' },
   {
     path: routeConstants.LOGIN,
+    title: 'Login',
     loadComponent: () =>
       import('./pages/login/login.component').then(m => m.LoginComponent),
   },
   {
     path: routeConstants.EMAIL_CONFIRMATION,
+    title: 'Email Confirmation',
     loadComponent: () =>
       import('./pages/email-confirmation/email-confirmation.component').then((m) => m.EmailConfirmationComponent),
   },
   {
     path: routeConstants.FORGET_PASSWORD,
+    title: 'Forgot Password',
     loadComponent: () => import('./pages/forgot-password/forgot-password.component').then((m) => m.ForgotPasswordComponent),
   },
   {
     path: routeConstants.RESET_PASSWORD,
+    title: 'Reset Password',
     loadComponent: () => import('./pages/reset-password/reset-password.component').then((m) => m.ResetPasswordComponent),
   },
   {
     path: routeConstants.REGISTER,
+    title: 'Register',
     loadComponent: () => import('./pages/register/register.component').then((m) => m.RegisterComponent),
   },
   {
     path: routeConstants.BRAND.CREATE,
+    title: 'Create Brand',
     loadComponent: () => import('./pages/brand-create/brand-create.component').then((m) => m.BrandCreateComponent),
     canActivate: [AuthGuard],
   },
   {
     path: routeConstants.BRAND.SUBSCRIPTION_SELECTION,
+    title: 'Choose a Plan',
     loadComponent: () =>
       import('./pages/brand-subscription-selection/brand-subscription-selection.component').then(
         (m) => m.BrandSubscriptionSelectionComponent,
@@ -48,10 +59,12 @@ export const routes: Routes = [
   },
   {
     path: routeConstants.BRAND.WELCOME,
+    title: 'Welcome',
     loadComponent: () => import('./pages/brand-welcome/brand-welcome.component').then((m) => m.BrandWelcomeComponent),
   },
   {
     path: routeConstants.BRAND.ORGANIZATION_LIST,
+    title: 'Brand List',
     loadComponent: () => import('./pages/brand-list/brand-list.component').then((m) => m.BrandListComponent),
     canActivate: [AuthGuard],
   },

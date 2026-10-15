@@ -72,7 +72,6 @@ export class BrandConversationsComponent implements OnInit, OnDestroy {
   }
 
   async ngOnInit() {
-    document.title = 'Inbox Messages - KEXY Brand Portal';
     this.userData = this._authService.userTokenValue;
 
     this.route.queryParams.subscribe((params) => {

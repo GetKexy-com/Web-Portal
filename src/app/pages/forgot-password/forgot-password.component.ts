@@ -32,7 +32,6 @@ export class ForgotPasswordComponent {
   ) {}
 
   ngOnInit() {
-    document.title = 'Forgot Password - KEXY Webportal';
     this._authService.loggedUserRedirectToProperDashboard();
 
     this.forgetPasswordForm = this.fb.group({

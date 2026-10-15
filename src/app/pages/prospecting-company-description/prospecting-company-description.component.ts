@@ -63,7 +63,6 @@ export class ProspectingCompanyDescriptionComponent implements OnInit {
   }
 
   async ngOnInit() {
-    document.title = 'Prospecting Company Description - KEXY Brand Portal';
   }
 
   async getDescriptions() {

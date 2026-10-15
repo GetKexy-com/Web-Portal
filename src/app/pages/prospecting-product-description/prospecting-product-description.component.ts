@@ -26,7 +26,6 @@ export class ProspectingProductDescriptionComponent {
   constructor(private _authService: AuthService) {}
 
   async ngOnInit() {
-    document.title = "Prospecting Product Description - KEXY Brand Portal";
     this.userData = this._authService.userTokenValue;
   }
 }

@@ -27,7 +27,6 @@ export class NegativePromptComponent implements OnInit {
     private httpService: HttpService,
     private authService: AuthService,
   ) {
-    document.title = 'Negative Prompts - KEXY Brand Portal';
   }
 
   ngOnInit() {

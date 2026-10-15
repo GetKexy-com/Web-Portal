@@ -72,7 +72,6 @@ export class BrandConversationSentComponent {
   }
 
   async ngOnInit() {
-    document.title = 'Sent Messages - KEXY Brand Portal';
     this.userData = this._authService.userTokenValue;
 
     this.route.queryParams.subscribe((params) => {

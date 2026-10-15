@@ -76,7 +76,6 @@ export class LandingPageCreateComponent implements OnInit, OnDestroy {
   @ViewChild('promotionInitialModal', { static: true }) promotionInitialModal: ElementRef;
 
   async ngOnInit() {
-    document.title = `${constants.LANDING_PAGE}s - KEXY`;
     this.userData = this._authService.userTokenValue;
     this.loadingSubscription = this.campaignService.loading.subscribe((loading) => {
       this.isWaitingFlag = loading;

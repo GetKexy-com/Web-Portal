@@ -68,7 +68,6 @@ export class LeadMagnetsComponent implements OnInit, OnDestroy, AfterViewChecked
   }
 
   async ngOnInit() {
-    document.title = 'Lead Magnets - KEXY Brand Portal';
     this.userData = this._authService.userTokenValue;
     this.supplierId = this.userData.supplier_id;
 

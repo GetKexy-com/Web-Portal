@@ -106,7 +106,6 @@ export class BrandDripCampaignComponent implements OnInit, OnDestroy {
   };
 
   async ngOnInit() {
-    document.title = 'Brand Drip Campaign - KEXY Brand Portal';
     this.userData = this._authService.userTokenValue;
     this.basePath =
       this.removeQueryParams(this.router.url) === '/' + routeConstants.BRAND.EDIT_DRIP_CAMPAIGN
