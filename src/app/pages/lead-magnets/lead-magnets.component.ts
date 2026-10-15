@@ -75,9 +75,9 @@ export class LeadMagnetsComponent implements OnInit, OnDestroy, AfterViewChecked
     // proportionally FILL the width (table-layout:fixed + width:100%).
     this.columnList = [
       { name: '', key: 'action', width: '58px' },
-      { name: 'Lead Magnet Url', key: 'leadMagnetUrl', width: '28%' },
-      { name: 'Title', key: 'title', width: '22%' },
-      { name: 'Summary', key: 'summary', width: '50%' },
+      { name: 'Title', key: 'title', width: '28%' },
+      { name: 'Summary', key: 'summary', width: '42%' },
+      { name: 'Lead Magnet URL', key: 'leadMagnetUrl', width: '30%' },
     ];
 
 
@@ -182,22 +182,25 @@ export class LeadMagnetsComponent implements OnInit, OnDestroy, AfterViewChecked
   getCellValueToDisplay = (row, column) => this.getCellValue(row, column);
 
   getCellValue = (row, column) => {
+    // Full text; the cell cuts it to the column width with an ellipsis (full text on hover).
     if (row[column.key]) {
-      if (column.key !== 'leadMagnetUrl') {
-        return this.truncateIfLong(row[column.key]);
-      }
       return row[column.key];
     }
   };
 
-  truncateIfLong(text, limit = 5) {
-    const words = text.trim().split(/\s+/); // Splits by any whitespace
-
-    if (words.length > limit) {
-      return words.slice(0, limit).join(' ') + '...';
+  /** Link text for a lead magnet URL: its site name ("example.com"), never the full URL. */
+  linkLabel(url: string): string {
+    try {
+      const href = /^https?:\/\//i.test(url) ? url : `https://${url}`;
+      return new URL(href).hostname.replace(/^www\./i, '') || 'Open link';
+    } catch {
+      return 'Open link';
     }
+  }
 
-    return text; // Returns original if 5 words or fewer
+  /** Absolute href, so a URL saved without a scheme doesn't resolve relative to the portal. */
+  linkHref(url: string): string {
+    return /^https?:\/\//i.test(url) ? url : `https://${url}`;
   }
 
   onCheckboxClicked = (event, data) => {

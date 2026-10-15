@@ -148,10 +148,27 @@
                       [style.width]="column.width"
                     >
                     <span
-                      *ngIf="column.key !== 'action'"
-                      [className]="column.key !== 'leadMagnetUrl' ? 'first-letter-cap' : ''">
+                      *ngIf="column.key !== 'action' && column.key !== 'leadMagnetUrl'"
+                      class="first-letter-cap cell-text"
+                      [title]="getCellValueToDisplay(lead, column) || ''">
                       {{ getCellValueToDisplay(lead, column) || 'N/A' }}
                     </span>
+                    <ng-container *ngIf="column.key === 'leadMagnetUrl'">
+                      <a
+                        *ngIf="lead.leadMagnetUrl; else noLink"
+                        class="lm-link"
+                        [href]="linkHref(lead.leadMagnetUrl)"
+                        [title]="lead.leadMagnetUrl"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        (click)="$event.stopPropagation()">
+                        <i class="fa fa-globe" aria-hidden="true"></i>
+                        <span>{{ linkLabel(lead.leadMagnetUrl) }}</span>
+                        <i class="fa fa-external-link lm-external" aria-hidden="true"></i>
+                        <span class="visually-hidden">(opens in a new tab)</span>
+                      </a>
+                      <ng-template #noLink><span>N/A</span></ng-template>
+                    </ng-container>
                       <span
                         *ngIf="column.key === 'action'"
                         class="text-center d-inline-block w-100"

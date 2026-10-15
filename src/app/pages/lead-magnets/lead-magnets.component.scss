@@ -156,6 +156,32 @@ $kx-header-bg: #f8fafc;
               &::first-letter { text-transform: uppercase; }
             }
 
+            // Title / Summary: one line, cut to the column width.
+            .cell-text {
+              display: block;
+              overflow: hidden;
+              text-overflow: ellipsis;
+            }
+
+            // Lead magnet URL: globe + site name, full URL on hover.
+            .lm-link {
+              display: inline-flex;
+              align-items: center;
+              gap: 6px;
+              max-width: 100%;
+              color: $kx-primary;
+              text-decoration: none;
+
+              i { font-size: 14px; flex-shrink: 0; }
+              .lm-external { font-size: 11px; opacity: 0.7; }
+              span {
+                color: $kx-primary;
+                overflow: hidden;
+                text-overflow: ellipsis;
+              }
+              &:hover span { text-decoration: underline; }
+            }
+
             // Empty / loading state
             .table-state {
               display: flex;
