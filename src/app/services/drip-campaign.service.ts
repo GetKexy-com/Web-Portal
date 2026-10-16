@@ -9,7 +9,6 @@ import { SseService } from './sse.service';
 import { DripCampaign, IRawDripCampaign } from '../models/DripCampaign';
 import { EnrollmentTriggers, IRawEnrollmentTrigger } from '../models/EnrollmentTriggers';
 import { IDripEmailDeletePreview, IDripEmailDeleteResult } from '../models/DripEmail';
-import { firstBlankTemplateEmailPosition } from '../helpers/email-has-content';
 import {
   EmailSendFilter,
   ICampaignNextSends,
@@ -334,6 +333,19 @@ export class DripCampaignService {
       });
     });
   };
+
+  /**
+   * A campaign's emails, for a check (e.g. the blank-email warning before Resume on the
+   * campaign list, whose rows come from `view=summary` without emails). Unlike
+   * `getCampaign` it touches no shared state: no current campaign, status or bulk emails.
+   */
+  getCampaignEmails = (dripCampaignId: number): Promise<any[]> =>
+    new Promise((resolve, reject) => {
+      this.httpService.get(`drip-campaigns/${dripCampaignId}`).subscribe({
+        next: (res) => resolve(res?.data?.emails ?? []),
+        error: (err) => reject(err),
+      });
+    });
 
   /**
    * Deletes one email. The API renumbers the rest and shifts the campaign's prospects in the
@@ -799,18 +811,9 @@ export class DripCampaignService {
     emailCount: number;
     enrollListCount: number;
     smtpId: any;
-    /** The sequence, to catch a blank Template email (it would be sent blank). */
-    emails?: { templateOptions?: string; emailContent?: string; emailSequence?: number }[];
   }): { reason: 'emails' | 'lists' | 'smtp'; message: string } | null => {
     if (!input.emailCount) {
       return { reason: 'emails', message: 'Please generate emails to activate.' };
-    }
-    const blank = firstBlankTemplateEmailPosition(input.emails);
-    if (blank) {
-      return {
-        reason: 'emails',
-        message: `Email #${blank} has no content. Add content to it, or delete it, first.`,
-      };
     }
     if (!input.enrollListCount) {
       return { reason: 'lists', message: 'Please select list(s) from enrollment triggers' };

@@ -13,6 +13,7 @@ import { ErrorMessageCardComponent } from '../error-message-card/error-message-c
 import { CommonModule } from '@angular/common';
 import { Contact } from '../../models/Contact';
 import { KexyButtonComponent } from '../kexy-button/kexy-button.component';
+import { confirmBlankTemplateEmails } from '../../helpers/email-has-content';
 
 @Component({
   selector: 'add-contacts-to-drip-campaign',
@@ -243,7 +244,6 @@ export class AddContactsToDripCampaignComponent implements OnInit, OnDestroy {
     if (reactivating) {
       const blocker = this.dripCampaignService.getActivationBlocker({
         emailCount: campaign.emails?.length ?? 0,
-        emails: campaign.emails,
         enrollListCount: (campaign.lists ?? []).filter((l) => l.type === 'enroll_list').length,
         smtpId: this.dripCampaignService.getSelectedSmtpId(campaign),
       });
@@ -255,6 +255,7 @@ export class AddContactsToDripCampaignComponent implements OnInit, OnDestroy {
         });
         return;
       }
+      if (!(await confirmBlankTemplateEmails(campaign.emails, 'activate'))) return;
     }
 
     this.isLoading = true;

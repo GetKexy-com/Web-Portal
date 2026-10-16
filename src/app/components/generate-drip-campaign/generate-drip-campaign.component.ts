@@ -49,6 +49,7 @@ import { LeadMagnetService } from '../../services/lead-magnet.service';
 import { CAMPAIGN_STATUS, DripCampaign, isResearchDone } from '../../models/DripCampaign';
 import { StorageService } from '../../services/storage.service';
 import { ScrapeProgressCardComponent } from '../scrape-progress-card/scrape-progress-card.component';
+import { confirmBlankTemplateEmails } from '../../helpers/email-has-content';
 
 @Component({
   selector: 'generate-drip-campaign',
@@ -1013,7 +1014,6 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
     // list or SMTP opens the settings canvas — both are on its Enrollment Triggers tab.
     const blocker = this.dripCampaignService.getActivationBlocker({
       emailCount: this.emails.length,
-      emails: this.emails,
       enrollListCount: this.getEnrolledList()?.length ?? 0,
       smtpId: this.__getSelectedSmtpId(),
     });
@@ -1026,6 +1026,8 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
       });
       return;
     }
+    // A blank Template email only warns (the client's decision): it is sent as written.
+    if (!(await confirmBlankTemplateEmails(this.emails, 'activate'))) return;
 
     const confirmed = await this.__isConfirmed();
     if (!confirmed) return;
@@ -1242,6 +1244,8 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
     if (this.isResuming) return;
     if (!this.dripCampaign || this.dripCampaign.status !== constants.PAUSE) return;
 
+    // A blank Template email only warns (the client's decision): it is sent as written.
+    if (!(await confirmBlankTemplateEmails(this.emails, 'resume'))) return;
     const confirmed = await kxConfirm({
       title: 'Resume this campaign?',
       text: 'Scheduled emails start sending again, and each prospect picks up where they left off.',

@@ -27,6 +27,7 @@ import { DripCampaign } from '../../models/DripCampaign';
 import { ICampaignNextSend } from '../../models/EmailSendProgress';
 import { schedulePollDelay } from '../../helpers/send-schedule-label';
 import { errorText, kxConfirm, kxNotice } from '../../helpers/kx-dialogs';
+import { confirmBlankTemplateEmails } from '../../helpers/email-has-content';
 
 @Component({
   selector: 'brand-list-of-drip-campaigns',
@@ -348,6 +349,17 @@ export class BrandListOfDripCampaignsComponent implements OnInit {
     if (!dripCampaign) return;
 
     const pausing = !forDelete && dripCampaign.status === constants.ACTIVE;
+    // Resuming with a blank Template email only warns (the client's decision): it is sent as
+    // written. The list rows carry no emails (`view=summary`), so they are fetched here.
+    if (!forDelete && !pausing) {
+      let emails: any[] = [];
+      try {
+        emails = await this.dripCampaignService.getCampaignEmails(dripCampaign.id);
+      } catch {
+        // Can't check: go ahead without the warning rather than block the resume.
+      }
+      if (!(await confirmBlankTemplateEmails(emails, 'resume'))) return;
+    }
     const confirmed = await kxConfirm(
       forDelete
         ? {
@@ -375,6 +387,7 @@ export class BrandListOfDripCampaignsComponent implements OnInit {
     );
 
     if (!confirmed) return;
+
 
     const payload = {
       dripCampaignId: dripCampaign.id,
