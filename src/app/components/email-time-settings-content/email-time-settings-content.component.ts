@@ -16,6 +16,7 @@ import { ListDetail } from '../../models/List';
 import { DripCampaign } from '../../models/DripCampaign';
 import { ErrorMessageCardComponent } from '../error-message-card/error-message-card.component';
 import { EnrollmentPreviewModalComponent } from '../enrollment-preview-modal/enrollment-preview-modal.component';
+import { confirmBlankTemplateEmails } from '../../helpers/email-has-content';
 
 @Component({
   selector: 'email-time-settings-content',
@@ -673,7 +674,6 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
     if (reactivating) {
       const blocker = this.dripCampaignService.getActivationBlocker({
         emailCount: this.dripCampaign.emails?.length ?? 0,
-        emails: this.dripCampaign.emails,
         enrollListCount: newEnrollListIds.length + previousEnrollListIds.length,
         smtpId: this.selectedSmtpId,
       });
@@ -681,6 +681,7 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
         await Swal.fire({ title: `Error`, text: blocker.message, icon: 'warning' });
         return;
       }
+      if (!(await confirmBlankTemplateEmails(this.dripCampaign.emails, 'activate'))) return;
     }
 
     // Newly picked lists: show what saving will do — how many contacts get added and how

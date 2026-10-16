@@ -6,6 +6,7 @@ import { aiLeadMagnets, linkedinUsername } from '../../helpers/ai-email-payload'
 import { DripCampaignService } from '../../services/drip-campaign.service';
 import { DripEmail } from '../../models/DripEmail';
 import { emailHasContent } from '../../helpers/email-has-content';
+import { kxConfirm } from '../../helpers/kx-dialogs';
 import Swal from 'sweetalert2';
 import { Subscription } from 'rxjs';
 import { SseService } from '../../services/sse.service';
@@ -36,8 +37,6 @@ export class SendEmailDetailsContentComponent implements OnInit, OnDestroy {
   public supplierId;
   public isLoading: boolean = false;
   public submitted: boolean = false;
-  /** Save was clicked with an empty body: shows "Email content is required!". */
-  public emptyBodyError = false;
   public emailContent;
   public emailSubject;
   public dripEmail: DripEmail;
@@ -225,18 +224,32 @@ export class SendEmailDetailsContentComponent implements OnInit, OnDestroy {
     // An email can't be saved with an empty body (the API refuses it too). Checked on the
     // editor's own HTML: never `getRawHtml() || this.emailContent`, which swapped the body
     // the drawer OPENED with in for an emptied editor, so the old email came back on reload.
-    // Shown inline under the editor, like "Subject line is required!". The editor has no
-    // public content-changed output, so it clears on the next Save that has content.
-    this.emptyBodyError = !!this.editor && !emailHasContent(this.editor.getRawHtml());
-    if (this.emptyBodyError) {
-      this.isLoading = false;
-      return;
+    //
+    // Read from the editor whenever it exists — never `getRawHtml() || this.emailContent`,
+    // which swapped the body the drawer OPENED with in for an emptied editor, so the old
+    // email came back on reload. An empty body is ALLOWED (the client's decision,
+    // 2026-10-17): warn, and if confirmed save it as '' for both fields.
+    const empty = !!this.editor && !emailHasContent(this.editor.getRawHtml());
+    if (empty) {
+      const saveAnyway = await kxConfirm({
+        title: 'Save without content?',
+        text:
+          'This email has no content. A Template email is sent exactly as written, so prospects would receive it blank.',
+        icon: 'fa-exclamation',
+        confirmText: 'Save anyway',
+        cancelText: 'Keep editing',
+        tone: 'danger',
+      });
+      if (!saveAnyway) {
+        this.isLoading = false;
+        return;
+      }
     }
-    const rawEditorContent = this.editor ? this.editor.getRawHtml() : this.emailContent;
+    const rawEditorContent = this.editor ? (empty ? '' : this.editor.getRawHtml()) : this.emailContent;
     // getHtml() reflects the selected style (the editor's plainText @Input): HTML
     // style → the inlined email-shell document; Plain Text → the same un-shelled,
     // padded document the Preview shows, so preview and the inbox match exactly.
-    const emailContent = this.editor ? this.editor.getHtml() : this.emailContent;
+    const emailContent = this.editor ? (empty ? '' : this.editor.getHtml()) : this.emailContent;
     // Subject now lives in the editor; serialize it back to raw [tokens].
     this.emailSubject = this.editor?.getSubject() ?? this.emailSubject;
     this.dripEmail['emailSubject'] = this.emailSubject;
