@@ -1457,6 +1457,111 @@ header#main-header #logo {
   }
 }
 
+// Success variant (helpers/drip-email-delete-dialogs.ts): green badge, green button and a
+// thin green bar counting down to the auto-close.
+.kx-discard-popup--success {
+  overflow: hidden;
+
+  .kx-discard-icon {
+    background: #ecfdf5;
+    color: #047857 !important;
+    box-shadow: 0 0 0 8px #f3fdf8;
+  }
+
+  .kx-discard-btn--success {
+    border: 1px solid #047857;
+    background: #047857;
+    color: #fff;
+
+    &:hover {
+      background: #065f46;
+      border-color: #065f46;
+    }
+
+    &:focus-visible {
+      box-shadow: 0 0 0 3px rgba(4, 120, 87, 0.3);
+    }
+  }
+
+  .kx-success-progress {
+    height: 3px;
+    background: #34d399;
+  }
+
+  .kx-deleted-subject {
+    text-decoration: line-through;
+    text-decoration-color: #94a3b8;
+    color: #94a3b8;
+  }
+
+  // Doubled class: beats `.kx-delete-popup .kx-delete-fact i` (grey), declared further down.
+  &.kx-delete-popup .kx-delete-fact i {
+    color: #047857;
+  }
+}
+
+// Delete an email from a drip sequence (helpers/drip-email-delete-dialogs.ts): the red
+// variant above plus one row per thing the delete affects (already sent / queued).
+.kx-delete-popup {
+  .kx-discard-preview {
+    font-style: normal;
+  }
+
+  .kx-delete-facts {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 14px 0 0;
+    padding: 0;
+    list-style: none;
+    text-align: left;
+  }
+
+  .kx-delete-fact {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    background: #f8fafc;
+    font-size: 13px;
+    line-height: 1.5;
+    color: #475569;
+
+    i {
+      margin-top: 3px;
+      color: #64748b;
+    }
+
+    strong {
+      font-weight: 600;
+      color: #0f172a;
+    }
+
+    &.is-warn {
+      border-color: #fde68a;
+      background: #fffbeb;
+
+      i {
+        color: #b45309;
+      }
+    }
+  }
+
+  .kx-delete-lead {
+    margin-top: 14px;
+    font-size: 13px;
+  }
+
+  // The red button keeps its label on one line and takes the width it needs; "Keep email"
+  // fills what is left.
+  .kx-discard-btn--danger {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+}
+
 // Dashboard "Most engaged contacts" → the "+N" tag's popover: a contact's lead score in
 // every campaign, best first (brand-dashboard, `#scoresPopover`). Rendered on <body>,
 // so global. Band colours match the score column and the Insights PDF.

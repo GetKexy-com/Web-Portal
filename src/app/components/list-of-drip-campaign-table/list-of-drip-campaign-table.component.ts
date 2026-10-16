@@ -12,7 +12,7 @@ import {
 } from '@angular/core';
 import { constants } from '../../helpers/constants';
 import { routeConstants } from '../../helpers/routeConstants';
-import { Router } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { ProspectingService } from '../../services/prospecting.service';
 import { Subscription } from 'rxjs';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
@@ -34,6 +34,7 @@ import { SendCountdownComponent } from '../send-countdown/send-countdown.compone
     DecimalPipe,
     CommonModule,
     SendCountdownComponent,
+    RouterLink,
   ],
   templateUrl: './list-of-drip-campaign-table.component.html',
   // OnPush: these tables render hundreds of cells, and under the default
@@ -86,7 +87,7 @@ export class ListOfDripCampaignTableComponent implements OnInit, AfterViewInit, 
   dripCampaignStatuses = constants.DRIP_CAMPAIGN_STATUS;
   selectedStatusKey = constants.DRIP_CAMPAIGN_STATUS[0];
 
-  constructor(private router: Router, private modal: NgbModal, private prospectingService: ProspectingService, private host: ElementRef, private cdr: ChangeDetectorRef) {
+  constructor(private modal: NgbModal, private prospectingService: ProspectingService, private host: ElementRef, private cdr: ChangeDetectorRef) {
   }
 
   ngOnInit(): void {
@@ -218,14 +219,7 @@ export class ListOfDripCampaignTableComponent implements OnInit, AfterViewInit, 
   //   return this.dripCampaignTitles[index].title;
   // };
 
-  redirectToEditPage = (dripCampaign) => {
-    const queryParams: any = {
-      id: dripCampaign.id,
-    };
-    this.router.navigate([routeConstants.BRAND.EDIT_DRIP_CAMPAIGN], {
-      queryParams,
-    });
-  };
+  readonly editDripCampaignRoute = routeConstants.BRAND.EDIT_DRIP_CAMPAIGN;
 
   isRowSelected = (row) => {
     // For radio like functionality

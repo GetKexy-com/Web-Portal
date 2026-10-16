@@ -26,6 +26,7 @@ import { CampaignsUpNextComponent } from '../../components/campaigns-up-next/cam
 import { DripCampaign } from '../../models/DripCampaign';
 import { ICampaignNextSend } from '../../models/EmailSendProgress';
 import { schedulePollDelay } from '../../helpers/send-schedule-label';
+import { errorText, kxConfirm, kxNotice } from '../../helpers/kx-dialogs';
 
 @Component({
   selector: 'brand-list-of-drip-campaigns',
@@ -346,20 +347,34 @@ export class BrandListOfDripCampaignsComponent implements OnInit {
     const dripCampaign: DripCampaign = this.selectedDripCampaigns()[0];
     if (!dripCampaign) return;
 
-    const confirmText = forDelete
-      ? 'Yes, Delete!'
-      : (dripCampaign.status === constants.ACTIVE ? 'Yes, Pause!' : 'Yes, Resume!');
+    const pausing = !forDelete && dripCampaign.status === constants.ACTIVE;
+    const confirmed = await kxConfirm(
+      forDelete
+        ? {
+            title: 'Delete this campaign?',
+            text: "It's removed from your campaigns and stops sending. This can't be undone.",
+            icon: 'fa-trash-o',
+            confirmText: 'Delete campaign',
+            tone: 'danger',
+          }
+        : pausing
+          ? {
+              title: 'Pause this campaign?',
+              text: 'No more emails go out until you resume it. Prospects keep their place.',
+              icon: 'fa-pause',
+              confirmText: 'Pause campaign',
+              cancelText: 'Keep running',
+            }
+          : {
+              title: 'Resume this campaign?',
+              text: 'Scheduled emails start sending again, and each prospect picks up where they left off.',
+              icon: 'fa-play',
+              confirmText: 'Resume campaign',
+              cancelText: 'Keep paused',
+            },
+    );
 
-    const isConfirm = await Swal.fire({
-      title: 'Are you sure?',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: confirmText,
-    });
-
-    if (isConfirm.dismiss) return;
+    if (!confirmed) return;
 
     const payload = {
       dripCampaignId: dripCampaign.id,
@@ -380,6 +395,7 @@ export class BrandListOfDripCampaignsComponent implements OnInit {
     };
 
     const swal = this.pageUiService.showSweetAlertLoading();
+    let failure: unknown = null;
 
     try {
       swal.showLoading();
@@ -406,10 +422,20 @@ export class BrandListOfDripCampaignsComponent implements OnInit {
       }
 
     } catch (e) {
-      Swal.fire('Error', e.message);
+      failure = e;
       console.error(e);
     } finally {
       swal.close();
+    }
+
+    // Shown AFTER the loading popup closes: both are the one SweetAlert, so an error
+    // fired inside `catch` was closed straight away by the `finally` above.
+    if (failure) {
+      await kxNotice({
+        title: forDelete ? "Couldn't delete this campaign" : pausing ? "Couldn't pause this campaign" : "Can't resume yet",
+        text: errorText(failure),
+        icon: forDelete ? 'fa-exclamation' : 'fa-pause',
+      });
     }
   };
 

@@ -40,3 +40,21 @@ export class EmailDelay {
     return { days: 0, hours: 0, minutes: 1 };
   }
 }
+
+/** `GET drip-campaigns/:id/emails/:emailId/delete-preview` — what the delete dialog shows. */
+export interface IDripEmailDeletePreview {
+  canDelete: boolean;
+  /** Why it can't be deleted right now, worded for the user (e.g. the campaign is active). */
+  blockedReason: string | null;
+  /** Distinct prospects this email was sent to. Their history stays after a delete. */
+  sentCount: number;
+  /** Prospects queued to receive it. Deleting cancels those sends. */
+  queuedCount: number;
+}
+
+/** `DELETE drip-campaigns/email/:emailId` — the sequence as it stands after the delete. */
+export interface IDripEmailDeleteResult {
+  emails: { id: number; emailSequence: number }[];
+  numberOfEmails: number;
+  cancelledQueueIds: number[];
+}

@@ -1,6 +1,10 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { DripEmail, EmailDelay } from '../../models/DripEmail';
-import Swal from 'sweetalert2';
+import {
+  DripEmail,
+  EmailDelay,
+  IDripEmailDeletePreview,
+  IDripEmailDeleteResult,
+} from '../../models/DripEmail';
 import { DripCampaignService } from '../../services/drip-campaign.service';
 import { AuthService } from '../../services/auth.service';
 import { Subscription } from 'rxjs';
@@ -10,6 +14,11 @@ import { KexyButtonComponent } from '../kexy-button/kexy-button.component';
 import { SendCountdownComponent } from '../send-countdown/send-countdown.component';
 import { IEmailSendSchedule } from '../../models/EmailSendProgress';
 import { scheduleProspectsFilter } from '../../helpers/send-schedule-label';
+import {
+  confirmDeleteEmail,
+  showDeleteNotice,
+  showEmailDeleted,
+} from '../../helpers/drip-email-delete-dialogs';
 
 @Component({
   selector: 'drip-campaign-card',
@@ -81,84 +90,113 @@ export class DripCampaignCardComponent implements OnInit {
 
   deleteLoading = false;
   deleteItem = async () => {
-    if (!this.isDelayCard && this.email['isEmailSent']) {
-      await Swal.fire({
-        title: `Error`,
-        text: 'This email has already been sent out to public and can not be deleted.',
-        icon: 'warning',
-      });
+    // Fast path; the API refuses it too. Sent and queued emails CAN be deleted: the API
+    // shifts prospects with the renumber, and the dialog below asks about queued sends.
+    if (this.dripCampaignStatus === 'active') {
+      await this.__pauseFirstNotice('Pause the campaign before deleting an email.');
       return;
     }
 
-    if(this.dripCampaignStatus === 'active') {
-      await Swal.fire({
-        title: `Error`,
-        text: 'Emails from an active drip campaign cannot be deleted.',
-        icon: 'warning',
-      });
-      return;
-    }
-
-    const confirmed = await this.__isConfirmed();
-    if (!confirmed) return;
-
-    this.deleteLoading = true;
     // If emailText is not present that means user created an empty email and delay field.
     // For that we need normal delete without any api call
     if (!this.emailText) {
-      this.deleteEmptyEmail(this.email);
+      if (await confirmDeleteEmail({ label: this.headerTitle })) this.deleteEmptyEmail(this.email);
       return;
     }
-    await this.__deleteEmail();
 
-    this.deleteLoading = false;
-    this.onDeleteUpdateEmail();
-  };
-
-  __deleteEmail = async () => {
-    const postData = {
-      dripCampaignId: this.dripCampaign.id,
-      drip_campaign_email_id: this.email.id,
-    };
-    console.log('email', this.email);
+    this.deleteLoading = true;
     try {
-      await this.dripCampaignService.deleteDripCampaignEmail(postData);
-      Swal.fire({
-        title: `Success`,
-        text: 'Email has been deleted.',
-        icon: 'success',
-      });
-    } catch (e) {
-      await Swal.fire({
-        title: `Error`,
-        text: e.getMessages(),
-        icon: 'warning',
-      });
+      await this.__confirmAndDelete();
+    } finally {
+      this.deleteLoading = false;
     }
   };
 
-  __isConfirmed = async (text = 'This action can not be undone.') => {
-    let isConfirm = await Swal.fire({
-      title: `Are you sure?`,
-      text: text,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Yes, Delete!',
+  /**
+   * Asks the API what deleting would affect, confirms with the user in those terms, then
+   * deletes. A 409 means the email was queued for more prospects after the dialog was
+   * built, so it checks again and asks again rather than cancelling sends unseen.
+   */
+  private __confirmAndDelete = async (): Promise<void> => {
+    let preview: IDripEmailDeletePreview;
+    try {
+      preview = await this.dripCampaignService.getDripEmailDeletePreview(
+        this.dripCampaign.id,
+        this.email.id,
+      );
+    } catch (e) {
+      await this.__errorNotice(e?.message);
+      return;
+    }
+    if (!preview.canDelete) {
+      await this.__pauseFirstNotice(preview.blockedReason);
+      return;
+    }
+
+    const confirmed = await confirmDeleteEmail({
+      label: this.headerTitle,
+      subject: this.emailText,
+      sentCount: preview.sentCount,
+      queuedCount: preview.queuedCount,
+    });
+    if (!confirmed) return;
+
+    let result: IDripEmailDeleteResult;
+    try {
+      result = await this.dripCampaignService.deleteDripCampaignEmail({
+        dripCampaignId: this.dripCampaign.id,
+        drip_campaign_email_id: this.email.id,
+        // The API cancels no more than this; if more were queued since, it answers 409.
+        confirmedQueuedCount: preview.queuedCount,
+      });
+    } catch (e) {
+      if (e?.statusCode === 409) {
+        await showDeleteNotice({
+          title: 'The queue changed',
+          text: 'More prospects were queued for this email since you opened this. Please confirm again.',
+          icon: 'fa-refresh',
+          button: 'Review again',
+        });
+        return this.__confirmAndDelete();
+      }
+      if (e?.statusCode === 400) {
+        await this.__pauseFirstNotice(e?.message);
+        return;
+      }
+      await this.__errorNotice(e?.message);
+      return;
+    }
+
+    showEmailDeleted({
+      label: this.headerTitle,
+      subject: this.emailText,
+      remaining: result.emails.length,
+      cancelled: result.cancelledQueueIds.length,
+    });
+    this.onDeleteUpdateEmail(result);
+  };
+
+  private __pauseFirstNotice = (text: string | null) =>
+    showDeleteNotice({
+      title: 'Pause the campaign first',
+      text: text || 'Pause the campaign before deleting an email.',
+      icon: 'fa-pause',
     });
 
-    return !isConfirm.dismiss;
-  };
+  private __errorNotice = (text?: string) =>
+    showDeleteNotice({
+      title: "Couldn't delete this email",
+      text: text || 'Something went wrong. Please try again.',
+      icon: 'fa-exclamation',
+    });
 
   deleteDisabled = () => {
     // this.disableTitle = "Email has been sent out to public and can not be changed";
     if (this.dripCampaignStatus === constants.COMPLETE) {
       return true;
     }
-    if (this.email['isEmailSent']) {
-      return true;
-    }
+    // No `isEmailSent` check: nothing in the API sets it, and a sent email may now be
+    // deleted (the API keeps every prospect on the right email).
     this.disableTitle = '';
     return this.deleteLoading;
   };

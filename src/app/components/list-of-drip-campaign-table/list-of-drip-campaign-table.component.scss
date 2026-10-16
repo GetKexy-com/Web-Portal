@@ -248,7 +248,7 @@ $st-blue-bg: #e7f6fe;
           vertical-align: middle;
           white-space: nowrap;
 
-          span {
+          span, a.text-link {
             font-size: 13.5px;
             display: inline-block;
             line-height: 1.4;
@@ -258,6 +258,7 @@ $st-blue-bg: #e7f6fe;
 
           .text-link {
             cursor: pointer;
+            text-decoration: none;
             &:hover { color: $kx-primary; text-decoration: underline; }
           }
 
@@ -508,7 +509,8 @@ $st-blue-bg: #e7f6fe;
 // the spare width for itself and push Lists back off the visible area — the exact
 // problem this was meant to fix. So the title keeps its ellipsis and a hard ceiling,
 // with the full text on hover via its existing `title` attribute.
-.kexy-table-card .n-table td.n-cell.title-cell > span {
+.kexy-table-card .n-table td.n-cell.title-cell > span,
+.kexy-table-card .n-table td.n-cell.title-cell > a.text-link {
   display: inline-block;
   max-width: 340px;
   overflow: hidden;
