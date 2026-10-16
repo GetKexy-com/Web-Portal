@@ -8,6 +8,7 @@ import { CampaignService } from './campaign.service';
 import { SseService } from './sse.service';
 import { DripCampaign, IRawDripCampaign } from '../models/DripCampaign';
 import { EnrollmentTriggers, IRawEnrollmentTrigger } from '../models/EnrollmentTriggers';
+import { IDripEmailDeletePreview, IDripEmailDeleteResult } from '../models/DripEmail';
 import {
   EmailSendFilter,
   ICampaignNextSends,
@@ -333,18 +334,49 @@ export class DripCampaignService {
     });
   };
 
-  deleteDripCampaignEmail = async (postData) => {
-    return new Promise(async (resolve, reject) => {
-      const url = `drip-campaigns/email/${postData.drip_campaign_email_id}`;
-      delete postData.drip_campaign_email_id;
-      this.httpService.delete(url, postData).subscribe({
-        next: () => resolve(true),
-        error: (err) => {
-          if (err.error) {
-            reject(err.error);
-          }
-        },
+  /**
+   * Deletes one email. The API renumbers the rest and shifts the campaign's prospects in the
+   * same transaction, and answers with the remaining emails and the new count.
+   *
+   * Rejects with `{ statusCode, message }`: 400 while the campaign is ACTIVE, 409 when more
+   * sends are queued than `confirmedQueuedCount` (the dialog's count; it then asks again).
+   */
+  deleteDripCampaignEmail = async (postData: {
+    drip_campaign_email_id: number;
+    dripCampaignId: number;
+    /** How many queued sends the user agreed to cancel: the count their dialog showed. */
+    confirmedQueuedCount?: number;
+  }): Promise<IDripEmailDeleteResult> => {
+    const { drip_campaign_email_id, ...body } = postData;
+    return new Promise((resolve, reject) => {
+      this.httpService.delete(`drip-campaigns/email/${drip_campaign_email_id}`, body).subscribe({
+        next: (res) => resolve(res.data),
+        // The error interceptor hands over the API's error body: `{ statusCode, error }`.
+        error: (err) =>
+          reject({
+            statusCode: err?.statusCode ?? 0,
+            message: (typeof err === 'string' ? err : err?.error) || 'The email could not be deleted.',
+          }),
       });
+    });
+  };
+
+  /** What the delete dialog shows: can it be deleted now, and how many sent / queued. */
+  getDripEmailDeletePreview = async (
+    dripCampaignId: number,
+    emailId: number,
+  ): Promise<IDripEmailDeletePreview> => {
+    return new Promise((resolve, reject) => {
+      this.httpService
+        .get(`drip-campaigns/${dripCampaignId}/emails/${emailId}/delete-preview`)
+        .subscribe({
+          next: (res) => resolve(res.data),
+          error: (err) =>
+            reject({
+              statusCode: err?.statusCode ?? 0,
+              message: (typeof err === 'string' ? err : err?.error) || 'Could not check this email.',
+            }),
+        });
     });
   };
 

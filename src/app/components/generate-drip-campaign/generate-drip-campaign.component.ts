@@ -17,7 +17,7 @@ import { SendCountdownComponent } from '../send-countdown/send-countdown.compone
 import { routeConstants } from '../../helpers/routeConstants';
 import { aiLeadMagnets } from '../../helpers/ai-email-payload';
 import { ActivatedRoute, Router } from '@angular/router';
-import { DripEmail, EmailDelay } from '../../models/DripEmail';
+import { DripEmail, EmailDelay, IDripEmailDeleteResult } from '../../models/DripEmail';
 import { SseService } from '../../services/sse.service';
 import { ProspectingService } from '../../services/prospecting.service';
 import { CampaignService } from '../../services/campaign.service';
@@ -1182,7 +1182,13 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
     });
   };
 
-  onDeleteUpdateEmail = async () => {
+  /**
+   * After an email is deleted. The API has already renumbered the remaining emails and
+   * shifted the campaign's prospects with them, in one transaction, so this only refetches
+   * the sequence to draw it. It used to renumber here with one request per email, which
+   * left a gap when one failed and never moved the prospects (they then skipped an email).
+   */
+  onDeleteUpdateEmail = async (result?: IDripEmailDeleteResult) => {
     const postData = {
       drip_campaign_id: this.dripCampaign.id,
       supplier_id: this.userData.supplier_id,
@@ -1190,13 +1196,7 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
     const drip: any = await this.dripCampaignService.getCampaign(postData);
 
     for (const email of drip.emails) {
-      const index = drip.emails.indexOf(email);
-      email.emailSequence = index + 1;
       email.delayBetweenPreviousEmail = JSON.parse(email.delayBetweenPreviousEmail);
-      await this.dripCampaignService.updateDripCampaignEmail({
-        drip_campaign_email_id: email.id,
-        emailSequence: email.emailSequence,
-      });
       const delay: EmailDelay = email.delayBetweenPreviousEmail;
       email.isSpintax = this.selectedEmailTemplate.key === constants.PROSPECT_INSIGHTS_KEY;
       email.templateOptions = this.selectedEmailTemplate.key;
@@ -1204,6 +1204,12 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
     }
 
     this.emails = drip.emails;
+    // The header count reads `dripCampaign.details`, which this refetch never touched, so
+    // it kept the pre-delete number. The API lowered the stored count (never below 1: it is
+    // also the count "Generate" creates) and returned it.
+    const count = result?.numberOfEmails ?? Math.max(drip.emails.length, 1);
+    this.dripCampaign.details.numberOfEmails = count;
+    this.numberOfEmail = count;
   };
 
   @ViewChild('emailSmoothScroll') private emailSmoothScroll: ElementRef;
