@@ -243,6 +243,7 @@ export class AddContactsToDripCampaignComponent implements OnInit, OnDestroy {
     if (reactivating) {
       const blocker = this.dripCampaignService.getActivationBlocker({
         emailCount: campaign.emails?.length ?? 0,
+        emails: campaign.emails,
         enrollListCount: (campaign.lists ?? []).filter((l) => l.type === 'enroll_list').length,
         smtpId: this.dripCampaignService.getSelectedSmtpId(campaign),
       });

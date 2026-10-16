@@ -18,6 +18,7 @@ import { routeConstants } from '../../helpers/routeConstants';
 import { aiLeadMagnets } from '../../helpers/ai-email-payload';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DripEmail, EmailDelay, IDripEmailDeleteResult } from '../../models/DripEmail';
+import { errorText, kxConfirm, kxNotice } from '../../helpers/kx-dialogs';
 import { SseService } from '../../services/sse.service';
 import { ProspectingService } from '../../services/prospecting.service';
 import { CampaignService } from '../../services/campaign.service';
@@ -1012,12 +1013,17 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
     // list or SMTP opens the settings canvas — both are on its Enrollment Triggers tab.
     const blocker = this.dripCampaignService.getActivationBlocker({
       emailCount: this.emails.length,
+      emails: this.emails,
       enrollListCount: this.getEnrolledList()?.length ?? 0,
       smtpId: this.__getSelectedSmtpId(),
     });
     if (blocker) {
       if (blocker.reason !== 'emails') this.openSettingsCanvas();
-      await Swal.fire({ title: `Error`, text: blocker.message, icon: 'warning' });
+      await kxNotice({
+        title: "Can't activate yet",
+        text: blocker.message,
+        icon: { emails: 'fa-envelope-o', lists: 'fa-list-ul', smtp: 'fa-server' }[blocker.reason],
+      });
       return;
     }
 
@@ -1236,16 +1242,14 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
     if (this.isResuming) return;
     if (!this.dripCampaign || this.dripCampaign.status !== constants.PAUSE) return;
 
-    const isConfirm = await Swal.fire({
-      title: 'Are you sure?',
-      text: 'This will resume the drip campaign and its scheduled emails.',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Yes, Resume!',
+    const confirmed = await kxConfirm({
+      title: 'Resume this campaign?',
+      text: 'Scheduled emails start sending again, and each prospect picks up where they left off.',
+      icon: 'fa-play',
+      confirmText: 'Resume campaign',
+      cancelText: 'Keep paused',
     });
-    if (isConfirm.dismiss) return;
+    if (!confirmed) return;
 
     const payload = {
       dripCampaignId: this.dripCampaign.id,
@@ -1265,6 +1269,7 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
 
     this.isResuming = true;
     const swal = this.pageUiService.showSweetAlertLoading();
+    let failure: unknown = null;
     try {
       swal.showLoading();
       await this.dripCampaignService.createOrUpdateDripCampaign(payload);
@@ -1275,12 +1280,26 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
       this.__syncScrapeProgressVisibility();
       this.__syncCampaignLiveNotice();
     } catch (e) {
-      Swal.fire('Error', e.message);
+      failure = e;
       console.error(e);
     } finally {
       this.isResuming = false;
       swal.close();
     }
+
+    // Shown AFTER the loading popup closes: both are the one SweetAlert, so an error
+    // fired inside `catch` was closed straight away by the `finally` above and the user
+    // never saw why the campaign stayed paused (e.g. a blank Template email).
+    if (failure) {
+      await kxNotice({ title: "Can't resume yet", text: errorText(failure), icon: 'fa-pause' });
+      return;
+    }
+    kxNotice({
+      title: 'Campaign resumed',
+      text: 'Scheduled emails will go out again in the next send window.',
+      icon: 'fa-play',
+      tone: 'success',
+    });
   };
 
 

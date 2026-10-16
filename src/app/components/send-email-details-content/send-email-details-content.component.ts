@@ -5,6 +5,7 @@ import { constants } from '../../helpers/constants';
 import { aiLeadMagnets, linkedinUsername } from '../../helpers/ai-email-payload';
 import { DripCampaignService } from '../../services/drip-campaign.service';
 import { DripEmail } from '../../models/DripEmail';
+import { emailHasContent } from '../../helpers/email-has-content';
 import Swal from 'sweetalert2';
 import { Subscription } from 'rxjs';
 import { SseService } from '../../services/sse.service';
@@ -35,6 +36,8 @@ export class SendEmailDetailsContentComponent implements OnInit, OnDestroy {
   public supplierId;
   public isLoading: boolean = false;
   public submitted: boolean = false;
+  /** Save was clicked with an empty body: shows "Email content is required!". */
+  public emptyBodyError = false;
   public emailContent;
   public emailSubject;
   public dripEmail: DripEmail;
@@ -218,11 +221,22 @@ export class SendEmailDetailsContentComponent implements OnInit, OnDestroy {
     // emailContent is a derived, one-way export: getHtml() inlines styles + wraps
     // the email shell so the styling survives in the recipient's inbox. It is sent
     // / previewed, never loaded back into the editor.
-    const rawEditorContent = this.editor?.getRawHtml() || this.emailContent;
+    //
+    // An email can't be saved with an empty body (the API refuses it too). Checked on the
+    // editor's own HTML: never `getRawHtml() || this.emailContent`, which swapped the body
+    // the drawer OPENED with in for an emptied editor, so the old email came back on reload.
+    // Shown inline under the editor, like "Subject line is required!". The editor has no
+    // public content-changed output, so it clears on the next Save that has content.
+    this.emptyBodyError = !!this.editor && !emailHasContent(this.editor.getRawHtml());
+    if (this.emptyBodyError) {
+      this.isLoading = false;
+      return;
+    }
+    const rawEditorContent = this.editor ? this.editor.getRawHtml() : this.emailContent;
     // getHtml() reflects the selected style (the editor's plainText @Input): HTML
     // style → the inlined email-shell document; Plain Text → the same un-shelled,
     // padded document the Preview shows, so preview and the inbox match exactly.
-    const emailContent = this.editor?.getHtml() || this.emailContent;
+    const emailContent = this.editor ? this.editor.getHtml() : this.emailContent;
     // Subject now lives in the editor; serialize it back to raw [tokens].
     this.emailSubject = this.editor?.getSubject() ?? this.emailSubject;
     this.dripEmail['emailSubject'] = this.emailSubject;
@@ -253,9 +267,13 @@ export class SendEmailDetailsContentComponent implements OnInit, OnDestroy {
       await this.dripCampaignService.updateDripCampaignEmail(postData);
       this.hideCanvas();
     } catch (e) {
+      // The service rejects with the API's message string. This used to call
+      // `e.getMessages()`, which does not exist, so the popup itself threw: a failed save
+      // showed nothing, and a reload then brought the old email back.
+      this.isLoading = false;
       await Swal.fire({
         title: `Error`,
-        text: e.getMessages(),
+        text: (typeof e === 'string' ? e : e?.message) || 'The email could not be saved.',
         icon: 'warning',
       });
     }

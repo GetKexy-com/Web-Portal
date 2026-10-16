@@ -673,6 +673,7 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
     if (reactivating) {
       const blocker = this.dripCampaignService.getActivationBlocker({
         emailCount: this.dripCampaign.emails?.length ?? 0,
+        emails: this.dripCampaign.emails,
         enrollListCount: newEnrollListIds.length + previousEnrollListIds.length,
         smtpId: this.selectedSmtpId,
       });
