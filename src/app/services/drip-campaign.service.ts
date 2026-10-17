@@ -17,6 +17,14 @@ import {
   IEmailSendProgress,
 } from '../models/EmailSendProgress';
 
+/** A contact offered in "Send test campaign" to fill the merge tags with. */
+export interface ITestProspect {
+  contactId: number;
+  name: string;
+  email: string;
+  company: string | null;
+}
+
 /** Campaigns per `GET drip-campaigns/next-sends` — the API's own cap (`NEXT_SENDS_MAX_CAMPAIGNS`). */
 const NEXT_SENDS_BATCH = 100;
 
@@ -391,6 +399,19 @@ export class DripCampaignService {
             }),
         });
     });
+  };
+
+  /**
+   * Contacts to fill a test email's merge tags with: the campaign's enroll-list contacts,
+   * oldest first (the first is the default), filtered by name / email / company.
+   */
+  getTestProspects = async (
+    campaignId: number,
+    search = '',
+  ): Promise<{ prospects: ITestProspect[]; total: number }> => {
+    const query = `search=${encodeURIComponent(search)}&limit=20`;
+    const res: any = await this.httpService.get(`drip-campaigns/${campaignId}/test-prospects?${query}`).toPromise();
+    return { prospects: res?.data?.prospects ?? [], total: res?.data?.total ?? 0 };
   };
 
   testDripCampaignEmail = async (postData) => {

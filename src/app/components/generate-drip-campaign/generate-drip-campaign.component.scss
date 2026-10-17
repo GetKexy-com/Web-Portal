@@ -1025,6 +1025,130 @@ $tm-red-bg: #fdeaea;
   color: $tm-red;
 }
 
+// Prospect picker: whose details fill the merge tags in the test emails.
+.tm-label--gap {
+  margin-top: 18px;
+}
+
+.tm-hint {
+  margin: 8px 0 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: $tm-muted;
+
+  i {
+    margin-right: 4px;
+  }
+}
+
+.tm-hint--row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+
+  .tm-link-btn {
+    margin-left: auto;
+  }
+}
+
+.tm-prospect {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid $tm-border;
+  border-radius: 10px;
+  background: $tm-field-bg;
+}
+
+.tm-prospect-avatar {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #e8f1fe;
+  color: $tm-primary-deep;
+}
+
+.tm-prospect-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.tm-prospect-name {
+  overflow: hidden;
+  font-size: 14px;
+  font-weight: 600;
+  color: $tm-ink;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.tm-prospect-meta {
+  overflow: hidden;
+  font-size: 12.5px;
+  color: $tm-muted;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.tm-link-btn {
+  flex-shrink: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: 13px;
+  font-weight: 600;
+  color: $tm-primary-deep;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.tm-prospect-list {
+  max-height: 220px;
+  margin: 8px 0 0;
+  padding: 4px;
+  overflow-y: auto;
+  border: 1px solid $tm-border;
+  border-radius: 10px;
+  list-style: none;
+
+  .tm-hint {
+    margin: 0;
+    padding: 8px;
+  }
+}
+
+.tm-prospect-option {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-width: 0;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    background: $tm-field-bg;
+  }
+
+  &.is-selected {
+    background: #e8f1fe;
+  }
+}
+
 .tm-foot {
   display: flex;
   align-items: center;

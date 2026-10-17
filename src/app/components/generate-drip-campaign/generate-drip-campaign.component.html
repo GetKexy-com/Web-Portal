@@ -412,6 +412,76 @@
         <i class="fa fa-exclamation-circle" aria-hidden="true"></i>
         Please enter a valid email address.
       </p>
+
+      <!--Whose details fill the merge tags. Defaults to the first contact on the enrollment
+          lists; "Change" opens a search over the same contacts.-->
+      <p class="tm-label tm-label--gap">Fill merge tags with</p>
+
+      @if (isLoadingTestProspects && !selectedTestProspect && !isPickingTestProspect) {
+        <p class="tm-hint"><i class="fa fa-refresh fa-spin" aria-hidden="true"></i> Loading prospects…</p>
+      } @else if (!selectedTestProspect && !isPickingTestProspect) {
+        <p class="tm-hint">
+          No contacts on this campaign's enrollment lists yet, so merge tags like [receiver_first_name] will use
+          their fallback text.
+        </p>
+      } @else if (!isPickingTestProspect) {
+        <div class="tm-prospect">
+          <span class="tm-prospect-avatar" aria-hidden="true"><i class="fa fa-user-o"></i></span>
+          <span class="tm-prospect-text">
+            <span class="tm-prospect-name">{{ selectedTestProspect.name || selectedTestProspect.email }}</span>
+            <span class="tm-prospect-meta">
+              {{ selectedTestProspect.email }}@if (selectedTestProspect.company) { · {{ selectedTestProspect.company }} }
+            </span>
+          </span>
+          <button type="button" class="tm-link-btn" (click)="isPickingTestProspect = true">Change</button>
+        </div>
+        <p class="tm-hint">
+          @if (selectedTestProspect.contactId === defaultTestProspectId) {
+            We'll fill merge tags like [receiver_first_name] with the first prospect on your enrollment list. Change
+            it to test with someone else.
+          } @else {
+            Merge tags like [receiver_first_name] will be filled with this prospect's details.
+          }
+        </p>
+      } @else {
+        <div class="tm-field">
+          <i class="fa fa-search" aria-hidden="true"></i>
+          <input
+            type="search"
+            placeholder="Search by name, email or company"
+            aria-label="Search prospects"
+            [value]="testProspectSearch"
+            (input)="onTestProspectSearch($any($event.target).value)"
+            (keydown.enter)="$event.preventDefault()"
+          />
+          @if (isLoadingTestProspects) {
+            <i class="fa fa-refresh fa-spin" aria-hidden="true"></i>
+          }
+        </div>
+        <ul class="tm-prospect-list">
+          @for (p of testProspects; track p.contactId) {
+            <li>
+              <button
+                type="button"
+                class="tm-prospect-option"
+                [class.is-selected]="p.contactId === selectedTestProspect?.contactId"
+                (click)="pickTestProspect(p)"
+              >
+                <span class="tm-prospect-name">{{ p.name || p.email }}</span>
+                <span class="tm-prospect-meta">{{ p.email }}@if (p.company) { · {{ p.company }} }</span>
+              </button>
+            </li>
+          } @empty {
+            <li class="tm-hint">No prospects match "{{ testProspectSearch }}".</li>
+          }
+        </ul>
+        <p class="tm-hint tm-hint--row">
+          @if (testProspectsTotal > testProspects.length) {
+            <span>Showing {{ testProspects.length }} of {{ testProspectsTotal }}. Search to find others.</span>
+          }
+          <button type="button" class="tm-link-btn" (click)="isPickingTestProspect = false">Cancel</button>
+        </p>
+      }
     </div>
 
     <div class="tm-foot">
