@@ -21,70 +21,94 @@
       </div>
     </div>
 
-    <!--Super charged: the one thing on this dialog meant to catch the eye. The header row
-        is the switch (a click anywhere on it flips it); "What is Super charged?" is a
-        separate disclosure, so the card itself can't be one button.-->
-    <div class="ad-boost" [class.is-on]="superCharged">
-      <button
-        type="button"
-        class="ad-boost-head"
-        role="switch"
-        [attr.aria-checked]="superCharged"
-        (click)="toggleSuperCharged()"
-      >
-        <span class="ad-boost-icon" aria-hidden="true"><i class="fa fa-bolt"></i></span>
-        <span class="ad-boost-title">
-          Super charged
-          <span class="ad-boost-badge">New</span>
-        </span>
-        <span class="ad-switch" aria-hidden="true"><span class="ad-switch-knob"></span></span>
-      </button>
+    <!--Supercharged card — ported 1:1 from the client's supercharged-card.{html,css,js}.
+        Only the switch flips the setting; the accordion is a separate disclosure.-->
+    <section class="sc-card" [class.is-on]="superCharged" aria-labelledby="sc-title">
+      <!--Header: icon, name, NEW badge, toggle-->
+      <div class="sc-header">
+        <div class="sc-icon" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z" /></svg>
+        </div>
+        <div class="sc-name">
+          <span id="sc-title" class="sc-title">Supercharged</span>
+          <span class="sc-badge">NEW</span>
+        </div>
+        <button
+          type="button"
+          class="sc-toggle"
+          role="switch"
+          [attr.aria-checked]="superCharged"
+          aria-label="Turn Supercharged on or off"
+          (click)="toggleSuperCharged()"
+        >
+          <span class="sc-toggle-knob"></span>
+        </button>
+      </div>
 
-      <p class="ad-boost-desc">
-        <strong>Every email feels like you researched the prospect that morning</strong> — no matter where they
-        are in the campaign sequence.
-      </p>
+      <!--Headline-->
+      <div class="sc-headline">
+        <h2>Every email, freshly researched.</h2>
+        <p>Even email #5 reads like you looked them up that morning.</p>
+      </div>
 
-      <button
-        type="button"
-        class="ad-boost-more"
-        [attr.aria-expanded]="showDetails"
-        aria-controls="ad-boost-details"
-        (click)="toggleDetails()"
-      >
-        What is Super charged?
-        <i class="fa fa-angle-down" [class.is-open]="showDetails" aria-hidden="true"></i>
-      </button>
-
-      <div class="ad-boost-details" id="ad-boost-details" *ngIf="showDetails">
-        <p class="ad-boost-explain">
-          While your campaign runs, we keep re-scraping every contact — profile, company news, socials, job
-          listings — so each email is written against what was true <strong>that morning</strong>.
-        </p>
-
-        <ul class="ad-sources">
-          <li *ngFor="let source of sources" class="ad-source">
-            <i class="fa" [ngClass]="source.icon" aria-hidden="true"></i>
-            {{ source.label }}
-          </li>
-        </ul>
-
-        <p class="ad-boost-callout">
-          <i class="fa fa-bolt" aria-hidden="true"></i>
-          <span>
-            The latest prospect intelligence at the right moment could be the difference between
-            <em>winning the deal</em> or watching a competitor take it.
-          </span>
+      <!--"What is Supercharged?" accordion-->
+      <div class="sc-accordion">
+        <button
+          type="button"
+          class="sc-accordion-btn"
+          [attr.aria-expanded]="showDetails"
+          aria-controls="sc-accordion-panel"
+          (click)="toggleDetails()"
+        >
+          What is Supercharged?
+          <svg class="sc-caret" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 15 6-6 6 6" /></svg>
+        </button>
+        <p class="sc-accordion-panel" id="sc-accordion-panel" *ngIf="showDetails">
+          Right before each email in your sequence goes out, we refresh that contact's signals, so it's written
+          against what's true <strong>today</strong>, not what was true at launch.
         </p>
       </div>
-    </div>
+
+      <!--Signals: the chip matching the current example lights up while on.-->
+      <div class="sc-signals">
+        <span class="sc-eyebrow" id="sc-signals-label">{{ signals.length }} live signals · refreshed before every send</span>
+        <ul class="sc-chips" aria-labelledby="sc-signals-label">
+          <li *ngFor="let signal of signals" class="sc-chip" [class.is-active]="superCharged && signal === example.src">
+            {{ signal }}
+          </li>
+        </ul>
+      </div>
+
+      <!--Live example: rotates every ROTATE_MS while on. The single-item @for re-creates the
+          row on each change so its entrance animation replays.-->
+      <div class="sc-example" aria-live="polite">
+        <div class="sc-example-head">
+          <span class="sc-pulse" aria-hidden="true"></span>
+          <span class="sc-eyebrow sc-eyebrow--accent">Caught this morning</span>
+          <span class="sc-example-tag">Example</span>
+        </div>
+        @for (ex of [example]; track ex) {
+          <div class="sc-example-row is-entering">
+            <div class="sc-caught"><strong>{{ ex.who }}</strong> {{ ex.caught }}</div>
+            <svg class="sc-arrow" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+            <div class="sc-used"><strong>{{ ex.email }}</strong> {{ ex.used }}</div>
+          </div>
+        }
+      </div>
+
+      <!--Callout-->
+      <div class="sc-callout">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z" /></svg>
+        <p><span>Fresh intel wins deals.</span> Stale intel hands them to competitors.</p>
+      </div>
+    </section>
   </div>
 
   <div class="modal-foot">
     <button type="button" class="ghost-btn" (click)="activeModal.dismiss()">Cancel</button>
     <button type="button" class="primary-btn" [class.is-charged]="superCharged" (click)="activate()" ngbAutofocus>
       <i class="fa" [ngClass]="superCharged ? 'fa-bolt' : 'fa-rocket'" aria-hidden="true"></i>
-      {{ superCharged ? 'Activate super charged' : 'Activate campaign' }}
+      {{ superCharged ? 'Activate Supercharged' : 'Activate campaign' }}
     </button>
   </div>
 </div>

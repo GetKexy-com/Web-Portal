@@ -992,7 +992,7 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Whether the campaign was activated "Super charged" — the `super_charged` setting
+   * Whether the campaign was activated "Supercharged" — the `super_charged` setting
    * (`[{ value: boolean }]`), written by KexyApi on activate. Drives the card at the top
    * of the page and the activate dialog's starting toggle.
    */
@@ -1143,12 +1143,15 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
   };
 
   __isConfirmed = async (): Promise<IActivateDripResult | null> => {
-    const ref = this.modal.open(ActivateDripModalComponent, { windowClass: 'kx-dialog-modal', centered: true });
+    const ref = this.modal.open(ActivateDripModalComponent, {
+      windowClass: 'kx-dialog-modal kx-activate-modal',
+      centered: true,
+    });
     const modal = ref.componentInstance as ActivateDripModalComponent;
     modal.campaignTitle = this.dripCampaign?.details?.title?.title ?? '';
     modal.emailCount = this.emails.length;
     modal.listCount = this.getEnrolledList()?.length ?? 0;
-    // Re-activating a super-charged campaign starts with the toggle on.
+    // Re-activating a Supercharged campaign starts with the toggle on.
     modal.superCharged = this.isSuperCharged();
 
     try {

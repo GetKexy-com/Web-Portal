@@ -24,9 +24,9 @@ export function readDripSetting(settings: any[] | null | undefined, settingsType
 }
 
 /**
- * The activate dialog's "Super charged" toggle (`super_charged` setting). No row = off.
+ * The activate dialog's "Supercharged" toggle (`super_charged` setting). No row = off.
  * Shown on the campaign page and in the dialog only: the AI email payloads carry no
- * `supercharge` flag (the lambda ignores it since 2026-10-09). Super charged is applied on
+ * `supercharge` flag (the lambda ignores it since 2026-10-09). Supercharged is applied on
  * the server, which re-scrapes LinkedIn before each email (KexyApi `super-charged.ts`).
  */
 export function isSuperChargedSetting(settings: any[] | null | undefined): boolean {

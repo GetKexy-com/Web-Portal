@@ -11,12 +11,9 @@ $kx-field-bg: #f7f9fc;
 $kx-red: #dc2626;
 $kx-red-bg: #fdeaea;
 
-// "Super charged" — warm amber → orange, the only warm colour on the dialog so it is
-// what the eye lands on.
+// Warm amber → orange for the "Activate Supercharged" button.
 $kx-bolt: #f59e0b;
 $kx-bolt-deep: #ea580c;
-$kx-bolt-bg: #fff8eb;
-$kx-bolt-ink: #9a3412;
 
 .ad-modal {
   display: flex;
@@ -124,252 +121,193 @@ $kx-bolt-ink: #9a3412;
   color: $kx-muted;
 }
 
-// ── Super charged ─────────────────────────────────────────────────────────────
-// A gradient border (padding-box/border-box trick) plus a slow glow, so it reads as the
-// highlight of the dialog even while off. Warmer and still once switched on.
-.ad-boost {
+// ── Supercharged card ─────────────────────────────────────────────────────────
+// Ported verbatim from the client's supercharged-card.css — keep it 1:1 with that file
+// rather than restyling. Only change: the brand tokens live on `.sc-card` instead of
+// `:root`, since `:root` can't be reached from an encapsulated component stylesheet.
+.ad-body .sc-card {
   margin-top: 16px;
-  padding: 14px 16px;
-  border: 2px solid transparent;
-  border-radius: 14px;
-  background:
-    linear-gradient($kx-bolt-bg, $kx-bolt-bg) padding-box,
-    linear-gradient(135deg, $kx-bolt, $kx-bolt-deep, #f43f5e) border-box;
-  animation: ad-boost-glow 2.4s ease-in-out infinite;
-  transition: background 0.2s ease;
-
-  &.is-on {
-    background:
-      linear-gradient(135deg, #fff3e6, #ffeadb) padding-box,
-      linear-gradient(135deg, #fdba74, #fb923c, #fda4af) border-box;
-    animation: none;
-    box-shadow: 0 10px 26px -12px rgba(234, 88, 12, 0.45);
-  }
 }
 
-@keyframes ad-boost-glow {
-  0%,
-  100% {
-    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.35);
-  }
-  50% {
-    box-shadow: 0 0 0 6px rgba(245, 158, 11, 0);
-  }
-}
+/* ---------- Card ---------- */
+.sc-card {
+  --sc-orange: #EA580C;         /* feature accent (icon, toggle, active chip) */
+  --sc-orange-dark: #C2410C;    /* text-safe orange (badge, links, eyebrow) */
+  --sc-orange-deep: #9A3412;    /* active chip text */
+  --sc-orange-tint: #FFF1E6;    /* active chip fill */
+  --sc-orange-border: #FDBA74;  /* card border when on */
+  --sc-card-on: #FFFAF6;        /* card fill when on */
 
-// Header row = the switch: icon, title + badge, toggle on the right.
-.ad-boost-head {
+  --sc-blue: #0F5BD8;           /* platform blue */
+  --sc-blue-tint: #EEF4FF;
+  --sc-blue-border: #D6E4FF;
+
+  --sc-ink: #1E293B;            /* headings / body */
+  --sc-ink-2: #334155;          /* chip text */
+  --sc-muted: #475569;          /* sub copy */
+  --sc-faint: #64748B;          /* eyebrows, tags */
+  --sc-line: #E2E8F0;           /* borders */
+  --sc-dot: #CBD5E1;            /* inactive chip dot / toggle off */
+
+  --sc-font: 'Lato', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  box-sizing: border-box;
+  max-width: 680px;
+  padding: 26px 28px 24px;
+  border-radius: 16px;
+  border: 1.5px solid var(--sc-line);
+  background: #FFFFFF;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
   display: flex;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-  padding: 0;
-  border: 0;
-  background: none;
-  text-align: left;
-  cursor: pointer;
+  flex-direction: column;
+  gap: 18px;
+  font-family: var(--sc-font);
+  color: var(--sc-ink);
+  transition: background .25s, border-color .25s;
+}
+.sc-card.is-on {
+  background: var(--sc-card-on);
+  border-color: var(--sc-orange-border);
+}
+.sc-card *, .sc-card *::before, .sc-card *::after { box-sizing: border-box; }
+.sc-card button { font-family: inherit; }
 
-  &:focus-visible {
-    outline: 3px solid rgba(245, 158, 11, 0.45);
-    outline-offset: 4px;
-    border-radius: 10px;
-  }
+/* ---------- Header ---------- */
+.sc-header { display: flex; align-items: center; gap: 14px; }
+.sc-icon {
+  width: 46px; height: 46px; flex-shrink: 0;
+  border-radius: 12px;
+  background: var(--sc-orange);
+  color: #FFFFFF;
+  display: flex; align-items: center; justify-content: center;
+}
+.sc-name { display: flex; align-items: center; gap: 10px; flex-grow: 1; }
+.sc-title { font-size: 22px; font-weight: 900; }
+.sc-badge {
+  font-size: 11px; font-weight: 900; letter-spacing: .8px;
+  color: #FFFFFF; background: var(--sc-orange-dark);
+  padding: 4px 9px; border-radius: 999px;
 }
 
-.ad-boost-icon {
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  background: linear-gradient(135deg, $kx-bolt, $kx-bolt-deep);
-  color: #fff;
-  font-size: 17px;
-  box-shadow: 0 6px 16px -6px rgba(234, 88, 12, 0.7);
+/* Toggle switch */
+.sc-toggle {
+  width: 58px; height: 32px; padding: 3px; flex-shrink: 0;
+  border: none; border-radius: 999px; cursor: pointer;
+  background: var(--sc-dot);
+  display: flex; align-items: center;
+  transition: background .2s;
+}
+.sc-toggle-knob {
+  width: 26px; height: 26px; border-radius: 999px;
+  background: #FFFFFF; box-shadow: 0 1px 3px rgba(0, 0, 0, .25);
+  transition: transform .2s;
+}
+.sc-card.is-on .sc-toggle { background: var(--sc-orange); }
+.sc-card.is-on .sc-toggle-knob { transform: translateX(26px); }
+.sc-toggle:focus-visible,
+.sc-accordion-btn:focus-visible { outline: 2px solid var(--sc-blue); outline-offset: 3px; }
 
-  .is-on & i {
-    animation: ad-bolt-zap 1.6s ease-in-out infinite;
-  }
+/* ---------- Headline ---------- */
+.sc-headline { display: flex; flex-direction: column; gap: 4px; }
+.sc-headline h2 { margin: 0; font-size: 26px; font-weight: 900; line-height: 1.15; }
+.sc-headline p { margin: 0; font-size: 16px; line-height: 1.45; color: var(--sc-muted); }
+
+/* ---------- Accordion ---------- */
+.sc-accordion { display: flex; flex-direction: column; gap: 8px; }
+.sc-accordion-btn {
+  align-self: flex-start;
+  display: flex; align-items: center; gap: 6px;
+  min-height: 28px; padding: 0;
+  background: none; border: none; cursor: pointer;
+  font-size: 15px; font-weight: 700; color: var(--sc-orange-dark);
+}
+.sc-caret { transform: rotate(180deg); transition: transform .2s; }  /* closed = pointing down */
+.sc-accordion-btn[aria-expanded="true"] .sc-caret { transform: rotate(0deg); }
+.sc-accordion-panel {
+  margin: 0; font-size: 15px; line-height: 1.5; color: var(--sc-muted);
+  animation: sc-in .35s ease-out;
+}
+.sc-accordion-panel strong { color: var(--sc-ink); }
+
+/* ---------- Signals ---------- */
+.sc-signals { display: flex; flex-direction: column; gap: 10px; }
+.sc-eyebrow {
+  font-size: 12px; font-weight: 900; letter-spacing: .9px;
+  text-transform: uppercase; color: var(--sc-faint);
+}
+.sc-eyebrow--accent { color: var(--sc-orange-dark); }
+.sc-chips { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.sc-chip {
+  display: flex; align-items: center; gap: 7px;
+  padding: 7px 12px; border-radius: 999px;
+  font-size: 14px; font-weight: 700;
+  background: #FFFFFF; border: 1px solid var(--sc-line); color: var(--sc-ink-2);
+  transition: background .3s, border-color .3s, color .3s;
+}
+.sc-chip::before {
+  content: ''; width: 7px; height: 7px; border-radius: 999px;
+  background: var(--sc-dot); transition: background .3s;
+}
+.sc-chip.is-active {
+  background: var(--sc-orange-tint); border-color: var(--sc-orange); color: var(--sc-orange-deep);
+}
+.sc-chip.is-active::before { background: var(--sc-orange); }
+
+/* ---------- Live example ---------- */
+.sc-example {
+  background: #FFFFFF; border: 1px solid var(--sc-line); border-radius: 12px;
+  padding: 14px 16px; display: flex; flex-direction: column; gap: 10px;
+}
+.sc-example-head { display: flex; align-items: center; gap: 8px; }
+.sc-pulse {
+  width: 8px; height: 8px; border-radius: 999px; background: var(--sc-orange);
+  animation: sc-pulse 1.8s infinite;
+}
+.sc-example-tag { margin-left: auto; font-size: 12px; color: var(--sc-faint); }
+.sc-example-row {
+  display: grid; grid-template-columns: minmax(0, 1fr) 28px minmax(0, 1fr);
+  align-items: center; gap: 10px;
+  font-size: 15px; line-height: 1.4;
+}
+.sc-example-row.is-entering { animation: sc-in .45s ease-out; }
+.sc-arrow { color: var(--sc-blue); }
+.sc-used { background: var(--sc-blue-tint); border-radius: 8px; padding: 8px 10px; }
+.sc-used strong { color: var(--sc-blue); }
+
+/* ---------- Callout ---------- */
+.sc-callout {
+  margin-top: 10px;  /* 18px gap + 10px = 28px breathing room above */
+  display: flex; align-items: center; gap: 12px;
+  padding: 13px 16px; border-radius: 12px;
+  background: var(--sc-blue-tint); border: 1px solid var(--sc-blue-border);
+}
+.sc-callout svg { flex-shrink: 0; color: var(--sc-orange); }
+.sc-callout p { margin: 0; font-size: 16px; font-weight: 700; line-height: 1.35; }
+.sc-callout p span { color: var(--sc-blue); }
+
+/* ---------- Off state: mute the "live" accents ---------- */
+.sc-card:not(.is-on) .sc-pulse { animation: none; background: var(--sc-dot); }
+
+/* ---------- Animations ---------- */
+@keyframes sc-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(234, 88, 12, .55); }
+  70%  { box-shadow: 0 0 0 7px rgba(234, 88, 12, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(234, 88, 12, 0); }
+}
+@keyframes sc-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sc-pulse, .sc-example-row.is-entering, .sc-accordion-panel { animation: none; }
 }
 
-@keyframes ad-bolt-zap {
-  0%,
-  100% {
-    transform: scale(1);
-    text-shadow: none;
-  }
-  50% {
-    transform: scale(1.15);
-    text-shadow: 0 0 8px rgba(255, 255, 255, 0.9);
-  }
-}
-
-.ad-boost-title {
-  flex: 1;
-  min-width: 0;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 15px;
-  font-weight: 800;
-  color: $kx-bolt-deep;
-}
-
-.ad-boost-badge {
-  padding: 1px 7px;
-  border-radius: 999px;
-  background: $kx-bolt-deep;
-  color: #fff;
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-// The switch itself — display only; the header row is the button.
-.ad-switch {
-  flex-shrink: 0;
-  position: relative;
-  width: 44px;
-  height: 24px;
-  border-radius: 999px;
-  background: #cbd5e1;
-  transition: background 0.2s ease;
-
-  .is-on & {
-    background: linear-gradient(135deg, $kx-bolt, $kx-bolt-deep);
-  }
-}
-
-.ad-switch-knob {
-  position: absolute;
-  top: 3px;
-  left: 3px;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: #fff;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.3);
-  transition: transform 0.2s ease;
-
-  .is-on & {
-    transform: translateX(20px);
-  }
-}
-
-.ad-boost-desc {
-  margin: 10px 0 0;
-  font-size: 13px;
-  line-height: 1.5;
-  color: $kx-body;
-
-  strong {
-    font-weight: 700;
-    color: $kx-bolt-deep;
-  }
-}
-
-// "What is Super charged?" — a quiet text toggle; the chevron flips when open.
-.ad-boost-more {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 8px;
-  padding: 0;
-  border: 0;
-  background: none;
-  font-size: 12.5px;
-  font-weight: 700;
-  color: $kx-bolt-ink;
-  cursor: pointer;
-
-  &:hover {
-    color: $kx-bolt-deep;
-  }
-
-  &:focus-visible {
-    outline: 2px solid rgba(245, 158, 11, 0.5);
-    outline-offset: 2px;
-    border-radius: 4px;
-  }
-
-  i {
-    font-size: 14px;
-    transition: transform 0.2s ease;
-
-    &.is-open {
-      transform: rotate(180deg);
-    }
-  }
-}
-
-.ad-boost-details {
-  margin-top: 10px;
-}
-
-.ad-boost-explain {
-  margin: 0;
-  font-size: 12.5px;
-  line-height: 1.55;
-  color: $kx-muted;
-
-  strong {
-    font-weight: 700;
-    color: $kx-ink;
-  }
-}
-
-.ad-sources {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin: 12px 0 0;
-  padding: 0;
-  list-style: none;
-}
-
-.ad-source {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
-  border: 1px solid #fde4cf;
-  border-radius: 999px;
-  background: #fff;
-  font-size: 12px;
-  font-weight: 600;
-  color: $kx-ink;
-
-  i {
-    color: $kx-bolt-deep;
-  }
-}
-
-.ad-boost-callout {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  margin: 12px 0 0;
-  padding: 10px 12px;
-  border-left: 3px solid $kx-bolt-deep;
-  border-radius: 10px;
-  background: #fff;
-  font-size: 12.5px;
-  font-weight: 600;
-  line-height: 1.5;
-  color: $kx-ink;
-
-  i {
-    margin-top: 3px;
-    color: $kx-bolt-deep;
-  }
-
-  em {
-    font-style: normal;
-    color: $kx-bolt-deep;
-  }
+/* ---------- Narrow screens ---------- */
+@media (max-width: 560px) {
+  .sc-card { padding: 20px; }
+  .sc-headline h2 { font-size: 22px; }
+  .sc-example-row { grid-template-columns: 1fr; }
+  .sc-arrow { transform: rotate(90deg); }
 }
 
 // ── Foot ──────────────────────────────────────────────────────────────────────
@@ -423,17 +361,6 @@ $kx-bolt-ink: #9a3412;
     &:hover {
       filter: brightness(1.05);
     }
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .ad-boost,
-  .ad-boost-icon i {
-    animation: none !important;
-  }
-
-  .ad-boost-more i {
-    transition: none;
   }
 }
 
