@@ -8,6 +8,7 @@ import { KexyButtonComponent } from '../kexy-button/kexy-button.component';
 import { PageUiService } from '../../services/page-ui.service';
 import { EMAIL_FRAME_IMAGE_CSS } from '../email-send-progress/email-send-progress.component';
 import { AuthService } from '../../services/auth.service';
+import { inboxHtmlOptions, toInboxHtml } from '../../helpers/inbox-html';
 import { emailHasContent } from '../../helpers/email-has-content';
 
 @Component({
@@ -42,10 +43,9 @@ export class PreviewDripEmailContentComponent implements OnInit, AfterViewInit {
   // True when emailContent is already a full <html> document (the editor's
   // getHtml() export) — such content must NOT be re-wrapped in the shell.
   private isFullDocument = false;
-  // Plain Text style → the fragment fallback wraps WITHOUT the email-table shell
-  // (matches the editor). Defaults to plain text (mirrors the editor's default)
-  // unless the email is explicitly 'html'.
-  private isPlainText = false;
+  // How KexyApi sends this email (`inboxHtmlOptions`): Plain Text unless it is a Template
+  // email styled HTML (an AI-written one is always Plain Text), and user-written = Template.
+  private inboxOptions = { plainText: true, userWritten: false };
 
   constructor(
     public activeCanvas: NgbActiveOffcanvas,
@@ -57,7 +57,10 @@ export class PreviewDripEmailContentComponent implements OnInit, AfterViewInit {
 
   ngOnInit(): void {
     this.dripEmail = this.dripCampaignService.getEditEmail();
-    this.isPlainText = (this.dripEmail['emailStyle'] || 'plain_text') === 'plain_text';
+    this.inboxOptions = inboxHtmlOptions({
+      emailStyle: this.dripEmail['emailStyle'],
+      templateOptions: this.dripEmail['templateOptions'],
+    });
     this.__initSenderInfo();
     this.spinEmail();
   }
@@ -139,12 +142,40 @@ export class PreviewDripEmailContentComponent implements OnInit, AfterViewInit {
     if (!this.viewReady) return;
     const iframe = this.previewFrameRef?.nativeElement;
     if (!iframe) return;
-    // A full email-shell document (getHtml) is rendered as-is (just add the
-    // preview <base target>); a fragment (rawEditorContent / aiRawData) gets
-    // wrapped in the shell.
+    // The body goes through the same steps KexyApi runs on the way out (`toInboxHtml`), so
+    // this shows what the inbox gets: a Plain Text email as a typed message, no editor padding.
+    const sent = toInboxHtml(this.emailContent, this.inboxOptions);
+    if (this.inboxOptions.plainText) {
+      iframe.srcdoc = this.__buildInboxPreviewHtml(this.emailSubject, sent);
+      return;
+    }
+    // HTML style (designed): a full email-shell document (getHtml) is rendered as-is (just
+    // add the preview <base target>); a fragment (rawEditorContent) gets wrapped in the shell.
     iframe.srcdoc = this.isFullDocument
-      ? this.__withPreviewLinkTarget(this.emailContent)
-      : this.__buildPreviewHtml(this.emailSubject, this.emailContent);
+      ? this.__withPreviewLinkTarget(sent)
+      : this.__buildPreviewHtml(this.emailSubject, sent);
+  }
+
+  /**
+   * A Plain Text email as an inbox shows it: the typed message on the mail app's own default
+   * text (Gmail's: Arial, "small", #222) — an AI-written email sets no font, so this is what a
+   * prospect sees; a Template email's own styles override it. The side gutter lines the body
+   * up with the subject row above, as a mail app's reading pane does; it is not the email's.
+   */
+  private __buildInboxPreviewHtml(subject: string, body: string): string {
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <base target="_blank" rel="noopener noreferrer" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>${this.__escapeHtml(subject || 'Email')}</title>
+  <style>${EMAIL_FRAME_IMAGE_CSS}</style>
+</head>
+<body style="margin:0; padding:16px 28px; background:#ffffff; font-family:Arial, Helvetica, sans-serif; font-size:small; color:#222222;">
+${(body || '').trim() || '<p>&nbsp;</p>'}
+</body>
+</html>`;
   }
 
   /**
@@ -174,17 +205,6 @@ export class PreviewDripEmailContentComponent implements OnInit, AfterViewInit {
        so this preview matches the prospect's inbox. -->
   <style>${EMAIL_FRAME_IMAGE_CSS}</style>
 </head>`;
-
-    // Plain Text style: mirror the editor's plainText export — no email-table
-    // shell, just the design canvas's 14px padding + base type. Keeps this modal
-    // and the editor preview identical for plain-text emails.
-    if (this.isPlainText) {
-      return `${head}
-<body style="margin:0; padding:14px; background:#ffffff; font-family:Arial, Helvetica, sans-serif; font-size:14px; line-height:1.6; color:#1f2937;">
-${safeBody}
-</body>
-</html>`;
-    }
 
     return `${head}
 <body style="margin:0; padding:0; background:#f3f4f6;">

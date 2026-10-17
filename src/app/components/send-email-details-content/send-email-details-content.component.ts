@@ -136,7 +136,9 @@ export class SendEmailDetailsContentComponent implements OnInit, OnDestroy {
     }
 
     // Set email style (defaults to Plain Text Email)
-    const emailStyle = this.dripEmail['emailStyle'];
+    // Only a Template email has a style choice: an AI-written one (Spintax / Prospect
+    // Insights) is always plain paragraphs, so it is always Plain Text (index 0).
+    const emailStyle = this.isTemplateEmail ? this.dripEmail['emailStyle'] : null;
     const styleIndex = emailStyle
       ? this.emailStyleKeys.findIndex((i) => i.key === emailStyle)
       : -1;
@@ -185,6 +187,16 @@ export class SendEmailDetailsContentComponent implements OnInit, OnDestroy {
    * transient reasons (already generating, this one email already sent). Those are
    * "not right now"; this is "not on this campaign".
    */
+  /**
+   * The user writes a Template email, so only it offers "Email Style" (an HTML style can be a
+   * designed layout). The AI writes Spintax / Prospect Insights emails as plain paragraphs and
+   * never sees the style, so those are always Plain Text and the picker is hidden. KexyApi
+   * treats them as Plain Text too (`inboxHtmlOptions`).
+   */
+  get isTemplateEmail(): boolean {
+    return this.dripEmail?.templateOptions === constants.TEMPLATE_KEY;
+  }
+
   get canGenerateEmail(): boolean {
     return (
       this.dripCampaignStatus === constants.INACTIVE &&
