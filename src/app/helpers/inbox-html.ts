@@ -209,3 +209,28 @@ export function preserveCssLineBreaks(html: string): string {
     })
     .join('');
 }
+
+/**
+ * KexyApi `AiEmailService.formatUSPhoneNumbers`, which the send runs on every drip body
+ * (Template and AI). Text only — never inside a tag — and `(NNN)` stays one bracket. NOT
+ * `PageUiService.formatUSPhoneNumbers` (profile phone fields; always adds +1).
+ */
+export function formatUSPhoneNumbers(html: string): string {
+  return html
+    .split(/(<!--[\s\S]*?-->|<[^>]+>)/)
+    .map((part) => (part.startsWith('<') ? part : formatPhonesInText(part)))
+    .join('');
+}
+
+function formatPhonesInText(text: string): string {
+  return text.replace(/(?<![\w/=?&.+(-])\+?(?:\((?=\d{3}\)))?\d[\d\s().-]{9,}\d/g, (match) => {
+    let digits = match.replace(/\D/g, '');
+    const hasPlus = match.startsWith('+');
+    if (digits.length === 11 && digits.startsWith('1')) digits = digits.slice(1);
+    if (digits.length === 10) {
+      const formatted = `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+      return hasPlus ? `+1 ${formatted}` : formatted;
+    }
+    return match;
+  });
+}
