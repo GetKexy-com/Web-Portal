@@ -2,7 +2,7 @@
   <div class="head-area">
     <div class="head-text">
       <p class="head-title">Email: #{{dripEmail.emailSequence}}</p>
-      <span class="head-subtitle">Set the tone, length and style, then tweak the email content</span>
+      <span class="head-subtitle">Set the tone, length{{ isTemplateEmail ? ' and style' : '' }}, then tweak the email content</span>
     </div>
     <button type="button" class="close-btn" aria-label="Close" (click)="activeCanvas.dismiss('Cross click')">
       <i class="fa fa-times" aria-hidden="true"></i>
@@ -31,7 +31,7 @@
           ></app-kexy-button>
         </div>
 
-        <div class="settings-grid">
+        <div class="settings-grid" [class.settings-grid--two]="!isTemplateEmail">
           <kexy-select-dropdown
             class="setting-select"
             label="Email Tone"
@@ -76,8 +76,9 @@
             placeholder="Please Select"
           ></kexy-select-dropdown>
 
-          <!--Email Style keeps the "?" help affordance beside it-->
-          <div class="setting-with-help">
+          <!--Email Style keeps the "?" help affordance beside it. Template emails only: an
+              AI-written email is always Plain Text (see `isTemplateEmail`).-->
+          <div class="setting-with-help" *ngIf="isTemplateEmail">
             <kexy-select-dropdown
               class="setting-select"
               label="Email Style"

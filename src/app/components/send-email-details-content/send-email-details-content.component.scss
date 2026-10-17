@@ -168,6 +168,11 @@ $kx-editor-card-chrome: 85px;
       align-items: end;
       gap: 16px 18px;
 
+      // AI emails have no Email Style picker (Template only), so Tone + Length share the row.
+      &.settings-grid--two {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
       .setting-select {
         display: block;
         min-width: 0;
@@ -320,7 +325,8 @@ $kx-editor-card-chrome: 85px;
 }
 
 @media (max-width: 900px) {
-  .canvas-content-wrap .canvas-body .settings-grid {
+  .canvas-content-wrap .canvas-body .settings-grid,
+  .canvas-content-wrap .canvas-body .settings-grid.settings-grid--two {
     grid-template-columns: 1fr;
   }
 }
