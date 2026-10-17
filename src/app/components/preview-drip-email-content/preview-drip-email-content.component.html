@@ -5,16 +5,25 @@
       <span class="head-subtitle">How this email will look in the recipient's inbox</span>
     </div>
     <div class="head-actions">
-      <app-kexy-button
-        label="Spin Another Version"
-        iconLeft="fa-refresh"
-        bgColor="#ffffff"
-        textColor="#095dd1"
-        borderColor="#e2e8f0"
-        radius="10px"
-        [disabled]="isEmpty"
-        (click)="!isEmpty && spinEmail()"
-      ></app-kexy-button>
+      <!--The hint sits on a wrapper: a disabled button gets no hover events, so a tooltip on
+          the button itself would never open.-->
+      <span
+        class="spin-wrap"
+        [class.is-disabled]="isEmpty"
+        [ngbTooltip]="isEmpty ? 'Nothing to spin yet: this email has no content.' : ''"
+        placement="bottom"
+      >
+        <app-kexy-button
+          label="Spin Another Version"
+          iconLeft="fa-refresh"
+          bgColor="#ffffff"
+          textColor="#095dd1"
+          borderColor="#e2e8f0"
+          radius="10px"
+          [disabled]="isEmpty"
+          (click)="!isEmpty && spinEmail()"
+        ></app-kexy-button>
+      </span>
       <!--Spin is a content action, Close dismisses the drawer — the rule keeps
           them from reading as one cluster.-->
       <span class="head-divider" aria-hidden="true"></span>
