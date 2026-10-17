@@ -9,7 +9,7 @@ import { NgbModal, NgbOffcanvas } from '@ng-bootstrap/ng-bootstrap';
 import { AuthService } from '../../services/auth.service';
 import { Subscription } from 'rxjs';
 import Swal from 'sweetalert2';
-import { DripCampaignService } from '../../services/drip-campaign.service';
+import { DripCampaignService, ITestProspect } from '../../services/drip-campaign.service';
 import { DashboardService } from '../../services/dashboard.service';
 import { EmailSendFilter, IEmailSendSchedule, IEmailSendSummary } from '../../models/EmailSendProgress';
 import { scheduleEventAt, schedulePollDelay, scheduleProspectsFilter } from '../../helpers/send-schedule-label';
@@ -95,6 +95,16 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
   isValidEmail = false;
   testEmailText;
   testEmailModalRef;
+  /** "Send test campaign": whose details fill the merge tags (null = their fallbacks). */
+  testProspects: ITestProspect[] = [];
+  testProspectsTotal = 0;
+  selectedTestProspect: ITestProspect | null = null;
+  /** The default pick (first contact on the enrollment lists), for the hint's wording. */
+  defaultTestProspectId: number | null = null;
+  testProspectSearch = '';
+  isPickingTestProspect = false;
+  isLoadingTestProspects = false;
+  private testProspectSearchTimer: ReturnType<typeof setTimeout>;
   isSendEmailLoading = false;
   emailShortener: boolean = false;
   emailLengthKeys = constants.EMAIL_LENGTH_KEYS;
@@ -640,7 +650,45 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
 
   openTestEmailPopUp = async (modalContent) => {
     this.submittedTestEmailSend = false;
+    this.testProspects = [];
+    this.testProspectsTotal = 0;
+    this.selectedTestProspect = null;
+    this.defaultTestProspectId = null;
+    this.testProspectSearch = '';
+    this.isPickingTestProspect = false;
     this.testEmailModalRef = this.modal.open(modalContent, { windowClass: 'kx-dialog-modal' });
+    await this.__loadTestProspects('');
+    // The first contact on the enrollment lists is the default.
+    this.selectedTestProspect = this.testProspects[0] ?? null;
+    this.defaultTestProspectId = this.selectedTestProspect?.contactId ?? null;
+  };
+
+  /** Search box in the test dialog's prospect picker; debounced so typing isn't a request per key. */
+  onTestProspectSearch = (term: string) => {
+    this.testProspectSearch = term;
+    clearTimeout(this.testProspectSearchTimer);
+    this.testProspectSearchTimer = setTimeout(() => this.__loadTestProspects(term), 300);
+  };
+
+  pickTestProspect = (prospect: ITestProspect) => {
+    this.selectedTestProspect = prospect;
+    this.isPickingTestProspect = false;
+  };
+
+  private __loadTestProspects = async (search: string) => {
+    this.isLoadingTestProspects = true;
+    try {
+      const res = await this.dripCampaignService.getTestProspects(this.dripCampaignId, search);
+      // A slower, older search must not replace a newer one's results.
+      if (search !== this.testProspectSearch) return;
+      this.testProspects = res.prospects;
+      this.testProspectsTotal = res.total;
+    } catch (e) {
+      console.error('Could not load prospects for the test email', e);
+      if (search === this.testProspectSearch) this.testProspects = [];
+    } finally {
+      if (search === this.testProspectSearch) this.isLoadingTestProspects = false;
+    }
   };
 
   getEnrolledList = () => {
@@ -1395,20 +1443,29 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
     const postData = {
       drip_campaign_id: this.dripCampaignId,
       email: this.testEmailText,
-      // prospect: DUMMY_PROSPECT,
+      // Fills the merge tags; without it they use their fallback text.
+      contactId: this.selectedTestProspect?.contactId,
     };
     try {
+      const prospect = this.selectedTestProspect;
       await this.dripCampaignService.testDripCampaignEmail(postData);
-      await Swal.fire({
-        title: `Sent!`,
-        text: 'Emails sent successfully.',
-        icon: 'success',
+      const count = this.emails.length;
+      const tags = prospect
+        ? ` Merge tags were filled with ${prospect.name || prospect.email}'s details.`
+        : '';
+      await kxNotice({
+        title: 'Test emails sent',
+        text: `${count === 1 ? 'Your email is' : `All ${count} emails are`} on the way to ${postData.email}.${tags}`,
+        icon: 'fa-paper-plane',
+        tone: 'success',
+        timerMs: 3000,
       });
     } catch (e) {
-      await Swal.fire({
-        title: `Error`,
-        text: e.getMessages(),
-        icon: 'warning',
+      // `e.getMessages()` never existed, so a failure used to throw inside its own popup.
+      await kxNotice({
+        title: "Couldn't send the test",
+        text: errorText(e),
+        icon: 'fa-exclamation',
       });
     } finally {
       this.isSendEmailLoading = false;

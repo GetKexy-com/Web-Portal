@@ -60,6 +60,8 @@ export async function kxNotice(opts: {
   icon: string;
   button?: string;
   tone?: 'info' | 'success';
+  /** How long a success notice stays before closing itself (default 5s). */
+  timerMs?: number;
 }): Promise<void> {
   const success = opts.tone === 'success';
   await Swal.fire({
@@ -69,7 +71,7 @@ export async function kxNotice(opts: {
     iconHtml: `<i class="fa ${opts.icon}" aria-hidden="true"></i>`,
     icon: success ? 'success' : 'info',
     confirmButtonText: escapeHtml(opts.button ?? (success ? 'Done' : 'Got it')),
-    ...(success ? { timer: 5000, timerProgressBar: true } : {}),
+    ...(success ? { timer: opts.timerMs ?? 5000, timerProgressBar: true } : {}),
     buttonsStyling: false,
     customClass: {
       ...BASE_CLASSES,
