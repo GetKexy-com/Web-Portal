@@ -216,6 +216,40 @@ $kx-red-bg: #fdeaea;
         height: 100%;
         border: 0;
       }
+
+      // Shown instead of the iframe when the email has no body (`isEmpty`).
+      .preview-empty {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 24px;
+        text-align: center;
+        color: #5f6368;
+
+        i {
+          margin-bottom: 6px;
+          font-size: 32px;
+          color: #9aa0a6;
+        }
+      }
+
+      .preview-empty-title {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 700;
+        color: #202124;
+      }
+
+      .preview-empty-text {
+        margin: 0;
+        max-width: 360px;
+        font-size: 14px;
+        line-height: 1.5;
+      }
     }
   }
 }
