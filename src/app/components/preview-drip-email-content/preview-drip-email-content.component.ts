@@ -1,7 +1,7 @@
 import { AfterViewInit, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { NgbActiveOffcanvas } from '@ng-bootstrap/ng-bootstrap';
+import { NgbActiveOffcanvas, NgbTooltip } from '@ng-bootstrap/ng-bootstrap';
 import { DripCampaignService } from '../../services/drip-campaign.service';
 import { DripEmail } from '../../models/DripEmail';
 import { KexyButtonComponent } from '../kexy-button/kexy-button.component';
@@ -16,6 +16,7 @@ import { emailHasContent } from '../../helpers/email-has-content';
     FormsModule,
     KexyButtonComponent,
     DatePipe,
+    NgbTooltip,
   ],
   templateUrl: './preview-drip-email-content.component.html',
   styleUrl: './preview-drip-email-content.component.scss',

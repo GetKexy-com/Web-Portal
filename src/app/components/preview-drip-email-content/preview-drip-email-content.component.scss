@@ -53,6 +53,19 @@ $kx-red-bg: #fdeaea;
       gap: 14px;
     }
 
+    // Wraps Spin so its "no content" hint can open while the button is disabled.
+    .spin-wrap {
+      display: inline-flex;
+
+      &.is-disabled {
+        cursor: not-allowed;
+
+        ::ng-deep button {
+          pointer-events: none;
+        }
+      }
+    }
+
     .head-divider {
       width: 1px;
       height: 24px;
