@@ -12,7 +12,8 @@
         textColor="#095dd1"
         borderColor="#e2e8f0"
         radius="10px"
-        (click)="spinEmail()"
+        [disabled]="isEmpty"
+        (click)="!isEmpty && spinEmail()"
       ></app-kexy-button>
       <!--Spin is a content action, Close dismisses the drawer — the rule keeps
           them from reading as one cluster.-->
@@ -58,7 +59,14 @@
     <!-- The iframe is filled by the component via `srcdoc` and is found through
          the `#previewFrame` @ViewChild — keep BOTH the element and the ref name. -->
     <div class="preview-stage">
-      <iframe #previewFrame title="Email preview"></iframe>
+      <iframe #previewFrame title="Email preview" [hidden]="isEmpty"></iframe>
+      @if (isEmpty) {
+        <div class="preview-empty">
+          <i class="fa fa-file-text-o" aria-hidden="true"></i>
+          <p class="preview-empty-title">This email has no content yet</p>
+          <p class="preview-empty-text">Open the email to write it. A Template email is sent exactly as written, so it would go out blank.</p>
+        </div>
+      }
     </div>
   </div>
 </div>

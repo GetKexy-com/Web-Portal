@@ -8,6 +8,7 @@ import { KexyButtonComponent } from '../kexy-button/kexy-button.component';
 import { PageUiService } from '../../services/page-ui.service';
 import { EMAIL_FRAME_IMAGE_CSS } from '../email-send-progress/email-send-progress.component';
 import { AuthService } from '../../services/auth.service';
+import { emailHasContent } from '../../helpers/email-has-content';
 
 @Component({
   selector: 'app-preview-drip-email-content',
@@ -32,6 +33,9 @@ export class PreviewDripEmailContentComponent implements OnInit, AfterViewInit {
   public senderInitials: string;
   public avatarColor: string;
   public sentDate: Date = new Date();
+
+  /** No body to show: the template shows "This email has no content yet" instead of the iframe. */
+  public isEmpty = false;
 
   private viewReady = false;
   // True when emailContent is already a full <html> document (the editor's
@@ -101,14 +105,20 @@ export class PreviewDripEmailContentComponent implements OnInit, AfterViewInit {
     // a bare iframe. `rawEditorContent` (getRawHtml) is only the re-editable
     // fragment whose raw `.media-block` divs need the editor's own CSS to
     // center/lay out, so it's a fallback. Raw AI text is the last resort.
+    //
+    // A blank body — from either source — shows the empty state instead of a white pane.
+    // An AI draft can be the subject alone (`^^subject$$` with nothing after), and with
+    // neither source the AI fallback used to throw on `undefined.split`.
     const editorContent = this.dripEmail['emailContent'] || this.dripEmail['rawEditorContent'];
+    const aiRawData = this.dripEmail['aiRawData'];
     if (editorContent) {
       this.emailContent = this.__expandSpintax(editorContent);
       this.isFullDocument = this.__looksLikeFullDocument(editorContent);
     } else {
-      this.emailContent = this.__formatEmailContent(this.dripEmail['aiRawData']);
+      this.emailContent = aiRawData ? this.__formatEmailContent(aiRawData) : '';
       this.isFullDocument = false;
     }
+    this.isEmpty = !emailHasContent(this.emailContent);
 
     this.__renderPreview();
   }
@@ -214,7 +224,8 @@ ${safeBody}
     });
 
     paraArray.push(lastPara);
-    paraArray[0] = paraArray[0].split('$$')[1];
+    // The text after the `$$` marker; the whole paragraph if there is none (not "undefined").
+    paraArray[0] = paraArray[0].split('$$')[1] ?? paraArray[0];
     paraArray = paraArray.map(p => `<p>${this.__expandAndWrapSpintax(p)}</p>`);
     return paraArray.join('');
   };
