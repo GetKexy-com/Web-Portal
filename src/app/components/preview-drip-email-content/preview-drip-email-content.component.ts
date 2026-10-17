@@ -5,10 +5,9 @@ import { NgbActiveOffcanvas, NgbTooltip } from '@ng-bootstrap/ng-bootstrap';
 import { DripCampaignService } from '../../services/drip-campaign.service';
 import { DripEmail } from '../../models/DripEmail';
 import { KexyButtonComponent } from '../kexy-button/kexy-button.component';
-import { PageUiService } from '../../services/page-ui.service';
 import { EMAIL_FRAME_IMAGE_CSS } from '../email-send-progress/email-send-progress.component';
 import { AuthService } from '../../services/auth.service';
-import { inboxHtmlOptions, toInboxHtml } from '../../helpers/inbox-html';
+import { formatUSPhoneNumbers, inboxHtmlOptions, toInboxHtml } from '../../helpers/inbox-html';
 import { emailHasContent } from '../../helpers/email-has-content';
 
 @Component({
@@ -49,7 +48,6 @@ export class PreviewDripEmailContentComponent implements OnInit, AfterViewInit {
 
   constructor(
     public activeCanvas: NgbActiveOffcanvas,
-    private pageUiService: PageUiService,
     private dripCampaignService: DripCampaignService,
     private authService: AuthService,
   ) {
@@ -122,6 +120,8 @@ export class PreviewDripEmailContentComponent implements OnInit, AfterViewInit {
       this.emailContent = aiRawData ? this.__formatEmailContent(aiRawData) : '';
       this.isFullDocument = false;
     }
+    // Phone numbers are formatted by the send for every email, Template included.
+    this.emailContent = formatUSPhoneNumbers(this.emailContent);
     this.isEmpty = !emailHasContent(this.emailContent);
 
     this.__renderPreview();
@@ -255,10 +255,8 @@ ${(body || '').trim() || '<p>&nbsp;</p>'}
     // Step 1: Expand all spintax recursively
     text = this.__expandSpintax(text);
 
-    // Step 2: Format phone numbers (US)
-    text = this.pageUiService.formatUSPhoneNumbers(text);
 
-    // Step 3: Hyperlink URLs
+    // Step 2: Hyperlink URLs (phone numbers are formatted over the whole email in spinEmail)
     text = this.__linkifyUrls(text);
     return text;
 
