@@ -1358,9 +1358,14 @@ header#main-header #logo {
     color: #0f172a;
   }
 
+  // Plain text / markup from older popups (helpers/kx-swal-theme.ts) reads like the lead.
   .kx-discard-body {
     margin: 8px 0 0;
     padding: 0;
+    font-size: 14px;
+    line-height: 1.55;
+    color: #64748b;
+    overflow-wrap: anywhere;
   }
 
   .kx-discard-lead {
@@ -1435,21 +1440,6 @@ header#main-header #logo {
       box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.3);
     }
   }
-}
-
-// Info variant (helpers/contact-not-found.ts): blue badge and a single primary button.
-.kx-discard-popup--info {
-  .kx-discard-icon {
-    background: #eff6ff;
-    color: #095dd1 !important;
-    box-shadow: 0 0 0 8px #f5f9ff;
-  }
-
-  .kx-discard-lead strong {
-    color: #0f172a;
-    font-weight: 600;
-    overflow-wrap: anywhere;
-  }
 
   .kx-discard-btn--primary {
     border: 1px solid #095dd1;
@@ -1460,6 +1450,36 @@ header#main-header #logo {
       background: #074bb0;
       border-color: #074bb0;
     }
+  }
+
+  .kx-discard-lead strong {
+    color: #0f172a;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+  }
+
+  // "Please wait…" (Swal.showLoading): SweetAlert's spinner in the portal blue.
+  .swal2-loader {
+    border-color: #095dd1 transparent #095dd1 transparent;
+  }
+}
+
+// Info variant (helpers/contact-not-found.ts): blue badge and a single primary button.
+.kx-discard-popup--info {
+  .kx-discard-icon {
+    background: #eff6ff;
+    color: #095dd1 !important;
+    box-shadow: 0 0 0 8px #f5f9ff;
+  }
+}
+
+// A popup with no icon and no buttons (the "Please wait…" loaders): no empty gap on top.
+.kx-discard-popup--plain {
+  padding-top: 24px;
+
+  .kx-discard-actions {
+    margin-top: 14px;
+    justify-content: center;
   }
 }
 
@@ -1654,21 +1674,13 @@ header#main-header #logo {
 }
 
 // "This list is in use" alert (manage-list delete). SweetAlert renders outside the
-// component, so these have to be global.
+// component, so these have to be global. Frame, badge, title and button come from the
+// shared popup design (helpers/kx-swal-theme.ts); these style only its content.
 .list-in-use-popup {
-  width: 30rem;
   max-width: 92vw;
-  border-radius: 16px;
-  padding-bottom: 1.5rem;
 
-  // Default SweetAlert icon is 5em and dominates a text-heavy popup — scale it down.
-  .swal2-icon {
-    width: 3.25em; height: 3.25em; margin: 1.5em auto 0.5em;
-    .swal2-icon-content { font-size: 2.25em; }
-  }
-  .swal2-title { font-size: 1.35rem; padding-top: 0; }
-  .swal2-html-container { margin: 0.5rem 1.5rem 0; text-align: left; }
-  .liu-lead { margin: 0 0 14px; color: #475569; font-size: 15px; text-align: center; }
+  .swal2-html-container { text-align: left; }
+  .liu-lead { margin: 0 0 14px; color: #475569; font-size: 14px; text-align: center; }
 
   .liu-campaigns { list-style: none; margin: 0 0 14px; padding: 0; display: flex; flex-direction: column; gap: 6px; }
   .liu-campaign {
@@ -1684,7 +1696,7 @@ header#main-header #logo {
   .liu-options { display: flex; flex-direction: column; gap: 8px; }
   .liu-option {
     display: flex; flex-direction: column; gap: 2px; padding: 10px 12px;
-    border-left: 3px solid #3085d6; background: #eff6ff; border-radius: 0 10px 10px 0;
+    border-left: 3px solid #095dd1; background: #eff6ff; border-radius: 0 10px 10px 0;
   }
   .liu-option-title { font-size: 14px; font-weight: 600; color: #1e3a8a; }
   .liu-option-text { font-size: 13px; color: #475569; }

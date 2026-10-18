@@ -127,7 +127,7 @@ export class ActiveContactsInCampaignComponent implements OnInit, OnDestroy {
       cancelButtonColor: "#d33",
       allowOutsideClick: false,
       allowEscapeKey: false,
-      confirmButtonText: "Yes",
+      confirmButtonText: "Yes, un-enroll",
       showLoaderOnConfirm: true,
     });
     if (isConfirm.dismiss) {
