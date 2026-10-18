@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, HostListener, Input, OnDestroy, OnInit } from '@angular/core';
+import { Component, HostListener, Input, OnDestroy } from '@angular/core';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 
 /** What the user chose in the dialog. */
@@ -14,8 +14,11 @@ export interface IActivateDripResult {
 /**
  * "Ready to activate?" — the last confirmation before a drip campaign goes live, with
  * the "Supercharged" card. The card is a 1:1 port of the client-supplied
- * supercharged-card.{html,css,js}: chips, a rotating "Caught this morning" example that
- * lights its chip, and the on/off switch.
+ * supercharged-card.{html,css,js} (second version, 2026-10-18): header + headline always
+ * show; "What is Supercharged?" opens a panel (collapsed by default) with the chips, a
+ * rotating "Caught this morning" example that lights its chip, and the callout. The
+ * example rotates only while the panel is open and the tab visible, from the first
+ * example each time it opens. The switch flips only the setting.
  *
  * Opened by `generate-drip-campaign` with windowClass `kx-dialog-modal`; inputs are set
  * on `componentInstance`. Closes with an `IActivateDripResult`, dismisses otherwise.
@@ -26,7 +29,7 @@ export interface IActivateDripResult {
   templateUrl: './activate-drip-modal.component.html',
   styleUrl: './activate-drip-modal.component.scss',
 })
-export class ActivateDripModalComponent implements OnInit, OnDestroy {
+export class ActivateDripModalComponent implements OnDestroy {
   @Input() campaignTitle = '';
   @Input() emailCount = 0;
   /** How many lists are enrolled on activation. */
@@ -35,7 +38,7 @@ export class ActivateDripModalComponent implements OnInit, OnDestroy {
   /** Starting state — the campaign's current value, so re-activating keeps it. */
   @Input() superCharged = false;
 
-  /** "What is Supercharged?" disclosure — collapsed by default. */
+  /** "What is Supercharged?" panel — collapsed by default. */
   showDetails = false;
 
   /** Order shown on the card; the eyebrow count is `signals.length`. */
@@ -51,7 +54,7 @@ export class ActivateDripModalComponent implements OnInit, OnDestroy {
     'Local events',
   ];
 
-  /** Illustrative (fictional) examples, rotated while on. `src` must match a `signals` label. */
+  /** Illustrative (fictional) examples, rotated while the panel is open. `src` must match a `signals` label. */
   readonly examples: ReadonlyArray<{ src: string; who: string; caught: string; email: string; used: string }> = [
     { src: 'Local events', who: 'Dana', caught: 'posted from last night’s home game', email: 'Email #2', used: 'opens with that 4th-quarter comeback' },
     { src: 'Pain signals', who: 'Acme Co.', caught: 'posted 3 SDR roles in a month', email: 'Email #3', used: 'asks if it’s scaling or turnover' },
@@ -61,7 +64,7 @@ export class ActivateDripModalComponent implements OnInit, OnDestroy {
   ];
 
   private static readonly ROTATE_MS = 3200;
-  private readonly reduceMotion =
+  readonly reduceMotion =
     typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
   private exampleIndex = 0;
   private timer: ReturnType<typeof setInterval> | null = null;
@@ -71,12 +74,6 @@ export class ActivateDripModalComponent implements OnInit, OnDestroy {
   }
 
   constructor(public activeModal: NgbActiveModal) {}
-
-  // `superCharged` is set on `componentInstance` before the first change detection, so
-  // it is already the campaign's value here.
-  ngOnInit(): void {
-    this.startRotation();
-  }
 
   ngOnDestroy(): void {
     this.stopRotation();
@@ -88,13 +85,19 @@ export class ActivateDripModalComponent implements OnInit, OnDestroy {
     document.hidden ? this.stopRotation() : this.startRotation();
   }
 
+  /** Only the switch changes; the card and the rotation don't depend on it. */
   toggleSuperCharged = (): void => {
     this.superCharged = !this.superCharged;
-    this.superCharged ? this.startRotation() : this.stopRotation();
   };
 
   toggleDetails = (): void => {
     this.showDetails = !this.showDetails;
+    if (this.showDetails) {
+      this.exampleIndex = 0;
+      this.startRotation();
+    } else {
+      this.stopRotation();
+    }
   };
 
   activate = (): void => {
@@ -104,7 +107,7 @@ export class ActivateDripModalComponent implements OnInit, OnDestroy {
 
   private startRotation(): void {
     this.stopRotation();
-    if (this.reduceMotion || !this.superCharged) return;
+    if (this.reduceMotion || !this.showDetails || document.hidden) return;
     this.timer = setInterval(() => {
       this.exampleIndex = (this.exampleIndex + 1) % this.examples.length;
     }, ActivateDripModalComponent.ROTATE_MS);
