@@ -1308,34 +1308,12 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
     });
     if (!confirmed) return;
 
-    const payload = {
-      dripCampaignId: this.dripCampaign.id,
-      companyId: this.userData.supplier_id,
-      dripCampaignTitleId: this.dripCampaign.details.title?.id,
-      numberOfEmails: this.dripCampaign.details.numberOfEmails,
-      emailTone: this.dripCampaign.details.emailTone,
-      emailLength: this.dripCampaign.details.emailLength || '',
-      websiteUrl: this.dripCampaign.details.websiteUrl,
-      calendlyLink: this.dripCampaign.details.calendlyLink,
-      campaignId: this.dripCampaign.details.campaignId,
-      status: constants.ACTIVE,
-      targetAudience: this.dripCampaign.targetAudience,
-      emailAbout: this.dripCampaign.emailAbout,
-      audienceType: this.dripCampaign.audienceType,
-    };
-
     this.isResuming = true;
     const swal = this.pageUiService.showSweetAlertLoading();
     let failure: unknown = null;
     try {
       swal.showLoading();
-      await this.dripCampaignService.createOrUpdateDripCampaign(payload);
-      this.dripCampaign.status = constants.ACTIVE;
-      // The paused warning goes away here, so the research card (if research is
-      // unfinished) or the live notice has to take its place immediately —
-      // otherwise resuming leaves the page with no status until the next reload.
-      this.__syncScrapeProgressVisibility();
-      this.__syncCampaignLiveNotice();
+      await this.__saveCampaignStatus(constants.ACTIVE);
     } catch (e) {
       failure = e;
       console.error(e);
@@ -1357,6 +1335,73 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
       icon: 'fa-play',
       tone: 'success',
     });
+  };
+
+  // Pause from the campaign page (the header button beside Campaign Insights) — same
+  // confirm and save as the Pause on Manage Campaigns.
+  isPausing = false;
+  pauseDripCampaign = async () => {
+    if (this.isPausing) return;
+    if (!this.dripCampaign || this.dripCampaign.status !== constants.ACTIVE) return;
+
+    const confirmed = await kxConfirm({
+      title: 'Pause this campaign?',
+      text: 'No more emails go out until you resume it. Prospects keep their place.',
+      icon: 'fa-pause',
+      confirmText: 'Pause campaign',
+      cancelText: 'Keep running',
+    });
+    if (!confirmed) return;
+
+    this.isPausing = true;
+    const swal = this.pageUiService.showSweetAlertLoading();
+    let failure: unknown = null;
+    try {
+      swal.showLoading();
+      await this.__saveCampaignStatus(constants.PAUSE);
+    } catch (e) {
+      failure = e;
+      console.error(e);
+    } finally {
+      this.isPausing = false;
+      swal.close();
+    }
+
+    // After the loading popup closes — same reason as in resumeDripCampaign.
+    if (failure) {
+      await kxNotice({ title: "Couldn't pause this campaign", text: errorText(failure), icon: 'fa-pause' });
+    }
+  };
+
+  /**
+   * Re-saves the campaign with a new status (the pause/resume flow of
+   * brand-list-of-drip-campaigns), then brings the page in line with it: the paused
+   * warning, the research card / live notice, and the prospects poll (ACTIVE only).
+   */
+  private __saveCampaignStatus = async (status: string) => {
+    await this.dripCampaignService.createOrUpdateDripCampaign({
+      dripCampaignId: this.dripCampaign.id,
+      companyId: this.userData.supplier_id,
+      dripCampaignTitleId: this.dripCampaign.details.title?.id,
+      numberOfEmails: this.dripCampaign.details.numberOfEmails,
+      emailTone: this.dripCampaign.details.emailTone,
+      emailLength: this.dripCampaign.details.emailLength || '',
+      websiteUrl: this.dripCampaign.details.websiteUrl,
+      calendlyLink: this.dripCampaign.details.calendlyLink,
+      campaignId: this.dripCampaign.details.campaignId,
+      status,
+      targetAudience: this.dripCampaign.targetAudience,
+      emailAbout: this.dripCampaign.emailAbout,
+      audienceType: this.dripCampaign.audienceType,
+    });
+    this.dripCampaign.status = status;
+    this.dripCampaignStatus = status;
+    // The paused warning appears or goes here, so the research card (if research is
+    // unfinished) or the live notice has to follow immediately — otherwise the page
+    // shows the wrong status until the next reload.
+    this.__syncScrapeProgressVisibility();
+    this.__syncCampaignLiveNotice();
+    this.__syncProspectsPolling();
   };
 
 
