@@ -1300,10 +1300,10 @@ header#main-header #logo {
   width: calc(100% - 32px);
 }
 
-// "Ready to activate?" is wider: the client's Supercharged card is designed at 680px
-// (+ 2 × 22px dialog body padding).
+// "Ready to activate?": ~69% of the 724px it was built at for the client's full-size
+// Supercharged card (client, 2026-10-18: popup too large; the card itself is ~70% too).
 .kx-activate-modal .modal-dialog {
-  max-width: 724px;
+  max-width: 500px;
 }
 
 // `.kx-dialog-modal`: the same rounded frame for any small confirmation dialog built
