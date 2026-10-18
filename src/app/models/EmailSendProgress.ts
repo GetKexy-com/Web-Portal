@@ -167,7 +167,7 @@ export interface IEmailSendItem {
  *   next send run tries again — `sendAt` is that run.
  * - `insights_paused`: queued, but the Insights safety switch is off; AI emails wait for
  *   the KEXY team to reset it.
- * - `insights_daily_limit`: queued, but this prospect's Insights calls failed 5 times today;
+ * - `insights_daily_limit`: queued, but this prospect's Insights calls failed 3 times today;
  *   tried again after midnight.
  * - `unknown`: nothing honest to say.
  */
