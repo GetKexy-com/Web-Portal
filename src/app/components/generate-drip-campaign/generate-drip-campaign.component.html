@@ -167,6 +167,19 @@
             textColor="#095dd1"
             borderColor="#e2e8f0"
           ></app-kexy-button>
+          <!--Pause without going back to Manage Campaigns. Only while ACTIVE: a paused
+              campaign shows its Resume in the paused warning above.-->
+          <app-kexy-button
+            *ngIf="dripCampaignId && dripCampaign?.status === constants.ACTIVE"
+            (click)="pauseDripCampaign()"
+            [label]="isPausing ? 'Pausing...' : 'Pause'"
+            [disabled]="isPausing || isContentLoading || isSendEmailLoading"
+            [iconLeft]="isPausing ? 'fa-spinner fa-spin' : 'fa-pause-circle-o'"
+            radius="10px"
+            bgColor="#ffffff"
+            textColor="#095dd1"
+            borderColor="#e2e8f0"
+          ></app-kexy-button>
           <app-kexy-button
             (click)="openSettingsCanvas()"
             label="Settings"
