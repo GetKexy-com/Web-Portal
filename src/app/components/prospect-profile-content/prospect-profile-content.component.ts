@@ -81,7 +81,7 @@ const USED_IN_LABEL: Record<NonNullable<IProspectSignal['usedIn']>['outcome'], (
 /** The winner's name when Insights picked an angle outside its candidates (nothing cleared its floor). */
 const ANGLE_LABEL: Record<OpenerAngle, string> = {
   local: 'Their city',
-  personal: 'Their LinkedIn post',
+  personal: 'Something they shared',
   business: 'Company news',
   pain_point: 'A problem they mentioned',
   lead_magnet: 'A guide that fits their role',
