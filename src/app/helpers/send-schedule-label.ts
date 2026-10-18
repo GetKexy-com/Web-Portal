@@ -71,7 +71,7 @@ export function scheduleLabel(sc: IEmailSendSchedule | null, now: number): ISche
     case 'insights_daily_limit':
       return mute(
         'Retries tomorrow',
-        'Picking how this email opens failed 5 times today for this prospect, so it is tried again after midnight. Nothing is sent until it works.',
+        'Picking how this email opens failed 3 times today for this prospect, so it is tried again after midnight. Nothing is sent until it works.',
       );
     default:
       return mute('—', '');
