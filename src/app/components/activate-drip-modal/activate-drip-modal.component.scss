@@ -15,13 +15,24 @@ $kx-red-bg: #fdeaea;
 $kx-bolt: #f59e0b;
 $kx-bolt-deep: #ea580c;
 
+// Opened with `scrollable: true`: the dialog is capped at the screen height and only the
+// body scrolls, so the header and the Activate button always stay on screen.
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
 .ad-modal {
   display: flex;
   flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 // ── Hero ──────────────────────────────────────────────────────────────────────
 .ad-hero {
+  flex-shrink: 0;
   position: relative;
   padding: 28px 24px 22px;
   text-align: center;
@@ -69,7 +80,7 @@ $kx-bolt-deep: #ea580c;
 
 .ad-title {
   margin: 0;
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 800;
   line-height: 1.25;
   color: $kx-ink;
@@ -79,7 +90,7 @@ $kx-bolt-deep: #ea580c;
   margin: 4px auto 0;
   max-width: 90%;
   overflow: hidden;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   color: $kx-muted;
   white-space: nowrap;
@@ -88,6 +99,9 @@ $kx-bolt-deep: #ea580c;
 
 // ── Body ──────────────────────────────────────────────────────────────────────
 .ad-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
   padding: 18px 22px 20px;
   background: #fff;
 }
@@ -101,22 +115,23 @@ $kx-bolt-deep: #ea580c;
 .ad-stat {
   min-width: 0;
   display: flex;
-  flex-direction: column;
-  padding: 12px 14px;
+  align-items: baseline;
+  gap: 6px;
+  padding: 10px 14px;
   border: 1px solid $kx-border;
   border-radius: 12px;
   background: $kx-field-bg;
 }
 
 .ad-stat-num {
-  font-size: 22px;
+  font-size: 19px;
   font-weight: 800;
   line-height: 1.1;
   color: $kx-ink;
 }
 
 .ad-stat-label {
-  margin-top: 2px;
+  min-width: 0;
   font-size: 12px;
   color: $kx-muted;
 }
@@ -124,8 +139,8 @@ $kx-bolt-deep: #ea580c;
 // ── Supercharged card ─────────────────────────────────────────────────────────
 // From the client's supercharged-card.css (layout, colours, animations unchanged), scaled
 // down at the client's request (2026-10-18: "too large"; 60% was then too small): every size,
-// padding and gap is ~70% of theirs, except text, which never goes below 13px for body copy
-// (headline 18px, title 16px, small uppercase labels 9-10px). Brand tokens live on `.sc-card` instead of `:root` (encapsulated stylesheet).
+// padding and gap is ~70% of theirs; text one step smaller again (client, same day): body copy,
+// chips, example and callout 12px, headline 16px, title 14px, small uppercase labels 9-10px. Brand tokens live on `.sc-card` instead of `:root` (encapsulated stylesheet).
 .ad-body .sc-card {
   margin-top: 16px;
 }
@@ -179,7 +194,7 @@ $kx-bolt-deep: #ea580c;
 }
 .sc-icon svg { width: 16px; height: 16px; }
 .sc-name { display: flex; align-items: center; gap: 7px; flex-grow: 1; }
-.sc-title { font-size: 16px; font-weight: 900; }
+.sc-title { font-size: 14px; font-weight: 900; }
 .sc-badge {
   font-size: 9px; font-weight: 900; letter-spacing: .5px;
   color: #FFFFFF; background: var(--sc-orange-dark);
@@ -206,8 +221,8 @@ $kx-bolt-deep: #ea580c;
 
 /* ---------- Headline ---------- */
 .sc-headline { display: flex; flex-direction: column; gap: 3px; }
-.sc-headline h2 { margin: 0; font-size: 18px; font-weight: 900; line-height: 1.2; }
-.sc-headline p { margin: 0; font-size: 13px; line-height: 1.45; color: var(--sc-muted); }
+.sc-headline h2 { margin: 0; font-size: 16px; font-weight: 900; line-height: 1.2; }
+.sc-headline p { margin: 0; font-size: 12px; line-height: 1.45; color: var(--sc-muted); }
 
 /* ---------- Accordion ---------- */
 .sc-accordion { display: flex; flex-direction: column; gap: 8px; }
@@ -216,7 +231,7 @@ $kx-bolt-deep: #ea580c;
   display: flex; align-items: center; gap: 4px;
   min-height: 20px; padding: 0;
   background: none; border: none; cursor: pointer;
-  font-size: 13px; font-weight: 700; color: var(--sc-orange-dark);
+  font-size: 12px; font-weight: 700; color: var(--sc-orange-dark);
 }
 .sc-caret { width: 12px; height: 12px; transform: rotate(180deg); transition: transform .2s; }  /* closed = pointing down */
 .sc-accordion-btn[aria-expanded="true"] .sc-caret { transform: rotate(0deg); }
@@ -225,7 +240,7 @@ $kx-bolt-deep: #ea580c;
   animation: sc-in .35s ease-out;
 }
 .sc-accordion-panel[hidden] { display: none; }
-.sc-explainer { margin: 0; font-size: 13px; line-height: 1.5; color: var(--sc-muted); }
+.sc-explainer { margin: 0; font-size: 12px; line-height: 1.5; color: var(--sc-muted); }
 .sc-explainer strong { color: var(--sc-ink); }
 
 /* ---------- Signals ---------- */
@@ -239,7 +254,7 @@ $kx-bolt-deep: #ea580c;
 .sc-chip {
   display: flex; align-items: center; gap: 4px;
   padding: 5px 9px; border-radius: 999px;
-  font-size: 13px; font-weight: 700;
+  font-size: 12px; font-weight: 700;
   background: #FFFFFF; border: 1px solid var(--sc-line); color: var(--sc-ink-2);
   transition: background .3s, border-color .3s, color .3s;
 }
@@ -266,7 +281,7 @@ $kx-bolt-deep: #ea580c;
 .sc-example-row {
   display: grid; grid-template-columns: minmax(0, 1fr) 20px minmax(0, 1fr);
   align-items: center; gap: 7px;
-  font-size: 13px; line-height: 1.4;
+  font-size: 12px; line-height: 1.4;
 }
 .sc-example-row.is-entering { animation: sc-in .45s ease-out; }
 .sc-arrow { width: 15px; height: 15px; color: var(--sc-blue); }
@@ -281,7 +296,7 @@ $kx-bolt-deep: #ea580c;
   background: var(--sc-blue-tint); border: 1px solid var(--sc-blue-border);
 }
 .sc-callout svg { width: 14px; height: 14px; flex-shrink: 0; color: var(--sc-orange); }
-.sc-callout p { margin: 0; font-size: 13px; font-weight: 700; line-height: 1.35; }
+.sc-callout p { margin: 0; font-size: 12px; font-weight: 700; line-height: 1.35; }
 .sc-callout p span { color: var(--sc-blue); }
 
 /* ---------- Animations ---------- */
@@ -301,13 +316,14 @@ $kx-bolt-deep: #ea580c;
 /* ---------- Narrow screens ---------- */
 @media (max-width: 560px) {
   .sc-card { padding: 12px; }
-  .sc-headline h2 { font-size: 16px; }
+  .sc-headline h2 { font-size: 15px; }
   .sc-example-row { grid-template-columns: 1fr; }
   .sc-arrow { transform: rotate(90deg); }
 }
 
 // ── Foot ──────────────────────────────────────────────────────────────────────
 .modal-foot {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: flex-end;

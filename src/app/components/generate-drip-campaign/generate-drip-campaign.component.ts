@@ -1194,6 +1194,8 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
     const ref = this.modal.open(ActivateDripModalComponent, {
       windowClass: 'kx-dialog-modal kx-activate-modal',
       centered: true,
+      // Never taller than the screen: the body scrolls, the Activate button stays visible.
+      scrollable: true,
     });
     const modal = ref.componentInstance as ActivateDripModalComponent;
     modal.campaignTitle = this.dripCampaign?.details?.title?.title ?? '';
