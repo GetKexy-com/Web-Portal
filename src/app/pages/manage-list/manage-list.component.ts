@@ -305,9 +305,9 @@ export class ManageListComponent implements OnInit, OnDestroy {
       icon: 'info',
       title: 'This list is in use',
       html: `
-        <p class="liu-lead">${many
-          ? `${campaigns.length} active drip campaigns are still using this list`
-          : 'An active drip campaign is still using this list'}, so it can't be deleted yet.</p>
+        <p class="liu-lead">It's used by ${many
+          ? `${campaigns.length} active drips`
+          : 'an active drip'}, so it can't be deleted yet.</p>
         ${rows ? `<ul class="liu-campaigns">${rows}</ul>` : ''}
         <div class="liu-options">
           <div class="liu-option">
@@ -320,7 +320,7 @@ export class ManageListComponent implements OnInit, OnDestroy {
           </div>
         </div>`,
       confirmButtonText: 'Got it',
-      confirmButtonColor: '#3085d6',
+      width: '30rem',
       customClass: { popup: 'list-in-use-popup' },
     });
   };

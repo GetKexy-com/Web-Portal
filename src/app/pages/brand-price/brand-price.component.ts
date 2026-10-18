@@ -446,7 +446,7 @@ export class BrandPriceComponent implements OnInit {
   __isSubscriptionChangeForLifetimeConfirmed = async () => {
     let isConfirm = await Swal.fire({
       title: `Note!`,
-      text: "Your current 'Lifetime' plan will be lost and won't be able to revert.",
+      text: "Your 'Lifetime' plan will be lost. This can't be undone.",
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#3085d6',

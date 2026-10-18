@@ -685,7 +685,7 @@ export class BrandConversationSentComponent {
       showCancelButton: true,
       confirmButtonColor: '#3085d6',
       cancelButtonColor: '#d33',
-      confirmButtonText: 'Yes',
+      confirmButtonText: 'Yes, unsubscribe',
     });
 
     if (isConfirm.dismiss) {

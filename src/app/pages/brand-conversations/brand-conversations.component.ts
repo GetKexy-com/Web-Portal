@@ -710,7 +710,7 @@ export class BrandConversationsComponent implements OnInit, OnDestroy {
       showCancelButton: true,
       confirmButtonColor: '#3085d6',
       cancelButtonColor: '#d33',
-      confirmButtonText: 'Yes',
+      confirmButtonText: 'Yes, unsubscribe',
     });
 
     if (isConfirm.dismiss) {

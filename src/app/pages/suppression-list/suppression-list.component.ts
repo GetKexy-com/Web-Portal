@@ -413,7 +413,7 @@ export class SuppressionListComponent {
       showCancelButton: true,
       confirmButtonColor: "#3085d6",
       cancelButtonColor: "#b8b6b6",
-      confirmButtonText: "Yes",
+      confirmButtonText: "Yes, remove",
     });
 
     if (isConfirm.dismiss) return;
