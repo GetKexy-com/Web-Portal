@@ -135,8 +135,8 @@ $kx-bolt-deep: #ea580c;
   --sc-orange-dark: #C2410C;    /* text-safe orange (badge, links, eyebrow) */
   --sc-orange-deep: #9A3412;    /* active chip text */
   --sc-orange-tint: #FFF1E6;    /* active chip fill */
-  --sc-orange-border: #FDBA74;  /* card border when on */
-  --sc-card-on: #FFFAF6;        /* card fill when on */
+  --sc-orange-border: #FDBA74;  /* card border */
+  --sc-card-on: #FFFAF6;        /* card fill */
 
   --sc-blue: #0F5BD8;           /* platform blue */
   --sc-blue-tint: #EEF4FF;
@@ -155,19 +155,14 @@ $kx-bolt-deep: #ea580c;
   max-width: 680px;
   padding: 26px 28px 24px;
   border-radius: 16px;
-  border: 1.5px solid var(--sc-line);
-  background: #FFFFFF;
+  border: 1.5px solid var(--sc-orange-border);
+  background: var(--sc-card-on);
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
   display: flex;
   flex-direction: column;
   gap: 18px;
   font-family: var(--sc-font);
   color: var(--sc-ink);
-  transition: background .25s, border-color .25s;
-}
-.sc-card.is-on {
-  background: var(--sc-card-on);
-  border-color: var(--sc-orange-border);
 }
 .sc-card *, .sc-card *::before, .sc-card *::after { box-sizing: border-box; }
 .sc-card button { font-family: inherit; }
@@ -202,8 +197,8 @@ $kx-bolt-deep: #ea580c;
   background: #FFFFFF; box-shadow: 0 1px 3px rgba(0, 0, 0, .25);
   transition: transform .2s;
 }
-.sc-card.is-on .sc-toggle { background: var(--sc-orange); }
-.sc-card.is-on .sc-toggle-knob { transform: translateX(26px); }
+.sc-toggle[aria-checked="true"] { background: var(--sc-orange); }
+.sc-toggle[aria-checked="true"] .sc-toggle-knob { transform: translateX(26px); }
 .sc-toggle:focus-visible,
 .sc-accordion-btn:focus-visible { outline: 2px solid var(--sc-blue); outline-offset: 3px; }
 
@@ -213,7 +208,7 @@ $kx-bolt-deep: #ea580c;
 .sc-headline p { margin: 0; font-size: 16px; line-height: 1.45; color: var(--sc-muted); }
 
 /* ---------- Accordion ---------- */
-.sc-accordion { display: flex; flex-direction: column; gap: 8px; }
+.sc-accordion { display: flex; flex-direction: column; gap: 12px; }
 .sc-accordion-btn {
   align-self: flex-start;
   display: flex; align-items: center; gap: 6px;
@@ -224,10 +219,12 @@ $kx-bolt-deep: #ea580c;
 .sc-caret { transform: rotate(180deg); transition: transform .2s; }  /* closed = pointing down */
 .sc-accordion-btn[aria-expanded="true"] .sc-caret { transform: rotate(0deg); }
 .sc-accordion-panel {
-  margin: 0; font-size: 15px; line-height: 1.5; color: var(--sc-muted);
+  display: flex; flex-direction: column; gap: 18px;
   animation: sc-in .35s ease-out;
 }
-.sc-accordion-panel strong { color: var(--sc-ink); }
+.sc-accordion-panel[hidden] { display: none; }
+.sc-explainer { margin: 0; font-size: 15px; line-height: 1.5; color: var(--sc-muted); }
+.sc-explainer strong { color: var(--sc-ink); }
 
 /* ---------- Signals ---------- */
 .sc-signals { display: flex; flex-direction: column; gap: 10px; }
@@ -284,9 +281,6 @@ $kx-bolt-deep: #ea580c;
 .sc-callout svg { flex-shrink: 0; color: var(--sc-orange); }
 .sc-callout p { margin: 0; font-size: 16px; font-weight: 700; line-height: 1.35; }
 .sc-callout p span { color: var(--sc-blue); }
-
-/* ---------- Off state: mute the "live" accents ---------- */
-.sc-card:not(.is-on) .sc-pulse { animation: none; background: var(--sc-dot); }
 
 /* ---------- Animations ---------- */
 @keyframes sc-pulse {

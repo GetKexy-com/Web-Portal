@@ -22,9 +22,11 @@
     </div>
 
     <!--Supercharged card — ported 1:1 from the client's supercharged-card.{html,css,js}.
-        Only the switch flips the setting; the accordion is a separate disclosure.-->
-    <section class="sc-card" [class.is-on]="superCharged" aria-labelledby="sc-title">
-      <!--Header: icon, name, NEW badge, toggle-->
+        Header and headline always show; everything else sits in the "What is Supercharged?"
+        panel, collapsed until clicked. The switch only flips the setting (the card's colours
+        never change); the accordion is a separate disclosure.-->
+    <section class="sc-card" aria-labelledby="sc-title">
+      <!--Header: icon, name, NEW badge, toggle (always visible)-->
       <div class="sc-header">
         <div class="sc-icon" aria-hidden="true">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z" /></svg>
@@ -45,13 +47,13 @@
         </button>
       </div>
 
-      <!--Headline-->
+      <!--Headline (always visible)-->
       <div class="sc-headline">
         <h2>Every email, freshly researched.</h2>
         <p>Even email #5 reads like you looked them up that morning.</p>
       </div>
 
-      <!--"What is Supercharged?" accordion-->
+      <!--"What is Supercharged?" accordion: everything below is hidden until clicked-->
       <div class="sc-accordion">
         <button
           type="button"
@@ -63,43 +65,45 @@
           What is Supercharged?
           <svg class="sc-caret" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 15 6-6 6 6" /></svg>
         </button>
-        <p class="sc-accordion-panel" id="sc-accordion-panel" *ngIf="showDetails">
-          Right before each email in your sequence goes out, we refresh that contact's signals, so it's written
-          against what's true <strong>today</strong>, not what was true at launch.
-        </p>
-      </div>
 
-      <!--Signals: the chip matching the current example lights up while on.-->
-      <div class="sc-signals">
-        <span class="sc-eyebrow" id="sc-signals-label">{{ signals.length }} live signals · refreshed before every send</span>
-        <ul class="sc-chips" aria-labelledby="sc-signals-label">
-          <li *ngFor="let signal of signals" class="sc-chip" [class.is-active]="superCharged && signal === example.src">
-            {{ signal }}
-          </li>
-        </ul>
-      </div>
+        <div class="sc-accordion-panel" id="sc-accordion-panel" [hidden]="!showDetails">
+          <p class="sc-explainer">
+            Every email goes out with the freshest data on your prospect.
+          </p>
 
-      <!--Live example: rotates every ROTATE_MS while on. The single-item @for re-creates the
-          row on each change so its entrance animation replays.-->
-      <div class="sc-example" aria-live="polite">
-        <div class="sc-example-head">
-          <span class="sc-pulse" aria-hidden="true"></span>
-          <span class="sc-eyebrow sc-eyebrow--accent">Caught this morning</span>
-          <span class="sc-example-tag">Example</span>
-        </div>
-        @for (ex of [example]; track ex) {
-          <div class="sc-example-row is-entering">
-            <div class="sc-caught"><strong>{{ ex.who }}</strong> {{ ex.caught }}</div>
-            <svg class="sc-arrow" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
-            <div class="sc-used"><strong>{{ ex.email }}</strong> {{ ex.used }}</div>
+          <!--Signals: the chip matching the current example lights up.-->
+          <div class="sc-signals">
+            <span class="sc-eyebrow" id="sc-signals-label">{{ signals.length }} live signals · refreshed before every send</span>
+            <ul class="sc-chips" aria-labelledby="sc-signals-label">
+              <li *ngFor="let signal of signals" class="sc-chip" [class.is-active]="signal === example.src">
+                {{ signal }}
+              </li>
+            </ul>
           </div>
-        }
-      </div>
 
-      <!--Callout-->
-      <div class="sc-callout">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z" /></svg>
-        <p><span>Fresh intel wins deals.</span> Stale intel hands them to competitors.</p>
+          <!--Live example: rotates every ROTATE_MS while the panel is open. The single-item
+              @for re-creates the row on each change so its entrance animation replays.-->
+          <div class="sc-example" aria-live="polite">
+            <div class="sc-example-head">
+              <span class="sc-pulse" aria-hidden="true"></span>
+              <span class="sc-eyebrow sc-eyebrow--accent">Caught this morning</span>
+              <span class="sc-example-tag">Example</span>
+            </div>
+            @for (ex of [example]; track ex) {
+              <div class="sc-example-row" [class.is-entering]="!reduceMotion">
+                <div class="sc-caught"><strong>{{ ex.who }}</strong> {{ ex.caught }}</div>
+                <svg class="sc-arrow" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+                <div class="sc-used"><strong>{{ ex.email }}</strong> {{ ex.used }}</div>
+              </div>
+            }
+          </div>
+
+          <!--Callout-->
+          <div class="sc-callout">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z" /></svg>
+            <p><span>Fresh intel wins deals.</span> Stale intel hands them to competitors.</p>
+          </div>
+        </div>
       </div>
     </section>
   </div>
