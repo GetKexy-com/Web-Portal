@@ -83,6 +83,14 @@ describe('scheduleLabel', () => {
     expect(scheduleProspectsFilter(retry)).toBe('queued');
     expect(scheduleProspectsFilter({ ...queued, state: 'insights_daily_limit' })).toBe('queued');
   });
+
+  it('a blocked prospect says it is on hold, with no countdown', () => {
+    const blocked: IEmailSendSchedule = { ...queued, state: 'insights_blocked', sendAt: null };
+    expect(label(blocked, 0)).toEqual(jasmine.objectContaining({ text: 'On hold', tone: 'mute' }));
+    expect(label(blocked, 0).title).toContain('Retry now');
+    expect(scheduleEventAt(blocked)).toBeNull();
+    expect(scheduleProspectsFilter(blocked)).toBe('queued');
+  });
 });
 
 describe('scheduleEventAt', () => {

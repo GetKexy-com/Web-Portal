@@ -259,8 +259,19 @@
                   </ng-container>
                   <!--Queued: countdown to when the send run should reach them.-->
                   <ng-container *ngSwitchCase="'queued'">
+                    <!--Held by Insights: the label opens the popup that says why (`retryInsights`).-->
+                    <button
+                      type="button"
+                      class="sp-when sp-when-why"
+                      *ngIf="canRetryInsights(item) && scheduleLabels[rowKey(item)] as sl"
+                      [ngClass]="'when-' + sl.tone"
+                      [attr.aria-label]="sl.text + ': why?'"
+                      (click)="retryInsights(item)"
+                    >
+                      <span class="sp-when-text">{{ sl.text }} <span class="sp-why">Why?</span></span>
+                    </button>
                     <span
-                      *ngIf="scheduleLabels[rowKey(item)] as sl; else queuedAt"
+                      *ngIf="!canRetryInsights(item) && scheduleLabels[rowKey(item)] as sl"
                       class="sp-when"
                       [ngClass]="'when-' + sl.tone"
                       [title]="sl.title"
@@ -268,9 +279,19 @@
                       <span class="sp-when-text">{{ sl.text }}</span>
                       <span class="sp-when-at" *ngIf="sl.at">{{ sl.at | date: 'EEE MMM d, h:mm a' }}</span>
                     </span>
-                    <ng-template #queuedAt>
-                      <span [title]="item.updatedAt | date: 'medium'">{{ item.updatedAt | date: 'MMM d, h:mm a' }}</span>
-                    </ng-template>
+                    <span *ngIf="!scheduleLabels[rowKey(item)]" [title]="item.updatedAt | date: 'medium'">{{ item.updatedAt | date: 'MMM d, h:mm a' }}</span>
+                    <!--On hold / tomorrow because picking the opener keeps failing: a person can
+                        send it back to the next send run (`retryInsights`).-->
+                    <button
+                      type="button"
+                      class="sp-link sp-retry"
+                      *ngIf="canRetryInsights(item)"
+                      [disabled]="retryingInsights === rowKey(item)"
+                      (click)="retryInsights(item)"
+                    >
+                      <i class="fa fa-refresh" [class.fa-spin]="retryingInsights === rowKey(item)" aria-hidden="true"></i>
+                      Retry now
+                    </button>
                   </ng-container>
                   <span *ngSwitchDefault [title]="item.updatedAt | date: 'medium'">{{ item.updatedAt | date: 'MMM d, h:mm a' }}</span>
                 </ng-container>
