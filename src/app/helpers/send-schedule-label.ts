@@ -71,7 +71,7 @@ export function scheduleLabel(sc: IEmailSendSchedule | null, now: number): ISche
     case 'insights_daily_limit':
       return mute(
         'Retries tomorrow',
-        'Picking how this email opens failed 3 times today for this prospect, so it is tried again after midnight. Nothing is sent until it works. Retry now tries it on the next send run.',
+        'Picking how this email opens failed 3 times today for this prospect, so it is tried again tomorrow, within the campaign\'s sending hours. Nothing is sent until it works.',
       );
     case 'insights_blocked':
       return mute(
@@ -159,7 +159,7 @@ function queuedLabel(sc: IEmailSendSchedule, now: number): IScheduleLabel {
 /** In the queue, but picking its opener failed: the next send run tries again. */
 function insightsRetryLabel(sc: IEmailSendSchedule, now: number): IScheduleLabel {
   const title =
-    'Picking how this email opens failed, so it is tried again on the next send run. Nothing is sent until it works.';
+    "Picking how this email opens failed, so it is tried again on the next send run within the campaign's sending hours. Nothing is sent until it works.";
   const sendAt = parse(sc.sendAt);
   if (sendAt !== null && now < sendAt) {
     return { text: `Retrying in ~${formatDuration(sendAt - now)}`, at: sc.sendAt as string, title, tone: 'count' };

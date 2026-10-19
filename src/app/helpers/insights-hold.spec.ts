@@ -82,7 +82,9 @@ describe('insightsHoldExplanation', () => {
     expect(e.title).toBe('Waiting until tomorrow');
     expect(e.paragraphs[0]).toContain('Our service had a temporary problem.');
     expect(e.paragraphs[0]).toContain('it failed 3 times on Oct 19.');
-    expect(e.paragraphs[1]).toBe('It retries after midnight. The KEXY team has been alerted.');
+    expect(e.paragraphs[1]).toBe(
+      "It retries tomorrow, within the campaign's sending hours. The KEXY team has been alerted.",
+    );
   });
 
   it('never shows error text, and copes with an API that sends no detail', () => {
