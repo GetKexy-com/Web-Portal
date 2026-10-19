@@ -1301,6 +1301,19 @@ export class DripCampaignService {
     return this.__getData(`${base}/conversations/${ref.conversationId}/content`);
   };
 
+  /**
+   * "Retry now" for a prospect whose Insights calls keep failing (`insights_daily_limit` /
+   * `insights_blocked`): the next send run tries their email again. KexyApi
+   * `ProspectInsightsService.retryForProspect`; nothing is called right away.
+   */
+  retryProspectInsights = (campaignId: number, email: string): Promise<{ retried: boolean }> =>
+    new Promise((resolve, reject) => {
+      this.httpService.post(`drip-campaigns/${campaignId}/prospects/insights/retry`, { email }).subscribe({
+        next: (res) => resolve(res.data),
+        error: (err) => reject(err?.error ?? err),
+      });
+    });
+
   private __getData = <T>(url: string): Promise<T> =>
     new Promise<T>((resolve, reject) => {
       this.httpService.get(url).subscribe({

@@ -168,7 +168,9 @@ export interface IEmailSendItem {
  * - `insights_paused`: queued, but the Insights safety switch is off; AI emails wait for
  *   the KEXY team to reset it.
  * - `insights_daily_limit`: queued, but this prospect's Insights calls failed 3 times today;
- *   tried again after midnight.
+ *   tried again after midnight (or sooner with "Retry now").
+ * - `insights_blocked`: queued, but its Insights calls failed 3 times on 2 days; held until
+ *   someone clicks "Retry now" (`retryProspectInsights`).
  * - `unknown`: nothing honest to say.
  */
 export type EmailSendScheduleState =
@@ -186,6 +188,7 @@ export type EmailSendScheduleState =
   | 'insights_retry'
   | 'insights_paused'
   | 'insights_daily_limit'
+  | 'insights_blocked'
   | 'unknown';
 
 export interface IEmailSendSchedule {
@@ -201,6 +204,22 @@ export interface IEmailSendSchedule {
   /** `queued`: when the send run should reach them. Absent from an older API. */
   sendAt?: string | null;
   earlierEmailSequence: number | null;
+  /** `insights_blocked` / `insights_daily_limit` only: why (`insightsHoldExplanation`). */
+  insightsHold?: IInsightsHoldDetail | null;
+}
+
+/**
+ * Why a prospect waits on Insights (KexyApi `InsightsHoldDetail`): when each call failed since
+ * the last answer or "Retry now" (oldest first), the newest failure, and that retry. Never
+ * the error text itself.
+ */
+export interface IInsightsHoldDetail {
+  failedAt: string[];
+  lastFailedAt: string | null;
+  /** The newest failure's kind, for one plain line (`service` | `prospect_data`). */
+  lastFailureCause?: 'service' | 'prospect_data' | null;
+  retriedAt: string | null;
+  retriedBy: string | null;
 }
 
 /**

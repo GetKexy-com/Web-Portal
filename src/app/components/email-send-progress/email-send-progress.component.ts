@@ -21,6 +21,8 @@ import { ProspectingContactsComponent } from '../prospecting-contacts/prospectin
 import { ProspectingService } from '../../services/prospecting.service';
 import { AuthService } from '../../services/auth.service';
 import Swal from 'sweetalert2';
+import { errorText, kxConfirm, kxNotice } from '../../helpers/kx-dialogs';
+import { insightsHoldExplanation } from '../../helpers/insights-hold';
 
 /**
  * Keeps a framed email's images inside the frame, in proportion.
@@ -266,6 +268,8 @@ export class EmailSendProgressComponent implements OnInit, OnDestroy {
 
   /** The row whose contact is being looked up before the edit drawer opens. */
   openingContact: string | null = null;
+  /** The row whose "Retry now" request is in flight. */
+  retryingInsights: string | null = null;
 
   constructor(
     private dripCampaignService: DripCampaignService,
@@ -495,6 +499,44 @@ export class EmailSendProgressComponent implements OnInit, OnDestroy {
       if (!this.destroyed) this.__load('user');
     };
     ref.result.then(done, done);
+  };
+
+  /** Waiting on Insights for good or until midnight: only a person can move it sooner. */
+  canRetryInsights = (item: IEmailSendItem): boolean =>
+    item.status === 'queued' &&
+    (item.schedule?.state === 'insights_blocked' || item.schedule?.state === 'insights_daily_limit');
+
+  /**
+   * Why the prospect is held (`insightsHoldExplanation`, plain words, never the error), with
+   * "Retry now" as the popup's action: the next send run calls Insights for them again
+   * (KexyApi `retryForProspect`). The only way a blocked prospect moves again. Opened from
+   * the "On hold" / "Retries tomorrow" label and from the row's Retry now link.
+   */
+  retryInsights = async (item: IEmailSendItem): Promise<void> => {
+    if (this.retryingInsights || !item.schedule) return;
+    const why = insightsHoldExplanation(item.schedule, item.name || item.email, this.emailSequence);
+    const ok = await kxConfirm({
+      title: why.title,
+      html:
+        why.paragraphs.map((p) => `<p class="kx-discard-lead kx-hold-para">${escapeHtml(p)}</p>`).join('') +
+        (why.lastAttempt ? `<p class="kx-hold-meta">${escapeHtml(why.lastAttempt)}</p>` : ''),
+      icon: item.schedule.state === 'insights_blocked' ? 'fa-pause' : 'fa-clock-o',
+      confirmText: 'Retry now',
+      cancelText: 'Close',
+      tone: 'primary',
+    });
+    if (!ok) return;
+    const key = this.rowKey(item);
+    this.retryingInsights = key;
+    try {
+      await this.dripCampaignService.retryProspectInsights(this.campaignId, item.email);
+    } catch (e) {
+      await kxNotice({ title: 'Could not retry', text: errorText(e), icon: 'fa-exclamation' });
+      return;
+    } finally {
+      this.retryingInsights = null;
+    }
+    if (!this.destroyed) this.__load('user');
   };
 
   clearFilters = (): void => {
@@ -791,4 +833,8 @@ export class EmailSendProgressComponent implements OnInit, OnDestroy {
       this.searchTimer = null;
     }
   }
+}
+
+function escapeHtml(text: string): string {
+  return text.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 }
