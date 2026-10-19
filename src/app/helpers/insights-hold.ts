@@ -44,7 +44,7 @@ export function insightsHoldExplanation(
     `${email} for ${who} couldn't be prepared: it ${what}.${cause}`,
     blocked
       ? "It won't retry on its own. The KEXY team has been alerted."
-      : 'It retries after midnight. The KEXY team has been alerted.',
+      : "It retries tomorrow, within the campaign's sending hours. The KEXY team has been alerted.",
   ];
 
   return {
