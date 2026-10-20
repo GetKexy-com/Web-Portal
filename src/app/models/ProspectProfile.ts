@@ -78,7 +78,8 @@ export interface IProspectInsights {
   /** At most 10, sorted by confidence, highest first. */
   signals: IProspectSignal[];
   openerSelection: {
-    winnerKey: OpenerAngle;
+    /** Null when every angle was already used: the email led with none. */
+    winnerKey: OpenerAngle | null;
     /** From KexyApi's own tracking of the email the opener was used in, never from the AI. */
     outcome: 'pending' | 'sent' | 'opened' | 'replied' | 'no_response';
     /** The `signals[].id` behind the winning angle; null for answers from before Insights named it. */

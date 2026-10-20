@@ -46,12 +46,27 @@ export function linkedinUsername(url: string | null | undefined): string {
  * no link and wrote `<a href="#">`. Both keys are sent.
  */
 export function aiLeadMagnets(leadMagnets: any[] | null | undefined): any[] {
-  return (leadMagnets || []).map((m: any) => ({
-    id: m?.id,
-    title: m?.title,
-    summary: m?.summary,
-    lead_magnet_url: m?.leadMagnetUrl ?? m?.lead_magnet_url,
-    leadMagnetUrl: m?.leadMagnetUrl ?? m?.lead_magnet_url,
-    status: m?.status,
-  }));
+  return (leadMagnets || []).map((m: any) => {
+    const url = withHttpScheme(m?.leadMagnetUrl ?? m?.lead_magnet_url);
+    return {
+      id: m?.id,
+      title: m?.title,
+      summary: m?.summary,
+      lead_magnet_url: url,
+      leadMagnetUrl: url,
+      status: m?.status,
+    };
+  });
+}
+
+/**
+ * KexyApi `withHttpScheme` (`lead-magnet-payload.ts`): links are saved without a scheme
+ * (`www.…`) and the Lambdas keep only http(s) links (2026-10-20), so a bare link is sent
+ * as `https://…`. Another scheme (`mailto:`) is left for the Lambda to drop.
+ */
+export function withHttpScheme(url: any): any {
+  if (typeof url !== 'string') return url;
+  const trimmed = url.trim();
+  if (!trimmed || /^https?:\/\//i.test(trimmed) || /^[a-z][a-z0-9+-]*:/i.test(trimmed)) return trimmed;
+  return `https://${trimmed.replace(/^\/\//, '')}`;
 }
