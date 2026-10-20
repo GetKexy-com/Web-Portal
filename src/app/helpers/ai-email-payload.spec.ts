@@ -30,6 +30,8 @@ describe('aiLeadMagnets', () => {
   });
 
   it('no magnets is an empty list', () => {
+    expect(aiLeadMagnets([{ leadMagnetUrl: 'www.x.com/guide' }])[0].lead_magnet_url).toBe('https://www.x.com/guide');
+    expect(aiLeadMagnets([{ lead_magnet_url: 'mailto:a@x.com' }])[0].leadMagnetUrl).toBe('mailto:a@x.com');
     expect(aiLeadMagnets(undefined)).toEqual([]);
     expect(aiLeadMagnets([])).toEqual([]);
   });

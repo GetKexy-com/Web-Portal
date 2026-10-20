@@ -532,7 +532,9 @@ export class ProspectProfileContentComponent implements OnInit, OnDestroy {
     const op = ins.openerSelection;
     if (op) {
       const n = op.candidates.length;
-      this.openerIntro = n
+      this.openerIntro = !op.winnerKey
+        ? 'Every opener had already been used in earlier emails, so this one did not lead with any.'
+        : n
         ? `We compare ${NUMBER_WORDS[n] ?? n} possible opener${n === 1 ? '' : 's'} and use the strongest.`
         : 'No opener was strong enough on its own, so we used the best one we had.';
       this.openerWinner = op.candidates.find((c) => c.key === op.winnerKey)?.label || ANGLE_LABEL[op.winnerKey] || '';
