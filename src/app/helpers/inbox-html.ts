@@ -44,8 +44,7 @@ export function inboxHtmlOptions(email: {
   templateOptions?: string | null;
 }): { plainText: boolean; userWritten: boolean } {
   return {
-    plainText:
-      email.templateOptions !== constants.TEMPLATE_KEY || email.emailStyle !== HTML_STYLE,
+    plainText: email.templateOptions !== constants.TEMPLATE_KEY || email.emailStyle !== HTML_STYLE,
     userWritten: email.templateOptions === constants.TEMPLATE_KEY,
   };
 }
@@ -162,13 +161,20 @@ const VOID_TAGS = new Set([
 /** Elements whose own text is never shown, so their newlines are left alone. */
 const RAW_TEXT_TAGS = new Set(['style', 'script', 'title', 'head']);
 
+/** `white-space` values that keep newlines, and the same as the newer longhand
+ * `white-space-collapse` (what Chrome writes on copy: `white-space-collapse: preserve`). */
+const KEEPS_BREAKS =
+  /white-space\s*:\s*(pre|pre-wrap|pre-line|break-spaces)\b|white-space-collapse\s*:\s*(preserve|preserve-breaks|preserve-spaces|break-spaces)\b/i;
+const COLLAPSES_BREAKS =
+  /white-space\s*:\s*(normal|nowrap)\b|white-space-collapse\s*:\s*collapse\b/i;
+
 /**
  * Turns newlines into `<br>` inside elements styled `white-space: pre | pre-wrap |
- * pre-line`. Only text is touched, never a tag or an attribute, and everywhere else a
+ * pre-line` or `white-space-collapse: preserve`. Only text is touched, never a tag or an attribute, and everywhere else a
  * newline stays what HTML makes it: a space.
  */
 export function preserveCssLineBreaks(html: string): string {
-  if (!/white-space\s*:\s*pre/i.test(html)) return html;
+  if (!/white-space\s*:\s*pre|white-space-collapse\s*:\s*(preserve|break)/i.test(html)) return html;
 
   // One entry per open element: its tag name and whether it (or an ancestor) keeps breaks.
   const stack: { tag: string; keeps: boolean; raw: boolean }[] = [];
@@ -193,8 +199,8 @@ export function preserveCssLineBreaks(html: string): string {
         if (VOID_TAGS.has(name) || /\/\s*>$/.test(token)) return token;
         const parent = stack[stack.length - 1];
         const style = /style\s*=\s*(["'])([\s\S]*?)\1/i.exec(token)?.[2] ?? '';
-        const own = /white-space\s*:\s*(pre|pre-wrap|pre-line|break-spaces)\b/i.exec(style);
-        const resets = /white-space\s*:\s*(normal|nowrap)\b/i.test(style);
+        const own = KEEPS_BREAKS.test(style);
+        const resets = COLLAPSES_BREAKS.test(style);
         stack.push({
           tag: name,
           keeps: own ? true : resets ? false : !!parent?.keeps,
