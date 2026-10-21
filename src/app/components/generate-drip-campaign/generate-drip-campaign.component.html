@@ -132,16 +132,14 @@
       <div class="kb-main">
         <span class="kb-icon" aria-hidden="true"><i class="fa fa-exclamation"></i></span>
         <div class="kb-text">
-          <p class="kb-title">This campaign has no SMTP account to send from</p>
+          <p class="kb-title">This campaign can't send emails yet</p>
           <p class="kb-desc" *ngIf="!accountHasSmtp">
-            Nothing is sent until it has one: KEXY only sends your campaigns from your own email
-            account. Add one in SMTP Settings, then choose it in this campaign's settings{{
-              isPaused ? ' and resume' : ''
-            }}.
+            Your campaigns are sent from your own email account. Add your email account first,
+            then pick it in this campaign's settings{{ isPaused ? ' and click Resume' : '' }}.
           </p>
           <p class="kb-desc" *ngIf="accountHasSmtp">
-            Nothing is sent until you choose one of your SMTP accounts in this campaign's
-            settings{{ isPaused ? ', then resume' : '' }}.
+            Pick which email account to send from in this campaign's
+            settings{{ isPaused ? ', then click Resume' : '' }}.
           </p>
         </div>
         <div class="kb-actions">
