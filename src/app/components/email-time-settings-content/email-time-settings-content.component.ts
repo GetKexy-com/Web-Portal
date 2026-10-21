@@ -1,7 +1,9 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { NgbActiveOffcanvas, NgbModal, NgbTooltip } from '@ng-bootstrap/ng-bootstrap';
 import Swal from 'sweetalert2';
 import { constants } from '../../helpers/constants';
+import { routeConstants } from '../../helpers/routeConstants';
 import { AuthService } from '../../services/auth.service';
 import { DripCampaignService } from '../../services/drip-campaign.service';
 import { Subscription } from 'rxjs';
@@ -102,6 +104,7 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
     public prospectingService: ProspectingService,
     public pageUiService: PageUiService,
     private modal: NgbModal,
+    private router: Router,
   ) {
   }
 
@@ -652,6 +655,28 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
   syncSelectedSmtpOption = () => {
     this.selectedSmtpOption =
       this.smtpOptions.find((o) => o.id === this.selectedSmtpId) || null;
+  };
+
+  /**
+   * The campaign page's no-SMTP message, repeated here: live or paused, and KexyApi says its
+   * SMTP is missing or inactive. Read from the API, not the dropdown (whose load swallows
+   * errors), and hidden once an account is picked.
+   */
+  get showSmtpMissing(): boolean {
+    return (
+      [constants.ACTIVE, constants.PAUSE].includes(this.dripCampaign?.status) &&
+      this.dripCampaign?.hasActiveSmtp === false &&
+      !this.selectedSmtpOption
+    );
+  }
+
+  get accountHasSmtp(): boolean {
+    return !!this.dripCampaign?.accountHasActiveSmtp;
+  }
+
+  openSmtpSettings = () => {
+    this.activeCanvas.dismiss('Add SMTP account');
+    this.router.navigate(['/' + routeConstants.BRAND.SMTP_SETTINGS]);
   };
 
   onSmtpSelect = (selectedValue) => {

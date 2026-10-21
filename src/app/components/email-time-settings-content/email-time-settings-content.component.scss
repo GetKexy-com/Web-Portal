@@ -193,6 +193,60 @@ $kx-red-bg: #fdeaea;
         color: $kx-muted;
       }
 
+      // The campaign page's red no-SMTP bar, in the panel's spacing.
+      .smtp-missing {
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+        margin: 0 0 14px;
+        padding: 10px 12px;
+        border: 1px solid #fecaca;
+        border-radius: 10px;
+        background: #fef2f2;
+
+        .sm-icon {
+          flex: none;
+          display: grid;
+          place-items: center;
+          width: 22px;
+          height: 22px;
+          border-radius: 50%;
+          background: #dc2626;
+          color: #ffffff;
+          font-size: 12px;
+        }
+
+        .sm-title {
+          margin: 1px 0 2px;
+          font-size: 13px;
+          font-weight: 700;
+          color: #991b1b;
+        }
+
+        .sm-desc {
+          margin: 0;
+          font-size: 12.5px;
+          line-height: 1.5;
+          color: #7f1d1d;
+        }
+
+        .sm-btn {
+          margin-top: 8px;
+          padding: 5px 12px;
+          border: 0;
+          border-radius: 6px;
+          background: #b91c1c;
+          color: #ffffff;
+          font-size: 12.5px;
+          font-weight: 700;
+          cursor: pointer;
+
+          &:hover {
+            background: #991b1b;
+          }
+        }
+      }
+
       .reactivation-note {
         margin-top: 0;
         padding: 8px 12px;
