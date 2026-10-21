@@ -44,6 +44,17 @@ export function isResearchRunning(c: ResearchStatuses | null | undefined): boole
   );
 }
 
+/**
+ * Why the SYSTEM paused the campaign (KexyApi `campaign-pause.ts`), worded for the user; the
+ * owner's email says the same. Null for a pause the owner made, or while not paused.
+ */
+export interface IPauseReason {
+  reason: 'no_smtp' | 'smtp_rejected' | 'failed_prospects';
+  summary: string;
+  details: string[];
+  pausedAt: string;
+}
+
 export class DripCampaign {
   id: number;
   company: object;
@@ -70,6 +81,7 @@ export class DripCampaign {
    */
   hasActiveSmtp?: boolean;
   accountHasActiveSmtp?: boolean;
+  pauseReason?: IPauseReason | null;
   createdAt: string;
   details: IDripCampaignDetails;
   emails: ICampaignEmail[];
@@ -97,6 +109,7 @@ export class DripCampaign {
     this.sportsApplies = rawData.sportsApplies;
     this.hasActiveSmtp = rawData.hasActiveSmtp;
     this.accountHasActiveSmtp = rawData.accountHasActiveSmtp;
+    this.pauseReason = rawData.pauseReason ?? null;
     this.createdAt = rawData.createdAt;
 
     this.details = {
@@ -217,6 +230,7 @@ export interface IRawDripCampaign {
   sportsApplies?: boolean;
   hasActiveSmtp?: boolean;
   accountHasActiveSmtp?: boolean;
+  pauseReason?: IPauseReason | null;
   createdAt: string;
   details: IRawDripCampaignDetails;
   emails: IRawCampaignEmail[];

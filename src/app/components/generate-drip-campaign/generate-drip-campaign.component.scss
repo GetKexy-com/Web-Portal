@@ -730,6 +730,47 @@ $settings-band: 2;
   }
 }
 
+// Why the system paused it: sits right under the paused (or no-SMTP) banner, in its tones.
+.campaign-pause-reason {
+  margin: -8px 0 16px;
+  padding: 12px 16px;
+  background: #fffbf5;
+  border: 1px solid #fed7aa;
+  border-radius: 12px;
+  font-size: 13px;
+  color: #6b4e16;
+
+  .reason-title {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 10px;
+    margin: 0 0 4px;
+    font-weight: 700;
+    color: #8a6100;
+  }
+
+  .reason-when {
+    font-weight: 400;
+    font-size: 12px;
+    color: #a37a1f;
+  }
+
+  .reason-summary {
+    margin: 0;
+  }
+
+  .reason-details {
+    margin: 6px 0 0;
+    padding-left: 18px;
+    overflow-wrap: anywhere;
+
+    li + li {
+      margin-top: 2px;
+    }
+  }
+}
+
 // Status bar — "Supercharged" and the live state on one line, with the facts as
 // chips. Same slot as .campaign-paused-warning above, so an active and a paused
 // campaign put their status in the same place. Green by default; the warm amber →
