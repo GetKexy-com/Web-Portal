@@ -218,10 +218,13 @@ export const constants = {
     { key: 'Empathetic', value: 'Empathetic' },
     { key: 'Emoji', value: 'Emoji' },
   ],
+  // `subText` is the line under each option. The ranges are the AI email Lambdas' own
+  // (KEXY-AI `shared/prompts/partials.js`, LENGTH_RANGES, 2026-10-21): body only, without
+  // subject, signature or link text. Keep in step if they change there.
   EMAIL_LENGTH_KEYS: [
-    { key: 'short', value: 'Short' },
-    { key: 'medium', value: 'Medium' },
-    { key: 'long', value: 'Long' },
+    { key: 'short', value: 'Short', subText: '35–55 words' },
+    { key: 'medium', value: 'Medium', subText: '55–80 words' },
+    { key: 'long', value: 'Long', subText: '80–110 words' },
   ],
   EMAIL_STYLES: [
     { key: 'plain_text', value: 'Plain Text Email' },
