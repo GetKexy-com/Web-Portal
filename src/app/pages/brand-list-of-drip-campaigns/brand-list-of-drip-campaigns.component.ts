@@ -1,4 +1,4 @@
-import { Component, inject, signal, DestroyRef, HostListener, OnInit } from '@angular/core';
+import { Component, inject, signal, DestroyRef, ElementRef, HostListener, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
@@ -533,58 +533,127 @@ export class BrandListOfDripCampaignsComponent implements OnInit {
   receivedLimitNumber = async (limit: number) => {
     this.setPageLimit(limit);
     this.page.set(1);
+    const inList = this.__scrolledIntoList();
     this.isWaitingFlag.set(true);
     await this.getListOfDripCampaigns();
     this.isWaitingFlag.set(false);
+    this.__showTableTop(inList);
   };
 
   receivedDripStatusFilter = async (status: any) => {
     console.log(status);
     this.page.set(1);
     this.filterStatus.set(status);
+    const inList = this.__scrolledIntoList();
     this.isWaitingFlag.set(true);
     await this.getListOfDripCampaigns();
     this.isWaitingFlag.set(false);
+    this.__showTableTop(inList);
   };
+
+  // ── Keep the table's top in view across a page change ──────────────────
+  // Scrolled down into the list, a page change used to leave you mid-way down the new page,
+  // or (a shorter page) snap the whole page back to the top. Big apps bring the TABLE's top
+  // into view instead: its pinned bar with the new page's first row under it. At the top of
+  // the page nothing moves.
+  private host = inject(ElementRef);
+
+  private __listScroll() {
+    const root: HTMLElement = this.host.nativeElement;
+    const scroller = root.querySelector('.content-area') as HTMLElement | null;
+    const card = root.querySelector('.kexy-table-card') as HTMLElement | null;
+    if (!scroller || !card) return null;
+    // Where the page is scrolled to when the card's top reaches the top of the scroll area.
+    const cardTop = card.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop;
+    return { scroller, card, cardTop };
+  }
+
+  /**
+   * Scrolled down to the table's top or past it, read BEFORE the rows change. "At" counts:
+   * that is exactly where a page change leaves you, so the next one keeps you there too.
+   */
+  private __scrolledIntoList(): boolean {
+    const at = this.__listScroll();
+    const inList = !!at && at.cardTop > 0 && at.scroller.scrollTop >= at.cardTop - 1;
+    // Hold the card's height while the rows swap, so a shorter page can't shrink the page
+    // (and flash it to the top) before `__showTableTop` places it.
+    if (inList) at!.card.style.minHeight = `${at!.card.offsetHeight}px`;
+    return inList;
+  }
+
+  private __showTableTop(wasInList: boolean) {
+    // After the new rows render. The height a short page was given is dropped only now:
+    // dropping it before the load shrank the page and snapped it to the top.
+    requestAnimationFrame(() => {
+      const at = this.__listScroll();
+      if (!at) return;
+      at.card.style.minHeight = '';
+      if (!wasInList) return;
+      const { scroller, card, cardTop } = at;
+      // A short page (page 2 of 31 campaigns has 6) can't scroll that far, so the browser
+      // showed it from the very top. Make the card just tall enough (white space under the
+      // last row, as GitHub's lists do) to keep its top at the top of the screen; it goes
+      // with the next page change. (Padding on the scroll area isn't scrollable room here.)
+      // Tall enough that, scrolled to the card's top, the area is full: the screen minus what
+      // sits below the card (its margin, the area's padding). `scrollHeight` can't be used:
+      // it never reports less than the screen.
+      const below =
+        (parseFloat(getComputedStyle(card).marginBottom) || 0) +
+        (parseFloat(getComputedStyle(scroller).paddingBottom) || 0);
+      const needed = scroller.clientHeight - below;
+      if (card.offsetHeight < needed) card.style.minHeight = `${needed}px`;
+      scroller.scrollTop = cardTop;
+    });
+  }
 
   paginationRightArrowClick = async () => {
     if (this.page() === this.totalPageCounts()) return;
+    const inList = this.__scrolledIntoList();
     this.isLoading.set(true);
     this.page.update(p => p + 1);
     await this.getListOfDripCampaigns();
     this.isLoading.set(false);
+    this.__showTableTop(inList);
   };
 
   paginationLeftArrowClick = async () => {
     if (this.page() === 1) return;
+    const inList = this.__scrolledIntoList();
     this.isLoading.set(true);
     this.page.update(p => p - 1);
     await this.getListOfDripCampaigns();
     this.isLoading.set(false);
+    this.__showTableTop(inList);
   };
 
   paginationFirstClick = async () => {
     if (this.page() === 1) return;
+    const inList = this.__scrolledIntoList();
     this.isLoading.set(true);
     this.page.set(1);
     await this.getListOfDripCampaigns();
     this.isLoading.set(false);
+    this.__showTableTop(inList);
   };
 
   paginationLastClick = async () => {
     if (this.page() === this.totalPageCounts()) return;
+    const inList = this.__scrolledIntoList();
     this.isLoading.set(true);
     this.page.set(this.totalPageCounts());
     await this.getListOfDripCampaigns();
     this.isLoading.set(false);
+    this.__showTableTop(inList);
   };
 
   navigateToPage = async (pageNum: number) => {
     if (!pageNum || pageNum === this.page()) return;
+    const inList = this.__scrolledIntoList();
     this.isLoading.set(true);
     this.page.set(pageNum);
     await this.getListOfDripCampaigns();
     this.isLoading.set(false);
+    this.__showTableTop(inList);
   };
 
   handleContactSelect = (selectedRow: any, isSelectAll: boolean) => {
