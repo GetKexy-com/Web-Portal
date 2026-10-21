@@ -123,6 +123,16 @@ export class DripCampaignService {
   ) {
   }
 
+  /**
+   * Page 1 of a running or paused campaign registers whether it has unsaved edits, so the
+   * route guard (`unsavedDripChangesGuard`) can ask before the user leaves the page.
+   */
+  private unsavedChangesCheck: (() => boolean) | null = null;
+  setUnsavedChangesCheck = (check: (() => boolean) | null) => {
+    this.unsavedChangesCheck = check;
+  };
+  hasUnsavedChanges = (): boolean => !!this.unsavedChangesCheck?.();
+
   getDripCampaignContentPageData = () => {
     return this.dripCampaign;
   };
