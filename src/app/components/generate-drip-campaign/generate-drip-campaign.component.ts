@@ -132,6 +132,7 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
     private pageUiService: PageUiService,
     private _authService: AuthService,
     private route: ActivatedRoute,
+    private router: Router,
   ) {
   }
 
@@ -192,6 +193,8 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
     this.dripCampaignStatusSubscription = this.dripCampaignService.dripCampaignStatus.subscribe(status => {
       this.dripCampaignStatus = status;
       this.__syncProspectsPolling();
+      // Fires on every settings save too, so picking an SMTP clears the warning at once.
+      this.__syncSmtpState();
     });
     this.showAiEmailError();
     this.numberOfEmail = this.dripCampaign.details.numberOfEmails;
@@ -1517,6 +1520,32 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
     } finally {
       this.isSendEmailLoading = false;
     }
+  };
+
+  /**
+   * The no-SMTP warning: shown while the campaign is live or paused and KexyApi says its
+   * SMTP is missing or inactive (`hasActiveSmtp === false`; undefined from an older API
+   * shows nothing). A paused one shows it instead of the plain "paused" banner, whose
+   * Resume would only be refused for the same reason.
+   */
+  smtpMissing = false;
+  accountHasSmtp = false;
+
+  private __syncSmtpState = () => {
+    const latest = this.dripCampaignService.getDripCampaignContentPageData();
+    this.smtpMissing = latest?.hasActiveSmtp === false;
+    this.accountHasSmtp = !!latest?.accountHasActiveSmtp;
+  };
+
+  get showSmtpWarning(): boolean {
+    return (
+      this.smtpMissing &&
+      [constants.ACTIVE, constants.PAUSE].includes(this.dripCampaign?.status)
+    );
+  }
+
+  openSmtpSettings = () => {
+    this.router.navigate(['/' + routeConstants.BRAND.SMTP_SETTINGS]);
   };
 
   openSettingsCanvas = () => {

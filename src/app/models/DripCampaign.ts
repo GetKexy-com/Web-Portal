@@ -64,6 +64,12 @@ export class DripCampaign {
    * and the drip created after go-live). Older drips keep a meaningless PENDING sports status.
    */
   sportsApplies?: boolean;
+  /**
+   * KexyApi: the campaign's selected SMTP is ACTIVE, so it can send. Undefined from an older
+   * API (no warning shown). `accountHasActiveSmtp`: the user has one to choose.
+   */
+  hasActiveSmtp?: boolean;
+  accountHasActiveSmtp?: boolean;
   createdAt: string;
   details: IDripCampaignDetails;
   emails: ICampaignEmail[];
@@ -89,6 +95,8 @@ export class DripCampaign {
     this.linkedinScrapeStatus = rawData.linkedinScrapeStatus;
     this.sportsScrapeStatus = rawData.sportsScrapeStatus;
     this.sportsApplies = rawData.sportsApplies;
+    this.hasActiveSmtp = rawData.hasActiveSmtp;
+    this.accountHasActiveSmtp = rawData.accountHasActiveSmtp;
     this.createdAt = rawData.createdAt;
 
     this.details = {
@@ -207,6 +215,8 @@ export interface IRawDripCampaign {
   linkedinScrapeStatus?: CampaignStatus;
   sportsScrapeStatus?: CampaignStatus;
   sportsApplies?: boolean;
+  hasActiveSmtp?: boolean;
+  accountHasActiveSmtp?: boolean;
   createdAt: string;
   details: IRawDripCampaignDetails;
   emails: IRawCampaignEmail[];

@@ -67,7 +67,34 @@
       (visibilityChange)="onScrapeCardVisibilityChange($event)">
     </app-scrape-progress-card>
 
-    <div class="campaign-paused-warning" *ngIf="dripCampaign?.status === constants.PAUSE">
+    <!--No SMTP: nothing can be sent, and Activate/Resume are refused until one is chosen.-->
+    <div class="campaign-paused-warning" *ngIf="showSmtpWarning" role="alert">
+      <i class="fa fa-exclamation-triangle" aria-hidden="true"></i>
+      <div class="text">
+        <p class="title">This campaign has no SMTP account to send from</p>
+        <p class="desc" *ngIf="!accountHasSmtp">
+          Nothing is sent until it has one: KEXY only sends your campaigns from your own email
+          account. Add one in SMTP Settings, then choose it in this campaign's settings{{
+            dripCampaign?.status === constants.PAUSE ? ' and resume' : ''
+          }}.
+        </p>
+        <p class="desc" *ngIf="accountHasSmtp">
+          Nothing is sent until you choose one of your SMTP accounts in this campaign's
+          settings{{ dripCampaign?.status === constants.PAUSE ? ', then resume' : '' }}.
+        </p>
+      </div>
+      <app-kexy-button
+        class="resume-btn"
+        [label]="accountHasSmtp ? 'Choose SMTP account' : 'Add SMTP account'"
+        [iconLeft]="accountHasSmtp ? 'fa-cog' : 'fa-plus-circle'"
+        bgColor="#b45309"
+        textColor="#ffffff"
+        radius="8px"
+        (click)="accountHasSmtp ? openSettingsCanvas() : openSmtpSettings()"
+      ></app-kexy-button>
+    </div>
+
+    <div class="campaign-paused-warning" *ngIf="dripCampaign?.status === constants.PAUSE && !showSmtpWarning">
       <i class="fa fa-exclamation-triangle" aria-hidden="true"></i>
       <div class="text">
         <p class="title">This drip campaign is paused</p>
