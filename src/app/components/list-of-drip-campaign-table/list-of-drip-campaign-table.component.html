@@ -172,7 +172,8 @@
                         }">
                     <span class="dot"></span>
                     <ng-container *ngIf="row.status === constants.INACTIVE">Draft</ng-container>
-                    <ng-container *ngIf="row.status !== constants.INACTIVE" class="text-capitalize">{{ row.status }}</ng-container>
+                    <ng-container *ngIf="row.status === constants.PAUSE">Paused</ng-container>
+                    <ng-container *ngIf="row.status !== constants.INACTIVE && row.status !== constants.PAUSE" class="text-capitalize">{{ row.status }}</ng-container>
                   </span>
                   <!--Active but not sending as it should; the summary above the table says why.-->
                   <!--Click: the issues and how to fix each, without scrolling up to the summary.-->

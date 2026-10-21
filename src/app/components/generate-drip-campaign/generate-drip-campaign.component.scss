@@ -703,11 +703,30 @@ $settings-band: 2;
   border: 1px solid var(--tone-border);
   border-radius: 12px;
 
+  // Paused and no-SMTP together: two bars, close enough to read as one state.
+  & + & {
+    margin-top: -8px;
+  }
+
   &.is-stop {
     --tone: #dc2626;
     --tone-deep: #b91c1c;
     --tone-bg: #fef2f2;
     --tone-border: #fecaca;
+  }
+
+  // A paused campaign the owner paused: informational with the faintest warm tint (a paused
+  // campaign still isn't sending); Resume in the same warm tone so bar and button read as one.
+  &.is-neutral {
+    --tone: #d97706;
+    --tone-deep: #b45309;
+    --tone-bg: #fffcf5;
+    --tone-border: #f5e6c8;
+
+    .kb-icon {
+      background: #fdf0d5;
+      color: #b45309;
+    }
   }
 
   .kb-main {
