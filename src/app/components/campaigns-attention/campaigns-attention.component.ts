@@ -41,6 +41,10 @@ export class CampaignsAttentionComponent implements OnInit, OnChanges {
   @Input() refreshKey: unknown = null;
   /** Each flagged campaign's issues, by campaign id. */
   @Output() issuesChange = new EventEmitter<Record<number, ICampaignIssue[]>>();
+  /** The table below is showing only these campaigns (its "Needs attention" filter). */
+  @Input() filtered = false;
+  /** "Show only these" (true) / "Show all campaigns" (false): the page sets the filter. */
+  @Output() filterChange = new EventEmitter<boolean>();
 
   data: ICampaignsAttention | null = null;
   /** The card's body (the campaigns and their issues). Collapsed by default. */

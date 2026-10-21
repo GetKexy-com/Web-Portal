@@ -235,6 +235,9 @@ export const constants = {
     { key: 'active', value: 'Active' },
     { key: 'inactive', value: 'Draft' },
     { key: 'complete', value: 'Completed' },
+    // Active campaigns that aren't sending as they should, across every page (the API's
+    // `GET drip-campaigns?status=attention`).
+    { key: 'attention', value: 'Needs attention' },
   ],
   DRIP_CAMPAIGN: 'Drip Campaigns',
   PROMOTIONS: 'Promotions',

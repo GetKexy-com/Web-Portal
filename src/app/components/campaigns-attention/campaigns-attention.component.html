@@ -6,27 +6,34 @@
   aria-label="Campaigns that need attention"
   role="status"
 >
-  <!--The header is the toggle: one line when collapsed (the default).-->
-  <button
-    type="button"
-    class="at-header"
-    (click)="open = !open"
-    [attr.aria-expanded]="open"
-    aria-controls="campaigns-attention-body"
-  >
-    <span class="at-icon" aria-hidden="true"><i class="fa fa-exclamation"></i></span>
-    <span class="at-title">
-      <span class="at-count">{{ data!.campaigns.length }}</span>active campaign{{
-        data!.campaigns.length === 1 ? '' : 's'
-      }}
-      need{{ data!.campaigns.length === 1 ? 's' : '' }} attention
-    </span>
-    <span class="at-summary" *ngIf="stopping">· {{ stopping }} won't send until fixed</span>
-    <span class="at-toggle">
-      {{ open ? 'Hide' : 'Show details' }}
-      <i class="fa" [class.fa-angle-up]="open" [class.fa-angle-down]="!open" aria-hidden="true"></i>
-    </span>
-  </button>
+  <div class="at-head">
+    <!--The header is the toggle: one line when collapsed (the default).-->
+    <button
+      type="button"
+      class="at-header"
+      (click)="open = !open"
+      [attr.aria-expanded]="open"
+      aria-controls="campaigns-attention-body"
+    >
+      <span class="at-icon" aria-hidden="true"><i class="fa fa-exclamation"></i></span>
+      <span class="at-title">
+        <span class="at-count">{{ data!.campaigns.length }}</span>active campaign{{
+          data!.campaigns.length === 1 ? '' : 's'
+        }}
+        need{{ data!.campaigns.length === 1 ? 's' : '' }} attention
+      </span>
+      <span class="at-summary" *ngIf="stopping">· {{ stopping }} won't send until fixed</span>
+      <span class="at-toggle">
+        {{ open ? 'Hide' : 'Show details' }}
+        <i class="fa" [class.fa-angle-up]="open" [class.fa-angle-down]="!open" aria-hidden="true"></i>
+      </span>
+    </button>
+    <!--Filters the table below to these campaigns, however many pages it has.-->
+    <button type="button" class="at-only" (click)="filterChange.emit(!filtered)">
+      {{ filtered ? 'Show all campaigns' : 'Show only these' }}
+      <i class="fa" [class.fa-arrow-right]="!filtered" [class.fa-times]="filtered" aria-hidden="true"></i>
+    </button>
+  </div>
 
   <div id="campaigns-attention-body" *ngIf="open">
     <ul class="at-list">

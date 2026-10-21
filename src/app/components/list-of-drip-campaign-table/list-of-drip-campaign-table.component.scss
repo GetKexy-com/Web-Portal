@@ -24,7 +24,9 @@ $st-blue-bg: #e7f6fe;
   border: 1px solid $kx-border;
   border-radius: 14px;
   box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
-  overflow: hidden;
+  // `clip`, not `hidden`: still rounds the corners, but is not a scroll box, so the table
+  // header can stick to the PAGE while it scrolls (see `.new-table-wrapper`).
+  overflow: clip;
 
   .card-header, .card-footer {
     padding: 14px 18px;
@@ -171,9 +173,26 @@ $st-blue-bg: #e7f6fe;
   }
 
   // ── Table ─────────────────────────────────────────────────────────────
+  // ONE scroll: the page. The table used to be its own fixed-height scroll box inside the
+  // scrolling page, so a scroll stopped at the table's end and needed a second scroll to
+  // move the page (worse once the attention card and "Up next" pushed it down). Now the
+  // table grows with its rows and the header row sticks to the top of the page instead.
+  // Where the table is wider than the card (narrow screens) it still scrolls sideways
+  // here; a sideways scroll box can't let the header stick, so on those screens it doesn't.
   .new-table-wrapper {
-    max-height: calc(100vh - 320px);
-    overflow: auto;
+    overflow-x: auto;
+
+    @media (min-width: 1280px) {
+      overflow: visible;
+
+      // The column header sticks right under the card's top bar (also sticky, below).
+      // Both are pulled up by the page scroll area's 24px padding (`.content-area` on the
+      // Manage Campaigns page) so no row shows above them.
+      // `.n-header.n-header`: outranks the base `top: 0`, which comes later in this file.
+      .list-wrapper .n-table tr.n-header.n-header td {
+        top: calc(-24px + var(--kx-card-head-h, 62px));
+      }
+    }
 
     .list-wrapper {
       .n-table {
@@ -284,25 +303,28 @@ $st-blue-bg: #e7f6fe;
           }
 
           // Active but not sending as it should (`issues`); red when it won't send until fixed.
+          // Beside the "Active" pill on a campaign that isn't sending as it should. Outlined so
+          // it reads on the row's tint (.row-stop / .row-wait): red when it can't send until
+          // fixed, amber while it waits.
           .issue-chip {
             display: inline-flex;
             align-items: center;
             gap: 4px;
             margin-left: 6px;
             padding: 4px 9px;
-            border-radius: 999px;
+            border: 1px solid #fde68a;
+            border-radius: 6px;
+            background: #ffffff;
+            color: #b45309;
             font-size: 11.5px;
             font-weight: 600;
             line-height: 1;
             white-space: nowrap;
-            background: #fff7ed;
-            color: #b45309;
-            border: none;
             cursor: pointer;
 
             &:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
 
-            &.is-stop { background: #fef2f2; color: #b91c1c; }
+            &.is-stop { color: #b91c1c; border-color: #fecaca; }
           }
 
           .label-tag {
@@ -538,4 +560,61 @@ $st-blue-bg: #e7f6fe;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+// A campaign with a problem (`campaigns-attention`): the whole row is lightly tinted with a
+// coloured edge, so it stands out when scanning the list. Red = it can't send until fixed,
+// amber = it's waiting and carries on by itself. The chip and the icon say it in words too.
+.kexy-table-card .n-table .n-product.row-stop:not(.selected) {
+  background: #fff7f7;
+  &:hover { background: #fdeeee; }
+  td.n-cell:first-child { background: #fff7f7; box-shadow: inset 3px 0 0 0 #dc2626; }
+  &:hover td.n-cell:first-child { background: #fdeeee; }
+  .row-issue-icon { color: #dc2626; }
+}
+.kexy-table-card .n-table .n-product.row-wait:not(.selected) {
+  background: #fffcf3;
+  &:hover { background: #fdf6e3; }
+  td.n-cell:first-child { background: #fffcf3; box-shadow: inset 3px 0 0 0 #d97706; }
+  &:hover td.n-cell:first-child { background: #fdf6e3; }
+  .row-issue-icon { color: #d97706; }
+}
+.kexy-table-card .n-table .row-issue-icon {
+  margin-right: 6px;
+  font-size: 13px;
+}
+.kexy-table-card .n-table .n-product.row-stop .row-issue-icon { color: #dc2626; }
+.kexy-table-card .n-table .n-product.row-wait .row-issue-icon { color: #d97706; }
+// Cells paint their own background, so the tint goes on them too.
+.kexy-table-card .n-table .n-product.row-stop:not(.selected) td.n-cell { background: #fff7f7; }
+.kexy-table-card .n-table .n-product.row-stop:not(.selected):hover td.n-cell { background: #fdeeee; }
+.kexy-table-card .n-table .n-product.row-wait:not(.selected) td.n-cell { background: #fffcf3; }
+.kexy-table-card .n-table .n-product.row-wait:not(.selected):hover td.n-cell { background: #fdf6e3; }
+
+// The card's top bar (title, Status filter, Per Page, paging) stays on screen with the column
+// header while the page scrolls. Only where the table needs no sideways scroll (see
+// `.new-table-wrapper`); its height is measured into `--kx-card-head-h`.
+//
+// Pinned, it sits flush against the top (a blank strip above it looked broken) and the card
+// gets `is-stuck` (set from the component): square corners, so nothing scrolling underneath
+// shows through them, and a soft shadow under the column header to show the list is moving
+// beneath it.
+@media (min-width: 1280px) {
+  .kexy-table-card > .card-header {
+    position: sticky;
+    top: -24px;
+    z-index: 1001;
+    background: #ffffff;
+    border-radius: 14px 14px 0 0;
+  }
+
+  // Only things that don't change its size: a taller bar while pinned made the rows jump
+  // as it pinned and unpinned during a slow scroll.
+  .kexy-table-card.is-stuck > .card-header {
+    border-radius: 0;
+  }
+
+  .kexy-table-card.is-stuck .n-table tr.n-header td {
+    box-shadow: 0 1px 0 $kx-border, 0 6px 10px -6px rgba(15, 23, 42, 0.18);
+  }
 }

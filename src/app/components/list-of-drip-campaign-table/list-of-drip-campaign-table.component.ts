@@ -6,9 +6,11 @@ import {
   ElementRef,
   EventEmitter,
   Input,
+  OnChanges,
   OnDestroy,
   OnInit,
   Output,
+  SimpleChanges,
 } from '@angular/core';
 import { constants } from '../../helpers/constants';
 import { routeConstants } from '../../helpers/routeConstants';
@@ -24,6 +26,16 @@ import {
 import { DripCampaign, ICampaignIssue } from '../../models/DripCampaign';
 import { ICampaignNextSend } from '../../models/EmailSendProgress';
 import { SendCountdownComponent } from '../send-countdown/send-countdown.component';
+
+/** Short words for each problem, shown in the row's chip (the popover has the full reason). */
+const ISSUE_LABELS: Record<ICampaignIssue['code'], string> = {
+  no_smtp: "Can't send · No SMTP",
+  insights_blocked: "Can't send · emails on hold",
+  sending_paused: 'On hold · sending paused',
+  ai_paused: 'On hold · AI service',
+  insights_paused: 'On hold · AI service',
+  insights_daily_limit: 'Waiting · retries tomorrow',
+};
 
 @Component({
   selector: 'list-of-drip-campaign-table',
@@ -44,7 +56,7 @@ import { SendCountdownComponent } from '../send-countdown/send-countdown.compone
   changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrl: './list-of-drip-campaign-table.component.scss',
 })
-export class ListOfDripCampaignTableComponent implements OnInit, AfterViewInit, OnDestroy {
+export class ListOfDripCampaignTableComponent implements OnInit, OnChanges, AfterViewInit, OnDestroy {
   @Input() tableHeaderBg;
   @Input() tableHeaderColor;
   @Input() cardData: DripCampaign[] = [];
@@ -74,6 +86,20 @@ export class ListOfDripCampaignTableComponent implements OnInit, AfterViewInit, 
   @Input() issues: Record<number, ICampaignIssue[]> = {};
 
   hasStop = (issues: ICampaignIssue[]) => issues.some((i) => i.severity === 'stop');
+
+  /** How a row is coloured: red when it can't send until fixed, amber while it waits. */
+  rowIssueTone = (row: any): 'stop' | 'wait' | null => {
+    const list = row?.status === constants.ACTIVE ? this.issues[row.id] : null;
+    if (!list?.length) return null;
+    return this.hasStop(list) ? 'stop' : 'wait';
+  };
+
+  /** The chip's plain words for the most serious problem, "+N" when there are more. */
+  issueLabel = (list: ICampaignIssue[]): string => {
+    const main = list.find((i) => i.severity === 'stop') ?? list[0];
+    const words = ISSUE_LABELS[main.code] ?? (main.severity === 'stop' ? "Can't send" : 'On hold');
+    return list.length > 1 ? `${words} +${list.length - 1}` : words;
+  };
   /** The "Next Email" column is only rendered when the page turns it on. */
   @Input() showNextEmail = false;
   /** Server clock minus browser clock, for those countdowns. */
@@ -95,6 +121,14 @@ export class ListOfDripCampaignTableComponent implements OnInit, AfterViewInit, 
   constructor(private modal: NgbModal, private prospectingService: ProspectingService, private host: ElementRef, private cdr: ChangeDetectorRef) {
   }
 
+  // The page can change the filter itself ("Show only these" on the attention card).
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['initialStatusKey'] && !changes['initialStatusKey'].firstChange) {
+      const matched = this.dripCampaignStatuses.find((s) => s.key === this.initialStatusKey);
+      if (matched) this.selectedStatusKey = matched;
+    }
+  }
+
   ngOnInit(): void {
     if (this.initialStatusKey) {
       const matched = this.dripCampaignStatuses.find((s) => s.key === this.initialStatusKey);
@@ -113,8 +147,51 @@ export class ListOfDripCampaignTableComponent implements OnInit, AfterViewInit, 
     this.calcWidth();
   }
 
+  /**
+   * The card's top bar (title, Status, Per Page, paging) sticks to the top of the page, and
+   * the column header sticks right under it, so it needs the bar's real height: it wraps to
+   * two lines on narrower screens. Published as `--kx-card-head-h` on the host.
+   */
+  private __headObserver?: ResizeObserver;
+  private __trackHeaderHeight() {
+    const host: HTMLElement | undefined = this.host?.nativeElement;
+    const head = host?.querySelector('.kexy-table-card > .card-header') as HTMLElement | null;
+    if (!head || typeof ResizeObserver === 'undefined') return;
+    const publish = () => host!.style.setProperty('--kx-card-head-h', `${head.offsetHeight}px`);
+    publish();
+    this.__headObserver = new ResizeObserver(publish);
+    // border-box: the pinned state changes the bar's PADDING, which a content-box watch misses.
+    this.__headObserver.observe(head, { box: 'border-box' });
+  }
+
+  /**
+   * Marks the card `is-stuck` while its top bar is pinned (styles in the scss). Listens to
+   * the nearest scrolling ancestor (the page's content area); the class is toggled on the
+   * element directly, so scrolling never runs change detection.
+   */
+  private __stuckScroller?: HTMLElement;
+  private __onStuckScroll = () => {
+    const card = this.host?.nativeElement?.querySelector('.kexy-table-card') as HTMLElement | null;
+    const head = card?.querySelector(':scope > .card-header') as HTMLElement | null;
+    if (!card || !head || !this.__stuckScroller) return;
+    const stuck =
+      getComputedStyle(head).position === 'sticky' &&
+      card.getBoundingClientRect().top < this.__stuckScroller.getBoundingClientRect().top;
+    card.classList.toggle('is-stuck', stuck);
+  };
+  private __trackStuck() {
+    let el: HTMLElement | null = this.host?.nativeElement?.parentElement ?? null;
+    while (el && !/(auto|scroll)/.test(getComputedStyle(el).overflowY)) el = el.parentElement;
+    if (!el) return;
+    this.__stuckScroller = el;
+    el.addEventListener('scroll', this.__onStuckScroll, { passive: true });
+    this.__onStuckScroll();
+  }
+
   ngOnDestroy(): void {
     this.__widthObserver?.disconnect();
+    this.__headObserver?.disconnect();
+    this.__stuckScroller?.removeEventListener('scroll', this.__onStuckScroll);
     if (this.contactLabelsSubscription) this.contactLabelsSubscription.unsubscribe();
   }
 
@@ -130,6 +207,8 @@ export class ListOfDripCampaignTableComponent implements OnInit, AfterViewInit, 
   ngAfterViewInit() {
     this.calcWidth();
     this.cdr.markForCheck();
+    this.__trackHeaderHeight();
+    this.__trackStuck();
 
     const wrapper = this.host?.nativeElement?.querySelector('.new-table-wrapper');
     if (!wrapper || typeof ResizeObserver === 'undefined') return;
