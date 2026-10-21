@@ -1063,6 +1063,27 @@ export class DripCampaignService {
   // dripCampaigns: DripCampaign[] } (each drip = same shape as GET
   // /drip-campaigns/:id). Used to gate SMTP deletion — a connected SMTP must be
   // removed from every campaign first.
+  /** Active and paused campaigns in a brand with no working SMTP account (to offer a new one). */
+  getCampaignsWithoutSmtp = (
+    companyId: number | string,
+  ): Promise<{ campaignId: number; title: string | null; status: string }[]> =>
+    this.__getData(`drip-campaigns/without-smtp?companyId=${companyId}`);
+
+  /** Sends the given campaigns from `smtpId`; answers which ones were changed. */
+  assignSmtpToCampaigns = (
+    smtpId: number,
+    companyId: number | string,
+    campaignIds: number[],
+  ): Promise<{ assigned: number[] }> =>
+    new Promise((resolve, reject) => {
+      this.httpService
+        .post('drip-campaigns/assign-smtp', { smtpId, companyId: Number(companyId), campaignIds })
+        .subscribe({
+          next: (res) => resolve(res.data),
+          error: (err) => reject(err?.error ?? err),
+        });
+    });
+
   getSmtpConnectedDripCampaigns = async (id) => {
     return new Promise(async (resolve, reject) => {
       const url = `smtp/${id}/drip-campaigns`;

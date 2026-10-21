@@ -1,6 +1,7 @@
 <!--Only when an ACTIVE campaign is not sending as it should. Covers every page of the table.-->
 <section
   class="attention"
+  [class.is-stop]="stopping > 0"
   *ngIf="data?.campaigns?.length"
   aria-label="Campaigns that need attention"
   role="status"
@@ -13,9 +14,9 @@
     [attr.aria-expanded]="open"
     aria-controls="campaigns-attention-body"
   >
+    <span class="at-icon" aria-hidden="true"><i class="fa fa-exclamation"></i></span>
     <span class="at-title">
-      <i class="fa fa-exclamation-triangle" aria-hidden="true"></i>
-      {{ data!.campaigns.length }} active campaign{{
+      <span class="at-count">{{ data!.campaigns.length }}</span>active campaign{{
         data!.campaigns.length === 1 ? '' : 's'
       }}
       need{{ data!.campaigns.length === 1 ? 's' : '' }} attention

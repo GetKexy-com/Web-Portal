@@ -10,10 +10,14 @@ type Flagged = ICampaignsAttention['campaigns'][number];
 
 /**
  * The dashboard's alert when an ACTIVE campaign isn't sending as it should (the same
- * `GET drip-campaigns/attention` as the campaign list's card), so it is seen at login. One
- * campaign: what is wrong and a button straight to its fix. Several: how many, and a button to
- * the campaign list with its "needs attention" card open. Hidden when nothing is wrong, and
- * when the request fails (it is not worth an error on the dashboard).
+ * `GET drip-campaigns/attention` as the campaign list's card), so it is seen at login. Says
+ * what is wrong and offers the one click that fixes it; names only matter for ONE campaign:
+ * - one campaign: its name, what is wrong, and a button straight to its fix;
+ * - several with the same cause: the cause, no names (no SMTP on the account is one fix for
+ *   all of them: Add SMTP account);
+ * - several with different causes: how many, and a button to the campaign list with its
+ *   "needs attention" card open, where the names and details are.
+ * Hidden when nothing is wrong, and when the request fails (not worth an error here).
  */
 @Component({
   selector: 'campaigns-attention-bar',
@@ -50,17 +54,43 @@ export class CampaignsAttentionBarComponent implements OnInit {
     return this.campaigns[0]?.issues[0] ?? null;
   }
 
-  /** Up to two names, then "and N more". */
-  get names(): string {
-    const titles = this.campaigns.map((c) => `"${c.title || 'Untitled campaign'}"`);
-    if (titles.length <= 2) return titles.join(' and ');
-    return `${titles.slice(0, 2).join(', ')} and ${titles.length - 2} more`;
+  /**
+   * The issue every flagged campaign has as its most serious one (the API sorts stops
+   * first), with the same fix, or null when the causes differ.
+   */
+  get sharedCause(): ICampaignIssue | null {
+    const leads = this.campaigns.map((c) => c.issues[0]).filter(Boolean);
+    if (leads.length < 2 || leads.length !== this.campaigns.length) return null;
+    const [first] = leads;
+    return leads.every((i) => i.code === first.code && i.action === first.action) ? first : null;
+  }
+
+  /** The shared cause in one sentence, for N campaigns. */
+  causeMessage(issue: ICampaignIssue): string {
+    const n = this.campaigns.length;
+    switch (issue.code) {
+      case 'no_smtp':
+        return issue.action === 'add_smtp'
+          ? `Your account has no working SMTP account, so ${n} active campaigns will pause at their next send.`
+          : `${n} active campaigns have no SMTP account chosen, so they will pause at their next send.`;
+      case 'insights_blocked':
+        return `${n} active campaigns have emails on hold until someone clicks Retry now.`;
+      case 'insights_daily_limit':
+        return `${n} active campaigns have emails waiting until tomorrow: picking how they open failed 3 times today.`;
+      default:
+        // The platform-wide pauses already speak for every campaign.
+        return issue.message;
+    }
   }
 
   fixLabel(issue: ICampaignIssue | null): string {
     if (issue?.action === 'add_smtp') return 'Add SMTP account';
     if (issue?.action === 'choose_smtp') return 'Choose SMTP account';
     return 'Open campaign';
+  }
+
+  addSmtp() {
+    this.router.navigate(['/' + routeConstants.BRAND.SMTP_SETTINGS]);
   }
 
   fix(campaign: Flagged) {

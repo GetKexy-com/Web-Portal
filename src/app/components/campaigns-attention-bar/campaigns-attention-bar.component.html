@@ -1,5 +1,5 @@
 <div class="attention-bar" *ngIf="campaigns.length" role="alert" [class.is-stop]="stopping > 0">
-  <i class="fa fa-exclamation-triangle ab-icon" aria-hidden="true"></i>
+  <span class="ab-icon" aria-hidden="true"><i class="fa fa-exclamation"></i></span>
 
   <!--One campaign: say exactly what is wrong, and go straight to the fix.-->
   <div class="ab-text" *ngIf="campaigns.length === 1">
@@ -7,26 +7,41 @@
     <p class="ab-detail">{{ first?.message }}</p>
   </div>
 
-  <!--Several: how many, and which.-->
-  <div class="ab-text" *ngIf="campaigns.length > 1">
+  <!--Several with the same cause: the cause, no names.-->
+  <div class="ab-text" *ngIf="campaigns.length > 1 && sharedCause as cause">
+    <p class="ab-title"><span class="ab-count">{{ campaigns.length }}</span>active campaigns need attention</p>
+    <p class="ab-detail">{{ causeMessage(cause) }}</p>
+  </div>
+
+  <!--Several with different causes: how many; the names and details are on the list.-->
+  <div class="ab-text" *ngIf="campaigns.length > 1 && !sharedCause">
     <p class="ab-title">
-      {{ campaigns.length }} active campaigns need attention<ng-container *ngIf="stopping">
+      <span class="ab-count">{{ campaigns.length }}</span>active campaigns need attention<ng-container *ngIf="stopping">
         · {{ stopping }} won't send until fixed</ng-container>
     </p>
-    <p class="ab-detail">{{ names }}.</p>
+    <p class="ab-detail">Review them to see what is wrong with each, and how to fix it.</p>
   </div>
 
   <div class="ab-actions">
     <button type="button" class="ab-btn ab-primary" *ngIf="campaigns.length === 1" (click)="fix(campaigns[0])">
       {{ fixLabel(first) }}
     </button>
+    <!--One fix for all of them: no SMTP on the account.-->
+    <button
+      type="button"
+      class="ab-btn ab-primary"
+      *ngIf="campaigns.length > 1 && sharedCause?.action === 'add_smtp'"
+      (click)="addSmtp()"
+    >
+      Add SMTP account
+    </button>
     <button
       type="button"
       class="ab-btn"
-      [class.ab-primary]="campaigns.length > 1"
+      [class.ab-primary]="campaigns.length > 1 && sharedCause?.action !== 'add_smtp'"
       (click)="review()"
     >
-      {{ campaigns.length > 1 ? 'Review campaigns' : 'Manage campaigns' }}
+      {{ campaigns.length === 1 ? 'Manage campaigns' : sharedCause?.action === 'add_smtp' ? 'View campaigns' : 'Review campaigns' }}
     </button>
   </div>
 </div>

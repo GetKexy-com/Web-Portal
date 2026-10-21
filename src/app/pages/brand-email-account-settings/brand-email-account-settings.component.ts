@@ -46,6 +46,13 @@ export class BrandEmailAccountSettingsComponent implements OnInit {
   private addSmtpModalRef: NgbModalRef;
   private connectedDripsModalRef: NgbModalRef;
   @ViewChild('connectedDripsModal') connectedDripsModal: TemplateRef<any>;
+  // "Use it for these campaigns?" after an SMTP account is added: the account, and the
+  // active/paused campaigns with no working SMTP it can be offered to (each with a tick).
+  @ViewChild('assignSmtpModal') assignSmtpModal: TemplateRef<any>;
+  private assignSmtpModalRef: NgbModalRef;
+  newSmtp: { id: number; label: string } | null = null;
+  campaignsWithoutSmtp: { campaignId: number; title: string | null; status: string; selected: boolean }[] = [];
+  isAssigningSmtp = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -337,10 +344,14 @@ export class BrandEmailAccountSettingsComponent implements OnInit {
           ...formValue,
           smtpPort,
         };
-        await this.dripCampaignService.testSmtpConnection(postData);
+        const res: any = await this.dripCampaignService.testSmtpConnection(postData);
         this.closeAddSmtpModal();
         await this.loadSmtpList();
-        await Swal.fire('Success', 'SMTP account has been added', 'success');
+        // Campaigns with no working SMTP get it in one click instead of one by one; the
+        // plain success message only when there are none.
+        if (!(await this.offerSmtpToCampaigns(res?.data?.smtpId, formValue))) {
+          await Swal.fire('Success', 'SMTP account has been added', 'success');
+        }
       }
     } catch (error) {
       await Swal.fire(
@@ -350,6 +361,75 @@ export class BrandEmailAccountSettingsComponent implements OnInit {
       );
     } finally {
       this.isLoading = false;
+    }
+  };
+
+  // ── "Use it for these campaigns?" after an SMTP account is added ─────────
+  get selectedForSmtp() {
+    return this.campaignsWithoutSmtp.filter((c) => c.selected);
+  }
+
+  get hasPausedForSmtp(): boolean {
+    return this.campaignsWithoutSmtp.some((c) => c.status === 'pause');
+  }
+
+  toggleAllForSmtp = (checked: boolean) => {
+    this.campaignsWithoutSmtp.forEach((c) => (c.selected = checked));
+  };
+
+  /**
+   * Offers the new account to the active and paused campaigns with no working SMTP. True
+   * when the prompt was shown (it says the account was added), false when there was
+   * nothing to offer or it could not be checked (the caller shows the plain success).
+   */
+  private offerSmtpToCampaigns = async (smtpId: number, formValue: any): Promise<boolean> => {
+    if (!smtpId) return false;
+    let campaigns: { campaignId: number; title: string | null; status: string }[] = [];
+    try {
+      campaigns = await this.dripCampaignService.getCampaignsWithoutSmtp(this.userData.supplier_id);
+    } catch (e) {
+      console.error('Could not check campaigns without an SMTP account', e);
+      return false;
+    }
+    if (!campaigns?.length) return false;
+    this.newSmtp = { id: smtpId, label: this.smtpLabel(formValue) };
+    // Active first: those are the ones about to pause.
+    this.campaignsWithoutSmtp = campaigns
+      .map((c) => ({ ...c, selected: true }))
+      .sort((a, b) => Number(b.status === 'active') - Number(a.status === 'active'));
+    this.assignSmtpModalRef = this.modal.open(this.assignSmtpModal, { size: 'lg', centered: true });
+    return true;
+  };
+
+  closeAssignSmtpModal = () => {
+    this.assignSmtpModalRef?.close();
+    this.newSmtp = null;
+    this.campaignsWithoutSmtp = [];
+  };
+
+  assignNewSmtp = async () => {
+    const chosen = this.selectedForSmtp;
+    if (!this.newSmtp || !chosen.length) return;
+    this.isAssigningSmtp = true;
+    try {
+      const { assigned } = await this.dripCampaignService.assignSmtpToCampaigns(
+        this.newSmtp.id,
+        this.userData.supplier_id,
+        chosen.map((c) => c.campaignId),
+      );
+      const paused = chosen.filter((c) => c.status === 'pause' && assigned.includes(c.campaignId)).length;
+      this.closeAssignSmtpModal();
+      const n = assigned.length;
+      await Swal.fire(
+        'Done',
+        `${n} campaign${n === 1 ? ' sends' : 's send'} from this account now.` +
+          (paused ? ` ${paused === 1 ? 'The paused one stays' : `The ${paused} paused ones stay`} paused until you resume it.` : ''),
+        'success',
+      );
+    } catch (e) {
+      Swal.fire('Error', e?.['message'] || e?.['error'] || 'Could not update the campaigns', 'error');
+    } finally {
+      this.isAssigningSmtp = false;
     }
   };
 

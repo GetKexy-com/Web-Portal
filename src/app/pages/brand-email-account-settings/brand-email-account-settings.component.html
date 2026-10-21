@@ -365,6 +365,81 @@
     </div>
   </ng-template>
 
+  <!--After an SMTP account is added: give it to the active and paused campaigns with no
+      working SMTP in one click, instead of opening each campaign. All ticked by default.-->
+  <ng-template #assignSmtpModal>
+    <div class="kx-modal assign-smtp-modal">
+      <div class="kx-modal-head">
+        <h3 class="kx-modal-title">
+          <i class="fa fa-check-circle as-done" aria-hidden="true"></i>
+          SMTP account added
+        </h3>
+        <button type="button" class="kx-modal-close" (click)="closeAssignSmtpModal()" aria-label="Close">
+          <i class="fa fa-times" aria-hidden="true"></i>
+        </button>
+      </div>
+
+      <div class="kx-modal-body">
+        <p class="as-lead">
+          {{ campaignsWithoutSmtp.length === 1 ? 'This campaign has' : campaignsWithoutSmtp.length + ' campaigns have' }}
+          no working SMTP account. Send {{ campaignsWithoutSmtp.length === 1 ? 'it' : 'them' }} from
+          <strong>{{ newSmtp?.label }}</strong>?
+        </p>
+
+        <!--One line per campaign, in one bordered box; active (about to pause) first.-->
+        <div class="as-box">
+          <label class="as-row as-all" *ngIf="campaignsWithoutSmtp.length > 1">
+            <input
+              type="checkbox"
+              [checked]="selectedForSmtp.length === campaignsWithoutSmtp.length"
+              [indeterminate]="selectedForSmtp.length > 0 && selectedForSmtp.length < campaignsWithoutSmtp.length"
+              (change)="toggleAllForSmtp($any($event.target).checked)"
+            />
+            <span class="as-name">Select all</span>
+            <span class="as-count">{{ selectedForSmtp.length }} of {{ campaignsWithoutSmtp.length }}</span>
+          </label>
+          <ul class="as-list">
+            <li *ngFor="let c of campaignsWithoutSmtp">
+              <label class="as-row">
+                <input
+                  type="checkbox"
+                  [checked]="c.selected"
+                  (change)="c.selected = $any($event.target).checked"
+                />
+                <span class="as-name" [title]="c.title || 'Untitled campaign'">{{ c.title || 'Untitled campaign' }}</span>
+                <span class="as-status" [class.active]="c.status === 'active'">{{ dripStatusLabel(c) }}</span>
+              </label>
+            </li>
+          </ul>
+        </div>
+
+        <p class="as-note" *ngIf="hasPausedForSmtp">
+          <i class="fa fa-info-circle" aria-hidden="true"></i>
+          Paused campaigns get the account but stay paused until you resume them.
+        </p>
+      </div>
+
+      <div class="kx-modal-footer">
+        <app-kexy-button
+          type="button"
+          label="Not now"
+          bgColor="#f1f4f9"
+          textColor="#6b7a90"
+          [disabled]="isAssigningSmtp"
+          (click)="closeAssignSmtpModal()"
+        ></app-kexy-button>
+        <app-kexy-button
+          style="min-width: 160px;"
+          type="button"
+          [label]="isAssigningSmtp ? 'Saving…' : 'Use for ' + selectedForSmtp.length + ' campaign' + (selectedForSmtp.length === 1 ? '' : 's')"
+          [iconLeft]="isAssigningSmtp ? 'fa-refresh fa-spin' : 'fa-check'"
+          [disabled]="isAssigningSmtp || !selectedForSmtp.length"
+          (click)="assignNewSmtp()"
+        ></app-kexy-button>
+      </div>
+    </div>
+  </ng-template>
+
   <ng-template #emailAccountSettingsVideo let-c="close" let-d="dismiss">
     <div class="modal-body" style="padding: 0; height: 500px">
       <iframe
