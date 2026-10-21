@@ -45,6 +45,24 @@
         <p class="section-note">
           Choose which SMTP account this campaign sends from. Only one account can be selected.
         </p>
+        <!--Same message as the campaign page's no-SMTP bar; gone once an account is picked.-->
+        <div class="smtp-missing" *ngIf="showSmtpMissing" role="alert">
+          <span class="sm-icon" aria-hidden="true"><i class="fa fa-exclamation"></i></span>
+          <div class="sm-text">
+            <p class="sm-title">This campaign can't send emails yet</p>
+            <p class="sm-desc" *ngIf="!accountHasSmtp">
+              Your campaigns are sent from your own email account. Add your email account first,
+              then pick it here.
+            </p>
+            <p class="sm-desc" *ngIf="accountHasSmtp">
+              Pick which email account to send from below, then click
+              Save{{ dripCampaign?.status === constants.PAUSE ? ' and Resume' : '' }}.
+            </p>
+            <button type="button" class="sm-btn" *ngIf="!accountHasSmtp" (click)="openSmtpSettings()">
+              Add SMTP account
+            </button>
+          </div>
+        </div>
         <kexy-select-dropdown
           class="full-select"
           label="SMTP account"
