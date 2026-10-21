@@ -1543,6 +1543,10 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
     this.pauseReason = latest?.pauseReason ?? null;
   };
 
+  get isPaused(): boolean {
+    return this.dripCampaign?.status === constants.PAUSE;
+  }
+
   get showSmtpWarning(): boolean {
     return (
       this.smtpMissing &&

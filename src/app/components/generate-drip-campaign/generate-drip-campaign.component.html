@@ -68,55 +68,29 @@
       (visibilityChange)="onScrapeCardVisibilityChange($event)">
     </app-scrape-progress-card>
 
-    <!--The campaign's state banner, in the dashboard's flat alert style: red when nothing can
-        be sent until the user acts (no SMTP), amber when it is paused. When the SYSTEM paused
-        it (KexyApi `pauseReason`, the owner's email says the same), the reason sits inside the
-        banner; nothing for a pause the owner made.-->
-    <div
-      class="kx-banner"
-      [class.is-stop]="showSmtpWarning"
-      *ngIf="showSmtpWarning || dripCampaign?.status === constants.PAUSE"
-      [attr.role]="showSmtpWarning ? 'alert' : 'status'"
-    >
+    <!--The campaign's state banners, in the dashboard's flat alert style. Paused (amber, with
+        Resume) and no SMTP (red, with the fix) are separate bars and both show when both are
+        true. When the SYSTEM paused it (KexyApi `pauseReason`; the owner's email says the
+        same), the reason sits inside the paused bar, collapsed; nothing for an owner's pause.-->
+    <!--Neutral when paused (as Stripe/GitHub show a paused state: information, not an error);
+        amber when the SYSTEM paused it, since something needs looking at.-->
+    <div class="kx-banner" [class.is-neutral]="!pauseReason" *ngIf="isPaused" role="status">
       <div class="kb-main">
-        <span class="kb-icon" aria-hidden="true">
-          <i class="fa" [class.fa-exclamation]="showSmtpWarning" [class.fa-pause]="!showSmtpWarning"></i>
-        </span>
-
-        <!--No SMTP: nothing can be sent, and Activate/Resume are refused until one is chosen.-->
-        <div class="kb-text" *ngIf="showSmtpWarning">
-          <p class="kb-title">This campaign has no SMTP account to send from</p>
-          <p class="kb-desc" *ngIf="!accountHasSmtp">
-            Nothing is sent until it has one: KEXY only sends your campaigns from your own email
-            account. Add one in SMTP Settings, then choose it in this campaign's settings{{
-              dripCampaign?.status === constants.PAUSE ? ' and resume' : ''
-            }}.
-          </p>
-          <p class="kb-desc" *ngIf="accountHasSmtp">
-            Nothing is sent until you choose one of your SMTP accounts in this campaign's
-            settings{{ dripCampaign?.status === constants.PAUSE ? ', then resume' : '' }}.
+        <span class="kb-icon" aria-hidden="true"><i class="fa fa-pause"></i></span>
+        <div class="kb-text">
+          <p class="kb-title">This campaign is paused</p>
+          <p class="kb-desc">
+            {{ pauseReason ? 'KEXY paused it automatically.' : '' }}
+            No emails are sent until you resume it. Your prospects keep their place.
           </p>
         </div>
-
-        <div class="kb-text" *ngIf="!showSmtpWarning">
-          <p class="kb-title">This drip campaign is paused</p>
-          <p class="kb-desc">Scheduled emails won’t be sent until the campaign is resumed.</p>
-        </div>
-
         <div class="kb-actions">
+          <!--Greyed out while there is no SMTP: the server would refuse it (the red bar says why).-->
           <button
             type="button"
             class="kb-btn kb-primary"
-            *ngIf="showSmtpWarning"
-            (click)="accountHasSmtp ? openSettingsCanvas() : openSmtpSettings()"
-          >
-            {{ accountHasSmtp ? 'Choose SMTP account' : 'Add SMTP account' }}
-          </button>
-          <button
-            type="button"
-            class="kb-btn kb-primary"
-            *ngIf="!showSmtpWarning"
-            [disabled]="isResuming"
+            [disabled]="isResuming || showSmtpWarning"
+            [attr.title]="showSmtpWarning ? 'Choose an SMTP account first' : null"
             (click)="resumeDripCampaign()"
           >
             <i class="fa" [class.fa-spinner]="isResuming" [class.fa-spin]="isResuming" [class.fa-play]="!isResuming" aria-hidden="true"></i>
@@ -126,7 +100,7 @@
       </div>
 
       <!--Collapsed to one line by default; the header is the toggle.-->
-      <div class="kb-reason" *ngIf="dripCampaign?.status === constants.PAUSE && pauseReason">
+      <div class="kb-reason" *ngIf="pauseReason">
         <button
           type="button"
           class="kb-reason-title"
@@ -146,6 +120,35 @@
           <ul class="kb-reason-details" *ngIf="pauseReason.details?.length">
             <li *ngFor="let d of pauseReason.details">{{ d }}</li>
           </ul>
+        </div>
+      </div>
+    </div>
+
+    <!--No SMTP: nothing can be sent, and Activate/Resume are refused until one is chosen.-->
+    <div class="kx-banner is-stop" *ngIf="showSmtpWarning" role="alert">
+      <div class="kb-main">
+        <span class="kb-icon" aria-hidden="true"><i class="fa fa-exclamation"></i></span>
+        <div class="kb-text">
+          <p class="kb-title">This campaign has no SMTP account to send from</p>
+          <p class="kb-desc" *ngIf="!accountHasSmtp">
+            Nothing is sent until it has one: KEXY only sends your campaigns from your own email
+            account. Add one in SMTP Settings, then choose it in this campaign's settings{{
+              isPaused ? ' and resume' : ''
+            }}.
+          </p>
+          <p class="kb-desc" *ngIf="accountHasSmtp">
+            Nothing is sent until you choose one of your SMTP accounts in this campaign's
+            settings{{ isPaused ? ', then resume' : '' }}.
+          </p>
+        </div>
+        <div class="kb-actions">
+          <button
+            type="button"
+            class="kb-btn kb-primary"
+            (click)="accountHasSmtp ? openSettingsCanvas() : openSmtpSettings()"
+          >
+            {{ accountHasSmtp ? 'Choose SMTP account' : 'Add SMTP account' }}
+          </button>
         </div>
       </div>
     </div>

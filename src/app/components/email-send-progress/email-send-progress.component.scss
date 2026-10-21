@@ -249,14 +249,39 @@ $kx-red-bg: #fdeaea;
   border-radius: 10px;
 }
 
-// Not the amber "updates paused" note: this one means emails are NOT going out.
+// Not the amber "updates paused" note: this one means emails are NOT going out. The
+// dashboard's flat alert style: tinted background, matching border, a solid icon, a bold title.
 .sp-banner.is-error {
   align-items: flex-start;
-  color: $kx-red;
-  background: $kx-red-bg;
+  gap: 10px;
+  padding: 11px 14px;
+  color: #475569;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
 
-  i {
-    margin-top: 2px;
+  .sp-banner-icon {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #dc2626;
+    color: #ffffff;
+    font-size: 10px;
+  }
+
+  .sp-banner-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 12.5px;
+    line-height: 1.45;
+
+    strong {
+      font-size: 13px;
+      color: #0f172a;
+    }
   }
 }
 

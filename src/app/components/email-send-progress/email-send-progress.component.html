@@ -76,12 +76,14 @@
       *ngIf="aiPaused?.paused && summary.sent < summary.totalProspects"
       role="alert"
     >
-      <i class="fa fa-pause-circle" aria-hidden="true"></i>
-      <span>
-        <strong>Sending is paused.</strong>
-        The AI email service failed {{ aiPaused.failCount }} times in a row, so no emails are going
-        out for any campaign until it is reset. Your prospects and queued emails are fine and are
-        being kept. Contact support if this persists.
+      <span class="sp-banner-icon" aria-hidden="true"><i class="fa fa-pause"></i></span>
+      <span class="sp-banner-text">
+        <strong>Sending is paused on our side</strong>
+        <span>
+          The AI email service failed {{ aiPaused.failCount }} times in a row, so no emails go out
+          for any campaign until it is fixed. The KEXY team has been alerted. Your prospects and
+          queued emails are kept.
+        </span>
       </span>
     </div>
 
@@ -92,13 +94,14 @@
       *ngIf="insightsPaused?.paused && !aiPaused?.paused && summary.sent < summary.totalProspects"
       role="alert"
     >
-      <i class="fa fa-pause-circle" aria-hidden="true"></i>
-      <span>
-        <strong>AI emails are waiting.</strong>
-        The service that picks how each email opens failed {{ insightsPaused.failCount }} times in a
-        row, so AI-written emails are on hold for every campaign until it is reset. Template emails
-        still send. Your prospects and queued emails are fine and are being kept. Contact support if
-        this persists.
+      <span class="sp-banner-icon" aria-hidden="true"><i class="fa fa-pause"></i></span>
+      <span class="sp-banner-text">
+        <strong>AI-written emails are on hold</strong>
+        <span>
+          The service that picks how each email opens failed {{ insightsPaused.failCount }} times in
+          a row, so AI emails wait for every campaign until it is fixed. Template emails still send.
+          The KEXY team has been alerted. Your prospects and queued emails are kept.
+        </span>
       </span>
     </div>
 
