@@ -12,7 +12,7 @@
     <div
       class="campaign-status-bar"
       [class.is-super-charged]="isSuperCharged()"
-      *ngIf="isSuperCharged() || (showLiveNotice && !smtpMissing)"
+      *ngIf="isSuperCharged() || showLiveNotice"
       role="status"
     >
       <div class="sc" *ngIf="isSuperCharged()">
@@ -25,12 +25,15 @@
         </span>
       </div>
 
-      <!--Not "live" while it has no SMTP: the red banner below says nothing is sent.-->
-      <ng-container *ngIf="showLiveNotice && !smtpMissing">
+      <ng-container *ngIf="showLiveNotice">
         <span class="sep" *ngIf="isSuperCharged()" aria-hidden="true">·</span>
-        <span class="live-title">{{ liveNoticeTitle }}</span>
+        <!--With no SMTP it is still active, but not "live": nothing goes out (the red bar below
+            says why), so no "emails are going out" and no next-send countdown.-->
+        <span class="live-title">{{ smtpMissing ? 'This campaign is active' : liveNoticeTitle }}</span>
         <span class="dash" aria-hidden="true">—</span>
-        <span class="live-desc">{{ liveNoticeStatus }}</span>
+        <span class="live-desc">{{
+          smtpMissing ? 'Waiting for an SMTP account. Nothing is sent until one is chosen.' : liveNoticeStatus
+        }}</span>
 
         <div class="chips">
           <!--The soonest Delay card's countdown, so it is visible without scrolling the
@@ -39,7 +42,7 @@
               prospect (the campaign row can lag — "Finishing up"), and saying both would
               contradict itself.-->
           <button
-            *ngIf="campaignNextSend && !liveNoticeIsComplete && campaignNextSend.schedule.state !== 'research'"
+            *ngIf="campaignNextSend && !smtpMissing && !liveNoticeIsComplete && campaignNextSend.schedule.state !== 'research'"
             type="button"
             class="chip chip-btn"
             (click)="campaignNextSendClick()"
