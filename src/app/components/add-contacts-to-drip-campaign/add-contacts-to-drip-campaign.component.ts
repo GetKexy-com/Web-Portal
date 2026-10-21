@@ -95,7 +95,10 @@ export class AddContactsToDripCampaignComponent implements OnInit, OnDestroy {
         key: cam.id,
         id: cam.id,
         lists: cam.lists,
-        value: completed ? `${cam.details.title.title} (Completed)` : cam.details.title.title,
+        // A campaign whose title row was deleted has no title; it must not break the list.
+        value: completed
+          ? `${cam.details?.title?.title || 'Untitled campaign'} (Completed)`
+          : cam.details?.title?.title || 'Untitled campaign',
         campaign: cam,
       });
     });

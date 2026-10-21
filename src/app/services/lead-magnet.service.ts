@@ -111,6 +111,15 @@ export class LeadMagnetService {
   };
 
 
+  /** The active and paused campaigns that offer any of these lead magnets. */
+  getUsage = (ids: number[]): Promise<{ id: number; title: string | null; status: string }[]> =>
+    new Promise((resolve, reject) => {
+      this.httpService.get(`lead-magnets/usage?ids=${ids.join(',')}`).subscribe({
+        next: (res: any) => resolve(res?.data?.campaigns ?? []),
+        error: (err) => reject(err?.error ?? err),
+      });
+    });
+
   delete = async (postData) => {
     return new Promise(async (resolve, reject) => {
       const url = `lead-magnets`;

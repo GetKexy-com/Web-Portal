@@ -316,7 +316,7 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
       this.dripCampaignList.forEach((cam: DripCampaign) => {
         this.dripCampaignDropDownList.push({
           key: cam.id,
-          value: cam.details.title.title,
+          value: cam.details?.title?.title || 'Untitled campaign',
           id: cam.id,
           isSelected: false,
         });

@@ -239,18 +239,46 @@ export class LeadMagnetsComponent implements OnInit, OnDestroy, AfterViewChecked
 
 
   deleteLeadMagnets = async () => {
-    let isConfirm = await Swal.fire({
-      title: 'Are you sure?',
-      text: 'You won\'t be able to revert this!',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      allowOutsideClick: false,
-      allowEscapeKey: false,
-      confirmButtonText: 'Yes, delete it!',
-      showLoaderOnConfirm: true,
-    });
+    const ids = this.selectedLeadMagnet.map((magnet) => magnet.id);
+    // Campaigns that still offer it: deleting takes it out of their NEW emails, so say which
+    // ones first. If the check fails, fall back to the plain confirm rather than block.
+    let usedBy: { id: number; title: string | null; status: string }[] = [];
+    try {
+      usedBy = await this.leadMagnetService.getUsage(ids);
+    } catch (e) {
+      console.error('Could not check which campaigns use these lead magnets', e);
+    }
+    const isConfirm = usedBy.length
+      ? await Swal.fire({
+          title: `${ids.length === 1 ? 'This lead magnet is' : 'These lead magnets are'} used by ${usedBy.length} campaign${usedBy.length === 1 ? '' : 's'}`,
+          html:
+            `<ul style="text-align:left;margin:0 0 12px;padding-left:20px">` +
+            usedBy
+              .map(
+                (c) =>
+                  `<li>${this.escapeHtml(c.title || 'Untitled campaign')}${c.status === 'pause' ? ' (paused)' : ''}</li>`,
+              )
+              .join('') +
+            `</ul>If you delete ${ids.length === 1 ? 'it' : 'them'}, new emails from ${usedBy.length === 1 ? 'this campaign' : 'these campaigns'} will stop offering ${ids.length === 1 ? 'it' : 'them'}. Emails already sent don't change.`,
+          icon: 'warning',
+          showCancelButton: true,
+          allowOutsideClick: false,
+          allowEscapeKey: false,
+          confirmButtonText: 'Yes, delete it',
+          cancelButtonText: 'Cancel',
+        })
+      : await Swal.fire({
+          title: 'Are you sure?',
+          text: 'You won\'t be able to revert this!',
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#3085d6',
+          cancelButtonColor: '#d33',
+          allowOutsideClick: false,
+          allowEscapeKey: false,
+          confirmButtonText: 'Yes, delete it!',
+          showLoaderOnConfirm: true,
+        });
 
     if (isConfirm.dismiss) {
       return;
@@ -266,10 +294,6 @@ export class LeadMagnetsComponent implements OnInit, OnDestroy, AfterViewChecked
     });
     Swal.showLoading();
 
-    const ids = [];
-    this.selectedLeadMagnet.forEach((magnet) => {
-      ids.push(magnet.id);
-    });
     // if (this.selectAllContacts) {
     //   postData['selectedAllContacts'] = true;
     //   postData['selectedAllContactsPayload'] = this.getContactsApiPostData();
@@ -286,6 +310,9 @@ export class LeadMagnetsComponent implements OnInit, OnDestroy, AfterViewChecked
     }
   };
 
+
+  private escapeHtml = (text: string): string =>
+    text.replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch]);
 
   stopPropagation = (event: Event) => {
     // Stop the event propagation to prevent the outer button click handler from being called

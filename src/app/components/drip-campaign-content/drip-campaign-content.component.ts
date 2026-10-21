@@ -318,7 +318,8 @@ export class DripCampaignContentComponent implements OnInit, OnDestroy {
         this.selectedTitleId = '';
       }
     } catch (e) {
-      Swal.fire('Error', e.message, 'error');
+      // The API's reason is under `error` (e.g. "… is the name of a campaign you still have").
+      Swal.fire("Can't delete", e?.error || e?.message || 'Could not delete this title.', 'error');
     }
   };
 
