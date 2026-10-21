@@ -98,6 +98,8 @@
     <div class="content-area">
       <!--The next sends across ALL active campaigns, whatever page or filter the table is on.
           Refetched whenever the table is (`lastUpdatedAt`).-->
+      <!--Active campaigns that are not sending as they should, across every page of the table.-->
+      <campaigns-attention [refreshKey]="lastUpdatedAt()" (issuesChange)="campaignIssues.set($event)" />
       <campaigns-up-next [refreshKey]="lastUpdatedAt()" />
       <list-of-drip-campaign-table
         tableHeaderBg="#f1f5f9"
@@ -123,6 +125,7 @@
         [selectedAllDripCampaigns]="selectedAllDripCampaigns()"
         [toggleSelectAllSelection]="toggleSelectAllSelection"
         [nextSends]="nextSends()"
+        [issues]="campaignIssues()"
         [showNextEmail]="showNextEmail"
         [clockOffsetMs]="nextSendsClockOffsetMs()"
       />

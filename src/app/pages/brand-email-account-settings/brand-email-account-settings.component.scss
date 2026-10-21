@@ -691,6 +691,23 @@ $kx-shadow: 0 10px 30px -18px rgba(9, 93, 209, 0.35), 0 2px 8px rgba(31, 42, 68,
       min-width: 0;
     }
 
+    .drip-head {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .drip-effect {
+      font-size: 12.5px;
+      line-height: 1.45;
+      color: $kx-muted;
+
+      &.is-stop {
+        color: #b91c1c;
+      }
+    }
+
     .drip-name {
       font-weight: 600;
       color: $kx-ink;
@@ -718,45 +735,32 @@ $kx-shadow: 0 10px 30px -18px rgba(9, 93, 209, 0.35), 0 2px 8px rgba(31, 42, 68,
     }
   }
 
-  .detach-btn {
-    flex-shrink: 0;
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    border: 1px solid rgba(220, 38, 38, 0.35);
-    background: rgba(220, 38, 38, 0.06);
-    color: #dc2626;
-    font-size: 12.5px;
-    font-weight: 600;
-    padding: 8px 12px;
-    border-radius: 9px;
-    cursor: pointer;
-    transition: all 0.15s ease;
-
-    &:hover:not(:disabled) {
-      background: rgba(220, 38, 38, 0.12);
-    }
-
-    &:disabled {
-      opacity: 0.6;
-      cursor: default;
-    }
-  }
-
-  .all-detached {
+  .unaffected-note {
     display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 14px;
-    border-radius: 12px;
-    background: rgba(22, 163, 74, 0.08);
-    border: 1px solid rgba(22, 163, 74, 0.3);
-    color: #15803d;
-    font-size: 13px;
-    font-weight: 500;
+    align-items: flex-start;
+    gap: 8px;
+    margin: 14px 0 0;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: #f5f7fb;
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: $kx-muted;
+
+    &:first-child {
+      margin-top: 0;
+    }
 
     i {
-      font-size: 16px;
+      margin-top: 2px;
     }
   }
+
+  .delete-footnote {
+    margin: 14px 0 0;
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: $kx-muted;
+  }
+
 }

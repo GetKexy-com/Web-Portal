@@ -1713,3 +1713,67 @@ header#main-header #logo {
   .liu-option-title { font-size: 14px; font-weight: 600; color: #1e3a8a; }
   .liu-option-text { font-size: 13px; color: #475569; }
 }
+
+// Campaign list → a row's "N issues" chip popover: why an ACTIVE campaign isn't sending, and
+// the fix for each (list-of-drip-campaign-table, `#issuePopover`). Rendered on <body>, so
+// global. Red dot: won't send until fixed; amber: resumes on its own.
+.popover.kx-issue-popover {
+  --bs-popover-max-width: 340px;
+  --bs-popover-border-color: #e2e8f0;
+  --bs-popover-border-radius: 12px;
+  --bs-popover-body-padding-x: 14px;
+  --bs-popover-body-padding-y: 12px;
+  box-shadow: 0 12px 32px -12px rgba(15, 23, 42, 0.25), 0 2px 6px rgba(15, 23, 42, 0.06);
+  font-family: inherit;
+
+  .kip-title {
+    margin-bottom: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #94a3b8;
+  }
+
+  .kip-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    li {
+      position: relative;
+      padding-left: 14px;
+      font-size: 13px;
+      line-height: 1.45;
+      color: #334155;
+
+      &::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 7px;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #b45309;
+      }
+
+      &.is-stop::before { background: #b91c1c; }
+
+      & + li { margin-top: 10px; }
+    }
+  }
+
+  .kip-message { display: block; }
+
+  .kip-action {
+    display: inline-block;
+    margin-top: 4px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #2847cc;
+    text-decoration: none;
+
+    &:hover { text-decoration: underline; }
+  }
+}

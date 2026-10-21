@@ -6,7 +6,7 @@ import { constants } from '../helpers/constants';
 import { HttpService } from './http.service';
 import { CampaignService } from './campaign.service';
 import { SseService } from './sse.service';
-import { DripCampaign, IRawDripCampaign } from '../models/DripCampaign';
+import { DripCampaign, ICampaignsAttention, IRawDripCampaign } from '../models/DripCampaign';
 import { EnrollmentTriggers, IRawEnrollmentTrigger } from '../models/EnrollmentTriggers';
 import { IDripEmailDeletePreview, IDripEmailDeleteResult } from '../models/DripEmail';
 import {
@@ -832,6 +832,12 @@ export class DripCampaignService {
     emailCount: number;
     enrollListCount: number;
     smtpId: any;
+    /**
+     * KexyApi's `hasActiveSmtp` when known. A selected SMTP that was deleted (inactive) still
+     * has an id, so `smtpId` alone passed and the server refused only after the prospects
+     * were already added.
+     */
+    hasActiveSmtp?: boolean;
   }): { reason: 'emails' | 'lists' | 'smtp'; message: string } | null => {
     if (!input.emailCount) {
       return { reason: 'emails', message: 'Please generate emails to activate.' };
@@ -840,7 +846,7 @@ export class DripCampaignService {
       return { reason: 'lists', message: 'Please select list(s) from enrollment triggers' };
     }
     // A campaign with no send-from SMTP would activate and then fail to send.
-    if (!input.smtpId) {
+    if (!input.smtpId || input.hasActiveSmtp === false) {
       return {
         reason: 'smtp',
         message: 'Please select an SMTP account from settings and save it before activating.',
@@ -1285,6 +1291,24 @@ export class DripCampaignService {
   /** The next few sends across ALL active campaigns, for the list's "Up next" strip. Never cached. */
   getCampaignsUpNext = (limit = 3): Promise<ICampaignsUpNext> =>
     this.__getData(`drip-campaigns/up-next?limit=${limit}`);
+
+  /**
+   * Whether a campaign can send right now (its selected SMTP is ACTIVE), read fresh from
+   * `GET drip-campaigns/:id` without touching the cached campaign. Undefined when the API is
+   * older or the read fails: the server still refuses, so callers fall back to `smtpId`.
+   */
+  getCampaignHasActiveSmtp = async (campaignId: number | string): Promise<boolean | undefined> => {
+    try {
+      const c = await this.__getData<{ hasActiveSmtp?: boolean }>(`drip-campaigns/${campaignId}`);
+      return c?.hasActiveSmtp;
+    } catch {
+      return undefined;
+    }
+  };
+
+  /** Every ACTIVE campaign that needs attention, with why (the campaign list's summary). */
+  getCampaignsAttention = (): Promise<ICampaignsAttention> =>
+    this.__getData('drip-campaigns/attention');
 
   /**
    * What the AI generated versus what was sent, for one prospect. A row from the send

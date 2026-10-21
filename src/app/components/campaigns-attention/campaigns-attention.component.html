@@ -1,0 +1,67 @@
+<!--Only when an ACTIVE campaign is not sending as it should. Covers every page of the table.-->
+<section
+  class="attention"
+  *ngIf="data?.campaigns?.length"
+  aria-label="Campaigns that need attention"
+  role="status"
+>
+  <!--The header is the toggle: one line when collapsed (the default).-->
+  <button
+    type="button"
+    class="at-header"
+    (click)="open = !open"
+    [attr.aria-expanded]="open"
+    aria-controls="campaigns-attention-body"
+  >
+    <span class="at-title">
+      <i class="fa fa-exclamation-triangle" aria-hidden="true"></i>
+      {{ data!.campaigns.length }} active campaign{{
+        data!.campaigns.length === 1 ? '' : 's'
+      }}
+      need{{ data!.campaigns.length === 1 ? 's' : '' }} attention
+    </span>
+    <span class="at-summary" *ngIf="stopping">· {{ stopping }} won't send until fixed</span>
+    <span class="at-toggle">
+      {{ open ? 'Hide' : 'Show details' }}
+      <i class="fa" [class.fa-angle-up]="open" [class.fa-angle-down]="!open" aria-hidden="true"></i>
+    </span>
+  </button>
+
+  <div id="campaigns-attention-body" *ngIf="open">
+    <ul class="at-list">
+      <li *ngFor="let c of shown; trackBy: trackByCampaign" class="at-item">
+        <button
+          type="button"
+          class="at-name"
+          (click)="act(c.campaignId, 'open_campaign')"
+          [title]="'Open ' + (c.title || 'campaign')"
+        >
+          {{ c.title || 'Untitled campaign' }}
+        </button>
+        <ul class="at-issues">
+          <li *ngFor="let issue of c.issues" [class.is-stop]="issue.severity === 'stop'">
+            <span class="at-message">{{ issue.message }}</span>
+            <button
+              type="button"
+              class="at-action"
+              *ngIf="actionLabel(issue.action) as label"
+              (click)="act(c.campaignId, issue.action)"
+            >
+              {{ label }} <i class="fa fa-angle-right" aria-hidden="true"></i>
+            </button>
+          </li>
+        </ul>
+      </li>
+    </ul>
+
+    <button
+      type="button"
+      class="at-more"
+      *ngIf="data!.campaigns.length > collapsed"
+      (click)="expanded = !expanded"
+    >
+      {{ expanded ? 'Show fewer' : 'Show all ' + data!.campaigns.length }}
+    </button>
+    <p class="at-note" *ngIf="data!.truncated">Checked the most recent 500 active campaigns.</p>
+  </div>
+</section>

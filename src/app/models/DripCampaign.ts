@@ -55,6 +55,30 @@ export interface IPauseReason {
   pausedAt: string;
 }
 
+/**
+ * Why an ACTIVE campaign is not sending as it should (KexyApi `campaign-issues.ts`). `stop`:
+ * nothing more goes out until someone acts; `wait`: it resumes on its own.
+ */
+export interface ICampaignIssue {
+  code:
+    | 'no_smtp'
+    | 'sending_paused'
+    | 'ai_paused'
+    | 'insights_paused'
+    | 'insights_blocked'
+    | 'insights_daily_limit';
+  severity: 'stop' | 'wait';
+  message: string;
+  action: 'add_smtp' | 'choose_smtp' | 'open_campaign' | null;
+}
+
+/** `GET drip-campaigns/attention`: every flagged ACTIVE campaign, whatever page it is on. */
+export interface ICampaignsAttention {
+  campaigns: { campaignId: number; title: string | null; issues: ICampaignIssue[] }[];
+  activeCampaigns: number;
+  truncated: boolean;
+}
+
 export class DripCampaign {
   id: number;
   company: object;

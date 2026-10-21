@@ -1,0 +1,81 @@
+// The campaign page's paused-banner amber; red edge when a campaign won't send until fixed.
+$amber: #b45309;
+$amber-ink: #8a6100;
+$stop: #b91c1c;
+$kx-primary: #2847cc;
+
+.attention-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-left: 3px solid $amber;
+  border-radius: 12px;
+
+  &.is-stop {
+    border-left-color: $stop;
+  }
+}
+
+.ab-icon {
+  color: $amber;
+  font-size: 18px;
+
+  .is-stop & {
+    color: $stop;
+  }
+}
+
+.ab-text {
+  flex: 1 1 320px;
+  min-width: 0;
+}
+
+.ab-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: $amber-ink;
+}
+
+.ab-detail {
+  margin: 2px 0 0;
+  font-size: 13px;
+  color: #a37a1f;
+  overflow-wrap: anywhere;
+}
+
+.ab-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ab-btn {
+  padding: 7px 14px;
+  border: 1px solid $kx-primary;
+  border-radius: 8px;
+  background: #ffffff;
+  color: $kx-primary;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+
+  &:hover {
+    background: #eef2ff;
+  }
+
+  &.ab-primary {
+    background: $kx-primary;
+    color: #ffffff;
+
+    &:hover {
+      background: #1f39a8;
+    }
+  }
+}
