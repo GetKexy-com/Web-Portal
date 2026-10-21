@@ -282,11 +282,22 @@
         </div>
       </div>
     </form>
+
+    <!--A running or paused campaign: edits here are saved only through "Save & continue".-->
+    <div class="unsaved-note" *ngIf="unsavedChanges.length" role="status">
+      <i class="fa fa-pencil" aria-hidden="true"></i>
+      <span>
+        You changed {{ unsavedChanges.length }} setting{{ unsavedChanges.length === 1 ? '' : 's' }}.
+        Nothing is saved until you click <b>Save &amp; continue</b>.
+      </span>
+      <button type="button" class="unsaved-undo" (click)="undoChanges()">Undo</button>
+    </div>
   </div>
 </section>
 
 <!-- Back Next Button -->
 <campaign-layout-bottm-btns
   [rightSecondBtnClick]="handleClickNextButton"
+  [rightSecondBtnLabel]="nextButtonLabel"
   [showRightSideFirstBtn]="false"
 ></campaign-layout-bottm-btns>

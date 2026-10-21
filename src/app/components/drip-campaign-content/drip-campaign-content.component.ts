@@ -1,7 +1,8 @@
-import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { Component, HostListener, Input, OnDestroy, OnInit } from '@angular/core';
 import { constants } from '../../helpers/constants';
 import { CommonModule, DatePipe, NgClass } from '@angular/common';
-import { NgbOffcanvas } from '@ng-bootstrap/ng-bootstrap';
+import { NgbModal, NgbOffcanvas } from '@ng-bootstrap/ng-bootstrap';
+import { LiveChange, LiveChangesModalComponent } from '../live-changes-modal/live-changes-modal.component';
 import { FormControl, FormGroup, FormsModule, Validators } from '@angular/forms';
 import Swal from 'sweetalert2';
 import { AuthService } from '../../services/auth.service';
@@ -86,6 +87,7 @@ export class DripCampaignContentComponent implements OnInit, OnDestroy {
   constructor(
     private route: ActivatedRoute,
     private ngbOffcanvas: NgbOffcanvas,
+    private modal: NgbModal,
     private _authService: AuthService,
     private dripCampaignService: DripCampaignService,
     private leadMagnetService: LeadMagnetService,
@@ -123,7 +125,7 @@ export class DripCampaignContentComponent implements OnInit, OnDestroy {
     if (this.dripCampaignId) {
       this.setPreviousData();
     }
-    this.getLeadMagnets();
+    const leadMagnetsLoaded = this.getLeadMagnets();
 
     // Set 1st index as the default which is 'short' if not find anything in service for this field
     const emailLength = this.dripCampaignService.getEmailLength();
@@ -133,11 +135,28 @@ export class DripCampaignContentComponent implements OnInit, OnDestroy {
     } else {
       this.onEmailLengthSelect(this.emailLengthKeys[0]);
     }
+    // An existing campaign shows ITS email length, not the one last used on any campaign
+    // (the service's), which Next then saved over it without anyone touching it.
+    const savedLength = String(
+      this.dripCampaignService.getDripCampaignContentPageData()?.details?.emailLength ?? '',
+    ).toLowerCase();
+    const savedLengthOption =
+      this.dripCampaignId && savedLength
+        ? this.emailLengthKeys.find((o) => o.key === savedLength || o.value.toLowerCase() === savedLength)
+        : null;
+    if (savedLengthOption) this.onEmailLengthSelect(savedLengthOption);
+
+    if (this.isLiveCampaign) {
+      await leadMagnetsLoaded;
+      this.captureSaved();
+      this.dripCampaignService.setUnsavedChangesCheck(() => this.unsavedChanges.length > 0);
+    }
 
     this.isWaitingFlag = false;
   }
 
   ngOnDestroy(): void {
+    this.dripCampaignService.setUnsavedChangesCheck(null);
     if (this.dripCampaignTitlesSubscription) this.dripCampaignTitlesSubscription.unsubscribe();
     if (this.calendlyLinkSubscription) this.calendlyLinkSubscription.unsubscribe();
     if (this.websiteSubscription) this.websiteSubscription.unsubscribe();
@@ -153,7 +172,7 @@ export class DripCampaignContentComponent implements OnInit, OnDestroy {
     this.lmLoading = true;
     let dripCampaign: DripCampaign = this.dripCampaignService.getDripCampaignContentPageData();
     console.log(dripCampaign.details);
-    this.leadMagnetService.getAll({
+    return this.leadMagnetService.getAll({
       limit: 9999999,
       page: 1,
       companyId: this.userData.supplier_id,
@@ -192,13 +211,14 @@ export class DripCampaignContentComponent implements OnInit, OnDestroy {
     if (!this.dripCampaignDuplicate) {
       // const titleIndex = this.campaignTitles.findIndex(i => i.id === data["drip_campaign_title_id"]);
       // if (titleIndex > -1) this.selectedTitle = this.campaignTitles[titleIndex].value;
-      this.selectedTitle = data.title.title;
-      this.selectedTitleId = data.title.id;
+      // A deleted title row leaves no title; the user picks a new one.
+      this.selectedTitle = data.title?.title ?? '';
+      this.selectedTitleId = data.title?.id ?? '';
       this.selectedCompany = data.companyDescription;
       // Mirrors the short `value` now used in `companyOptions` (company name, not the
       // full description) so a previously-saved campaign's dropdown pill matches what a
       // fresh selection would show.
-      this.selectedCompanyKey = data.companyDescription.companyName;
+      this.selectedCompanyKey = data.companyDescription?.companyName ?? '';
     }
     this.selectedEmailToneKey = data.emailTone;
     this.numberOfEmail = data.numberOfEmails;
@@ -208,6 +228,9 @@ export class DripCampaignContentComponent implements OnInit, OnDestroy {
     this.whatDoYouCover = dripCampaign.emailAbout;
     this.userPromptPriority = dripCampaign.userPromptPriority;
     this.targetAudience = dripCampaign.targetAudience;
+    // Not shown on this page, but saved by Next: it used to reset a Consumers campaign to
+    // the Companies default.
+    this.selectedDripCampaignType = dripCampaign.audienceType || constants.COMPANIES;
   };
 
   onEmailLengthSelect = (selectedValue, index = null, rowIndex = null) => {
@@ -486,6 +509,8 @@ export class DripCampaignContentComponent implements OnInit, OnDestroy {
   };
 
   handleClickNextButton = async () => {
+    // Still loading what was saved: comparing now would see "no changes" and move on.
+    if (this.isWaitingFlag) return;
     this.submitted = true;
 
     // Form validation
@@ -497,6 +522,19 @@ export class DripCampaignContentComponent implements OnInit, OnDestroy {
       !this.targetAudience
     ) {
       return;
+    }
+
+    // A running or paused campaign: nothing changed → just move on, nothing is saved; a
+    // change → say what it is and save only on "Save changes".
+    if (this.isLiveCampaign) {
+      const changes = this.unsavedChanges;
+      if (!changes.length) {
+        await this.nextBtnClick(this.dripCampaignId, true);
+        return;
+      }
+      const choice = await this.confirmLiveChanges(changes);
+      if (choice === 'undo') this.undoChanges();
+      if (choice !== 'save') return;
     }
 
     const leadMagnets = this.leadMagnetOptions.filter(l => l.isSelected);
@@ -547,6 +585,8 @@ export class DripCampaignContentComponent implements OnInit, OnDestroy {
         supplier_id: this.userData.supplier_id,
       };
       await this.dripCampaignService.getCampaign(postData, true);
+      // Saved: nothing left to warn about when moving on.
+      this.dripCampaignService.setUnsavedChangesCheck(null);
 
       // Navigate to the next page
       await this.nextBtnClick(this.dripCampaignId, true);
@@ -555,8 +595,139 @@ export class DripCampaignContentComponent implements OnInit, OnDestroy {
     }
   };
 
+  // ── Unsaved edits on a running or paused campaign ────────────────────────
+  // Next used to save this whole page every time, so going back just to look and touching
+  // a dropdown by mistake changed a live campaign without a word.
+
+  /** What was saved, as shown when the page opened (`fields()` and the raw picks). */
+  private savedFields: Step1Field[] | null = null;
+  private savedState: Record<string, any> | null = null;
+
+  /** Editing an existing campaign that is sending or paused (not a draft, not a copy). */
+  get isLiveCampaign(): boolean {
+    const status = this.dripCampaignService.getDripCampaignContentPageData()?.status;
+    return (
+      !!this.dripCampaignId &&
+      !this.dripCampaignDuplicate &&
+      [constants.ACTIVE, constants.PAUSE].includes(status)
+    );
+  }
+
+  /** Every setting on this page, comparable (`value`) and readable (`display`). */
+  private fields(): Step1Field[] {
+    const text = (v: unknown) => String(v ?? '').trim();
+    const shown = (v: unknown) => text(v) || 'None';
+    const short = (v: unknown) => {
+      const t = text(v);
+      return !t ? 'None' : t.length > 80 ? `${t.slice(0, 80)}…` : t;
+    };
+    const magnets = this.leadMagnetOptions.filter((l) => l.isSelected);
+    return [
+      { label: 'Campaign title', value: text(this.selectedTitleId), display: shown(this.selectedTitle) },
+      { label: 'Number of emails', value: text(this.numberOfEmail), display: shown(this.numberOfEmail) },
+      { label: 'Email tone', value: text(this.selectedEmailToneKey), display: shown(this.selectedEmailToneKey) },
+      { label: 'Email length', value: text(this.selectedEmailLength?.key), display: shown(this.selectedEmailLength?.value) },
+      { label: 'What you want to cover', value: text(this.whatDoYouCover), display: short(this.whatDoYouCover) },
+      { label: 'Target audience', value: text(this.targetAudience), display: short(this.targetAudience) },
+      { label: 'Use your own prompt', value: this.userPromptPriority ? 'on' : 'off', display: this.userPromptPriority ? 'On' : 'Off' },
+      { label: 'Calendly link', value: text(this.selectedCalendlyLinkKey), display: shown(this.selectedCalendlyLinkKey) },
+      { label: 'Website', value: text(this.selectedWebsiteKey), display: shown(this.selectedWebsiteKey) },
+      { label: 'Company', value: text(this.selectedCompany?.id), display: shown(this.selectedCompany?.companyName) },
+      {
+        label: 'Lead magnets',
+        value: magnets.map((m) => m.id).sort((a, b) => a - b).join(','),
+        display: magnets.map((m) => m.title).join(', ') || 'None',
+      },
+    ];
+  }
+
+  private captureSaved() {
+    this.savedFields = this.fields();
+    this.savedState = {
+      selectedTitle: this.selectedTitle,
+      selectedTitleId: this.selectedTitleId,
+      selectedCompany: this.selectedCompany,
+      selectedCompanyKey: this.selectedCompanyKey,
+      numberOfEmail: this.numberOfEmail,
+      selectedEmailToneKey: this.selectedEmailToneKey,
+      selectedEmailLength: this.selectedEmailLength,
+      whatDoYouCover: this.whatDoYouCover,
+      targetAudience: this.targetAudience,
+      userPromptPriority: this.userPromptPriority,
+      selectedCalendlyLinkKey: this.selectedCalendlyLinkKey,
+      selectedWebsiteKey: this.selectedWebsiteKey,
+      leadMagnetIds: new Set(this.leadMagnetOptions.filter((l) => l.isSelected).map((l) => l.id)),
+    };
+  }
+
+  /** Each setting that differs from what was saved, old → new. Empty for a draft. */
+  get unsavedChanges(): LiveChange[] {
+    if (!this.isLiveCampaign || !this.savedFields) return [];
+    const now = this.fields();
+    return now
+      .map((field, i) => ({ field, saved: this.savedFields[i] }))
+      .filter(({ field, saved }) => field.value !== saved.value)
+      .map(({ field, saved }) => ({ label: field.label, before: saved.display, after: field.display }));
+  }
+
+  get nextButtonLabel(): string {
+    return this.unsavedChanges.length ? 'Save & continue' : 'Next';
+  }
+
+  /** Puts every setting back to what was saved. */
+  undoChanges = () => {
+    const s = this.savedState;
+    if (!s) return;
+    this.selectedTitle = s['selectedTitle'];
+    this.selectedTitleId = s['selectedTitleId'];
+    this.selectedCompany = s['selectedCompany'];
+    this.selectedCompanyKey = s['selectedCompanyKey'];
+    this.numberOfEmail = s['numberOfEmail'];
+    this.selectedEmailToneKey = s['selectedEmailToneKey'];
+    if (s['selectedEmailLength']) this.onEmailLengthSelect(s['selectedEmailLength']);
+    this.whatDoYouCover = s['whatDoYouCover'];
+    this.targetAudience = s['targetAudience'];
+    this.userPromptPriority = s['userPromptPriority'];
+    this.selectedCalendlyLinkKey = s['selectedCalendlyLinkKey'];
+    this.selectedWebsiteKey = s['selectedWebsiteKey'];
+    this.leadMagnetOptions.forEach((l) => (l.isSelected = s['leadMagnetIds'].has(l.id)));
+  };
+
+  /** "Save changes to this campaign?" → 'save' | 'undo' | 'cancel' (closed or Keep editing). */
+  private async confirmLiveChanges(changes: LiveChange[]): Promise<'save' | 'undo' | 'cancel'> {
+    const campaign = this.dripCampaignService.getDripCampaignContentPageData();
+    const ref = this.modal.open(LiveChangesModalComponent, {
+      windowClass: 'kx-dialog-modal',
+      centered: true,
+    });
+    ref.componentInstance.changes = changes;
+    ref.componentInstance.campaignTitle = this.selectedTitle || campaign?.details?.title?.title || '';
+    ref.componentInstance.paused = campaign?.status === constants.PAUSE;
+    try {
+      const result = await ref.result;
+      return result === 'save' || result === 'undo' ? result : 'cancel';
+    } catch {
+      return 'cancel';
+    }
+  }
+
+  /** Closing the tab or reloading with unsaved edits: the browser's own "Leave site?". */
+  @HostListener('window:beforeunload', ['$event'])
+  onBeforeUnload(event: BeforeUnloadEvent) {
+    if (this.unsavedChanges.length) {
+      event.preventDefault();
+      event.returnValue = '';
+    }
+  }
+
   protected readonly constants = constants;
   protected readonly personSeniorities = personSeniorities;
+}
+
+interface Step1Field {
+  label: string;
+  value: string;
+  display: string;
 }
 
 // import { Component, Input, OnInit, OnDestroy, signal, computed } from '@angular/core';

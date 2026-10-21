@@ -94,6 +94,46 @@ $kx-red: #dc2626;
   // ── One card, divided into settings rows ────────────────────────────────
   // ONE surface with internal dividers, not a stack of cards. Cards-per-section is
   // drawer language; on a page it reads as unrelated widgets.
+  // "You changed N settings" on a running or paused campaign (flat amber, like the
+  // campaign page's paused bar).
+  .unsaved-note {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 16px;
+    padding: 10px 14px;
+    border: 1px solid #f5e6c8;
+    border-radius: 10px;
+    background: #fffcf5;
+    color: #92400e;
+    font-size: 13px;
+    line-height: 1.45;
+
+    .fa {
+      color: #b45309;
+    }
+
+    span {
+      flex: 1;
+    }
+
+    .unsaved-undo {
+      flex: none;
+      padding: 5px 12px;
+      border: 1px solid #b45309;
+      border-radius: 6px;
+      background: #ffffff;
+      color: #b45309;
+      font-size: 12.5px;
+      font-weight: 700;
+      cursor: pointer;
+
+      &:hover {
+        background: #fdf0d5;
+      }
+    }
+  }
+
   .form-card {
     padding: 0;
     background: #fff;

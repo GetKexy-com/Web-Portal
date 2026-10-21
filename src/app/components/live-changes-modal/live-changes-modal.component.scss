@@ -1,0 +1,275 @@
+// Same shell as enrollment-preview-modal: white head with a bordered close button, body,
+// grey foot. The rounded frame and width come from `.kx-dialog-modal` in styles.scss.
+$kx-primary: #1a73e8;
+$kx-primary-deep: #095dd1;
+$kx-ink: #0f172a;
+$kx-body: #334155;
+$kx-muted: #64748b;
+$kx-border: #e2e8f0;
+$kx-field-bg: #f7f9fc;
+$kx-good: #047857;
+$kx-good-bg: #e6f6ee;
+$kx-red: #dc2626;
+$kx-red-bg: #fdeaea;
+$kx-amber: #b45309;
+$kx-amber-bg: #fdf0d5;
+
+.lc-modal {
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 22px;
+  background: #fff;
+  border-bottom: 1px solid $kx-border;
+}
+
+.lc-head-text {
+  min-width: 0;
+}
+
+.modal-title-text {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.25;
+  color: $kx-ink;
+}
+
+.lc-badge {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  background: #eaf1fe;
+  color: $kx-primary-deep;
+  font-size: 13px;
+}
+
+.lc-sub {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 0 0 40px;
+  min-width: 0;
+  font-size: 12.5px;
+  color: $kx-muted;
+}
+
+.lc-status {
+  flex: none;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: $kx-good-bg;
+  color: $kx-good;
+  font-size: 11px;
+  font-weight: 700;
+
+  &.is-paused {
+    background: $kx-amber-bg;
+    color: $kx-amber;
+  }
+}
+
+.lc-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.icon-btn {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid $kx-border;
+  border-radius: 10px;
+  background: #fff;
+  color: $kx-muted;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background: $kx-red-bg;
+    border-color: $kx-red;
+    color: $kx-red;
+  }
+}
+
+.lc-body {
+  padding: 18px 22px 20px;
+  background: #fff;
+}
+
+.lc-section-label {
+  margin: 0 0 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: $kx-muted;
+}
+
+.lc-changes {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid $kx-border;
+  border-radius: 12px;
+  overflow: hidden;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.lc-change {
+  padding: 10px 14px;
+  background: $kx-field-bg;
+
+  & + & {
+    border-top: 1px solid $kx-border;
+  }
+}
+
+.lc-label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: $kx-body;
+}
+
+.lc-values {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  font-size: 13px;
+}
+
+.lc-before,
+.lc-after {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lc-before {
+  flex: 0 1 auto;
+  color: $kx-muted;
+  text-decoration: line-through;
+  text-decoration-color: #cbd5e1;
+}
+
+.lc-arrow {
+  flex: none;
+  color: #94a3b8;
+}
+
+.lc-after {
+  flex: 0 1 auto;
+  padding: 1px 8px;
+  border-radius: 6px;
+  background: #eaf1fe;
+  color: $kx-primary-deep;
+  font-weight: 700;
+}
+
+.lc-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 14px 0 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: $kx-muted;
+
+  i {
+    margin-top: 2px;
+    color: #94a3b8;
+  }
+}
+
+.modal-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 14px 22px;
+  background: $kx-field-bg;
+  border-top: 1px solid $kx-border;
+}
+
+.lc-foot-right {
+  display: flex;
+  gap: 10px;
+}
+
+.link-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: $kx-muted;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover {
+    color: $kx-red;
+  }
+}
+
+.ghost-btn,
+.primary-btn {
+  display: inline-flex;
+  align-items: center;
+  height: 38px;
+  padding: 0 16px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.ghost-btn {
+  border: 1px solid $kx-border;
+  background: #fff;
+  color: $kx-ink;
+
+  &:hover {
+    background: #f1f5f9;
+  }
+}
+
+.primary-btn {
+  border: 1px solid $kx-primary-deep;
+  background: $kx-primary-deep;
+  color: #fff;
+
+  &:hover {
+    background: #0a4fb3;
+  }
+}
+
+@media (max-width: 480px) {
+  .modal-foot {
+    flex-wrap: wrap;
+  }
+}

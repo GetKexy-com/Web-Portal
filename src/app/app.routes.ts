@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { routeConstants } from './helpers/routeConstants';
 import { AuthGuard } from './guard/auth.guard';
+import { unsavedDripChangesGuard } from './guard/unsaved-drip-changes.guard';
 
 /**
  * `data.title` is the page name shown in the header beside the sidebar toggle.
@@ -78,6 +79,7 @@ export const routes: Routes = [
         (m) => m.BrandDripCampaignComponent,
       ),
     canActivate: [AuthGuard],
+    canDeactivate: [unsavedDripChangesGuard],
   },
   {
     // The SAME component as CREATE above — see the note on `EDIT_DRIP_CAMPAIGN`. Two
@@ -91,6 +93,7 @@ export const routes: Routes = [
         (m) => m.BrandDripCampaignComponent,
       ),
     canActivate: [AuthGuard],
+    canDeactivate: [unsavedDripChangesGuard],
   },
   {
     path: routeConstants.BRAND.LAUNCH_DRIP_CAMPAIGN,
