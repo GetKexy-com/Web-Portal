@@ -1,33 +1,44 @@
-// The campaign page's paused-banner amber; red edge when a campaign won't send until fixed.
-$amber: #b45309;
-$amber-ink: #8a6100;
-$stop: #b91c1c;
-$kx-primary: #2847cc;
+// A flat alert banner, as large products do them (Stripe, GitHub, Atlassian): a light tinted
+// background with a matching border, a solid status icon, a bold dark title and plain buttons.
+// No gradient, glow or animation: the colour carries the urgency. Red when a campaign won't
+// send until fixed (`is-stop`); amber when everything flagged resumes on its own.
+$ink: #0f172a;
+$text: #475569;
 
 .attention-bar {
+  --tone: #d97706;
+  --tone-deep: #b45309;
+  --tone-bg: #fffbeb;
+  --tone-border: #fde68a;
+
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 10px 14px;
   margin-bottom: 16px;
-  padding: 12px 16px;
-  background: #fff7ed;
-  border: 1px solid #fed7aa;
-  border-left: 3px solid $amber;
+  padding: 14px 18px;
+  background: var(--tone-bg);
+  border: 1px solid var(--tone-border);
   border-radius: 12px;
 
   &.is-stop {
-    border-left-color: $stop;
+    --tone: #dc2626;
+    --tone-deep: #b91c1c;
+    --tone-bg: #fef2f2;
+    --tone-border: #fecaca;
   }
 }
 
 .ab-icon {
-  color: $amber;
-  font-size: 18px;
-
-  .is-stop & {
-    color: $stop;
-  }
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--tone);
+  color: #ffffff;
+  font-size: 15px;
 }
 
 .ab-text {
@@ -37,15 +48,26 @@ $kx-primary: #2847cc;
 
 .ab-title {
   margin: 0;
-  font-size: 14px;
+  font-size: 14.5px;
   font-weight: 700;
-  color: $amber-ink;
+  color: $ink;
+}
+
+.ab-count {
+  display: inline-block;
+  margin-right: 6px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--tone-deep);
+  color: #ffffff;
+  font-size: 12px;
+  vertical-align: 1px;
 }
 
 .ab-detail {
   margin: 2px 0 0;
   font-size: 13px;
-  color: #a37a1f;
+  color: $text;
   overflow-wrap: anywhere;
 }
 
@@ -57,25 +79,26 @@ $kx-primary: #2847cc;
 
 .ab-btn {
   padding: 7px 14px;
-  border: 1px solid $kx-primary;
+  border: 1px solid #d1d5db;
   border-radius: 8px;
   background: #ffffff;
-  color: $kx-primary;
+  color: $ink;
   font-size: 13px;
   font-weight: 600;
   white-space: nowrap;
   cursor: pointer;
 
   &:hover {
-    background: #eef2ff;
+    background: #f9fafb;
   }
 
   &.ab-primary {
-    background: $kx-primary;
+    border-color: var(--tone-deep);
+    background: var(--tone-deep);
     color: #ffffff;
 
     &:hover {
-      background: #1f39a8;
+      filter: brightness(0.92);
     }
   }
 }

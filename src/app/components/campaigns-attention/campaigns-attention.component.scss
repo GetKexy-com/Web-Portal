@@ -1,43 +1,87 @@
-// Same card language as "Up next" (campaigns-up-next), in the campaign page's paused-banner amber.
+// The dashboard alert's flat banner style (campaigns-attention-bar): a light tinted background
+// with a matching border, a solid status icon and a bold dark title. No gradient or glow; the
+// colour carries the urgency. Red when a campaign won't send until fixed (`is-stop`); amber
+// when everything flagged resumes on its own.
 $kx-primary: #2847cc;
+$ink: #0f172a;
 $kx-text: #334155;
 $kx-muted: #64748b;
-$kx-row-border: #f1f5f9;
-$amber: #b45309;
-$amber-ink: #8a6100;
-$amber-border: #fed7aa;
-$stop: #b91c1c;
 
 .attention {
-  background: #ffffff;
+  --tone: #d97706;
+  --tone-deep: #b45309;
+  --tone-bg: #fffbeb;
+  --tone-border: #fde68a;
+
   margin-bottom: 16px;
-  border: 1px solid $amber-border;
-  border-left: 3px solid $amber;
-  border-radius: 14px;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+  background: var(--tone-bg);
+  border: 1px solid var(--tone-border);
+  border-radius: 12px;
   overflow: hidden;
+
+  &.is-stop {
+    --tone: #dc2626;
+    --tone-deep: #b91c1c;
+    --tone-bg: #fef2f2;
+    --tone-border: #fecaca;
+  }
 }
 
 .at-header {
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
-  gap: 4px 8px;
+  align-items: center;
+  gap: 4px 10px;
   width: 100%;
-  padding: 11px 18px;
+  padding: 12px 18px;
   border: none;
-  background: #fff7ed;
+  background: transparent;
   text-align: left;
   cursor: pointer;
 
   &[aria-expanded='true'] {
-    border-bottom: 1px solid $amber-border;
+    border-bottom: 1px solid var(--tone-border);
   }
 
   &:focus-visible {
-    outline: 2px solid $amber;
+    outline: 2px solid var(--tone);
     outline-offset: -2px;
   }
+}
+
+.at-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--tone);
+  color: #ffffff;
+  font-size: 13px;
+}
+
+.at-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: $ink;
+}
+
+.at-count {
+  display: inline-block;
+  margin-right: 6px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--tone-deep);
+  color: #ffffff;
+  font-size: 12px;
+  vertical-align: 1px;
+}
+
+.at-summary {
+  font-size: 12.5px;
+  color: var(--tone-deep);
+  font-weight: 600;
 }
 
 .at-toggle {
@@ -48,21 +92,9 @@ $stop: #b91c1c;
   white-space: nowrap;
 }
 
-.at-title {
-  font-size: 14px;
-  font-weight: 700;
-  color: $amber-ink;
-
-  .fa {
-    color: $amber;
-    margin-right: 4px;
-  }
-}
-
-.at-summary {
-  font-size: 12.5px;
-  color: $stop;
-  font-weight: 600;
+// The open body is white, so the per-campaign detail reads as plainly as the table below.
+#campaigns-attention-body {
+  background: #ffffff;
 }
 
 .at-list {
@@ -73,7 +105,7 @@ $stop: #b91c1c;
 
 .at-item {
   padding: 10px 18px;
-  border-bottom: 1px solid $kx-row-border;
+  border-bottom: 1px solid var(--tone-border);
 
   &:last-child {
     border-bottom: none;
@@ -119,11 +151,11 @@ $stop: #b91c1c;
       width: 6px;
       height: 6px;
       border-radius: 50%;
-      background: $amber;
+      background: #d97706;
     }
 
     &.is-stop::before {
-      background: $stop;
+      background: #dc2626;
     }
 
     & + li {
@@ -157,14 +189,14 @@ $stop: #b91c1c;
   display: block;
   width: 100%;
   padding: 9px 18px;
-  border-top: 1px solid $kx-row-border;
+  border-top: 1px solid var(--tone-border);
   text-align: left;
 }
 
 .at-note {
   margin: 0;
   padding: 10px 18px;
-  border-top: 1px solid $kx-row-border;
+  border-top: 1px solid var(--tone-border);
   font-size: 12.5px;
   color: $kx-muted;
 }
