@@ -1,0 +1,32 @@
+<div class="attention-bar" *ngIf="campaigns.length" role="alert" [class.is-stop]="stopping > 0">
+  <i class="fa fa-exclamation-triangle ab-icon" aria-hidden="true"></i>
+
+  <!--One campaign: say exactly what is wrong, and go straight to the fix.-->
+  <div class="ab-text" *ngIf="campaigns.length === 1">
+    <p class="ab-title">Your campaign "{{ campaigns[0].title || 'Untitled campaign' }}" needs attention</p>
+    <p class="ab-detail">{{ first?.message }}</p>
+  </div>
+
+  <!--Several: how many, and which.-->
+  <div class="ab-text" *ngIf="campaigns.length > 1">
+    <p class="ab-title">
+      {{ campaigns.length }} active campaigns need attention<ng-container *ngIf="stopping">
+        · {{ stopping }} won't send until fixed</ng-container>
+    </p>
+    <p class="ab-detail">{{ names }}.</p>
+  </div>
+
+  <div class="ab-actions">
+    <button type="button" class="ab-btn ab-primary" *ngIf="campaigns.length === 1" (click)="fix(campaigns[0])">
+      {{ fixLabel(first) }}
+    </button>
+    <button
+      type="button"
+      class="ab-btn"
+      [class.ab-primary]="campaigns.length > 1"
+      (click)="review()"
+    >
+      {{ campaigns.length > 1 ? 'Review campaigns' : 'Manage campaigns' }}
+    </button>
+  </div>
+</div>

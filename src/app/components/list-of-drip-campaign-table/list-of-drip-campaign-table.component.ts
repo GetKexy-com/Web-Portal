@@ -15,13 +15,13 @@ import { routeConstants } from '../../helpers/routeConstants';
 import { RouterLink } from '@angular/router';
 import { ProspectingService } from '../../services/prospecting.service';
 import { Subscription } from 'rxjs';
-import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { NgbModal, NgbPopover } from '@ng-bootstrap/ng-bootstrap';
 import { FormsModule } from '@angular/forms';
 import { CommonModule, DatePipe, DecimalPipe, NgClass } from '@angular/common';
 import {
   ContactLabelsModalContentComponent,
 } from '../contact-labels-modal-content/contact-labels-modal-content.component';
-import { DripCampaign } from '../../models/DripCampaign';
+import { DripCampaign, ICampaignIssue } from '../../models/DripCampaign';
 import { ICampaignNextSend } from '../../models/EmailSendProgress';
 import { SendCountdownComponent } from '../send-countdown/send-countdown.component';
 
@@ -35,6 +35,7 @@ import { SendCountdownComponent } from '../send-countdown/send-countdown.compone
     CommonModule,
     SendCountdownComponent,
     RouterLink,
+    NgbPopover,
   ],
   templateUrl: './list-of-drip-campaign-table.component.html',
   // OnPush: these tables render hundreds of cells, and under the default
@@ -69,6 +70,10 @@ export class ListOfDripCampaignTableComponent implements OnInit, AfterViewInit, 
    * the page after the rows). Absent until loaded; null when nobody is owed an email.
    */
   @Input() nextSends: Record<number, ICampaignNextSend | null> = {};
+  /** Why an ACTIVE campaign is not sending as it should, by id (`campaigns-attention`). */
+  @Input() issues: Record<number, ICampaignIssue[]> = {};
+
+  hasStop = (issues: ICampaignIssue[]) => issues.some((i) => i.severity === 'stop');
   /** The "Next Email" column is only rendered when the page turns it on. */
   @Input() showNextEmail = false;
   /** Server clock minus browser clock, for those countdowns. */
@@ -220,6 +225,7 @@ export class ListOfDripCampaignTableComponent implements OnInit, AfterViewInit, 
   // };
 
   readonly editDripCampaignRoute = routeConstants.BRAND.EDIT_DRIP_CAMPAIGN;
+  readonly smtpSettingsRoute = routeConstants.BRAND.SMTP_SETTINGS;
 
   isRowSelected = (row) => {
     // For radio like functionality

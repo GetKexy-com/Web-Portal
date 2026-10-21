@@ -676,6 +676,8 @@ export class EmailTimeSettingsContentComponent implements OnInit, OnDestroy {
         emailCount: this.dripCampaign.emails?.length ?? 0,
         enrollListCount: newEnrollListIds.length + previousEnrollListIds.length,
         smtpId: this.selectedSmtpId,
+        // The dropdown lists active SMTPs only: a saved id with no option is a deleted one.
+        hasActiveSmtp: this.smtpLoading ? undefined : !!this.selectedSmtpOption,
       });
       if (blocker) {
         await Swal.fire({ title: `Error`, text: blocker.message, icon: 'warning' });

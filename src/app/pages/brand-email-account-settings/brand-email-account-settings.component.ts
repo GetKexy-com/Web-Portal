@@ -42,7 +42,6 @@ export class BrandEmailAccountSettingsComponent implements OnInit {
   // campaigns, we hold them here and force the user to detach each one first.
   smtpPendingDelete: any = null;
   connectedDrips: any[] = [];
-  removingDripId: number | string | null = null;
   isDeletingSmtp: boolean = false;
   private addSmtpModalRef: NgbModalRef;
   private connectedDripsModalRef: NgbModalRef;
@@ -360,10 +359,11 @@ export class BrandEmailAccountSettingsComponent implements OnInit {
     return name && email ? `${name} <${email}>` : email || name || 'this SMTP account';
   };
 
-  // Deleting an SMTP is gated on it not being attached to any drip campaign.
-  // We first ask the backend for connected campaigns: if none, delete after a
-  // confirm; if some, open a modal that forces the user to detach each drip
-  // before the delete becomes available.
+  // Deleting an SMTP first asks the backend which campaigns send from it: if none, delete
+  // after a plain confirm; if some, a modal says what deleting does to each one, and
+  // deletes on "Delete anyway". It used to make the user detach every campaign first,
+  // which left an ACTIVE campaign with no SMTP and no word about it (drip 772,
+  // 2026-10-20): it sat "Active" until it paused itself at its next send.
   deleteSmtp = async (item: any) => {
     this.deletingId = item?.id ?? null;
     let connected: any;
@@ -424,57 +424,70 @@ export class BrandEmailAccountSettingsComponent implements OnInit {
     this.connectedDripsModalRef?.close();
     this.smtpPendingDelete = null;
     this.connectedDrips = [];
-    this.removingDripId = null;
   };
 
   // Campaign title for display; falls back to an id-based label.
   getDripName = (drip: any): string =>
     drip?.details?.title?.title || drip?.name || `Campaign #${drip?.id}`;
 
-  // The drip's `smtp_account` setting id, needed to PATCH it back to null.
-  private getSmtpSettingId = (drip: any) => {
-    const setting = (drip?.settings || []).find((s: any) => s?.settingsType === 'smtp_account');
-    return setting?.id ?? null;
-  };
+  dripStatusLabel = (drip: any): string =>
+    ({ active: 'Active', pause: 'Paused', complete: 'Completed' })[drip?.status] ?? 'Draft';
 
-  // Detach this SMTP from one drip by nulling its `smtp_account` setting.
-  removeSmtpFromDrip = async (drip: any) => {
-    this.removingDripId = drip?.id ?? null;
-    const smtpSettingId = this.getSmtpSettingId(drip);
-    const postData = {
-      drip_campaign_id: drip?.id,
-      companyId: this.userData.supplier_id,
-      settings: [
-        {
-          ...(smtpSettingId && { id: smtpSettingId }),
-          dripCampaignId: drip?.id,
-          companyId: this.userData.supplier_id,
-          settingsType: 'smtp_account',
-          settingsValue: [{ smtpId: null }],
-        },
-      ],
-    };
-    try {
-      await this.dripCampaignService.updateSettings(postData);
-      // Drop it from the list; when empty the delete button unlocks.
-      this.connectedDrips = this.connectedDrips.filter((d) => d.id !== drip.id);
-    } catch (e) {
-      Swal.fire('Error', e?.['message'] || e?.['error'] || 'Failed to remove SMTP from campaign', 'error');
-    } finally {
-      this.removingDripId = null;
-    }
-  };
+  /** The campaigns deleting it affects now: sending (active) or waiting to resume (paused). */
+  get affectedDrips(): any[] {
+    return this.connectedDrips.filter((d) => d?.status === 'active' || d?.status === 'pause');
+  }
 
-  // Enabled only once every connected campaign has been detached.
-  deleteSmtpAfterDetach = async () => {
-    if (this.connectedDrips.length) return;
+  /**
+   * Completed and draft campaigns in one line: nothing changes for them now. Restarting a
+   * completed one (adding prospects or a list) or activating a draft asks for an active
+   * SMTP account first (`getActivationBlocker`, and KexyApi refuses too).
+   */
+  get unaffectedSummary(): string {
+    const others = this.connectedDrips.filter((d) => d?.status !== 'active' && d?.status !== 'pause');
+    if (!others.length) return '';
+    const done = others.filter((d) => d?.status === 'complete').length;
+    const drafts = others.length - done;
+    const parts = [
+      done ? `${done} completed campaign${done === 1 ? '' : 's'}` : '',
+      drafts ? `${drafts} draft${drafts === 1 ? '' : 's'}` : '',
+    ].filter(Boolean);
+    const lead = this.affectedDrips.length ? 'It is also set on' : 'It is set on';
+    const later = [
+      done ? 'add prospects or a list to a completed campaign' : '',
+      drafts ? 'activate a draft' : '',
+    ]
+      .filter(Boolean)
+      .join(' or ');
+    return `${lead} ${parts.join(' and ')}. Nothing changes for ${
+      others.length === 1 ? 'it' : 'them'
+    } now: before you ${later}, you'll be asked to choose another SMTP account.`;
+  }
+
+  /**
+   * What deleting the SMTP does to a sending or paused campaign: the send code's own rules
+   * (an ACTIVE one pauses at its next send; Resume needs an active SMTP).
+   */
+  dripConsequence = (drip: any): string =>
+    drip?.status === 'active'
+      ? 'Stops sending: it pauses itself at its next send, and nothing more goes out until you choose another SMTP account and resume it.'
+      : "Stays paused. It can't be resumed until you choose another SMTP account.";
+
+  deleteConnectedSmtp = async () => {
     const item = this.smtpPendingDelete;
     this.isDeletingSmtp = true;
     try {
       await this.dripCampaignService.deleteSmtp({ id: item?.id });
+      const count = this.affectedDrips.length;
       this.closeConnectedDripsModal();
       await this.loadSmtpList();
-      Swal.fire('Removed', 'SMTP account has been removed', 'success');
+      Swal.fire(
+        'Removed',
+        count
+          ? `SMTP account has been removed. ${count} campaign${count === 1 ? '' : 's'} need${count === 1 ? 's' : ''} another SMTP account to send.`
+          : 'SMTP account has been removed.',
+        'success',
+      );
     } catch (e) {
       Swal.fire('Error', e?.['message'] || e?.['error'] || 'Failed to remove SMTP account', 'error');
     } finally {

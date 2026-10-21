@@ -22,8 +22,9 @@ import {
   ListOfDripCampaignTableComponent,
 } from '../../components/list-of-drip-campaign-table/list-of-drip-campaign-table.component';
 import { TimeAgoComponent } from '../../components/time-ago/time-ago.component';
+import { CampaignsAttentionComponent } from '../../components/campaigns-attention/campaigns-attention.component';
 import { CampaignsUpNextComponent } from '../../components/campaigns-up-next/campaigns-up-next.component';
-import { DripCampaign } from '../../models/DripCampaign';
+import { DripCampaign, ICampaignIssue } from '../../models/DripCampaign';
 import { ICampaignNextSend } from '../../models/EmailSendProgress';
 import { schedulePollDelay } from '../../helpers/send-schedule-label';
 import { errorText, kxConfirm, kxNotice } from '../../helpers/kx-dialogs';
@@ -38,6 +39,7 @@ import { confirmBlankTemplateEmails } from '../../helpers/email-has-content';
     ListOfDripCampaignTableComponent,
     TimeAgoComponent,
     CampaignsUpNextComponent,
+    CampaignsAttentionComponent,
   ],
   templateUrl: './brand-list-of-drip-campaigns.component.html',
   styleUrl: './brand-list-of-drip-campaigns.component.scss',
@@ -92,6 +94,8 @@ export class BrandListOfDripCampaignsComponent implements OnInit {
    * (see `__loadNextSends`).
    */
   nextSends = signal<Record<number, ICampaignNextSend | null>>({});
+  /** Each flagged ACTIVE campaign's issues (from `campaigns-attention`), for the row chips. */
+  campaignIssues = signal<Record<number, ICampaignIssue[]>>({});
   /** The "Next email" column is hidden for now; while off, next-sends is never fetched. */
   readonly showNextEmail = false;
   /** Server clock minus browser clock, from the next-sends response. */

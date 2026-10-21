@@ -283,6 +283,28 @@ $st-blue-bg: #e7f6fe;
             &.st-blue { background: $st-blue-bg; color: $st-blue; .dot { background: $st-blue; } }
           }
 
+          // Active but not sending as it should (`issues`); red when it won't send until fixed.
+          .issue-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            margin-left: 6px;
+            padding: 4px 9px;
+            border-radius: 999px;
+            font-size: 11.5px;
+            font-weight: 600;
+            line-height: 1;
+            white-space: nowrap;
+            background: #fff7ed;
+            color: #b45309;
+            border: none;
+            cursor: pointer;
+
+            &:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+
+            &.is-stop { background: #fef2f2; color: #b91c1c; }
+          }
+
           .label-tag {
             display: inline-block;
             padding: 3px 11px;

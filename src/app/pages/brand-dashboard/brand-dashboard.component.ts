@@ -36,6 +36,7 @@ import {
   IDashboardStats,
   IDashboardTrendPoint,
 } from '../../models/DashboardStats';
+import { CampaignsAttentionBarComponent } from '../../components/campaigns-attention-bar/campaigns-attention-bar.component';
 
 /** The four selectable metrics. Clicking a tile re-plots the main chart. */
 type MetricKey = 'sent' | 'opens' | 'clicks' | 'replies';
@@ -121,7 +122,7 @@ interface IEngagedContactRow {
 
 @Component({
   selector: 'app-brand-dashboard',
-  imports: [CommonModule, BrandLayoutComponent, NgbPopover],
+  imports: [CommonModule, BrandLayoutComponent, NgbPopover, CampaignsAttentionBarComponent],
   templateUrl: './brand-dashboard.component.html',
   styleUrl: './brand-dashboard.component.scss',
 })

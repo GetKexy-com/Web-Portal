@@ -1067,6 +1067,7 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
       emailCount: this.emails.length,
       enrollListCount: this.getEnrolledList()?.length ?? 0,
       smtpId: this.__getSelectedSmtpId(),
+      hasActiveSmtp: this.dripCampaignService.getDripCampaignContentPageData()?.hasActiveSmtp,
     });
     if (blocker) {
       if (blocker.reason !== 'emails') this.openSettingsCanvas();

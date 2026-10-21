@@ -246,6 +246,8 @@ export class AddContactsToDripCampaignComponent implements OnInit, OnDestroy {
         emailCount: campaign.emails?.length ?? 0,
         enrollListCount: (campaign.lists ?? []).filter((l) => l.type === 'enroll_list').length,
         smtpId: this.dripCampaignService.getSelectedSmtpId(campaign),
+        // Fresh: the list's copy can't say whether its SMTP was deleted since.
+        hasActiveSmtp: await this.dripCampaignService.getCampaignHasActiveSmtp(campaign.id),
       });
       if (blocker) {
         await Swal.fire({
