@@ -19,7 +19,7 @@
 
         <div class="field">
           <label class="field-label" for="calendly-link-input">Calendly or scheduling link</label>
-          <input id="calendly-link-input" class="form-control" formControlName="calendly_link" type="text" placeholder="www.calendly.com/your-name" />
+          <input id="calendly-link-input" class="form-control" formControlName="calendly_link" type="text" placeholder="https://calendly.com/your-name" />
           <span class="field-hint">Prospects use this link to book a meeting.</span>
           @if (formValidationErrorCheck('calendly_link') || invalidWebsite) {
             <error-message-card message="Url is missing or invalid!"></error-message-card>

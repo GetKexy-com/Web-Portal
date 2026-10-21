@@ -117,7 +117,7 @@ export class LeadMagnetFormComponent implements OnInit, OnDestroy {
     }
     this.invalidWebsite = false;
     const formData = this.primaryForm.getRawValue();
-    formData.leadMagnetUrl = this.pageUiService.urlValidate(formData.leadMagnetUrl);
+    formData.leadMagnetUrl = this.pageUiService.absoluteUrlValidate(formData.leadMagnetUrl);
     if (!formData.leadMagnetUrl) {
       this.invalidWebsite = true;
       return;

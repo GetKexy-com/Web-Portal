@@ -174,6 +174,19 @@ export class PageUiService {
     return '';
   }
 
+  /**
+   * A link that goes into an email (Calendly, lead magnet): validated, then with `https://`.
+   * Without a scheme `calendly.com/x` is a relative link and does nothing in a mail client.
+   * The scheme goes on first, so the host is kept as typed (no `www.` in front of
+   * `calendar.app.google`).
+   */
+  public absoluteUrlValidate(url) {
+    // A link pasted after the pre-filled `https://` arrives twice-prefixed.
+    const trimmed = (url ?? '').trim().replace(/^(https?:\/\/)+(?=https?:\/\/)/i, '');
+    if (!trimmed) return '';
+    return this.urlValidate(/^https?:\/\//i.test(trimmed) ? trimmed : 'https://' + trimmed);
+  }
+
   private normalizeUrl(url) {
     url = url.trim();
 
