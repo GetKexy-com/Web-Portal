@@ -112,6 +112,23 @@
       ></app-kexy-button>
     </div>
 
+    <!--Why the SYSTEM paused it (KexyApi \`pauseReason\`; the owner's email says the same).
+        Nothing for a pause the owner made. Under whichever banner is showing.-->
+    <div
+      class="campaign-pause-reason"
+      *ngIf="dripCampaign?.status === constants.PAUSE && pauseReason"
+      role="status"
+    >
+      <p class="reason-title">
+        Why it was paused
+        <span class="reason-when">Paused by KEXY on {{ pauseReason.pausedAt | date: 'MMM d, h:mm a' }}</span>
+      </p>
+      <p class="reason-summary">{{ pauseReason.summary }}</p>
+      <ul class="reason-details" *ngIf="pauseReason.details?.length">
+        <li *ngFor="let d of pauseReason.details">{{ d }}</li>
+      </ul>
+    </div>
+
     <!--══════════ Sequence header ══════════
         Two bands: identity + PRIMARY actions on top, generation settings below. The
         old single row mixed a title, an export button, three dropdowns, a stat and

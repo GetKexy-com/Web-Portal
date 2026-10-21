@@ -46,7 +46,7 @@ import { PreviewDripEmailContentComponent } from '../preview-drip-email-content/
 import { ActivateDripModalComponent, IActivateDripResult } from '../activate-drip-modal/activate-drip-modal.component';
 import { DripLiveModalComponent } from '../drip-live-modal/drip-live-modal.component';
 import { LeadMagnetService } from '../../services/lead-magnet.service';
-import { CAMPAIGN_STATUS, DripCampaign, isResearchDone } from '../../models/DripCampaign';
+import { CAMPAIGN_STATUS, DripCampaign, IPauseReason, isResearchDone } from '../../models/DripCampaign';
 import { StorageService } from '../../services/storage.service';
 import { ScrapeProgressCardComponent } from '../scrape-progress-card/scrape-progress-card.component';
 import { confirmBlankTemplateEmails } from '../../helpers/email-has-content';
@@ -1530,11 +1530,14 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
    */
   smtpMissing = false;
   accountHasSmtp = false;
+  /** Why the system paused it, shown under the paused banner; null for an owner's pause. */
+  pauseReason: IPauseReason | null = null;
 
   private __syncSmtpState = () => {
     const latest = this.dripCampaignService.getDripCampaignContentPageData();
     this.smtpMissing = latest?.hasActiveSmtp === false;
     this.accountHasSmtp = !!latest?.accountHasActiveSmtp;
+    this.pauseReason = latest?.pauseReason ?? null;
   };
 
   get showSmtpWarning(): boolean {
