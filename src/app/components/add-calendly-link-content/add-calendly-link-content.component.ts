@@ -52,7 +52,7 @@ export class AddCalendlyLinkContentComponent implements OnInit {
 
   setPrimaryForm(): void {
     this.primaryForm = this.fb.group({
-      calendly_link: ['www.', [
+      calendly_link: ['https://', [
         Validators.required,
         Validators.minLength(0),
         Validators.maxLength(500),
@@ -81,7 +81,7 @@ export class AddCalendlyLinkContentComponent implements OnInit {
 
     this.invalidWebsite = false;
     const formData = this.primaryForm.getRawValue();
-    formData.calendly_link = this.pageUiService.urlValidate(formData.calendly_link);
+    formData.calendly_link = this.pageUiService.absoluteUrlValidate(formData.calendly_link);
     if (!formData.calendly_link) {
       this.invalidWebsite = true;
       this.isLoading.set(false);
