@@ -27,21 +27,50 @@ $kx-muted: #64748b;
   }
 }
 
+.at-head {
+  display: flex;
+  align-items: center;
+
+  &:has(.at-header[aria-expanded='true']) {
+    border-bottom: 1px solid var(--tone-border);
+  }
+}
+
+.at-only {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-right: 14px;
+  padding: 5px 12px;
+  border: 1px solid var(--tone-border);
+  border-radius: 8px;
+  background: #ffffff;
+  color: var(--tone-deep);
+  font-size: 12.5px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--tone);
+  }
+}
+
 .at-header {
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 4px 10px;
-  width: 100%;
   padding: 12px 18px;
   border: none;
   background: transparent;
   text-align: left;
   cursor: pointer;
 
-  &[aria-expanded='true'] {
-    border-bottom: 1px solid var(--tone-border);
-  }
+  // The divider under the header lives on `.at-head`, so it runs under the filter button too.
 
   &:focus-visible {
     outline: 2px solid var(--tone);

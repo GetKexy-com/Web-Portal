@@ -134,7 +134,8 @@
         <!-- body - start -->
         <ng-container *ngIf="!isWaitingFlag && cardData.length > 0">
           <tbody>
-          <tr class="n-product" [class.selected]="row.isSelected" *ngFor="let row of cardData; trackBy: trackByRow">
+          <tr class="n-product" [class.selected]="row.isSelected" *ngFor="let row of cardData; trackBy: trackByRow"
+              [class.row-stop]="rowIssueTone(row) === 'stop'" [class.row-wait]="rowIssueTone(row) === 'wait'">
             <ng-container *ngFor="let column of columnList">
               <!--Per-column classes so the scss can opt this cell OUT of the shared
                   ellipsis rule (Lists) or cap it (Title) — under auto table layout the
@@ -153,6 +154,10 @@
                    [title]="row.details.title ? row.details.title.title : 'Title Deleted'"
                    [routerLink]="'/' + editDripCampaignRoute"
                    [queryParams]="{ id: row.id }">
+                  <!--A row with a problem: a red (can't send) or amber (waiting) mark before the name.-->
+                  <i *ngIf="rowIssueTone(row) as tone" class="fa row-issue-icon"
+                     [class.fa-exclamation-circle]="tone === 'stop'" [class.fa-clock-o]="tone === 'wait'"
+                     aria-hidden="true"></i>
                   <span *ngIf="row.details.title">{{ row.details.title.title }}</span>
                   <span *ngIf="!row.details.title"><i><u>Title Deleted</u></i></span>
                 </a>
@@ -175,8 +180,8 @@
                     <ng-container *ngIf="row.status === constants.PAUSE">Paused</ng-container>
                     <ng-container *ngIf="row.status !== constants.INACTIVE && row.status !== constants.PAUSE" class="text-capitalize">{{ row.status }}</ng-container>
                   </span>
-                  <!--Active but not sending as it should; the summary above the table says why.-->
-                  <!--Click: the issues and how to fix each, without scrolling up to the summary.-->
+                  <!--Active but not sending as it should: the chip names the problem ("Can't send · No
+                      SMTP"). Click: every issue and how to fix each.-->
                   <button
                     type="button"
                     class="issue-chip"
@@ -188,11 +193,11 @@
                     container="body"
                     placement="bottom-start bottom-end top-start top-end"
                     autoClose="outside"
-                    [attr.aria-label]="'Show the ' + issues[row.id].length + ' issue(s) with this campaign'"
+                    [attr.aria-label]="'Active, ' + issueLabel(issues[row.id]) + '. Show why and how to fix it'"
                     (click)="$event.stopPropagation()"
                   >
-                    <i class="fa fa-exclamation-triangle" aria-hidden="true"></i>
-                    {{ issues[row.id].length }} issue{{ issues[row.id].length === 1 ? '' : 's' }}
+                    <i class="fa" [class.fa-ban]="hasStop(issues[row.id])" [class.fa-clock-o]="!hasStop(issues[row.id])" aria-hidden="true"></i>
+                    {{ issueLabel(issues[row.id]) }}
                     <i class="fa fa-angle-down" aria-hidden="true"></i>
                   </button>
                 </span>
