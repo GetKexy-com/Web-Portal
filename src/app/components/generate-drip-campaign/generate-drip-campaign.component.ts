@@ -1533,6 +1533,8 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
   accountHasSmtp = false;
   /** Why the system paused it, shown under the paused banner; null for an owner's pause. */
   pauseReason: IPauseReason | null = null;
+  /** The reason's details, collapsed by default. */
+  pauseReasonOpen = false;
 
   private __syncSmtpState = () => {
     const latest = this.dripCampaignService.getDripCampaignContentPageData();

@@ -12,7 +12,7 @@
     <div
       class="campaign-status-bar"
       [class.is-super-charged]="isSuperCharged()"
-      *ngIf="isSuperCharged() || showLiveNotice"
+      *ngIf="isSuperCharged() || (showLiveNotice && !smtpMissing)"
       role="status"
     >
       <div class="sc" *ngIf="isSuperCharged()">
@@ -25,7 +25,8 @@
         </span>
       </div>
 
-      <ng-container *ngIf="showLiveNotice">
+      <!--Not "live" while it has no SMTP: the red banner below says nothing is sent.-->
+      <ng-container *ngIf="showLiveNotice && !smtpMissing">
         <span class="sep" *ngIf="isSuperCharged()" aria-hidden="true">·</span>
         <span class="live-title">{{ liveNoticeTitle }}</span>
         <span class="dash" aria-hidden="true">—</span>
@@ -67,66 +68,86 @@
       (visibilityChange)="onScrapeCardVisibilityChange($event)">
     </app-scrape-progress-card>
 
-    <!--No SMTP: nothing can be sent, and Activate/Resume are refused until one is chosen.-->
-    <div class="campaign-paused-warning" *ngIf="showSmtpWarning" role="alert">
-      <i class="fa fa-exclamation-triangle" aria-hidden="true"></i>
-      <div class="text">
-        <p class="title">This campaign has no SMTP account to send from</p>
-        <p class="desc" *ngIf="!accountHasSmtp">
-          Nothing is sent until it has one: KEXY only sends your campaigns from your own email
-          account. Add one in SMTP Settings, then choose it in this campaign's settings{{
-            dripCampaign?.status === constants.PAUSE ? ' and resume' : ''
-          }}.
-        </p>
-        <p class="desc" *ngIf="accountHasSmtp">
-          Nothing is sent until you choose one of your SMTP accounts in this campaign's
-          settings{{ dripCampaign?.status === constants.PAUSE ? ', then resume' : '' }}.
-        </p>
-      </div>
-      <app-kexy-button
-        class="resume-btn"
-        [label]="accountHasSmtp ? 'Choose SMTP account' : 'Add SMTP account'"
-        [iconLeft]="accountHasSmtp ? 'fa-cog' : 'fa-plus-circle'"
-        bgColor="#b45309"
-        textColor="#ffffff"
-        radius="8px"
-        (click)="accountHasSmtp ? openSettingsCanvas() : openSmtpSettings()"
-      ></app-kexy-button>
-    </div>
-
-    <div class="campaign-paused-warning" *ngIf="dripCampaign?.status === constants.PAUSE && !showSmtpWarning">
-      <i class="fa fa-exclamation-triangle" aria-hidden="true"></i>
-      <div class="text">
-        <p class="title">This drip campaign is paused</p>
-        <p class="desc">Scheduled emails won’t be sent until the campaign is resumed.</p>
-      </div>
-      <app-kexy-button
-        class="resume-btn"
-        [label]="isResuming ? 'Resuming...' : 'Resume'"
-        [iconLeft]="isResuming ? 'fa-spinner fa-spin' : 'fa-play-circle-o'"
-        [disabled]="isResuming"
-        bgColor="#b45309"
-        textColor="#ffffff"
-        radius="8px"
-        (click)="resumeDripCampaign()"
-      ></app-kexy-button>
-    </div>
-
-    <!--Why the SYSTEM paused it (KexyApi \`pauseReason\`; the owner's email says the same).
-        Nothing for a pause the owner made. Under whichever banner is showing.-->
+    <!--The campaign's state banner, in the dashboard's flat alert style: red when nothing can
+        be sent until the user acts (no SMTP), amber when it is paused. When the SYSTEM paused
+        it (KexyApi `pauseReason`, the owner's email says the same), the reason sits inside the
+        banner; nothing for a pause the owner made.-->
     <div
-      class="campaign-pause-reason"
-      *ngIf="dripCampaign?.status === constants.PAUSE && pauseReason"
-      role="status"
+      class="kx-banner"
+      [class.is-stop]="showSmtpWarning"
+      *ngIf="showSmtpWarning || dripCampaign?.status === constants.PAUSE"
+      [attr.role]="showSmtpWarning ? 'alert' : 'status'"
     >
-      <p class="reason-title">
-        Why it was paused
-        <span class="reason-when">Paused by KEXY on {{ pauseReason.pausedAt | date: 'MMM d, h:mm a' }}</span>
-      </p>
-      <p class="reason-summary">{{ pauseReason.summary }}</p>
-      <ul class="reason-details" *ngIf="pauseReason.details?.length">
-        <li *ngFor="let d of pauseReason.details">{{ d }}</li>
-      </ul>
+      <div class="kb-main">
+        <span class="kb-icon" aria-hidden="true">
+          <i class="fa" [class.fa-exclamation]="showSmtpWarning" [class.fa-pause]="!showSmtpWarning"></i>
+        </span>
+
+        <!--No SMTP: nothing can be sent, and Activate/Resume are refused until one is chosen.-->
+        <div class="kb-text" *ngIf="showSmtpWarning">
+          <p class="kb-title">This campaign has no SMTP account to send from</p>
+          <p class="kb-desc" *ngIf="!accountHasSmtp">
+            Nothing is sent until it has one: KEXY only sends your campaigns from your own email
+            account. Add one in SMTP Settings, then choose it in this campaign's settings{{
+              dripCampaign?.status === constants.PAUSE ? ' and resume' : ''
+            }}.
+          </p>
+          <p class="kb-desc" *ngIf="accountHasSmtp">
+            Nothing is sent until you choose one of your SMTP accounts in this campaign's
+            settings{{ dripCampaign?.status === constants.PAUSE ? ', then resume' : '' }}.
+          </p>
+        </div>
+
+        <div class="kb-text" *ngIf="!showSmtpWarning">
+          <p class="kb-title">This drip campaign is paused</p>
+          <p class="kb-desc">Scheduled emails won’t be sent until the campaign is resumed.</p>
+        </div>
+
+        <div class="kb-actions">
+          <button
+            type="button"
+            class="kb-btn kb-primary"
+            *ngIf="showSmtpWarning"
+            (click)="accountHasSmtp ? openSettingsCanvas() : openSmtpSettings()"
+          >
+            {{ accountHasSmtp ? 'Choose SMTP account' : 'Add SMTP account' }}
+          </button>
+          <button
+            type="button"
+            class="kb-btn kb-primary"
+            *ngIf="!showSmtpWarning"
+            [disabled]="isResuming"
+            (click)="resumeDripCampaign()"
+          >
+            <i class="fa" [class.fa-spinner]="isResuming" [class.fa-spin]="isResuming" [class.fa-play]="!isResuming" aria-hidden="true"></i>
+            {{ isResuming ? 'Resuming…' : 'Resume' }}
+          </button>
+        </div>
+      </div>
+
+      <!--Collapsed to one line by default; the header is the toggle.-->
+      <div class="kb-reason" *ngIf="dripCampaign?.status === constants.PAUSE && pauseReason">
+        <button
+          type="button"
+          class="kb-reason-title"
+          (click)="pauseReasonOpen = !pauseReasonOpen"
+          [attr.aria-expanded]="pauseReasonOpen"
+          aria-controls="kb-reason-body"
+        >
+          <span>Why it was paused</span>
+          <span class="kb-reason-when">Paused by KEXY on {{ pauseReason.pausedAt | date: 'MMM d, h:mm a' }}</span>
+          <span class="kb-reason-toggle">
+            {{ pauseReasonOpen ? 'Hide' : 'Show details' }}
+            <i class="fa" [class.fa-angle-up]="pauseReasonOpen" [class.fa-angle-down]="!pauseReasonOpen" aria-hidden="true"></i>
+          </span>
+        </button>
+        <div id="kb-reason-body" *ngIf="pauseReasonOpen">
+          <p class="kb-reason-summary">{{ pauseReason.summary }}</p>
+          <ul class="kb-reason-details" *ngIf="pauseReason.details?.length">
+            <li *ngFor="let d of pauseReason.details">{{ d }}</li>
+          </ul>
+        </div>
+      </div>
     </div>
 
     <!--══════════ Sequence header ══════════
