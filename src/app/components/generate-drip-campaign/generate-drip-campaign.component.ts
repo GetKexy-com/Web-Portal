@@ -502,7 +502,9 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
       sender_website: this.dripCampaign.details.websiteUrl || '',
       sender_calendly_link: this.dripCampaign.details.calendlyLink || '',
       sender_company_name: this.dripCampaign.details.companyDescription.companyName,
-      sender_company_details: this.dripCampaign.details.description,
+      // The description's text lives on the chosen company description; `details.description`
+      // does not exist, so this used to send nothing.
+      sender_company_details: this.dripCampaign.details.companyDescription?.description || '',
       sender_product_name: this.selectedPromotionsProductName,
       sender_product_category: '',
       sender_product_description: '',

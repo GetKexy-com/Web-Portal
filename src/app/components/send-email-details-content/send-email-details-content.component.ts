@@ -328,6 +328,7 @@ export class SendEmailDetailsContentComponent implements OnInit, OnDestroy {
       // ("@@Invalid payload: missing sender…@@"); same fields as "Generate email" sends.
       sender_name: `${this.userData?.firstName ?? ''} ${this.userData?.lastName ?? ''}`.trim(),
       sender_company_name: this.dripCampaign?.details?.companyDescription?.companyName,
+      sender_company_details: this.dripCampaign?.details?.companyDescription?.description || '',
       email_tone: this.selectedEmailToneKey,
       email_number: this.dripEmail.emailSequence,
       email_length: this.selectedEmailLength.key,
