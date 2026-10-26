@@ -214,12 +214,14 @@ export class DripCampaignContentComponent implements OnInit, OnDestroy {
       // A deleted title row leaves no title; the user picks a new one.
       this.selectedTitle = data.title?.title ?? '';
       this.selectedTitleId = data.title?.id ?? '';
-      this.selectedCompany = data.companyDescription;
-      // Mirrors the short `value` now used in `companyOptions` (company name, not the
-      // full description) so a previously-saved campaign's dropdown pill matches what a
-      // fresh selection would show.
-      this.selectedCompanyKey = data.companyDescription?.companyName ?? '';
     }
+    // A duplicate keeps the original's company too (only the title is left for the user
+    // to pick); it used to come up empty on the copy.
+    this.selectedCompany = data.companyDescription;
+    // Mirrors the short `value` now used in `companyOptions` (company name, not the
+    // full description) so a previously-saved campaign's dropdown pill matches what a
+    // fresh selection would show.
+    this.selectedCompanyKey = data.companyDescription?.companyName ?? '';
     this.selectedEmailToneKey = data.emailTone;
     this.numberOfEmail = data.numberOfEmails;
     this.promotionId = data.campaignId;
