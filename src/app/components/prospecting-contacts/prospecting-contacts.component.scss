@@ -131,6 +131,150 @@ $kx-amber-bg: #fef3d9;
       }
     }
 
+    // ── Custom Properties ───────────────────────────────────────────────
+    .section-actions {
+      margin-left: auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .manage-properties-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      color: $kx-muted;
+      background: #fff;
+      border: 1.5px solid $kx-border;
+      border-radius: 8px;
+      cursor: pointer;
+
+      &:hover {
+        color: $kx-ink;
+        border-color: #cbd5e1;
+      }
+    }
+
+    .add-property-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      color: $kx-primary;
+      background: #fff;
+      border: 1.5px solid $kx-border;
+      border-radius: 8px;
+      cursor: pointer;
+
+      &:hover {
+        border-color: $kx-primary;
+      }
+    }
+
+    .custom-properties-hint {
+      display: flex;
+      gap: 8px;
+      margin: 0 0 14px;
+      padding: 10px 12px;
+      font-size: 12.5px;
+      line-height: 1.5;
+      color: $kx-muted;
+      background: $kx-field-bg;
+      border-radius: 8px;
+
+      .fa {
+        margin-top: 3px;
+      }
+    }
+
+    .custom-properties-empty {
+      margin: 0;
+      font-size: 13px;
+      color: $kx-muted;
+    }
+
+    // The label row holds the remove button; it keeps the label's usual gap above the input.
+    .saved-properties .field-label-row {
+      margin-bottom: 7px;
+
+      .field-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        min-width: 0;
+        overflow-wrap: anywhere;
+      }
+    }
+
+    // Added in this session, not saved yet.
+    .new-property-tag {
+      padding: 1px 7px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: $kx-primary;
+      background: rgba(18, 165, 244, 0.1);
+      border-radius: 999px;
+    }
+
+    // "⋯" beside a property's label: hidden until the field is hovered (or the button is
+    // focused / its menu open), always shown on touch screens, which have no hover.
+    .property-menu {
+      flex: none;
+      line-height: 1;
+    }
+
+    .property-menu-btn {
+      width: 24px;
+      height: 20px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      font-size: 13px;
+      color: $kx-muted;
+      background: transparent;
+      border: none;
+      border-radius: 6px;
+      opacity: 0;
+      cursor: pointer;
+      transition: opacity 0.15s ease, background 0.15s ease, color 0.15s ease;
+
+      // ngbDropdownToggle adds Bootstrap's caret; the dots are the affordance.
+      &::after {
+        display: none;
+      }
+
+      &:hover,
+      &[aria-expanded='true'] {
+        color: $kx-ink;
+        background: #eef2f7;
+      }
+
+      &:focus-visible {
+        opacity: 1;
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(18, 165, 244, 0.2);
+      }
+
+      &[aria-expanded='true'] {
+        opacity: 1;
+      }
+
+      @media (hover: none) {
+        opacity: 1;
+      }
+    }
+
+    .saved-properties .field:hover .property-menu-btn {
+      opacity: 1;
+    }
+
     // Responsive 2-col grid; panel is 800px so 2 columns fit comfortably.
     .fields-grid {
       display: grid;
@@ -393,5 +537,40 @@ $kx-amber-bg: #fef3d9;
   100% {
     border-color: $kx-border;
     box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  }
+}
+
+// The property "⋯" menu. Same card as the Insights Export menu.
+.property-menu-list {
+  min-width: 180px;
+  padding: 6px;
+  border: 1px solid $kx-border;
+  border-radius: 12px;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12);
+}
+
+.property-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 8px;
+
+  .fa {
+    width: 14px;
+    text-align: center;
+  }
+
+  &.is-danger {
+    color: #dc2626;
+
+    &:hover,
+    &:focus-visible,
+    &:active {
+      color: #b91c1c;
+      background: #fef2f2;
+    }
   }
 }

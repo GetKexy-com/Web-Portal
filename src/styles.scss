@@ -1300,6 +1300,12 @@ header#main-header #logo {
   width: calc(100% - 32px);
 }
 
+// "Manage custom properties" (manage-custom-properties-modal): a list plus an add row
+// with two inputs, so a little wider than a confirmation.
+.kx-dialog-modal.kx-manage-props-modal .modal-dialog {
+  max-width: 560px;
+}
+
 // "Ready to activate?": ~69% of the 724px it was built at for the client's full-size
 // Supercharged card (client, 2026-10-18: popup too large; the card itself is ~70% too).
 .kx-activate-modal .modal-dialog {
@@ -1473,6 +1479,68 @@ header#main-header #logo {
   // "Please wait…" (Swal.showLoading): SweetAlert's spinner in the portal blue.
   .swal2-loader {
     border-color: #095dd1 transparent #095dd1 transparent;
+  }
+}
+
+// `kxForm` (helpers/kx-dialogs.ts): labelled text boxes in the popup, same soft-filled
+// inputs as the contact panel, and the validation message as a quiet red line.
+.kx-discard-popup {
+  .kx-form-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-top: 18px;
+    text-align: left;
+  }
+
+  .kx-form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 0;
+
+    span {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      color: #64748b;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px 12px;
+      font-size: 14px;
+      color: #0f172a;
+      background: #f8fafc;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 10px;
+      outline: none;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+
+      &::placeholder {
+        color: #9aa6b6;
+      }
+
+      &:focus {
+        background: #fff;
+        border-color: #12a5f4;
+        box-shadow: 0 0 0 3px rgba(18, 165, 244, 0.15);
+      }
+    }
+  }
+
+  .kx-form-error {
+    margin: 12px 0 0;
+    padding: 8px 12px;
+    font-size: 13px;
+    color: #b91c1c;
+    background: #fef2f2;
+    border-radius: 8px;
+
+    &::before {
+      display: none;
+    }
   }
 }
 

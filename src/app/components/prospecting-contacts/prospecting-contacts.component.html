@@ -182,23 +182,74 @@
         </div>
       </div>
 
-      <!-- Custom Properties: single contact only, only when the contact has some
-           (imported via "Custom Property" columns) -->
+      <!-- Custom Properties: single contact only. Imported ones (CSV "Custom Property"
+           columns) keep their name; "+ Add property" adds a new name/value row. -->
       <div
         #customPropertiesSection
         class="form-section"
         [class.highlight-pulse]="highlightCustomProperties"
-        *ngIf="!isMultipleContactsSelected && customPropertyKeys.length"
-        formGroupName="customProperties"
+        *ngIf="!isMultipleContactsSelected && customPropertyRows"
+        formArrayName="customProperties"
       >
         <div class="section-head">
           <i class="fa fa-list-alt section-icon" aria-hidden="true"></i>
           <span class="section-title">Custom Properties</span>
+          <!-- Manage: every property in a popup (remove / add several at once); the hover
+               "⋯" menu is the quick way to remove a single one. -->
+          <div class="section-actions">
+            <button type="button" class="manage-properties-btn" *ngIf="hasCustomProperties" (click)="manageCustomProperties()">
+              <i class="fa fa-sliders" aria-hidden="true"></i> Manage
+            </button>
+            <button type="button" class="add-property-btn" (click)="addCustomProperty()">
+              <i class="fa fa-plus" aria-hidden="true"></i> Add property
+            </button>
+          </div>
         </div>
-        <div class="fields-grid">
-          <div class="field" *ngFor="let key of customPropertyKeys">
-            <label class="field-label">{{ key }}</label>
-            <input class="form-control" [formControlName]="key" type="text" [placeholder]="key" />
+
+        <p class="custom-properties-hint" *ngIf="hasCustomProperties">
+          <i class="fa fa-lock" aria-hidden="true"></i>
+          Property names can't be edited. They match the column names in your CSV imports,
+          and KEXY reads some of them (like Industry or Address) for prospect scores and
+          details. To rename one, remove it and add it again with the new name.
+        </p>
+
+        <p class="custom-properties-empty" *ngIf="!hasCustomProperties">
+          No custom properties yet. Add any extra detail, like Seniority or Industry.
+        </p>
+
+        <div class="fields-grid saved-properties" *ngIf="hasCustomProperties">
+          <div class="field" *ngFor="let row of customPropertyRows.controls; let i = index" [formGroupName]="i">
+            <div class="field-label-row">
+              <label class="field-label" [attr.for]="'custom-property-' + i">
+                {{ row.value.name }}
+                <span class="new-property-tag" *ngIf="!row.value.imported">New</span>
+              </label>
+              <!-- "⋯" actions, shown on hover (HubSpot / Notion style). The menu stays
+                   inside the panel: attached to <body>, a click on it counted as a click
+                   outside the panel and closed it. -->
+              <div ngbDropdown class="property-menu" placement="bottom-end top-end">
+                <button
+                  type="button"
+                  ngbDropdownToggle
+                  class="property-menu-btn"
+                  [attr.aria-label]="'Actions for ' + row.value.name"
+                >
+                  <i class="fa fa-ellipsis-h" aria-hidden="true"></i>
+                </button>
+                <div ngbDropdownMenu class="property-menu-list">
+                  <button ngbDropdownItem type="button" class="property-menu-item is-danger" (click)="removeCustomProperty(i)">
+                    <i class="fa fa-trash-o" aria-hidden="true"></i> Remove property
+                  </button>
+                </div>
+              </div>
+            </div>
+            <input
+              class="form-control"
+              [id]="'custom-property-' + i"
+              formControlName="value"
+              type="text"
+              [placeholder]="row.value.name"
+            />
           </div>
         </div>
       </div>
