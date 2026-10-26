@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Directive, ElementRef, Input, OnDestroy, OnInit } from '@angular/core';
+import { Component, Directive, ElementRef, HostListener, Input, OnDestroy, OnInit } from '@angular/core';
 import { NgbOffcanvas, OffcanvasDismissReasons } from '@ng-bootstrap/ng-bootstrap';
 
 import {
@@ -53,14 +53,41 @@ export const EMAIL_FRAME_IMAGE_CSS = 'img{max-width:100%;height:auto}';
  * drawer avoids that by assigning the property directly; this directive is the same
  * thing for a frame that lives inside an `*ngFor`. The content is already made
  * display-safe by the API (tracking pixel, tracker links and unsubscribe link removed) and
- * the frame is `sandbox=""`, so no script runs and nothing can navigate.
+ * the frame is `sandbox="allow-same-origin"` — still no script runs and nothing can
+ * navigate; same-origin only lets this directive read the email's height.
+ *
+ * The frame is sized to the email (between `MIN_HEIGHT` and `MAX_HEIGHT`, scrolling past
+ * that). A fixed height left a short email sitting on a large empty block.
  */
 @Directive({ selector: 'iframe[kexySrcdoc]' })
 export class SrcdocDirective {
+  private static readonly MIN_HEIGHT = 120;
+  private static readonly MAX_HEIGHT = 1200;
+  private lastWidth = 0;
+
   constructor(private el: ElementRef<HTMLIFrameElement>) {}
 
   @Input() set kexySrcdoc(html: string | null) {
     this.el.nativeElement.srcdoc = SrcdocDirective.wrap(html || '');
+  }
+
+  // `load` waits for the email's images, so their height is counted.
+  @HostListener('load') fitToContent(): void {
+    const frame = this.el.nativeElement;
+    const doc = frame.contentDocument;
+    if (!doc?.documentElement) return;
+    this.lastWidth = frame.clientWidth;
+    // Shrink first, then measure: an email styled `html,body{height:100%}` would
+    // otherwise report the frame's current height and never get smaller.
+    frame.style.height = `${SrcdocDirective.MIN_HEIGHT}px`;
+    const height = Math.max(doc.documentElement.scrollHeight, doc.body?.scrollHeight ?? 0);
+    const fitted = Math.min(Math.max(height, SrcdocDirective.MIN_HEIGHT), SrcdocDirective.MAX_HEIGHT);
+    frame.style.height = `${fitted}px`;
+  }
+
+  // A narrower frame wraps more lines, so a width change needs a new height.
+  @HostListener('window:resize') onResize(): void {
+    if (this.el.nativeElement.clientWidth !== this.lastWidth) this.fitToContent();
   }
 
   private static wrap(html: string): string {
