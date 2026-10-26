@@ -44,7 +44,7 @@
       </li>
     </ul>
 
-    <form class="mcp-add" (ngSubmit)="add()">
+    <form class="mcp-add" #addForm="ngForm" (ngSubmit)="add()">
       <p class="mcp-section-label">Add a property</p>
       <div class="mcp-add-fields">
         <input
@@ -78,10 +78,12 @@
   </div>
 
   <div class="modal-foot">
-    <span class="mcp-foot-note">Changes are saved when you click Save on the contact.</span>
+    <span class="mcp-foot-note">
+      {{ isNewContact ? 'Saving also creates this contact.' : 'Saves this contact right away.' }}
+    </span>
     <div class="mcp-foot-right">
       <button type="button" class="ghost-btn" (click)="activeModal.dismiss()">Cancel</button>
-      <button type="button" class="primary-btn" [disabled]="!changed" (click)="apply()">Apply changes</button>
+      <button type="button" class="primary-btn" [disabled]="!changed" (click)="save()">Save</button>
     </div>
   </div>
 </div>

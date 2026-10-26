@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, NgForm } from '@angular/forms';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 
 export interface CustomPropertyRow {
@@ -13,8 +13,9 @@ export interface CustomPropertyRow {
 /**
  * "Manage custom properties" — the contact panel's (`prospecting-contacts`) Manage button.
  * Lists every property with a remove (confirmed in the row itself, so no second popup
- * stacks on this one) and adds new ones at the bottom. Works on a copy: closes with the
- * edited rows on "Apply changes"; Cancel / × / Esc leave the panel as it was. Opened with
+ * stacks on this one) and adds new ones at the bottom. Works on a copy: Save closes with
+ * the edited rows and the panel saves the contact straight away; Cancel / × / Esc leave
+ * everything as it was. Opened with
  * windowClass `kx-dialog-modal kx-manage-props-modal` (rounded frame and width in styles.scss).
  */
 @Component({
@@ -27,7 +28,10 @@ export interface CustomPropertyRow {
 export class ManageCustomPropertiesModalComponent implements OnInit {
   @Input() properties: CustomPropertyRow[] = [];
   @Input() contactName = '';
+  /** Create Contact: saving here also creates the contact. */
+  @Input() isNewContact = false;
   @ViewChild('list') listRef?: ElementRef<HTMLElement>;
+  @ViewChild('addForm') addForm?: NgForm;
 
   rows: CustomPropertyRow[] = [];
   confirmingIndex: number | null = null;
@@ -58,14 +62,17 @@ export class ManageCustomPropertiesModalComponent implements OnInit {
   // Same rules as the panel's "+ Add property": both required, and no name that
   // matches an existing one ignoring case ("Industry" / "industry").
   add(): void {
-    const name = this.newName.trim();
-    const value = this.newValue.trim();
+    const name = (this.newName ?? '').trim();
+    const value = (this.newValue ?? '').trim();
     if (!name) return void (this.addError = 'Please enter a property name.');
     if (this.rows.some((r) => String(r.name).trim().toLowerCase() === name.toLowerCase())) {
       return void (this.addError = `This contact already has a "${name}" property.`);
     }
     if (!value) return void (this.addError = 'Please enter a value.');
     this.rows.push({ name, value, imported: false });
+    // Through the form, not just the fields: setting `newValue = ''` alone left the
+    // focused box showing the old text (Enter submits from inside it).
+    this.addForm?.resetForm();
     this.newName = '';
     this.newValue = '';
     this.addError = '';
@@ -76,7 +83,7 @@ export class ManageCustomPropertiesModalComponent implements OnInit {
     });
   }
 
-  apply(): void {
+  save(): void {
     this.activeModal.close(this.rows);
   }
 }

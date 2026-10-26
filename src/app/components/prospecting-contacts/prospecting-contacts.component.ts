@@ -12,7 +12,7 @@ import { constants } from '../../helpers/constants';
 import { usaStates } from 'src/assets/usaStates';
 import { canadaStates } from 'src/assets/canadaStates';
 import Swal from 'sweetalert2';
-import { kxConfirm, kxForm } from '../../helpers/kx-dialogs';
+import { kxConfirm, kxForm, kxNotice } from '../../helpers/kx-dialogs';
 import { Subscription } from 'rxjs';
 import { PageUiService } from '../../services/page-ui.service';
 import { DripCampaignService } from '../../services/drip-campaign.service';
@@ -492,7 +492,9 @@ export class ProspectingContactsComponent implements OnInit, AfterViewInit, OnDe
   };
 
   // "Manage": every property in a popup to remove or add several at once. It edits a
-  // copy; "Apply changes" replaces the rows here (still saved only by the panel's Save).
+  // copy; its Save puts the rows here and saves the contact straight away (the whole
+  // contact — it is one record). Editing keeps the panel open; creating closes it, as the
+  // panel's own Save does.
   manageCustomProperties = async () => {
     const ref = this.modal.open(ManageCustomPropertiesModalComponent, {
       windowClass: 'kx-dialog-modal kx-manage-props-modal',
@@ -501,6 +503,7 @@ export class ProspectingContactsComponent implements OnInit, AfterViewInit, OnDe
     ref.componentInstance.properties = this.customPropertyRows.getRawValue() as CustomPropertyRow[];
     const { firstName, lastName } = this.primaryForm.getRawValue();
     ref.componentInstance.contactName = [firstName, lastName].filter(Boolean).join(' ');
+    ref.componentInstance.isNewContact = this.isCreatingContact;
     let rows: CustomPropertyRow[];
     try {
       rows = await ref.result;
@@ -510,7 +513,28 @@ export class ProspectingContactsComponent implements OnInit, AfterViewInit, OnDe
     this.customPropertyRows.clear();
     rows.forEach((row) => this.customPropertyRows.push(this.customPropertyRow(row.name, row.value, row.imported)));
     this.customPropertyRows.markAsDirty();
+
+    if (this.isCreatingContact) {
+      await this.handleSubmit();
+      return;
+    }
+    const saved = await this.handleSubmit({ keepOpen: true });
+    if (saved) {
+      // Saved now, so none of them is "New" any more.
+      this.customPropertyRows.controls.forEach((row) => row.patchValue({ imported: true }));
+      kxNotice({ title: 'Saved', text: 'Custom properties saved.', icon: 'fa-check', tone: 'success', timerMs: 2500 });
+    } else if (!this.primaryForm.valid) {
+      kxNotice({
+        title: 'Not saved yet',
+        text: 'Your property changes are in the form, but some contact fields need fixing first. Fix them, then click Save.',
+        icon: 'fa-exclamation',
+      });
+    }
   };
+
+  private get isCreatingContact(): boolean {
+    return !this.selectedContacts?.length;
+  }
 
   removeCustomProperty = async (index: number) => {
     const name = this.customPropertyRows.at(index)?.value?.name || 'this property';
@@ -879,7 +903,9 @@ export class ProspectingContactsComponent implements OnInit, AfterViewInit, OnDe
     return getContactApiPostData;
   };
 
-  handleSubmit = async () => {
+  // `keepOpen`: save without closing the panel (the Manage popup's Save). Resolves true
+  // when saved.
+  handleSubmit = async ({ keepOpen = false }: { keepOpen?: boolean } = {}) => {
     this.submitted = true;
     this.setLabelFieldToPrimaryForm();
     if (!this.primaryForm.valid) {
@@ -929,11 +955,14 @@ export class ProspectingContactsComponent implements OnInit, AfterViewInit, OnDe
         this.getAndSetLabels();
       }
       await this.prospectingService.getContacts(getContactApiPostData, true);
+      if (keepOpen) return true;
       this.prospectingService.selectedContactsInContactsPage = [];
 
       this.activeCanvas.dismiss('Cross click');
+      return true;
     } catch (e) {
       await Swal.fire('Error', e.message);
+      return false;
     } finally {
       this.isLoading = false;
     }
