@@ -206,13 +206,6 @@
           </div>
         </div>
 
-        <p class="custom-properties-hint" *ngIf="hasCustomProperties">
-          <i class="fa fa-lock" aria-hidden="true"></i>
-          Property names can't be edited. They match the column names in your CSV imports,
-          and KEXY reads some of them (like Industry or Address) for prospect scores and
-          details. To rename one, remove it and add it again with the new name.
-        </p>
-
         <p class="custom-properties-empty" *ngIf="!hasCustomProperties">
           No custom properties yet. Add any extra detail, like Seniority or Industry.
         </p>

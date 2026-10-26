@@ -176,22 +176,6 @@ $kx-amber-bg: #fef3d9;
       }
     }
 
-    .custom-properties-hint {
-      display: flex;
-      gap: 8px;
-      margin: 0 0 14px;
-      padding: 10px 12px;
-      font-size: 12.5px;
-      line-height: 1.5;
-      color: $kx-muted;
-      background: $kx-field-bg;
-      border-radius: 8px;
-
-      .fa {
-        margin-top: 3px;
-      }
-    }
-
     .custom-properties-empty {
       margin: 0;
       font-size: 13px;
