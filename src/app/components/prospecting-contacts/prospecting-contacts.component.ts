@@ -1,6 +1,10 @@
 import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { NgbActiveOffcanvas, NgbOffcanvas } from '@ng-bootstrap/ng-bootstrap';
+import { FormArray, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { NgbActiveOffcanvas, NgbDropdownModule, NgbModal, NgbOffcanvas } from '@ng-bootstrap/ng-bootstrap';
+import {
+  CustomPropertyRow,
+  ManageCustomPropertiesModalComponent,
+} from '../manage-custom-properties-modal/manage-custom-properties-modal.component';
 import { AuthService } from '../../services/auth.service';
 import { ProspectingService } from '../../services/prospecting.service';
 import { AddOrDeleteContactLabelComponent } from '../add-or-delete-contact-label/add-or-delete-contact-label.component';
@@ -8,6 +12,7 @@ import { constants } from '../../helpers/constants';
 import { usaStates } from 'src/assets/usaStates';
 import { canadaStates } from 'src/assets/canadaStates';
 import Swal from 'sweetalert2';
+import { kxConfirm, kxForm } from '../../helpers/kx-dialogs';
 import { Subscription } from 'rxjs';
 import { PageUiService } from '../../services/page-ui.service';
 import { DripCampaignService } from '../../services/drip-campaign.service';
@@ -30,6 +35,7 @@ import { CAMPAIGN_STATUS } from '../../models/DripCampaign';
   selector: 'prospecting-contacts',
   imports: [
     ReactiveFormsModule,
+    NgbDropdownModule,
     KexySelectDropdownComponent,
     ErrorMessageCardComponent,
     CommonModule,
@@ -72,10 +78,10 @@ export class ProspectingContactsComponent implements OnInit, AfterViewInit, OnDe
   contactDripCampaigns = [];
   contactLabelsSubscription: Subscription;
   dripCampaignTitlesSubscription: Subscription;
-  // Keys of this contact's custom properties (from an import's "Custom Property"
-  // columns) — drives the dynamic "Custom Properties" section. Editing existing
-  // values only; this canvas doesn't add new custom property keys.
-  customPropertyKeys: string[] = [];
+  // The "Custom Properties" section is the `customProperties` FormArray of
+  // `{ name, value, imported }` rows: the contact's saved ones (from a CSV's "Custom
+  // Property" columns, or added here before) plus any added with "+ Add property".
+  // Saved as the same `customProperties` object a CSV import writes.
   // Target of the "View" button in the contacts table's Custom Properties
   // column — scrolled/pulsed into view once, in ngAfterViewInit.
   @ViewChild('customPropertiesSection') customPropertiesSectionRef?: ElementRef<HTMLElement>;
@@ -99,6 +105,7 @@ export class ProspectingContactsComponent implements OnInit, AfterViewInit, OnDe
     private dripCampaignService: DripCampaignService,
     private pageUiService: PageUiService,
     private ngbOffcanvas: NgbOffcanvas,
+    private modal: NgbModal,
   ) {
   }
 
@@ -155,8 +162,8 @@ export class ProspectingContactsComponent implements OnInit, AfterViewInit, OnDe
 
   // Scroll to (and briefly highlight) the Custom Properties section when opened
   // via the contacts table's "View" button. Runs after the view (and its
-  // *ngIf-rendered children) exists, since `customPropertyKeys` — and so the
-  // section itself — is only known once `setPrimaryForm()` ran in ngOnInit.
+  // *ngIf-rendered children) exists, since the `customProperties` rows — and so
+  // the section itself — are only known once `setPrimaryForm()` ran in ngOnInit.
   ngAfterViewInit(): void {
     if (this.prospectingService.focusContactSection !== 'customProperties') return;
     this.prospectingService.focusContactSection = null;
@@ -430,21 +437,102 @@ export class ProspectingContactsComponent implements OnInit, AfterViewInit, OnDe
       notes: new FormControl(contactDetails?.notes ? contactDetails.notes : ''),
     });
 
-    // Custom Properties: single-contact edit only, and only when the contact
-    // actually has some (imported via "Custom Property" columns) — this canvas
-    // lets the user fix values, not invent new keys.
-    this.customPropertyKeys = !this.isMultipleContactsSelected
-      ? Object.keys(contactDetails?.customProperties || {})
-      : [];
-    if (this.customPropertyKeys.length) {
-      const customPropertiesGroup: Record<string, FormControl> = {};
-      this.customPropertyKeys.forEach((key) => {
-        customPropertiesGroup[key] = new FormControl(contactDetails.customProperties[key] ?? '');
-      });
-      this.primaryForm.addControl('customProperties', new FormGroup(customPropertiesGroup));
+    // Custom Properties: single contact only (create or edit). Starts with the
+    // contact's existing ones; "+ Add property" adds more.
+    if (!this.isMultipleContactsSelected) {
+      const rows = Object.entries(contactDetails?.customProperties || {}).map(([name, value]) =>
+        this.customPropertyRow(name, value, true),
+      );
+      this.primaryForm.addControl('customProperties', new FormArray(rows));
     }
 
     this.computeEmailStatus();
+  };
+
+  get customPropertyRows(): FormArray<FormGroup> {
+    return this.primaryForm.get('customProperties') as FormArray<FormGroup>;
+  }
+
+  private customPropertyRow = (name = '', value: any = '', imported = false) =>
+    new FormGroup({
+      name: new FormControl(name),
+      value: new FormControl(value ?? ''),
+      imported: new FormControl(imported),
+    });
+
+  get hasCustomProperties(): boolean {
+    return !!this.customPropertyRows?.length;
+  }
+
+  // "+ Add property": a name and a value in a popup, added to the grid (saved with the
+  // contact on Save). The name is required and must not match an existing one ignoring
+  // case, so "Industry" and "industry" never become two properties.
+  addCustomProperty = async () => {
+    const taken = new Set(
+      this.customPropertyRows.getRawValue().map((row) => String(row['name'] ?? '').trim().toLowerCase()),
+    );
+    const values = await kxForm({
+      title: 'Add a custom property',
+      text: 'Save any extra detail about this contact.',
+      icon: 'fa-plus',
+      confirmText: 'Add property',
+      fields: [
+        { key: 'name', label: 'Property name', placeholder: 'e.g. Seniority' },
+        { key: 'value', label: 'Value', placeholder: 'e.g. Director' },
+      ],
+      validate: ({ name, value }) => {
+        if (!name) return 'Please enter a property name.';
+        if (taken.has(name.toLowerCase())) return `This contact already has a "${name}" property.`;
+        if (!value) return 'Please enter a value.';
+        return null;
+      },
+    });
+    if (!values) return;
+    this.customPropertyRows.push(this.customPropertyRow(values['name'], values['value']));
+  };
+
+  // "Manage": every property in a popup to remove or add several at once. It edits a
+  // copy; "Apply changes" replaces the rows here (still saved only by the panel's Save).
+  manageCustomProperties = async () => {
+    const ref = this.modal.open(ManageCustomPropertiesModalComponent, {
+      windowClass: 'kx-dialog-modal kx-manage-props-modal',
+      centered: true,
+    });
+    ref.componentInstance.properties = this.customPropertyRows.getRawValue() as CustomPropertyRow[];
+    const { firstName, lastName } = this.primaryForm.getRawValue();
+    ref.componentInstance.contactName = [firstName, lastName].filter(Boolean).join(' ');
+    let rows: CustomPropertyRow[];
+    try {
+      rows = await ref.result;
+    } catch {
+      return; // Cancel / × / Esc
+    }
+    this.customPropertyRows.clear();
+    rows.forEach((row) => this.customPropertyRows.push(this.customPropertyRow(row.name, row.value, row.imported)));
+    this.customPropertyRows.markAsDirty();
+  };
+
+  removeCustomProperty = async (index: number) => {
+    const name = this.customPropertyRows.at(index)?.value?.name || 'this property';
+    const confirmed = await kxConfirm({
+      title: `Remove "${name}"?`,
+      text: 'It is taken off this contact when you click Save.',
+      icon: 'fa-trash-o',
+      confirmText: 'Remove',
+      tone: 'danger',
+    });
+    if (confirmed) this.customPropertyRows.removeAt(index);
+  };
+
+  // Every row with a name is kept, even with its value cleared (removing is the bin).
+  private customPropertiesFromRows = (rows: { name: string; value: any }[] = []) => {
+    const out: Record<string, any> = {};
+    rows.forEach((row) => {
+      const name = String(row.name ?? '').trim();
+      const value = typeof row.value === 'string' ? row.value.trim() : row.value;
+      if (name) out[name] = value ?? '';
+    });
+    return out;
   };
 
   // Map the contact's stored verification result to a display badge. We only
@@ -697,8 +785,8 @@ export class ProspectingContactsComponent implements OnInit, AfterViewInit, OnDe
     contactDetails.organization.websiteUrl =
       Contact.resolveWebsiteUrl(formData.websiteUrl, formData.email) || null;
 
-    if (this.customPropertyKeys.length && formData.customProperties) {
-      contactDetails.customProperties = formData.customProperties;
+    if (formData.customProperties) {
+      contactDetails.customProperties = this.customPropertiesFromRows(formData.customProperties);
     }
 
     this.contact.companyName = formData.organizationName;

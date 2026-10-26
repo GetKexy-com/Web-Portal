@@ -1,0 +1,87 @@
+<div class="mcp-modal">
+  <div class="modal-head">
+    <div class="mcp-head-text">
+      <p class="modal-title-text">
+        <span class="mcp-badge" aria-hidden="true"><i class="fa fa-list-alt"></i></span>
+        Manage custom properties
+      </p>
+      <p class="mcp-sub" *ngIf="contactName">{{ contactName }}</p>
+    </div>
+    <button type="button" class="icon-btn" aria-label="Close" (click)="activeModal.dismiss()">
+      <i class="fa fa-times" aria-hidden="true"></i>
+    </button>
+  </div>
+
+  <div class="mcp-body">
+    <p class="mcp-section-label">
+      {{ rows.length }} propert{{ rows.length === 1 ? 'y' : 'ies' }}
+    </p>
+
+    <p class="mcp-empty" *ngIf="!rows.length">No custom properties yet. Add one below.</p>
+
+    <ul class="mcp-list" #list *ngIf="rows.length">
+      <li class="mcp-row" *ngFor="let row of rows; let i = index" [class.is-confirming]="confirmingIndex === i">
+        <ng-container *ngIf="confirmingIndex !== i; else confirmRow">
+          <div class="mcp-text">
+            <span class="mcp-name">
+              {{ row.name }}
+              <span class="mcp-new" *ngIf="!row.imported">New</span>
+            </span>
+            <span class="mcp-value" [title]="row.value">{{ row.value || '—' }}</span>
+          </div>
+          <button type="button" class="mcp-remove" [attr.aria-label]="'Remove ' + row.name" (click)="askRemove(i)">
+            <i class="fa fa-trash-o" aria-hidden="true"></i>
+          </button>
+        </ng-container>
+
+        <ng-template #confirmRow>
+          <span class="mcp-confirm-text">Remove <strong>"{{ row.name }}"</strong>?</span>
+          <div class="mcp-confirm-actions">
+            <button type="button" class="ghost-btn small" (click)="confirmingIndex = null">Cancel</button>
+            <button type="button" class="danger-btn small" (click)="remove(i)">Remove</button>
+          </div>
+        </ng-template>
+      </li>
+    </ul>
+
+    <form class="mcp-add" (ngSubmit)="add()">
+      <p class="mcp-section-label">Add a property</p>
+      <div class="mcp-add-fields">
+        <input
+          class="mcp-input"
+          name="newName"
+          type="text"
+          placeholder="Name, e.g. Seniority"
+          autocomplete="off"
+          [(ngModel)]="newName"
+          (ngModelChange)="addError = ''"
+        />
+        <input
+          class="mcp-input"
+          name="newValue"
+          type="text"
+          placeholder="Value, e.g. Director"
+          autocomplete="off"
+          [(ngModel)]="newValue"
+          (ngModelChange)="addError = ''"
+        />
+        <button type="submit" class="add-btn"><i class="fa fa-plus" aria-hidden="true"></i> Add</button>
+      </div>
+      <p class="mcp-error" *ngIf="addError" role="alert">{{ addError }}</p>
+    </form>
+
+    <p class="mcp-note">
+      <i class="fa fa-lock" aria-hidden="true"></i>
+      Names can't be edited: they match your CSV column names, and KEXY reads some of them (like
+      Industry or Address). To rename one, remove it and add it again.
+    </p>
+  </div>
+
+  <div class="modal-foot">
+    <span class="mcp-foot-note">Changes are saved when you click Save on the contact.</span>
+    <div class="mcp-foot-right">
+      <button type="button" class="ghost-btn" (click)="activeModal.dismiss()">Cancel</button>
+      <button type="button" class="primary-btn" [disabled]="!changed" (click)="apply()">Apply changes</button>
+    </div>
+  </div>
+</div>

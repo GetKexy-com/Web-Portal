@@ -1,0 +1,363 @@
+// Same shell as live-changes-modal: white head with a bordered close button, body, grey
+// foot. The rounded frame and width come from `.kx-dialog-modal` in styles.scss.
+$kx-primary: #12a5f4;
+$kx-primary-deep: #095dd1;
+$kx-ink: #0f172a;
+$kx-muted: #64748b;
+$kx-border: #e2e8f0;
+$kx-field-bg: #f7f9fc;
+$kx-red: #dc2626;
+$kx-red-bg: #fdeaea;
+
+.mcp-modal {
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 22px;
+  background: #fff;
+  border-bottom: 1px solid $kx-border;
+}
+
+.mcp-head-text {
+  min-width: 0;
+}
+
+.modal-title-text {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.25;
+  color: $kx-ink;
+}
+
+.mcp-badge {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  background: #eaf1fe;
+  color: $kx-primary-deep;
+  font-size: 13px;
+}
+
+.mcp-sub {
+  margin: 6px 0 0 40px;
+  font-size: 12.5px;
+  color: $kx-muted;
+}
+
+.icon-btn {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid $kx-border;
+  border-radius: 10px;
+  background: #fff;
+  color: $kx-muted;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background: $kx-red-bg;
+    border-color: $kx-red;
+    color: $kx-red;
+  }
+}
+
+.mcp-body {
+  padding: 18px 22px 20px;
+  background: #fff;
+}
+
+.mcp-section-label {
+  margin: 0 0 8px;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: $kx-muted;
+}
+
+.mcp-empty {
+  margin: 0 0 4px;
+  font-size: 13px;
+  color: $kx-muted;
+}
+
+// The list scrolls on its own so a contact with many properties keeps the add row and
+// the buttons in view.
+.mcp-list {
+  max-height: 300px;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+  border: 1px solid $kx-border;
+  border-radius: 12px;
+}
+
+.mcp-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 52px;
+  padding: 8px 10px 8px 14px;
+
+  & + .mcp-row {
+    border-top: 1px solid #f1f5f9;
+  }
+
+  &:hover .mcp-remove {
+    opacity: 1;
+  }
+
+  &.is-confirming {
+    background: #fef2f2;
+  }
+}
+
+.mcp-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.mcp-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: $kx-ink;
+}
+
+.mcp-new {
+  padding: 1px 7px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: $kx-primary;
+  background: rgba(18, 165, 244, 0.1);
+  border-radius: 999px;
+}
+
+.mcp-value {
+  overflow: hidden;
+  font-size: 12.5px;
+  color: $kx-muted;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.mcp-remove {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  color: $kx-muted;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  opacity: 0.6;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover,
+  &:focus-visible {
+    opacity: 1;
+    color: $kx-red;
+    background: $kx-red-bg;
+    outline: none;
+  }
+}
+
+.mcp-confirm-text {
+  font-size: 13px;
+  color: $kx-ink;
+}
+
+.mcp-confirm-actions {
+  display: inline-flex;
+  gap: 6px;
+}
+
+.mcp-add {
+  margin-top: 18px;
+}
+
+.mcp-add-fields {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  gap: 8px;
+}
+
+.mcp-input {
+  width: 100%;
+  height: 38px;
+  padding: 0 12px;
+  font-size: 13.5px;
+  color: $kx-ink;
+  background: $kx-field-bg;
+  border: 1.5px solid $kx-border;
+  border-radius: 10px;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+
+  &::placeholder {
+    color: #9aa6b6;
+  }
+
+  &:focus {
+    background: #fff;
+    border-color: $kx-primary;
+    box-shadow: 0 0 0 3px rgba(18, 165, 244, 0.15);
+  }
+}
+
+.add-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 38px;
+  padding: 0 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: $kx-primary-deep;
+  background: #fff;
+  border: 1.5px solid $kx-border;
+  border-radius: 10px;
+  cursor: pointer;
+
+  &:hover {
+    border-color: $kx-primary-deep;
+  }
+}
+
+.mcp-error {
+  margin: 8px 0 0;
+  padding: 7px 10px;
+  font-size: 12.5px;
+  color: #b91c1c;
+  background: #fef2f2;
+  border-radius: 8px;
+}
+
+.mcp-note {
+  display: flex;
+  gap: 8px;
+  margin: 16px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: $kx-muted;
+
+  .fa {
+    margin-top: 3px;
+  }
+}
+
+.modal-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 14px 22px;
+  background: $kx-field-bg;
+  border-top: 1px solid $kx-border;
+}
+
+.mcp-foot-note {
+  font-size: 12px;
+  color: $kx-muted;
+}
+
+.mcp-foot-right {
+  display: inline-flex;
+  gap: 8px;
+}
+
+.ghost-btn,
+.primary-btn,
+.danger-btn {
+  display: inline-flex;
+  align-items: center;
+  height: 38px;
+  padding: 0 16px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &.small {
+    height: 30px;
+    padding: 0 12px;
+    font-size: 12.5px;
+    border-radius: 8px;
+  }
+}
+
+.ghost-btn {
+  border: 1px solid $kx-border;
+  background: #fff;
+  color: $kx-ink;
+
+  &:hover {
+    background: #f1f5f9;
+  }
+}
+
+.primary-btn {
+  border: 1px solid $kx-primary-deep;
+  background: $kx-primary-deep;
+  color: #fff;
+
+  &:hover:not(:disabled) {
+    background: #0a4fb3;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.danger-btn {
+  border: 1px solid $kx-red;
+  background: $kx-red;
+  color: #fff;
+
+  &:hover {
+    background: #b91c1c;
+  }
+}
+
+@media (max-width: 520px) {
+  .mcp-add-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .modal-foot {
+    flex-wrap: wrap;
+  }
+}
