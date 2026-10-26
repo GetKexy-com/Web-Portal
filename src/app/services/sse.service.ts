@@ -163,15 +163,18 @@ export class SseService {
       .catch((err) => console.error(err));
   };
 
-  dripBulkEmailContentStream = async (data, userPromptPriority = false) => {
+  /**
+   * @param keepDelays The sequence's delays before this generation, by position (index 0 =
+   *   Email #1). Generating rewrites the emails but keeps the delays the user set, so a
+   *   duplicated campaign that is regenerated keeps its schedule.
+   */
+  dripBulkEmailContentStream = async (data, userPromptPriority = false, keepDelays: EmailDelay[] = []) => {
     let emails: DripEmail[] = [];
     let emailSequence = 1;
 
     let emailSubject = '';
     let emailContent = '';
     let aiEmailData = '';
-
-    let delayBetweenPreviousEmail: EmailDelay = EmailDelay.default();
 
     let buffer = '';
 
@@ -260,11 +263,7 @@ export class SseService {
               // Finalize current email
               const formattedContent = this.__formatEmailContent(emailContent);
 
-              // First email starts almost immediately; the rest keep the default delay.
-              const emailDelay: EmailDelay =
-                emailSequence === 1
-                  ? EmailDelay.firstEmail()
-                  : delayBetweenPreviousEmail;
+              const emailDelay: EmailDelay = this.__delayFor(emailSequence, keepDelays);
 
               const email: DripEmail = {
                 delayBetweenPreviousEmail: emailDelay,
@@ -299,11 +298,7 @@ export class SseService {
           if (emailSubject && emailContent) {
             const formattedContent = this.__formatEmailContent(emailContent);
 
-            // First email starts almost immediately; the rest keep the default delay.
-            const emailDelay: EmailDelay =
-              emailSequence === 1
-                ? EmailDelay.firstEmail()
-                : delayBetweenPreviousEmail;
+            const emailDelay: EmailDelay = this.__delayFor(emailSequence, keepDelays);
 
             const email: DripEmail = {
               delayBetweenPreviousEmail: emailDelay,
@@ -328,18 +323,16 @@ export class SseService {
     }
   };
 
-  setupEmptyDripEmailTemplate = ({ count }) => {
+  /** `keepDelays`: see `dripBulkEmailContentStream`. */
+  setupEmptyDripEmailTemplate = ({ count, keepDelays = [] }: { count: number; keepDelays?: EmailDelay[] }) => {
     let emails: DripEmail[] = [];
-    let delayBetweenPreviousEmail: EmailDelay = EmailDelay.default();
     this._dripBulkEmailLoading.next(true);
     if (count < 1) {
       return;
     }
 
     for (let i = 0; i < count; i++) {
-      // First email starts almost immediately; the rest keep the default delay.
-      const emailDelay: EmailDelay =
-        i === 0 ? EmailDelay.firstEmail() : delayBetweenPreviousEmail;
+      const emailDelay: EmailDelay = this.__delayFor(i + 1, keepDelays);
       const email: DripEmail = {
         delayBetweenPreviousEmail: emailDelay,
         emailSequence: i + 1,
@@ -353,6 +346,17 @@ export class SseService {
     }
     this._dripBulkEmailLoading.next(false);
   };
+
+  /**
+   * The delay for Email #`sequence` of a new generation: the one that email already had,
+   * else the default (the first email goes out almost immediately, the rest after the
+   * default gap). A copy each time, so editing one email's delay never moves another's.
+   */
+  private __delayFor(sequence: number, keepDelays: EmailDelay[]): EmailDelay {
+    const kept = keepDelays[sequence - 1];
+    if (kept) return { days: kept.days, hours: kept.hours, minutes: kept.minutes };
+    return sequence === 1 ? EmailDelay.firstEmail() : EmailDelay.default();
+  }
 
   __formatEmailContent: (content: string) => string = (content: string): string => {
 
