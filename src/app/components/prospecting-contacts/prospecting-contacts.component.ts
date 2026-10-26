@@ -1,5 +1,13 @@
 import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { FormArray, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  AbstractControl,
+  FormArray,
+  FormControl,
+  FormGroup,
+  ReactiveFormsModule,
+  ValidationErrors,
+  Validators,
+} from '@angular/forms';
 import { NgbActiveOffcanvas, NgbDropdownModule, NgbModal, NgbOffcanvas } from '@ng-bootstrap/ng-bootstrap';
 import {
   CustomPropertyRow,
@@ -429,6 +437,10 @@ export class ProspectingContactsComponent implements OnInit, AfterViewInit, OnDe
       ),
       city: new FormControl(contactDetails.city),
       websiteUrl: new FormControl(contactDetails.organization?.websiteUrl),
+      companyLinkedinUrl: new FormControl(
+        ProspectingContactsComponent.shownCompanyLinkedin(contactDetails.organization?.linkedinUrl),
+        ProspectingContactsComponent.companyLinkedinValidator,
+      ),
       state: new FormControl(contactDetails.state),
       country: new FormControl(
         contactDetails.country ? contactDetails.country : constants.UNITED_STATES,
@@ -459,6 +471,32 @@ export class ProspectingContactsComponent implements OnInit, AfterViewInit, OnDe
       value: new FormControl(value ?? ''),
       imported: new FormControl(imported),
     });
+
+  // What the Company LinkedIn box shows for the stored company link: blank for a CSV
+  // import's bare-domain placeholder (`Contact.ts`), and for a personal profile left there
+  // by the old copy-the-person's-LinkedIn bug (75 contacts, 2026-10-26) — shown, it would
+  // fail the validator and block saving the whole contact. Either stays as stored until a
+  // real company page is typed.
+  private static shownCompanyLinkedin(url: string | null | undefined): string {
+    const value = (url || '').trim();
+    if (/^(https?:\/\/)?(www\.)?linkedin\.com\/?$/i.test(value)) return '';
+    if (/linkedin\.com\/in\//i.test(value)) return '';
+    return value;
+  }
+
+  // Same rule as the backend's `companyLinkedinUrl` (prospect-linkedin.ts): only a company,
+  // school or showcase page is scraped, so anything else would be saved and then ignored.
+  private static companyLinkedinValidator(control: AbstractControl): ValidationErrors | null {
+    const value = (control.value || '').trim();
+    if (!value) return null;
+    if (/linkedin\.com\/in\//i.test(value)) {
+      return { companyLinkedin: "That's a personal profile. Use the company's page, like linkedin.com/company/acme." };
+    }
+    if (!/linkedin\.com\/(company|school|showcase)\/[^/?#\s]+/i.test(value)) {
+      return { companyLinkedin: 'Use a LinkedIn company page link, like linkedin.com/company/acme.' };
+    }
+    return null;
+  }
 
   get hasCustomProperties(): boolean {
     return !!this.customPropertyRows?.length;
@@ -801,9 +839,20 @@ export class ProspectingContactsComponent implements OnInit, AfterViewInit, OnDe
     contactDetails.organization.state = formData.state;
     contactDetails.organization.country = formData.country;
 
+    // The person's LinkedIn only. It used to be copied into the company's too, so any save
+    // replaced a real company page with the person's profile, and the LinkedIn scraper then
+    // never asked for a company (it only scrapes linkedin.com/company/…).
     if (formData.linkedinUrl) {
       contactDetails.linkedinUrl = formData.linkedinUrl;
-      contactDetails.organization.linkedinUrl = formData.linkedinUrl;
+    }
+    // Left as stored when the box showed blank for a placeholder / personal profile (see
+    // `shownCompanyLinkedin`); a real link the user cleared is cleared.
+    const companyLinkedin = (formData.companyLinkedinUrl || '').trim();
+    if (
+      companyLinkedin ||
+      ProspectingContactsComponent.shownCompanyLinkedin(contactDetails.organization.linkedinUrl)
+    ) {
+      contactDetails.organization.linkedinUrl = companyLinkedin;
     }
 
     contactDetails.organization.websiteUrl =

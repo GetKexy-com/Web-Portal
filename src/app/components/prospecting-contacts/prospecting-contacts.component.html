@@ -167,7 +167,7 @@
 
           <div class="field">
             <label class="field-label">LinkedIn</label>
-            <input class="form-control" formControlName="linkedinUrl" type="text" placeholder="LinkedIn" />
+            <input class="form-control" formControlName="linkedinUrl" type="text" placeholder="linkedin.com/in/jane-doe" />
           </div>
 
           <div class="field">
@@ -175,9 +175,25 @@
             <input class="form-control" formControlName="websiteUrl" type="text" placeholder="www.website.com" />
           </div>
 
-          <div class="field full">
+          <div class="field">
             <label class="field-label">Company Name</label>
             <input class="form-control" formControlName="organizationName" type="text" placeholder="Company Name" />
+          </div>
+
+          <!-- The company's own page, separate from the person's LinkedIn above. -->
+          <div class="field">
+            <label class="field-label">Company LinkedIn</label>
+            <input
+              class="form-control"
+              formControlName="companyLinkedinUrl"
+              type="text"
+              placeholder="linkedin.com/company/acme"
+            />
+            <div
+              *ngIf="(submitted || primaryForm.controls['companyLinkedinUrl'].dirty) && primaryForm.controls['companyLinkedinUrl'].errors?.['companyLinkedin']"
+            >
+              <error-message-card [message]="primaryForm.controls['companyLinkedinUrl'].errors?.['companyLinkedin']"></error-message-card>
+            </div>
           </div>
         </div>
       </div>
