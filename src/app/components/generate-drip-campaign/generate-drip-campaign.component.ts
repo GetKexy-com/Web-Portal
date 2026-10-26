@@ -447,9 +447,13 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
   };
 
   generateEmailContent = async () => {
+    // Generating rewrites the emails, not the schedule: each email keeps the delay it had
+    // (a duplicated campaign used to fall back to the defaults the moment it was regenerated).
+    const keepDelays = this.__currentDelays();
     if (this.selectedEmailTemplate.key === constants.TEMPLATE_KEY) {
       this.sseService.setupEmptyDripEmailTemplate({
         count: this.dripCampaign.details.numberOfEmails,
+        keepDelays,
       });
       return;
     }
@@ -533,12 +537,22 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
       },
     };
     try {
-      await this.sseService.dripBulkEmailContentStream(data, this.dripCampaign.userPromptPriority);
+      await this.sseService.dripBulkEmailContentStream(data, this.dripCampaign.userPromptPriority, keepDelays);
     } catch (e) {
       await Swal.fire('Error', e.message);
     }
 
   };
+
+  /** The sequence's delays as they stand, by position (index 0 = Email #1). */
+  private __currentDelays = (): EmailDelay[] =>
+    [...(this.emails || [])]
+      .sort((a, b) => a.emailSequence - b.emailSequence)
+      .map((e) => {
+        const d: any = e.delayBetweenPreviousEmail;
+        return typeof d === 'string' ? JSON.parse(d) : d;
+      })
+      .filter((d) => !!d);
 
   getLinkedInUsername(url) {
     return linkedinUsername(url);
