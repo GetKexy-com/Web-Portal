@@ -1,4 +1,4 @@
-<brand-layout layoutPaddingNone="true" headerBgWhite="true" [fullPageScroll]="false" (titleClick)="onTitleClick()">
+<brand-layout layoutPaddingNone="true" headerBgWhite="true" [fullPageScroll]="false" (titleClick)="scrapeProspect.onTitleClick()">
   <main class="brand-contacts-page">
     <!--Same single-row toolbar pattern as List Contacts: snapshot (last-updated +
         refresh) on the left, actions on the right, one set of buttons that wraps
@@ -90,22 +90,22 @@
           radius="8px"
         ></app-kexy-button>
 
-        <!--Paid, so hidden until the headline is clicked 5 times quickly (`onTitleClick`);
-            "Hide" puts it away, and the KEXY master password unlocks it. Not for "select all":
-            that is a filter across pages, not a list of contacts, and the API takes at most 10.-->
-        <ng-container *ngIf="showScrapeProspect && !addToDripCampaignId">
+        <!--Hidden "Scrape Prospect" (`ScrapeProspectService`): shown after 5 quick clicks on the
+            headline, "Hide" puts it away, the KEXY master password unlocks it. Paid. Not for
+            "select all": that is a filter across pages, not a list of contacts (API max 10).-->
+        <ng-container *ngIf="scrapeProspect.shown && !addToDripCampaignId">
           <app-kexy-button
-            [disabled]="!selectedContacts.length || isWaitingFlag || isLoading || selectAllContacts || openingScrapeProspect"
-            (click)="scrapeProspect()"
-            [label]="openingScrapeProspect ? 'Please wait...' : 'Scrape Prospect (' + selectedContacts.length + ')'"
-            [iconLeft]="openingScrapeProspect ? 'fa-refresh fa-spin' : 'fa-search'"
+            [disabled]="!selectedContacts.length || selectAllContacts || scrapeProspect.opening || isWaitingFlag || isLoading"
+            (click)="scrapeProspectClick()"
+            [label]="scrapeProspect.opening ? 'Please wait...' : 'Scrape Prospect (' + selectedContacts.length + ')'"
+            [iconLeft]="scrapeProspect.opening ? 'fa-refresh fa-spin' : 'fa-search'"
             [tooltip]="selectedContacts.length ? 'See and re-scrape website, location, LinkedIn and sports data. Paid, up to 10 contacts.' : 'Select up to 10 contacts first'"
             bgColor="#e7f6fe"
             textColor="#2847cc"
             radius="8px"
           ></app-kexy-button>
           <app-kexy-button
-            (click)="setScrapeProspectShown(false)"
+            (click)="scrapeProspect.setShown(false)"
             label="Hide"
             iconLeft="fa-eye-slash"
             tooltip="Hide the Scrape Prospect button"

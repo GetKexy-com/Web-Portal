@@ -36,9 +36,7 @@ import { CACHE_SCOPE, CacheVersionService } from '../../services/cache-version.s
 import { TimeAgoComponent } from '../../components/time-ago/time-ago.component';
 import { Contact, ContactOrganization } from '../../models/Contact';
 import { PageUiService } from '../../services/page-ui.service';
-import { errorText, kxForm, kxNotice } from '../../helpers/kx-dialogs';
-import { IProspectScrapeOverview, IProspectScrapeStartResult } from '../../services/prospecting.service';
-import { ProspectScrapeModalComponent } from '../../components/prospect-scrape-modal/prospect-scrape-modal.component';
+import { ScrapeProspectService } from '../../services/scrape-prospect.service';
 
 @Component({
   selector: 'brand-contacts',
@@ -64,20 +62,6 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
   isWaitingFlag: boolean = true;
   isLoading: boolean = false;
   selectedContacts: Contact[] = [];
-  /**
-   * "Scrape Prospect" for the selected contacts (KexyApi `src/prospect-scrape/`): see what
-   * research KEXY holds (website, location, LinkedIn, sports) and scrape any of it again now.
-   * Every scrape is PAID, so the button is hidden (owner's call, 2026-10-28) and shown by a
-   * trick instead of a deploy: click the "Manage Contacts" headline 5 times within 3 seconds;
-   * "Hide" puts it away. Remembered in this browser per account (the key carries the user id).
-   * The real lock is the KEXY master password (not the account's), which KexyApi checks
-   * before showing anything or scraping.
-   */
-  showScrapeProspect = false;
-  private titleClicks: number[] = [];
-  /** At most this many per click (KexyApi `PROSPECT_SCRAPE_MAX_CONTACTS`). */
-  readonly scrapeProspectMax = 10;
-  openingScrapeProspect = false;
   page = 1;
   limit = 100;
   totalPage;
@@ -120,6 +104,8 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
     private router: Router,
     private cdr: ChangeDetectorRef,
     private cacheVersions: CacheVersionService,
+    /** The hidden "Scrape Prospect" button (shared with a list's Contacts page). */
+    public scrapeProspect: ScrapeProspectService,
   ) {
     // override the route reuse strategy
     this.router.routeReuseStrategy.shouldReuseRoute = function() {
@@ -129,7 +115,7 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
 
   async ngOnInit() {
     this.userData = this._authService.userTokenValue;
-    this.showScrapeProspect = this.__readScrapeProspectShown();
+    this.scrapeProspect.load(this.userData?.id);
     this.supplierId = this.userData.supplier_id;
 
     this.getQueryParams();
@@ -819,121 +805,11 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
     this.isWaitingFlag = false;
   };
 
-  /** Five clicks on the headline within 3 seconds shows the "Scrape Prospect" tools. */
-  onTitleClick = () => {
-    const now = Date.now();
-    this.titleClicks = [...this.titleClicks.filter((t) => now - t < 3000), now];
-    if (this.titleClicks.length >= 5 && !this.showScrapeProspect) {
-      this.titleClicks = [];
-      this.setScrapeProspectShown(true);
-    }
-  };
-
-  setScrapeProspectShown = (shown: boolean) => {
-    this.showScrapeProspect = shown;
-    try {
-      if (shown) localStorage.setItem(this.__scrapeProspectKey(), '1');
-      else localStorage.removeItem(this.__scrapeProspectKey());
-    } catch {
-      // Storage blocked (private window): shown until the page is left, which is fine.
-    }
-  };
-
-  private __scrapeProspectKey(): string {
-    return `kx.contacts.scrapeProspect.${this.userData?.id ?? 'anon'}`;
-  }
-
-  private __readScrapeProspectShown(): boolean {
-    try {
-      return localStorage.getItem(this.__scrapeProspectKey()) === '1';
-    } catch {
-      return false;
-    }
-  }
-
-  /**
-   * Master password first (KexyApi checks it, on this call and again on Start), then the
-   * popup listing what KEXY holds for each selected contact, then a summary.
-   */
-  scrapeProspect = async () => {
-    const contacts = this.selectedContacts;
-    if (!contacts.length || this.openingScrapeProspect) return;
-    if (contacts.length > this.scrapeProspectMax) {
-      await kxNotice({
-        title: 'Too many contacts',
-        text: `Pick up to ${this.scrapeProspectMax} contacts at a time.`,
-        icon: 'fa-search',
-      });
-      return;
-    }
-    const form = await kxForm({
-      title: 'Scrape Prospect',
-      text: 'Enter the KEXY master password. It is not your account password.',
-      icon: 'fa-lock',
-      confirmText: 'Continue',
-      fields: [{ key: 'password', label: 'Master password', type: 'password' }],
-      validate: (v) => (v['password'] ? null : 'Enter the master password'),
-    });
-    if (!form) return;
-
-    this.openingScrapeProspect = true;
-    let overview: IProspectScrapeOverview;
-    try {
-      overview = await this.prospectingService.prospectScrapeOverview({
-        companyId: this.supplierId,
-        contactIds: contacts.map((c) => c.id),
-        masterPassword: form['password'],
-      });
-    } catch (e) {
-      await kxNotice({ title: 'Could not open Scrape Prospect', text: errorText(e), icon: 'fa-exclamation' });
-      return;
-    } finally {
-      this.openingScrapeProspect = false;
-    }
-
-    const ref = this.modal.open(ProspectScrapeModalComponent, {
-      windowClass: 'kx-dialog-modal kx-prospect-scrape-modal',
-      centered: true,
-    });
-    ref.componentInstance.overview = overview;
-    ref.componentInstance.companyId = this.supplierId;
-    ref.componentInstance.masterPassword = form['password'];
-    let result: IProspectScrapeStartResult;
-    try {
-      result = await ref.result;
-    } catch {
-      return; // Cancel / × / Esc
-    }
-    await kxNotice({
-      title: result.started.length ? 'Scraping started' : 'Nothing was scraped',
-      text: this.__scrapeSummary(result),
-      icon: 'fa-search',
-      tone: result.started.length ? 'success' : 'info',
-      timerMs: 10000,
-    });
-  };
-
-  private __scrapeSummary(result: IProspectScrapeStartResult): string {
-    const title = { web: 'Website', location: 'Location', linkedin: 'LinkedIn', sports: 'Sports' };
-    const why = {
-      not_available: 'nothing to scrape',
-      just_scraped: 'scraped in the last 10 minutes',
-      duplicate: 'shared with another selected contact, scraped once',
-      not_found: 'contact not found',
-    };
-    const lines: string[] = [];
-    const n = result.started.length;
-    if (n) {
-      lines.push(
-        `Started ${n} scrape${n === 1 ? '' : 's'}. LinkedIn and Location take about a minute, ` +
-          'Website and Sports a few minutes; their next email uses the new data.',
-      );
-    }
-    for (const s of result.skipped) {
-      lines.push(`Skipped ${title[s.type]} for ${s.email ?? `#${s.contactId}`}: ${why[s.reason]}.`);
-    }
-    return lines.join(' ');
-  }
+  scrapeProspectClick = () =>
+    this.scrapeProspect.open(
+      this.selectedContacts.map((c) => c.id),
+      this.supplierId,
+    );
 
   deleteContacts = async () => {
     let isConfirm = await Swal.fire({
