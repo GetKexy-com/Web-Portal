@@ -144,7 +144,7 @@
                     (click)="showPassword.set(!showPassword())"
                     [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
                   >
-                    <i class="fa" [class.fa-eye]="!showPassword()" [class.fa-eye-slash]="showPassword()" aria-hidden="true"></i>
+                    <i class="fa" [class.fa-eye]="showPassword()" [class.fa-eye-slash]="!showPassword()" aria-hidden="true"></i>
                   </button>
                 </div>
                 @if (registerForm.controls['password'].invalid && (submitted() || registerForm.controls['password'].dirty)) {

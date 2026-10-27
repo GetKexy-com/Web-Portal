@@ -261,7 +261,7 @@
                     [attr.aria-pressed]="showReplyPassword"
                     [title]="showReplyPassword ? 'Hide password' : 'Show password'"
                   >
-                    <i class="fa" [class.fa-eye]="!showReplyPassword" [class.fa-eye-slash]="showReplyPassword" aria-hidden="true"></i>
+                    <i class="fa" [class.fa-eye]="showReplyPassword" [class.fa-eye-slash]="!showReplyPassword" aria-hidden="true"></i>
                   </button>
                 </div>
               </div>
@@ -382,7 +382,7 @@
                   [attr.aria-pressed]="showSmtpPassword"
                   [title]="showSmtpPassword ? 'Hide password' : 'Show password'"
                 >
-                  <i class="fa" [class.fa-eye]="!showSmtpPassword" [class.fa-eye-slash]="showSmtpPassword" aria-hidden="true"></i>
+                  <i class="fa" [class.fa-eye]="showSmtpPassword" [class.fa-eye-slash]="!showSmtpPassword" aria-hidden="true"></i>
                 </button>
               </div>
               <span class="field-error" *ngIf="formValidationErrorCheck('smtpPassword')">Field is required</span>
