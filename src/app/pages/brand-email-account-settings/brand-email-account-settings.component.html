@@ -167,13 +167,126 @@
   <ng-template #addSmtpModal let-c="close" let-d="dismiss">
     <div class="kx-modal add-smtp-modal">
       <div class="kx-modal-head">
-        <h3 class="kx-modal-title">{{ editingSmtpId != null ? 'Edit SMTP Account' : 'Add SMTP Account' }}</h3>
-        <button type="button" class="kx-modal-close" (click)="closeAddSmtpModal()" aria-label="Close">
+        <h3 class="kx-modal-title">
+          {{ replyStep ? 'Catch every reply (optional)' : (editingSmtpId != null ? 'Edit SMTP Account' : 'Add SMTP Account') }}
+        </h3>
+        <button
+          type="button"
+          class="kx-modal-close"
+          [disabled]="replyStep?.connecting"
+          (click)="replyStep ? finishReplyStep() : closeAddSmtpModal()"
+          aria-label="Close"
+        >
           <i class="fa fa-times" aria-hidden="true"></i>
         </button>
       </div>
 
-      <form [formGroup]="addSmtpForm" (ngSubmit)="handleSubmit()">
+      <!--Step 2 (new accounts only): reply detection. The account is already saved here.-->
+      <ng-container *ngIf="replyStep as step">
+        <div class="kx-modal-body reply-step">
+          <div class="reply-step-saved">
+            <i class="fa fa-check-circle" aria-hidden="true"></i>
+            <span><strong>{{ step.email }}</strong> is saved and ready to send.</span>
+          </div>
+
+          <div class="reply-step-state" *ngIf="step.phase === 'checking'">
+            <i class="fa fa-circle-o-notch fa-spin" aria-hidden="true"></i>
+            Checking whether KEXY can also read this inbox for replies…
+          </div>
+
+          <div class="reply-step-state on" *ngIf="step.phase === 'on'">
+            <i class="fa fa-inbox" aria-hidden="true"></i>
+            <div>
+              <strong>Reply detection is on.</strong>
+              <p>
+                KEXY will also catch replies that land in {{ step.email }} instead of KEXY (some mail
+                apps do that). It reads only replies to your drip emails and never changes your mailbox.
+              </p>
+            </div>
+          </div>
+
+          <ng-container *ngIf="step.phase === 'connect'">
+            <p class="reply-step-lead">
+              <ng-container *ngIf="step.sendingOnly; else notOpened">
+                This account sends through a service with no inbox, so replies that skip KEXY land in
+                your real mailbox. Connect it so KEXY catches those replies too.
+              </ng-container>
+              <ng-template #notOpened>
+                KEXY couldn't open this inbox with the sending login. Connect it so KEXY catches replies
+                that land in your mailbox instead of KEXY.
+              </ng-template>
+              KEXY reads only replies to your drip emails and never changes your mailbox. This is
+              optional: skip it and the account still sends normally.
+            </p>
+
+            <div class="field-grid">
+              <div class="field">
+                <label class="field-label" for="reply-imap-host">IMAP server</label>
+                <input id="reply-imap-host" class="form-control" [(ngModel)]="step.host" placeholder="imap.yourprovider.com" autocomplete="off" />
+              </div>
+              <div class="field">
+                <label class="field-label" for="reply-imap-port">Port</label>
+                <input id="reply-imap-port" class="form-control" [(ngModel)]="step.port" placeholder="993" inputmode="numeric" autocomplete="off" />
+              </div>
+              <div class="field">
+                <label class="field-label" for="reply-imap-user">Username</label>
+                <input id="reply-imap-user" class="form-control" [(ngModel)]="step.username" autocomplete="off" />
+              </div>
+              <div class="field">
+                <label class="field-label" for="reply-imap-pass">Password or app password</label>
+                <input
+                  id="reply-imap-pass"
+                  type="password"
+                  class="form-control"
+                  [(ngModel)]="step.password"
+                  autocomplete="new-password"
+                  (keydown.enter)="connectReplyStep()"
+                />
+              </div>
+            </div>
+            <p class="reply-step-tip" *ngIf="replyPasswordTip(step.host) as tip">
+              <i class="fa fa-info-circle" aria-hidden="true"></i> {{ tip }}
+            </p>
+            <p class="reply-step-error" *ngIf="step.error" role="alert">{{ step.error }}</p>
+          </ng-container>
+        </div>
+
+        <div class="kx-modal-footer">
+          <ng-container *ngIf="step.phase === 'connect'">
+            <app-kexy-button
+              type="button"
+              label="Skip for now"
+              bgColor="#f1f4f9"
+              textColor="#6b7a90"
+              [disabled]="step.connecting"
+              (click)="finishReplyStep()"
+            ></app-kexy-button>
+            <app-kexy-button
+              style="min-width: 130px;"
+              type="button"
+              [label]="step.connecting ? 'Connecting…' : 'Connect'"
+              [iconLeft]="step.connecting ? 'fa-refresh fa-spin' : 'fa-plug'"
+              [disabled]="step.connecting"
+              bgColor="#12a5f4"
+              textColor="white"
+              (click)="connectReplyStep()"
+            ></app-kexy-button>
+          </ng-container>
+          <app-kexy-button
+            *ngIf="step.phase !== 'connect'"
+            style="min-width: 130px;"
+            type="button"
+            label="Done"
+            iconLeft="fa-check"
+            [disabled]="step.phase === 'checking'"
+            bgColor="#12a5f4"
+            textColor="white"
+            (click)="finishReplyStep()"
+          ></app-kexy-button>
+        </div>
+      </ng-container>
+
+      <form *ngIf="!replyStep" [formGroup]="addSmtpForm" (ngSubmit)="handleSubmit()">
         <div class="kx-modal-body">
           <p class="kx-modal-note">
             We'll test the connection before saving. Your password is only used to authenticate
