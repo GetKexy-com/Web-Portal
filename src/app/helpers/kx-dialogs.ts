@@ -96,7 +96,8 @@ export async function kxForm(opts: {
   icon: string;
   confirmText: string;
   cancelText?: string;
-  fields: { key: string; label: string; placeholder?: string; value?: string }[];
+  /** `multiline` renders a textarea (Enter adds a line instead of submitting). */
+  fields: { key: string; label: string; placeholder?: string; value?: string; multiline?: boolean }[];
   validate?: (values: Record<string, string>) => string | null;
 }): Promise<Record<string, string> | null> {
   const id = (key: string) => `kx-form-${key}`;
@@ -108,8 +109,11 @@ export async function kxForm(opts: {
     .map(
       (f) =>
         `<label class="kx-form-field" for="${id(f.key)}"><span>${escapeHtml(f.label)}</span>` +
-        `<input id="${id(f.key)}" type="text" autocomplete="off" placeholder="${escapeHtml(f.placeholder ?? '')}"` +
-        ` value="${escapeHtml(f.value ?? '')}" /></label>`,
+        (f.multiline
+          ? `<textarea id="${id(f.key)}" rows="5" placeholder="${escapeHtml(f.placeholder ?? '')}">` +
+            `${escapeHtml(f.value ?? '')}</textarea></label>`
+          : `<input id="${id(f.key)}" type="text" autocomplete="off" placeholder="${escapeHtml(f.placeholder ?? '')}"` +
+            ` value="${escapeHtml(f.value ?? '')}" /></label>`),
     )
     .join('');
   const result = await Swal.fire({
@@ -134,7 +138,7 @@ export async function kxForm(opts: {
       validationMessage: 'kx-form-error',
     },
     didOpen: (popup) => {
-      (popup.querySelector('input') as HTMLInputElement | null)?.focus();
+      (popup.querySelector('input, textarea') as HTMLElement | null)?.focus();
       popup.querySelectorAll('input').forEach((input) =>
         input.addEventListener('keydown', (e) => {
           if (e.key === 'Enter') {

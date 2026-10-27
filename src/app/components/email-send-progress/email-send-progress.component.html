@@ -217,7 +217,11 @@
                   <ng-container *ngIf="isEngaged(item)">
                     <span class="sp-pill tone-live" [title]="item.engagement.openedAt | date: 'medium'">Opened</span>
                     <span class="sp-pill tone-live" *ngIf="item.engagement.clickedAt" [title]="item.engagement.clickedAt | date: 'medium'">Clicked</span>
-                    <span class="sp-pill tone-good" *ngIf="item.engagement.repliedAt" [title]="item.engagement.repliedAt | date: 'medium'">Replied</span>
+                    <span
+                      class="sp-pill tone-good"
+                      *ngIf="item.engagement.repliedAt"
+                      [title]="item.engagement.replyMarkedByUser ? 'Marked as replied by you' : (item.engagement.repliedAt | date: 'medium')"
+                    >Replied</span>
                   </ng-container>
                   <span
                     *ngIf="item.delivery && showDeliveryPill(item.delivery.status)"
@@ -225,6 +229,22 @@
                     [ngClass]="'tone-' + deliveryMeta(item.delivery.status).tone"
                     [title]="item.delivery.detail || deliveryMeta(item.delivery.status).label"
                   >{{ deliveryMeta(item.delivery.status).label }}</span>
+                </span>
+                <!--"Mark as replied": for a reply that reached the user's own inbox but not KEXY
+                    (the prospect's app ignored our Reply-To). Only a mark made by hand can be undone.-->
+                <button
+                  type="button"
+                  class="sp-link sp-retry sp-mark-reply"
+                  *ngIf="canMarkReplied(item)"
+                  [disabled]="markingReply === rowKey(item)"
+                  (click)="markReplied(item)"
+                >
+                  <i class="fa" [ngClass]="markingReply === rowKey(item) ? 'fa-circle-o-notch fa-spin' : 'fa-reply'" aria-hidden="true"></i>
+                  Mark as replied
+                </button>
+                <span class="sp-attempt sp-marked-reply" *ngIf="item.engagement?.replyMarkedByUser">
+                  Marked by you ·
+                  <button type="button" class="sp-link" [disabled]="markingReply === rowKey(item)" (click)="unmarkReplied(item)">Unmark</button>
                 </span>
                 <!--Whether it will be tried again depends on WHY it failed.-->
                 <span class="sp-attempt" *ngIf="retryNote(item, summary.maxAttempts) as note">{{ note }}</span>
