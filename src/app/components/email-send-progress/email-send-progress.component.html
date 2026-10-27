@@ -442,6 +442,43 @@
                           <ng-container *ngIf="data.status === 'generated'">Preparing to send…</ng-container>
                           <ng-container *ngIf="data.status !== 'generating' && data.status !== 'generated'">Nothing was sent to this prospect.</ng-container>
                         </div>
+
+                        <!--The headers as the email left KEXY (Reply-To, Message-ID, …), for
+                            questions like "why didn't this reply reach KEXY?". Closed by default.
+                            Lines mail servers add on the way (Received, DKIM) are not in them.-->
+                        <div class="sp-headers" *ngIf="data.status === 'sent'">
+                          <button
+                            type="button"
+                            class="sp-headers-toggle"
+                            [attr.aria-expanded]="!!headersOpen[rowKey(item)]"
+                            (click)="toggleHeaders(rowKey(item))"
+                          >
+                            <i class="fa" [ngClass]="headersOpen[rowKey(item)] ? 'fa-chevron-down' : 'fa-chevron-right'" aria-hidden="true"></i>
+                            Headers
+                          </button>
+
+                          <ng-container *ngIf="headersOpen[rowKey(item)]">
+                            <ng-container *ngIf="data.headers?.headers as raw; else noHeaders">
+                              <dl class="sp-header-list">
+                                <ng-container *ngFor="let h of headerRows(raw)">
+                                  <dt [class.is-key]="h.name.toLowerCase() === 'reply-to'">{{ h.name }}</dt>
+                                  <dd [class.is-key]="h.name.toLowerCase() === 'reply-to'">{{ h.value }}</dd>
+                                </ng-container>
+                              </dl>
+                              <p class="sp-headers-via" *ngIf="data.headers?.smtpHost || data.headers?.smtpResponse">
+                                Sent through <strong>{{ data.headers?.smtpHost || 'unknown server' }}</strong>
+                                <span *ngIf="data.headers?.smtpResponse"> · server replied “{{ data.headers?.smtpResponse }}”</span>
+                              </p>
+                              <button type="button" class="sp-link" (click)="copyHeaders(rowKey(item), raw)">
+                                <i class="fa" [ngClass]="headersCopied[rowKey(item)] ? 'fa-check' : 'fa-clipboard'" aria-hidden="true"></i>
+                                {{ headersCopied[rowKey(item)] ? 'Copied' : 'Copy headers' }}
+                              </button>
+                            </ng-container>
+                            <ng-template #noHeaders>
+                              <p class="sp-headers-none">Headers weren't recorded for this email. They're only kept for emails sent after header logging was added.</p>
+                            </ng-template>
+                          </ng-container>
+                        </div>
                       </div>
                     </div>
 
