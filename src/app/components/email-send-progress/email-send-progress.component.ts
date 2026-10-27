@@ -21,7 +21,7 @@ import { ProspectingContactsComponent } from '../prospecting-contacts/prospectin
 import { ProspectingService } from '../../services/prospecting.service';
 import { AuthService } from '../../services/auth.service';
 import Swal from 'sweetalert2';
-import { errorText, kxConfirm, kxNotice } from '../../helpers/kx-dialogs';
+import { errorText, kxConfirm, kxForm, kxNotice } from '../../helpers/kx-dialogs';
 import { insightsHoldExplanation } from '../../helpers/insights-hold';
 import { IMailHeader, parseMailHeaders } from '../../helpers/mail-headers';
 
@@ -304,6 +304,8 @@ export class EmailSendProgressComponent implements OnInit, OnDestroy {
   openingContact: string | null = null;
   /** The row whose "Retry now" request is in flight. */
   retryingInsights: string | null = null;
+  /** The row whose "Mark as replied" / "Unmark" request is running, by `rowKey`. */
+  markingReply: string | null = null;
 
   constructor(
     private dripCampaignService: DripCampaignService,
@@ -593,6 +595,89 @@ export class EmailSendProgressComponent implements OnInit, OnDestroy {
       return;
     } finally {
       this.retryingInsights = null;
+    }
+    if (!this.destroyed) this.__load('user');
+  };
+
+  /**
+   * "Mark as replied" is offered on a sent, delivered row with no reply yet: for a reply that
+   * reached the user's own inbox but not KEXY (the prospect's app ignored our Reply-To).
+   */
+  canMarkReplied = (item: IEmailSendItem): boolean =>
+    item.status === 'sent' &&
+    !item.engagement?.repliedAt &&
+    !(item.delivery && this.isUndelivered(item.delivery.status));
+
+  markReplied = async (item: IEmailSendItem): Promise<void> => {
+    if (this.markingReply) return;
+    const name = item.name || item.email;
+    const values = await kxForm({
+      title: `Mark ${name} as replied?`,
+      text:
+        'Use this when their reply reached your own inbox but not KEXY. It counts as a reply ' +
+        'and stops their remaining follow-ups in this campaign.',
+      icon: 'fa-reply',
+      confirmText: 'Mark as replied',
+      fields: [
+        {
+          key: 'replyText',
+          label: 'Their reply (optional)',
+          placeholder: 'Paste it here to keep it in KEXY’s Inbox',
+          multiline: true,
+        },
+      ],
+    });
+    if (!values) return;
+    const key = this.rowKey(item);
+    this.markingReply = key;
+    try {
+      const res = await this.dripCampaignService.markReplied(
+        this.campaignId,
+        this.emailId,
+        item.email,
+        values['replyText'],
+      );
+      const stopped = res.stoppedSequence
+        ? res.cancelledEmails
+          ? ` ${res.cancelledEmails} queued follow-up${res.cancelledEmails === 1 ? ' was' : 's were'} cancelled.`
+          : ' Their remaining follow-ups are stopped.'
+        : ' This campaign keeps sending after a reply, so their follow-ups continue.';
+      await kxNotice({
+        title: res.alreadyReplied ? 'Already marked as replied' : 'Marked as replied',
+        text: `${name} now shows Replied.${res.alreadyReplied ? '' : stopped}`,
+        icon: 'fa-check',
+        tone: 'success',
+      });
+    } catch (e) {
+      await kxNotice({ title: 'Could not mark as replied', text: errorText(e), icon: 'fa-exclamation' });
+      return;
+    } finally {
+      this.markingReply = null;
+    }
+    if (!this.destroyed) this.__load('user');
+  };
+
+  /** Only a reply marked by hand can be unmarked; cancelled follow-ups are not resumed. */
+  unmarkReplied = async (item: IEmailSendItem): Promise<void> => {
+    if (this.markingReply) return;
+    const ok = await kxConfirm({
+      title: `Unmark ${item.name || item.email}?`,
+      text:
+        'They will no longer show Replied for this email. Follow-ups that were stopped stay ' +
+        'stopped; re-enroll them if you want the sequence to continue.',
+      icon: 'fa-undo',
+      confirmText: 'Unmark',
+      tone: 'danger',
+    });
+    if (!ok) return;
+    this.markingReply = this.rowKey(item);
+    try {
+      await this.dripCampaignService.unmarkReplied(this.campaignId, this.emailId, item.email);
+    } catch (e) {
+      await kxNotice({ title: 'Could not unmark', text: errorText(e), icon: 'fa-exclamation' });
+      return;
+    } finally {
+      this.markingReply = null;
     }
     if (!this.destroyed) this.__load('user');
   };

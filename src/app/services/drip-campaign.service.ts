@@ -15,6 +15,7 @@ import {
   ICampaignsUpNext,
   IEmailSendDetail,
   IEmailSendProgress,
+  IMarkRepliedResult,
 } from '../models/EmailSendProgress';
 
 /** A contact offered in "Send test campaign" to fill the merge tags with. */
@@ -1364,6 +1365,34 @@ export class DripCampaignService {
   retryProspectInsights = (campaignId: number, email: string): Promise<{ retried: boolean }> =>
     new Promise((resolve, reject) => {
       this.httpService.post(`drip-campaigns/${campaignId}/prospects/insights/retry`, { email }).subscribe({
+        next: (res) => resolve(res.data),
+        error: (err) => reject(err?.error ?? err),
+      });
+    });
+
+  /**
+   * "Mark as replied": the prospect's reply reached the user's own inbox but not KEXY (their
+   * app ignored our Reply-To). Stops their follow-ups like a caught reply; no alert email.
+   */
+  markReplied = (
+    campaignId: number,
+    emailId: number,
+    email: string,
+    replyText?: string,
+  ): Promise<IMarkRepliedResult> =>
+    new Promise((resolve, reject) => {
+      this.httpService
+        .post(`drip-campaigns/${campaignId}/emails/${emailId}/mark-replied`, { email, replyText: replyText || undefined })
+        .subscribe({
+          next: (res) => resolve(res.data),
+          error: (err) => reject(err?.error ?? err),
+        });
+    });
+
+  /** Undoes "Mark as replied" (only a mark made by hand). Cancelled follow-ups stay cancelled. */
+  unmarkReplied = (campaignId: number, emailId: number, email: string): Promise<{ unmarked: true }> =>
+    new Promise((resolve, reject) => {
+      this.httpService.post(`drip-campaigns/${campaignId}/emails/${emailId}/unmark-replied`, { email }).subscribe({
         next: (res) => resolve(res.data),
         error: (err) => reject(err?.error ?? err),
       });

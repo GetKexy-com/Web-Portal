@@ -1507,7 +1507,8 @@ header#main-header #logo {
       color: #64748b;
     }
 
-    input {
+    input,
+    textarea {
       width: 100%;
       padding: 10px 12px;
       font-size: 14px;
@@ -1527,6 +1528,13 @@ header#main-header #logo {
         border-color: #12a5f4;
         box-shadow: 0 0 0 3px rgba(18, 165, 244, 0.15);
       }
+    }
+
+    textarea {
+      min-height: 110px;
+      resize: vertical;
+      font-family: inherit;
+      line-height: 1.5;
     }
   }
 

@@ -1109,6 +1109,20 @@ $kx-red-bg: #fdeaea;
   }
 }
 
+// "Mark as replied" appears only while the row is hovered (or reached by keyboard), so the
+// table stays quiet. Touch screens have no hover, so they always show it.
+@media (hover: hover) {
+  .sp-mark-reply {
+    visibility: hidden;
+  }
+
+  tr:hover .sp-mark-reply,
+  .sp-mark-reply:focus-visible,
+  .sp-mark-reply:disabled {
+    visibility: visible;
+  }
+}
+
 .sp-link {
   padding: 0 2px;
   font-size: inherit;

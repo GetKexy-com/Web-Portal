@@ -88,6 +88,18 @@ export interface IEmailSendEngagement {
   pixelOpenedAt?: string | null;
   clickedAt: string | null;
   repliedAt: string | null;
+  /**
+   * The reply was recorded by hand ("Mark as replied"), not caught by KEXY. Only those can be
+   * unmarked. Absent from an API older than the field.
+   */
+  replyMarkedByUser?: boolean;
+}
+
+/** What "Mark as replied" did (KexyApi `MarkRepliedService.mark`). */
+export interface IMarkRepliedResult {
+  alreadyReplied: boolean;
+  stoppedSequence: boolean;
+  cancelledEmails: number;
 }
 
 export interface IEmailSendItem {
