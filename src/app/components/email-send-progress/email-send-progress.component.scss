@@ -990,6 +990,75 @@ $kx-red-bg: #fdeaea;
   border-radius: 8px;
 }
 
+// ── Headers (under the sent email, closed by default) ────────────────────────
+.sp-headers {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid $kx-hairline;
+}
+
+.sp-headers-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 0;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: $kx-muted;
+  background: none;
+  border: none;
+  cursor: pointer;
+
+  .fa {
+    width: 10px;
+    font-size: 10px;
+  }
+
+  &:hover {
+    color: $kx-ink;
+  }
+}
+
+.sp-header-list {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 4px 12px;
+  margin: 8px 0;
+  padding: 10px 12px;
+  font: 11.5px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace;
+  background: $kx-field-bg;
+  border: 1px solid $kx-hairline;
+  border-radius: 8px;
+
+  dt {
+    font-weight: 700;
+    color: $kx-muted;
+  }
+
+  dd {
+    margin: 0;
+    color: $kx-ink;
+    overflow-wrap: anywhere;
+  }
+
+  // Reply-To decides where a prospect's reply goes, so it is the one people look for.
+  .is-key {
+    color: $kx-primary-deep;
+  }
+}
+
+.sp-headers-via,
+.sp-headers-none {
+  margin: 0 0 6px;
+  font-size: 11.5px;
+  color: $kx-muted;
+  overflow-wrap: anywhere;
+}
+
+.sp-headers-none {
+  margin-top: 8px;
+}
+
 .sp-empty {
   padding: 26px 8px;
   font-size: 12.5px;

@@ -331,6 +331,16 @@ export interface IEmailSendDetail {
     /** Exactly what went to the prospect, made display-safe by the server. */
     html: string | null;
   };
+  /**
+   * The headers the email went out with, as they left KEXY (KexyApi
+   * `drip_campaign_sent_headers`), and the SMTP server's reply. Null for emails sent before
+   * headers were kept and for unsent ones; missing from an older API.
+   */
+  headers?: {
+    headers: string | null;
+    smtpHost: string | null;
+    smtpResponse: string | null;
+  } | null;
   conversationId: number | null;
   queuedAt: string | null;
   generationStartedAt: string | null;
