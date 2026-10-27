@@ -872,3 +872,85 @@ $kx-shadow: 0 10px 30px -18px rgba(9, 93, 209, 0.35), 0 2px 8px rgba(31, 42, 68,
     color: $kx-muted;
   }
 }
+
+
+// ── Reply detection (Replies column) ─────────────────────────────────────────
+.reply-note {
+  margin-top: 4px;
+  max-width: 640px;
+  font-size: 12px;
+  color: #64748b;
+
+  .fa {
+    margin-right: 4px;
+    color: #12a5f4;
+  }
+}
+
+.reply-cell {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+}
+
+.reply-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  font-size: 11.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  border-radius: 999px;
+
+  &.on {
+    color: #047857;
+    background: #e6f6ee;
+  }
+
+  &.problem {
+    color: #b45309;
+    background: #fff4e0;
+  }
+
+  &.off {
+    color: #64748b;
+    background: #f1f5f9;
+  }
+
+  &.pending {
+    color: #94a3b8;
+    background: transparent;
+    padding-left: 0;
+  }
+}
+
+.reply-link {
+  padding: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #095dd1;
+  background: none;
+  border: none;
+  cursor: pointer;
+
+  &.muted {
+    font-weight: 500;
+    color: #94a3b8;
+  }
+
+  &:hover:not(:disabled) {
+    text-decoration: underline;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+}
+
+.reply-busy {
+  font-size: 12px;
+  color: #94a3b8;
+}

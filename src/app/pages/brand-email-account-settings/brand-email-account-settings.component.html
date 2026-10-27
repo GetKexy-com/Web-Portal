@@ -29,6 +29,12 @@
         <div class="card-head-text">
           <h2 class="card-title"><i class="fa fa-server" aria-hidden="true"></i> Sending Accounts</h2>
           <p class="card-sub">SMTP servers used to deliver your outgoing emails</p>
+          <p class="card-sub reply-note">
+            <i class="fa fa-inbox" aria-hidden="true"></i>
+            KEXY also checks each account's inbox for replies that skip its reply address (some mail
+            apps send replies only to you). It reads only replies to your drip emails and never
+            changes your mailbox.
+          </p>
         </div>
         <div class="card-head-actions">
           <span class="count-chip" *ngIf="!isLoadingList">{{ totalSmtp }}</span>
@@ -52,17 +58,18 @@
             <th>Host</th>
             <th>Port</th>
             <th>Security</th>
+            <th>Replies</th>
             <th class="text-right">Action</th>
           </tr>
           </thead>
           <tbody>
           <tr *ngIf="isLoadingList">
-            <td colspan="5" class="table-state">
+            <td colspan="6" class="table-state">
               <i class="fa fa-spinner fa-spin" aria-hidden="true"></i> Loading SMTP accounts…
             </td>
           </tr>
           <tr *ngIf="!isLoadingList && smtpList.length === 0">
-            <td colspan="5" class="table-state">
+            <td colspan="6" class="table-state">
               <i class="fa fa-envelope-o" aria-hidden="true"></i>
               <span>No SMTP accounts yet. Click "Add SMTP" to connect one.</span>
             </td>
@@ -84,6 +91,42 @@
               <span class="security-badge" [class.none]="(smtp.smtpSecurityType || '') === 'none'">
                 {{ smtp.smtpSecurityType ? (smtp.smtpSecurityType | uppercase) : '—' }}
               </span>
+            </td>
+            <td>
+              <!--Reply detection: whether KEXY reads this inbox for replies that skipped its
+                  Reply-To (KexyApi ReplyDetectionService).-->
+              <ng-container *ngIf="replyDetection[smtp.id] as rd; else replyUnknown">
+                <div class="reply-cell" [ngSwitch]="rd.status">
+                  <ng-container *ngSwitchCase="'on'">
+                    <span class="reply-badge on" [title]="rd.lastCheckedAt ? 'Last checked ' + (rd.lastCheckedAt | date: 'medium') : 'Checking every few minutes'">
+                      <i class="fa fa-check" aria-hidden="true"></i> Checking inbox
+                    </span>
+                    <button type="button" class="reply-link muted" [disabled]="replyBusyId === smtp.id" (click)="turnOffInbox(smtp)">Turn off</button>
+                  </ng-container>
+                  <ng-container *ngSwitchCase="'problem'">
+                    <span class="reply-badge problem" [title]="rd.lastError || ''">
+                      <i class="fa fa-exclamation-triangle" aria-hidden="true"></i> Problem
+                    </span>
+                    <button type="button" class="reply-link" [disabled]="replyBusyId === smtp.id" (click)="reconnectInbox(smtp)">Reconnect</button>
+                  </ng-container>
+                  <ng-container *ngSwitchCase="'not_checked'">
+                    <span class="reply-badge pending"><i class="fa fa-clock-o" aria-hidden="true"></i> Checking soon</span>
+                  </ng-container>
+                  <ng-container *ngSwitchDefault>
+                    <span class="reply-badge off" [title]="rd.lastError || ''">Not connected</span>
+                    <button type="button" class="reply-link" [disabled]="replyBusyId === smtp.id" (click)="connectInbox(smtp)">Connect inbox</button>
+                    <button
+                      type="button"
+                      class="reply-link muted"
+                      *ngIf="!rd.sendingOnly || rd.usesSeparateLogin"
+                      [disabled]="replyBusyId === smtp.id"
+                      (click)="reconnectInbox(smtp)"
+                    >Try again</button>
+                  </ng-container>
+                  <i class="fa fa-spinner fa-spin reply-busy" *ngIf="replyBusyId === smtp.id" aria-hidden="true"></i>
+                </div>
+              </ng-container>
+              <ng-template #replyUnknown><span class="reply-badge pending">—</span></ng-template>
             </td>
             <td>
               <div class="action-cell">

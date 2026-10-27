@@ -97,7 +97,15 @@ export async function kxForm(opts: {
   confirmText: string;
   cancelText?: string;
   /** `multiline` renders a textarea (Enter adds a line instead of submitting). */
-  fields: { key: string; label: string; placeholder?: string; value?: string; multiline?: boolean }[];
+  fields: {
+    key: string;
+    label: string;
+    placeholder?: string;
+    value?: string;
+    multiline?: boolean;
+    /** `password` hides what is typed. */
+    type?: 'text' | 'password';
+  }[];
   validate?: (values: Record<string, string>) => string | null;
 }): Promise<Record<string, string> | null> {
   const id = (key: string) => `kx-form-${key}`;
@@ -112,7 +120,8 @@ export async function kxForm(opts: {
         (f.multiline
           ? `<textarea id="${id(f.key)}" rows="5" placeholder="${escapeHtml(f.placeholder ?? '')}">` +
             `${escapeHtml(f.value ?? '')}</textarea></label>`
-          : `<input id="${id(f.key)}" type="text" autocomplete="off" placeholder="${escapeHtml(f.placeholder ?? '')}"` +
+          : `<input id="${id(f.key)}" type="${f.type === 'password' ? 'password' : 'text'}"` +
+            ` autocomplete="${f.type === 'password' ? 'new-password' : 'off'}" placeholder="${escapeHtml(f.placeholder ?? '')}"` +
             ` value="${escapeHtml(f.value ?? '')}" /></label>`),
     )
     .join('');
