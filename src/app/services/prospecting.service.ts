@@ -932,13 +932,26 @@ export class ProspectingService {
   };
 
   /**
-   * "Re-scrape LinkedIn" (Manage Contacts): KexyApi scrapes these contacts' LinkedIn again now,
-   * ignoring its 30-day reuse rule — one PAID scrape each, at most 10 per call. Answers at once
-   * with what it started and what it skipped; the scrapes finish in the background.
+   * "Scrape Prospect" (Manage Contacts, KexyApi `src/prospect-scrape/`): what research KEXY
+   * holds for up to 10 contacts, per type. Needs the KEXY master password (NOT the account's);
+   * a wrong one rejects with 403, too many wrong ones with 429. Reads only.
    */
-  rescrapeLinkedin = (postData: { companyId: number; contactIds: number[] }): Promise<ILinkedinRescrapeResult> =>
+  prospectScrapeOverview = (postData: {
+    companyId: number;
+    contactIds: number[];
+    masterPassword: string;
+  }): Promise<IProspectScrapeOverview> => this.__postData('prospect-scrape/overview', postData);
+
+  /** Scrapes the ticked types now: PAID. Answers at once; the scrapes finish in the background. */
+  prospectScrapeStart = (postData: {
+    companyId: number;
+    masterPassword: string;
+    items: { contactId: number; types: ProspectScrapeType[] }[];
+  }): Promise<IProspectScrapeStartResult> => this.__postData('prospect-scrape/start', postData);
+
+  private __postData = <T>(url: string, postData: unknown): Promise<T> =>
     new Promise((resolve, reject) => {
-      this.httpService.post('linkedin-scraper/rescrape', postData).subscribe({
+      this.httpService.post(url, postData).subscribe({
         next: (res) => resolve(res.data),
         error: (err) => reject(err?.error ?? err),
       });
@@ -1203,12 +1216,38 @@ export class ProspectingService {
   };
 }
 
-/** KexyApi `LinkedinRescrapeService.rescrape`. */
-export interface ILinkedinRescrapeResult {
-  started: { contactId: number; email: string; username: string | null; companyUrl: string | null }[];
+/** KexyApi `prospect-scrape.ts`: the research types, in the order they are shown. */
+export type ProspectScrapeType = 'web' | 'location' | 'linkedin' | 'sports';
+
+export type IProspectScrapeState =
+  | { available: false; reason: 'no_website' | 'no_location' | 'no_linkedin' | 'no_sports_city' }
+  | {
+      available: true;
+      /** The website, location, LinkedIn username / company page, or sports city. */
+      label: string;
+      lastScrapedAt: string | null;
+      note: string | null;
+      running: boolean;
+    };
+
+/** KexyApi `ProspectScrapeService.overview`. */
+export interface IProspectScrapeOverview {
+  sportsEnabled: boolean;
+  contacts: {
+    contactId: number;
+    email: string;
+    name: string | null;
+    scrapes: Record<ProspectScrapeType, IProspectScrapeState>;
+  }[];
+}
+
+/** KexyApi `ProspectScrapeService.start`. */
+export interface IProspectScrapeStartResult {
+  started: { contactId: number; email: string; type: ProspectScrapeType; label: string }[];
   skipped: {
     contactId: number;
     email: string | null;
-    reason: 'not_found' | 'no_linkedin' | 'just_scraped' | 'duplicate';
+    type: ProspectScrapeType;
+    reason: 'not_found' | 'not_available' | 'duplicate' | 'just_scraped';
   }[];
 }
