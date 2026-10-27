@@ -222,26 +222,48 @@
             <div class="field-grid">
               <div class="field">
                 <label class="field-label" for="reply-imap-host">IMAP server</label>
-                <input id="reply-imap-host" class="form-control" [(ngModel)]="step.host" placeholder="imap.yourprovider.com" autocomplete="off" />
+                <div class="input-wrap">
+                  <i class="fa fa-server input-icon" aria-hidden="true"></i>
+                  <input id="reply-imap-host" class="form-control" [(ngModel)]="step.host" placeholder="imap.yourprovider.com" autocomplete="off" />
+                </div>
               </div>
               <div class="field">
                 <label class="field-label" for="reply-imap-port">Port</label>
-                <input id="reply-imap-port" class="form-control" [(ngModel)]="step.port" placeholder="993" inputmode="numeric" autocomplete="off" />
+                <div class="input-wrap">
+                  <i class="fa fa-plug input-icon" aria-hidden="true"></i>
+                  <input id="reply-imap-port" class="form-control" [(ngModel)]="step.port" placeholder="993" inputmode="numeric" autocomplete="off" />
+                </div>
               </div>
               <div class="field">
                 <label class="field-label" for="reply-imap-user">Username</label>
-                <input id="reply-imap-user" class="form-control" [(ngModel)]="step.username" autocomplete="off" />
+                <div class="input-wrap">
+                  <i class="fa fa-user input-icon" aria-hidden="true"></i>
+                  <input id="reply-imap-user" class="form-control" [(ngModel)]="step.username" autocomplete="off" />
+                </div>
               </div>
               <div class="field">
                 <label class="field-label" for="reply-imap-pass">Password or app password</label>
-                <input
-                  id="reply-imap-pass"
-                  type="password"
-                  class="form-control"
-                  [(ngModel)]="step.password"
-                  autocomplete="new-password"
-                  (keydown.enter)="connectReplyStep()"
-                />
+                <div class="input-wrap">
+                  <i class="fa fa-lock input-icon" aria-hidden="true"></i>
+                  <input
+                    id="reply-imap-pass"
+                    [type]="showReplyPassword ? 'text' : 'password'"
+                    class="form-control has-toggle"
+                    [(ngModel)]="step.password"
+                    autocomplete="new-password"
+                    (keydown.enter)="connectReplyStep()"
+                  />
+                  <button
+                    type="button"
+                    class="pw-toggle"
+                    (click)="showReplyPassword = !showReplyPassword"
+                    [attr.aria-label]="showReplyPassword ? 'Hide password' : 'Show password'"
+                    [attr.aria-pressed]="showReplyPassword"
+                    [title]="showReplyPassword ? 'Hide password' : 'Show password'"
+                  >
+                    <i class="fa" [class.fa-eye]="!showReplyPassword" [class.fa-eye-slash]="showReplyPassword" aria-hidden="true"></i>
+                  </button>
+                </div>
               </div>
             </div>
             <p class="reply-step-tip" *ngIf="replyPasswordTip(step.host) as tip">
