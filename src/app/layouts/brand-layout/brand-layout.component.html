@@ -247,10 +247,10 @@
               <a *ngIf="!last && crumb.link" class="crumb" [routerLink]="'/' + crumb.link" [queryParams]="crumb.queryParams">{{ crumb.label }}</a>
               <span *ngIf="!last && !crumb.link" class="crumb is-static">{{ crumb.label }}</span>
               <i *ngIf="!last" class="fa fa-angle-right crumb-sep" aria-hidden="true"></i>
-              <h1 *ngIf="last" class="page-title" aria-current="page">{{ crumb.label }}</h1>
+              <h1 *ngIf="last" class="page-title" aria-current="page" (click)="titleClick.emit()">{{ crumb.label }}</h1>
             </ng-container>
           </nav>
-          <h1 class="page-title" *ngIf="!breadcrumbs?.length && pageTitle">{{ pageTitle }}</h1>
+          <h1 class="page-title" *ngIf="!breadcrumbs?.length && pageTitle" (click)="titleClick.emit()">{{ pageTitle }}</h1>
         </div>
 
         <div class="col">

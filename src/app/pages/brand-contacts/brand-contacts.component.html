@@ -1,4 +1,4 @@
-<brand-layout layoutPaddingNone="true" headerBgWhite="true" [fullPageScroll]="false">
+<brand-layout layoutPaddingNone="true" headerBgWhite="true" [fullPageScroll]="false" (titleClick)="onTitleClick()">
   <main class="brand-contacts-page">
     <!--Same single-row toolbar pattern as List Contacts: snapshot (last-updated +
         refresh) on the left, actions on the right, one set of buttons that wraps
@@ -89,6 +89,31 @@
           textColor="#2847cc"
           radius="8px"
         ></app-kexy-button>
+
+        <!--Paid, so hidden until the headline is clicked 5 times quickly (`onTitleClick`);
+            "Hide" puts it away. Not for "select all": that is a filter across pages, not a
+            list of contacts, and the API takes at most 10.-->
+        <ng-container *ngIf="showLinkedinRescrape && !addToDripCampaignId">
+          <app-kexy-button
+            [disabled]="!selectedContacts.length || isWaitingFlag || isLoading || selectAllContacts || rescrapingLinkedin"
+            (click)="rescrapeLinkedin()"
+            [label]="rescrapingLinkedin ? 'Please wait...' : 'Re-scrape LinkedIn (' + selectedContacts.length + ')'"
+            [iconLeft]="rescrapingLinkedin ? 'fa-refresh fa-spin' : 'fa-linkedin'"
+            [tooltip]="selectedContacts.length ? 'Scrape LinkedIn again now for the selected contact(s). Paid, up to 10 at a time.' : 'Select up to 10 contacts first'"
+            bgColor="#e7f6fe"
+            textColor="#2847cc"
+            radius="8px"
+          ></app-kexy-button>
+          <app-kexy-button
+            (click)="setLinkedinRescrapeShown(false)"
+            label="Hide"
+            iconLeft="fa-eye-slash"
+            tooltip="Hide the LinkedIn re-scrape button"
+            bgColor="#f1f3f7"
+            textColor="#5b6475"
+            radius="8px"
+          ></app-kexy-button>
+        </ng-container>
 
         <app-kexy-button
           *ngIf="!addToDripCampaignId && !selectedContacts.length"

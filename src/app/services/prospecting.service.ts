@@ -931,6 +931,19 @@ export class ProspectingService {
     });
   };
 
+  /**
+   * "Re-scrape LinkedIn" (Manage Contacts): KexyApi scrapes these contacts' LinkedIn again now,
+   * ignoring its 30-day reuse rule — one PAID scrape each, at most 10 per call. Answers at once
+   * with what it started and what it skipped; the scrapes finish in the background.
+   */
+  rescrapeLinkedin = (postData: { companyId: number; contactIds: number[] }): Promise<ILinkedinRescrapeResult> =>
+    new Promise((resolve, reject) => {
+      this.httpService.post('linkedin-scraper/rescrape', postData).subscribe({
+        next: (res) => resolve(res.data),
+        error: (err) => reject(err?.error ?? err),
+      });
+    });
+
   validateList = async (postData) => {
     return new Promise(async (resolve, reject) => {
       this.httpService.post('lists/validate', postData).subscribe({
@@ -1188,4 +1201,14 @@ export class ProspectingService {
       });
     });
   };
+}
+
+/** KexyApi `LinkedinRescrapeService.rescrape`. */
+export interface ILinkedinRescrapeResult {
+  started: { contactId: number; email: string; username: string | null; companyUrl: string | null }[];
+  skipped: {
+    contactId: number;
+    email: string | null;
+    reason: 'not_found' | 'no_linkedin' | 'just_scraped' | 'duplicate';
+  }[];
 }

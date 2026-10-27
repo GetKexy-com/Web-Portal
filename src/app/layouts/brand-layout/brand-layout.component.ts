@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, Input, ElementRef, HostListener } from "@angular/core";
+import { Component, OnInit, ViewChild, Input, Output, EventEmitter, ElementRef, HostListener } from "@angular/core";
 import { ActivatedRoute, Params, Router, RouterLink } from "@angular/router";
 import {NgbDropdown, NgbDropdownItem, NgbDropdownMenu, NgbDropdownToggle, NgbModal} from "@ng-bootstrap/ng-bootstrap";
 import { AuthService } from "src/app/services/auth.service";
@@ -96,6 +96,11 @@ export class BrandLayoutComponent implements OnInit {
    * where the data is (the page knows the list's name; the layout doesn't).
    */
   @Input() breadcrumbs: IBreadcrumb[] = [];
+  /**
+   * A click on the page's headline (the <h1>). Nothing visible: Manage Contacts counts five
+   * quick clicks to show its hidden "Re-scrape LinkedIn" tools. Other pages don't listen.
+   */
+  @Output() titleClick = new EventEmitter<void>();
 
   /** What the header renders when there is no breadcrumb trail. */
   get pageTitle(): string {
