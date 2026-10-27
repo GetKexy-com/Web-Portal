@@ -18,4 +18,6 @@ export interface IReplyDetection {
   lastError: string | null;
   /** The account sends through a service with no inbox (SES, Brevo…). */
   sendingOnly: boolean;
+  /** Where the inbox probably is, from the domain's mail servers (e.g. `imap.gmail.com`). */
+  suggestedImapHost?: string | null;
 }

@@ -1,6 +1,6 @@
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { constants } from 'src/app/helpers/constants';
-import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import Swal from 'sweetalert2';
 import { DripCampaignService } from 'src/app/services/drip-campaign.service';
 import { AuthService } from 'src/app/services/auth.service';
@@ -20,6 +20,7 @@ import { IReplyDetection } from '../../models/ReplyDetection';
     BrandLayoutComponent,
     KexyButtonComponent,
     ReactiveFormsModule,
+    FormsModule,
     CommonModule,
   ],
   templateUrl: './brand-email-account-settings.component.html',
@@ -39,6 +40,25 @@ export class BrandEmailAccountSettingsComponent implements OnInit {
   replyDetection: Record<number, IReplyDetection> = {};
   /** The account whose inbox connect / reconnect / turn-off request is running. */
   replyBusyId: number | null = null;
+  /**
+   * Step 2 of Add SMTP: reply detection for the account just saved. KEXY tries the inbox with
+   * the same login; when that doesn't open it (SES and other sending-only services, IMAP off)
+   * the popup asks for the inbox's details right away instead of leaving "Not connected" for
+   * the user to find. Null = the normal Add/Edit form.
+   */
+  replyStep: {
+    smtpId: number;
+    email: string;
+    formValue: any;
+    phase: 'checking' | 'on' | 'connect';
+    sendingOnly: boolean;
+    host: string;
+    port: string;
+    username: string;
+    password: string;
+    error: string | null;
+    connecting: boolean;
+  } | null = null;
   // null = add mode; set to an SMTP id when editing an existing account.
   editingSmtpId: number | string | null = null;
   // Toggles the password field between masked and plain text (eye button).
@@ -140,7 +160,14 @@ export class BrandEmailAccountSettingsComponent implements OnInit {
       icon: 'fa-inbox',
       confirmText: 'Connect',
       fields: [
-        { key: 'host', label: 'IMAP server', placeholder: 'imap.yourprovider.com', value: current?.imapHost ?? '' },
+        {
+          key: 'host',
+          label: 'IMAP server',
+          placeholder: 'imap.yourprovider.com',
+          // A server already saved, else KEXY's suggestion (the domain's mail servers, then the
+          // SMTP host): e.g. imap.gmail.com for a Google Workspace domain sending through SES.
+          value: current?.imapHost || current?.suggestedImapHost || '',
+        },
         { key: 'port', label: 'Port', placeholder: '993', value: '993' },
         { key: 'username', label: 'Username', placeholder: 'you@yourcompany.com', value: email },
         { key: 'password', label: 'Password or app password', type: 'password' },
@@ -292,6 +319,7 @@ export class BrandEmailAccountSettingsComponent implements OnInit {
   closeAddSmtpModal = () => {
     this.addSmtpModalRef?.close();
     this.editingSmtpId = null;
+    this.replyStep = null;
   };
 
   // Avatar initials from the SMTP "From name": first letter of the first + last
@@ -460,6 +488,12 @@ export class BrandEmailAccountSettingsComponent implements OnInit {
           smtpPort,
         };
         const res: any = await this.dripCampaignService.testSmtpConnection(postData);
+        const newId = res?.data?.smtpId;
+        if (newId) {
+          // The account is saved; the same popup moves on to reply detection.
+          await this.startReplyStep(newId, formValue);
+          return;
+        }
         this.closeAddSmtpModal();
         await this.loadSmtpList();
         // Campaigns with no working SMTP get it in one click instead of one by one; the
@@ -497,6 +531,87 @@ export class BrandEmailAccountSettingsComponent implements OnInit {
    * when the prompt was shown (it says the account was added), false when there was
    * nothing to offer or it could not be checked (the caller shows the plain success).
    */
+  /** Tries the new account's inbox and shows the result (or the inbox form) in the popup. */
+  private startReplyStep = async (smtpId: number, formValue: any): Promise<void> => {
+    const email = formValue.smtpFromEmail || formValue.smtpUsername || '';
+    this.replyStep = {
+      smtpId,
+      email,
+      formValue,
+      phase: 'checking',
+      sendingOnly: false,
+      host: '',
+      port: '993',
+      username: email,
+      password: '',
+      error: null,
+      connecting: false,
+    };
+    try {
+      const row = await this.dripCampaignService.reconnectInbox(smtpId);
+      if (!this.replyStep) return;
+      this.replyStep.sendingOnly = !!row.sendingOnly;
+      this.replyStep.host = row.suggestedImapHost || row.imapHost || '';
+      this.replyStep.phase = row.status === 'on' ? 'on' : 'connect';
+    } catch {
+      if (this.replyStep) this.replyStep.phase = 'connect';
+    }
+  };
+
+  connectReplyStep = async (): Promise<void> => {
+    const step = this.replyStep;
+    if (!step || step.connecting) return;
+    if (!step.host.trim() || !step.username.trim() || !step.password) {
+      step.error = 'Server, username and password are all required.';
+      return;
+    }
+    if (!/^\d+$/.test(step.port.trim() || '993')) {
+      step.error = 'Port must be a number, usually 993.';
+      return;
+    }
+    step.error = null;
+    step.connecting = true;
+    try {
+      await this.dripCampaignService.connectInboxImap(step.smtpId, {
+        host: step.host.trim(),
+        port: Number(step.port.trim() || 993),
+        username: step.username.trim(),
+        password: step.password,
+      });
+      step.password = '';
+      step.phase = 'on';
+    } catch (e) {
+      step.error = errorText(e);
+    } finally {
+      step.connecting = false;
+    }
+  };
+
+  /** Done / Skip for now: closes the popup and carries on as a plain Add SMTP did. */
+  finishReplyStep = async (): Promise<void> => {
+    const step = this.replyStep;
+    this.replyStep = null;
+    this.closeAddSmtpModal();
+    await this.loadSmtpList();
+    if (!step) return;
+    if (!(await this.offerSmtpToCampaigns(step.smtpId, step.formValue))) {
+      await Swal.fire('Success', 'SMTP account has been added', 'success');
+    }
+  };
+
+  /** A provider-specific tip for the inbox password, from the IMAP server. */
+  replyPasswordTip = (host: string): string | null => {
+    const h = (host || '').toLowerCase();
+    if (h.includes('gmail')) {
+      return 'Google needs an app password (myaccount.google.com/apppasswords); 2-Step Verification must be on, and your Workspace admin must allow app passwords.';
+    }
+    if (h.includes('office365') || h.includes('outlook')) {
+      return 'Microsoft 365 often blocks password sign-in for inboxes. If it fails, skip for now.';
+    }
+    if (h.includes('zoho')) return 'In Zoho Mail, turn on IMAP access first (Settings → Mail Accounts).';
+    return null;
+  };
+
   private offerSmtpToCampaigns = async (smtpId: number, formValue: any): Promise<boolean> => {
     if (!smtpId) return false;
     let campaigns: { campaignId: number; title: string | null; status: string }[] = [];
