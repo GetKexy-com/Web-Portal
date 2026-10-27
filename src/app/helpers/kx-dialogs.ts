@@ -85,9 +85,11 @@ export async function kxNotice(opts: {
 
 /**
  * A small form in the same popup frame: one labelled text box per field, then Cancel and
- * the action. Resolves to the trimmed values, or `null` if cancelled. `validate` returns
- * the message to show under the fields (the popup stays open), or `null` when fine.
- * Enter submits.
+ * the action. Resolves to the values (trimmed, except passwords: a space can be part of
+ * one), or `null` if cancelled. `validate` returns the message to show under the fields
+ * (the popup stays open), or `null` when fine. `submit`, when given, runs on the action
+ * with a spinner on the button: it returns an error message to show (the popup stays
+ * open, e.g. a wrong current password) or `null` to close. Enter submits.
  */
 export async function kxForm(opts: {
   title: string;
@@ -107,11 +109,15 @@ export async function kxForm(opts: {
     type?: 'text' | 'password';
   }[];
   validate?: (values: Record<string, string>) => string | null;
+  submit?: (values: Record<string, string>) => Promise<string | null>;
 }): Promise<Record<string, string> | null> {
   const id = (key: string) => `kx-form-${key}`;
   const read = (): Record<string, string> =>
     Object.fromEntries(
-      opts.fields.map((f) => [f.key, ((document.getElementById(id(f.key)) as HTMLInputElement)?.value || '').trim()]),
+      opts.fields.map((f) => {
+        const value = (document.getElementById(id(f.key)) as HTMLInputElement)?.value || '';
+        return [f.key, f.type === 'password' ? value : value.trim()];
+      }),
     );
   const fieldsHtml = opts.fields
     .map(
@@ -176,9 +182,11 @@ export async function kxForm(opts: {
         }),
       );
     },
-    preConfirm: () => {
+    showLoaderOnConfirm: !!opts.submit,
+    allowOutsideClick: () => !Swal.isLoading(),
+    preConfirm: async () => {
       const values = read();
-      const error = opts.validate?.(values) ?? null;
+      const error = opts.validate?.(values) ?? (opts.submit ? await opts.submit(values) : null);
       if (error) {
         Swal.showValidationMessage(escapeHtml(error));
         return false;
