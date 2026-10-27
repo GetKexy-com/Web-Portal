@@ -120,8 +120,13 @@ export async function kxForm(opts: {
         (f.multiline
           ? `<textarea id="${id(f.key)}" rows="5" placeholder="${escapeHtml(f.placeholder ?? '')}">` +
             `${escapeHtml(f.value ?? '')}</textarea></label>`
-          : `<input id="${id(f.key)}" type="${f.type === 'password' ? 'password' : 'text'}"` +
-            ` autocomplete="${f.type === 'password' ? 'new-password' : 'off'}" placeholder="${escapeHtml(f.placeholder ?? '')}"` +
+          : f.type === 'password'
+            ? // A password gets an eye button to show what was typed or pasted.
+              `<span class="kx-form-pw"><input id="${id(f.key)}" type="password" autocomplete="new-password"` +
+              ` placeholder="${escapeHtml(f.placeholder ?? '')}" value="${escapeHtml(f.value ?? '')}" />` +
+              `<button type="button" class="kx-form-eye" data-eye-for="${id(f.key)}" aria-label="Show password"` +
+              ` title="Show password"><i class="fa fa-eye" aria-hidden="true"></i></button></span></label>`
+            : `<input id="${id(f.key)}" type="text" autocomplete="off" placeholder="${escapeHtml(f.placeholder ?? '')}"` +
             ` value="${escapeHtml(f.value ?? '')}" /></label>`),
     )
     .join('');
@@ -148,6 +153,19 @@ export async function kxForm(opts: {
     },
     didOpen: (popup) => {
       (popup.querySelector('input, textarea') as HTMLElement | null)?.focus();
+      popup.querySelectorAll<HTMLButtonElement>('.kx-form-eye').forEach((btn) =>
+        btn.addEventListener('click', () => {
+          const input = document.getElementById(btn.dataset['eyeFor'] ?? '') as HTMLInputElement | null;
+          if (!input) return;
+          const show = input.type === 'password';
+          input.type = show ? 'text' : 'password';
+          const label = show ? 'Hide password' : 'Show password';
+          btn.setAttribute('aria-label', label);
+          btn.title = label;
+          btn.querySelector('i')?.classList.toggle('fa-eye', !show);
+          btn.querySelector('i')?.classList.toggle('fa-eye-slash', show);
+        }),
+      );
       popup.querySelectorAll('input').forEach((input) =>
         input.addEventListener('keydown', (e) => {
           if (e.key === 'Enter') {

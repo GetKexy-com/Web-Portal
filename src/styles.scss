@@ -1538,6 +1538,42 @@ header#main-header #logo {
     }
   }
 
+  // Password with an eye (show / hide) button inside the field.
+  .kx-form-pw {
+    position: relative;
+    display: block;
+
+    input {
+      padding-right: 44px;
+    }
+  }
+
+  .kx-form-eye {
+    position: absolute;
+    top: 50%;
+    right: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    color: #9aa6b8;
+    font-size: 15px;
+    background: transparent;
+    border: 0;
+    border-radius: 8px;
+    transform: translateY(-50%);
+    cursor: pointer;
+
+    &:hover,
+    &:focus-visible {
+      color: #12a5f4;
+      background: rgba(18, 165, 244, 0.1);
+      outline: none;
+    }
+  }
+
   .kx-form-error {
     margin: 12px 0 0;
     padding: 8px 12px;

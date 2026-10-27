@@ -46,6 +46,8 @@ export class BrandEmailAccountSettingsComponent implements OnInit {
    * the popup asks for the inbox's details right away instead of leaving "Not connected" for
    * the user to find. Null = the normal Add/Edit form.
    */
+  /** Shows the inbox password in the Add SMTP reply step. */
+  showReplyPassword = false;
   replyStep: {
     smtpId: number;
     email: string;
@@ -534,6 +536,7 @@ export class BrandEmailAccountSettingsComponent implements OnInit {
   /** Tries the new account's inbox and shows the result (or the inbox form) in the popup. */
   private startReplyStep = async (smtpId: number, formValue: any): Promise<void> => {
     const email = formValue.smtpFromEmail || formValue.smtpUsername || '';
+    this.showReplyPassword = false;
     this.replyStep = {
       smtpId,
       email,
