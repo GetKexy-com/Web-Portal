@@ -17,15 +17,15 @@ import {
 } from '../../components/kexy-pro-tips-modal-content/kexy-pro-tips-modal-content.component';
 import { routeConstants } from '../../helpers/routeConstants';
 import { dripCampaignInitialModalData } from '../../helpers/demoData';
-import { ModalComponent } from '../../components/modal/modal.component';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { PageUiService } from '../../services/page-ui.service';
 import { countries } from 'src/assets/countries';
+import { errorText, kxForm, kxNotice } from '../../helpers/kx-dialogs';
 import { PhoneNumberMaskDirective } from '../../directive/phone-number-mask.directive';
 
 @Component({
   selector: 'app-edit-brand-user',
-  imports: [BrandLayoutComponent, ReactiveFormsModule, CommonModule, ProspectingCommonCardComponent, KexyButtonComponent, ErrorMessageCardComponent, ModalComponent, FormsModule, PhoneNumberMaskDirective],
+  imports: [BrandLayoutComponent, ReactiveFormsModule, CommonModule, ProspectingCommonCardComponent, KexyButtonComponent, ErrorMessageCardComponent, FormsModule, PhoneNumberMaskDirective],
   templateUrl: './edit-brand-user.component.html',
   styleUrl: './edit-brand-user.component.scss',
 })
@@ -39,15 +39,6 @@ export class EditBrandUserComponent implements OnInit {
   firstName: string;
   lastName: string;
   phone: string;
-  changePasswordModalRef;
-  currentPassword: string;
-  currentPasswordType: string = 'password';
-  newPasswordType: string = 'password';
-  currentPasswordView: boolean = false;
-  newPasswordView: boolean = false;
-  changePasswordSubmitted: boolean = false;
-  newPassword: string;
-  isPasswordUpdateLoading: boolean = false;
   userData;
   public countries = [];
   private emailBackup = null;
@@ -142,15 +133,6 @@ export class EditBrandUserComponent implements OnInit {
   }
 
 
-  toggleCurrentPasswordView() {
-    this.currentPasswordView = !this.currentPasswordView;
-    this.currentPasswordType = this.currentPasswordView ? 'text' : 'password';
-  }
-
-  toggleNewPasswordView() {
-    this.newPasswordView = !this.newPasswordView;
-    this.newPasswordType = this.newPasswordView ? 'text' : 'password';
-  }
 
   async primaryFormSubmitted(): Promise<any> {
     this.submitted = true;
@@ -207,10 +189,6 @@ export class EditBrandUserComponent implements OnInit {
     });
   }
 
-  updatePassModal = async (modalContent) => {
-    this.changePasswordModalRef = this.modal.open(modalContent);
-  };
-
   async createApiKey() {
     return;
     const postData = {
@@ -232,36 +210,40 @@ export class EditBrandUserComponent implements OnInit {
   }
 
 
-  async updatePassword() {
-    this.changePasswordSubmitted = true;
-    if (!this.currentPassword || !this.newPassword) {
-      return;
-    }
-    try {
-      this.isPasswordUpdateLoading = true;
-      await this.passwordUpdateApiCall({
-        currentPassword: this.currentPassword,
-        newPassword: this.newPassword,
+  /**
+   * Change Password, in the portal's popup design (`kxForm`). The popup stays open on a
+   * mistake (empty box, wrong current password) with the reason under the fields.
+   */
+  changePassword = async () => {
+    const done = await kxForm({
+      title: 'Change password',
+      text: 'Enter your current password, then the new one.',
+      icon: 'fa-lock',
+      confirmText: 'Update password',
+      fields: [
+        { key: 'current', label: 'Current password', type: 'password' },
+        { key: 'next', label: 'New password', type: 'password' },
+      ],
+      validate: (v) =>
+        !v['current'] ? 'Enter your current password.' : !v['next'] ? 'Enter a new password.' : null,
+      submit: async (v) => {
+        try {
+          await this.passwordUpdateApiCall({ currentPassword: v['current'], newPassword: v['next'] });
+          return null;
+        } catch (e) {
+          return passwordErrorText(e);
+        }
+      },
+    });
+    if (done) {
+      await kxNotice({
+        title: 'Password changed',
+        text: 'Use your new password the next time you log in.',
+        icon: 'fa-check',
+        tone: 'success',
       });
-      await Swal.fire('Done!', 'Password changed successfully!', 'success');
-    } catch (e) {
-      let message = 'There was an error!';
-      console.log(e.error);
-      if (typeof e.error === 'object' && e.error[0]) {
-        message = e.error[0];
-      } else {
-        message = e.error;
-      }
-
-      await Swal.fire({
-        icon: 'error',
-        title: 'Oops...',
-        text: message,
-      });
-    } finally {
-      this.isPasswordUpdateLoading = false;
     }
-  }
+  };
 
   passwordUpdateApiCall = (postData) => {
     return new Promise(async (resolve, reject) => {
@@ -305,4 +287,12 @@ export class EditBrandUserComponent implements OnInit {
 
   protected readonly routeConstants = routeConstants;
   protected readonly features = dripCampaignInitialModalData;
+}
+
+/** The API's reason (a string, an array of validation messages, or `{ message }`). */
+function passwordErrorText(e: any): string {
+  const body = e?.error ?? e;
+  if (Array.isArray(body) && typeof body[0] === 'string') return body[0];
+  if (Array.isArray(body?.message) && typeof body.message[0] === 'string') return body.message[0];
+  return errorText(body, 'Could not change the password. Please try again.');
 }

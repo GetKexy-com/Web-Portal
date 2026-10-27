@@ -267,26 +267,6 @@
   border-top: 1px solid #edf1f6;
 }
 
-// ── Change-password modal ──────────────────────────────────────────────────
-.input-label-text {
-  font-size: 12px;
-  font-weight: 600;
-  color: #556070;
-}
-
-.input-wrap {
-  position: relative;
-
-  .eye-wrapper {
-    cursor: pointer;
-    position: absolute;
-    width: 30px;
-    right: 8px;
-    bottom: 12px;
-    color: #6b7280;
-  }
-}
-
 .tr-hidden {
   display: none;
 }
