@@ -288,6 +288,13 @@ export class EmailSendProgressComponent implements OnInit, OnDestroy {
    */
   readonly showAiGeneratedCard = false;
 
+  /**
+   * "Mark as replied" (and "Marked by you · Unmark") is hidden for now (owner's call,
+   * 2026-10-27). Kept as a flag, like `showAiGeneratedCard`: the markup, actions and KexyApi
+   * endpoints stay; flip to `true` to bring it back.
+   */
+  readonly showMarkAsReplied = false;
+
   private timer: ReturnType<typeof setTimeout> | null = null;
   private searchTimer: ReturnType<typeof setTimeout> | null = null;
   private countdownTimer: ReturnType<typeof setInterval> | null = null;
@@ -604,6 +611,7 @@ export class EmailSendProgressComponent implements OnInit, OnDestroy {
    * reached the user's own inbox but not KEXY (the prospect's app ignored our Reply-To).
    */
   canMarkReplied = (item: IEmailSendItem): boolean =>
+    this.showMarkAsReplied &&
     item.status === 'sent' &&
     !item.engagement?.repliedAt &&
     !(item.delivery && this.isUndelivered(item.delivery.status));

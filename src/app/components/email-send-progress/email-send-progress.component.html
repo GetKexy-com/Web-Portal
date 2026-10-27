@@ -220,7 +220,7 @@
                     <span
                       class="sp-pill tone-good"
                       *ngIf="item.engagement.repliedAt"
-                      [title]="item.engagement.replyMarkedByUser ? 'Marked as replied by you' : (item.engagement.repliedAt | date: 'medium')"
+                      [title]="showMarkAsReplied && item.engagement.replyMarkedByUser ? 'Marked as replied by you' : (item.engagement.repliedAt | date: 'medium')"
                     >Replied</span>
                   </ng-container>
                   <span
@@ -242,7 +242,7 @@
                   <i class="fa" [ngClass]="markingReply === rowKey(item) ? 'fa-circle-o-notch fa-spin' : 'fa-reply'" aria-hidden="true"></i>
                   Mark as replied
                 </button>
-                <span class="sp-attempt sp-marked-reply" *ngIf="item.engagement?.replyMarkedByUser">
+                <span class="sp-attempt sp-marked-reply" *ngIf="showMarkAsReplied && item.engagement?.replyMarkedByUser">
                   Marked by you ·
                   <button type="button" class="sp-link" [disabled]="markingReply === rowKey(item)" (click)="unmarkReplied(item)">Unmark</button>
                 </span>

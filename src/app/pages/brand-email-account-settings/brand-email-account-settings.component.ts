@@ -46,6 +46,13 @@ export class BrandEmailAccountSettingsComponent implements OnInit {
    * the popup asks for the inbox's details right away instead of leaving "Not connected" for
    * the user to find. Null = the normal Add/Edit form.
    */
+  /**
+   * The Add SMTP popup's second step (check the inbox, ask for IMAP details) is hidden for now
+   * (owner's call, 2026-10-27): adding an account closes the popup as before, KexyApi checks
+   * the inbox in the background, and "Connect inbox" in the Replies column stays. Flip to
+   * `true` to bring the step back.
+   */
+  readonly askInboxOnAdd = false;
   /** Shows the inbox password in the Add SMTP reply step. */
   showReplyPassword = false;
   replyStep: {
@@ -491,7 +498,7 @@ export class BrandEmailAccountSettingsComponent implements OnInit {
         };
         const res: any = await this.dripCampaignService.testSmtpConnection(postData);
         const newId = res?.data?.smtpId;
-        if (newId) {
+        if (newId && this.askInboxOnAdd) {
           // The account is saved; the same popup moves on to reply detection.
           await this.startReplyStep(newId, formValue);
           return;
