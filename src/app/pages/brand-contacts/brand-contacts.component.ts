@@ -36,6 +36,8 @@ import { CACHE_SCOPE, CacheVersionService } from '../../services/cache-version.s
 import { TimeAgoComponent } from '../../components/time-ago/time-ago.component';
 import { Contact, ContactOrganization } from '../../models/Contact';
 import { PageUiService } from '../../services/page-ui.service';
+import { errorText, kxConfirm, kxNotice } from '../../helpers/kx-dialogs';
+import { ILinkedinRescrapeResult } from '../../services/prospecting.service';
 
 @Component({
   selector: 'brand-contacts',
@@ -61,6 +63,21 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
   isWaitingFlag: boolean = true;
   isLoading: boolean = false;
   selectedContacts: Contact[] = [];
+  /**
+   * "Re-scrape LinkedIn" for the selected contacts (KexyApi `linkedin-rescrape.ts`): scrapes
+   * their LinkedIn again now, past the 30-day reuse rule. Each contact is a PAID scrape, so
+   * the button is hidden (owner's call, 2026-10-28) and shown by a trick instead of a deploy:
+   * click the "Manage Contacts" headline 5 times within 3 seconds. "Hide" puts it away again.
+   * Remembered in this browser, separately for each account (the key carries the user id):
+   * another login in the same browser doesn't see it, and another browser needs the clicks
+   * again. Not a security measure: the API is open to any user of the company, the trick
+   * only keeps the button out of clients' way.
+   */
+  showLinkedinRescrape = false;
+  private titleClicks: number[] = [];
+  /** At most this many per click (KexyApi `LINKEDIN_RESCRAPE_MAX_CONTACTS`). */
+  readonly linkedinRescrapeMax = 10;
+  rescrapingLinkedin = false;
   page = 1;
   limit = 100;
   totalPage;
@@ -112,6 +129,7 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
 
   async ngOnInit() {
     this.userData = this._authService.userTokenValue;
+    this.showLinkedinRescrape = this.__readLinkedinRescrapeShown();
     this.supplierId = this.userData.supplier_id;
 
     this.getQueryParams();
@@ -800,6 +818,100 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
     await CsvHelper.download('Contacts.csv', csv);
     this.isWaitingFlag = false;
   };
+
+  /** Five clicks on the headline within 3 seconds shows the LinkedIn re-scrape tools. */
+  onTitleClick = () => {
+    const now = Date.now();
+    this.titleClicks = [...this.titleClicks.filter((t) => now - t < 3000), now];
+    if (this.titleClicks.length >= 5 && !this.showLinkedinRescrape) {
+      this.titleClicks = [];
+      this.setLinkedinRescrapeShown(true);
+    }
+  };
+
+  setLinkedinRescrapeShown = (shown: boolean) => {
+    this.showLinkedinRescrape = shown;
+    try {
+      if (shown) localStorage.setItem(this.__linkedinRescrapeKey(), '1');
+      else localStorage.removeItem(this.__linkedinRescrapeKey());
+    } catch {
+      // Storage blocked (private window): shown until the page is left, which is fine.
+    }
+  };
+
+  private __linkedinRescrapeKey(): string {
+    return `kx.contacts.linkedinRescrape.${this.userData?.id ?? 'anon'}`;
+  }
+
+  private __readLinkedinRescrapeShown(): boolean {
+    try {
+      return localStorage.getItem(this.__linkedinRescrapeKey()) === '1';
+    } catch {
+      return false;
+    }
+  }
+
+  rescrapeLinkedin = async () => {
+    const contacts = this.selectedContacts;
+    if (!contacts.length || this.rescrapingLinkedin) return;
+    if (contacts.length > this.linkedinRescrapeMax) {
+      await kxNotice({
+        title: 'Too many contacts',
+        text: `Pick up to ${this.linkedinRescrapeMax} contacts at a time. Each one is a paid LinkedIn scrape.`,
+        icon: 'fa-linkedin',
+      });
+      return;
+    }
+    const n = contacts.length;
+    const ok = await kxConfirm({
+      title: 'Re-scrape LinkedIn?',
+      text:
+        `KEXY will scrape LinkedIn again now for ${n} contact${n === 1 ? '' : 's'}, even if it did ` +
+        'in the last 30 days. Each one is a paid scrape. Their next email uses the new data.',
+      icon: 'fa-linkedin',
+      confirmText: `Re-scrape (${n})`,
+      tone: 'primary',
+    });
+    if (!ok) return;
+
+    this.rescrapingLinkedin = true;
+    try {
+      const result = await this.prospectingService.rescrapeLinkedin({
+        companyId: this.supplierId,
+        contactIds: contacts.map((c) => c.id),
+      });
+      await kxNotice({
+        title: result.started.length ? 'Re-scrape started' : 'Nothing to re-scrape',
+        text: this.__rescrapeSummary(result),
+        icon: 'fa-linkedin',
+        tone: result.started.length ? 'success' : 'info',
+        timerMs: 8000,
+      });
+    } catch (e) {
+      await kxNotice({ title: 'Could not re-scrape', text: errorText(e), icon: 'fa-exclamation' });
+    } finally {
+      this.rescrapingLinkedin = false;
+    }
+  };
+
+  private __rescrapeSummary(result: ILinkedinRescrapeResult): string {
+    const why = {
+      no_linkedin: 'no LinkedIn profile or company page',
+      just_scraped: 'scraped in the last 10 minutes',
+      duplicate: 'same LinkedIn as another selected contact',
+      not_found: 'contact not found',
+    };
+    const lines: string[] = [];
+    const started = result.started.length;
+    if (started) {
+      lines.push(
+        `Scraping ${started} contact${started === 1 ? '' : 's'} now. It takes about a minute; ` +
+          'their next email uses the new data.',
+      );
+    }
+    for (const s of result.skipped) lines.push(`Skipped ${s.email ?? `#${s.contactId}`}: ${why[s.reason]}.`);
+    return lines.join(' ');
+  }
 
   deleteContacts = async () => {
     let isConfirm = await Swal.fire({
