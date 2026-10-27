@@ -289,10 +289,10 @@ export class EmailSendProgressComponent implements OnInit, OnDestroy {
   readonly showAiGeneratedCard = false;
 
   /**
-   * "Mark as replied" (and "Marked by you · Unmark"). Briefly hidden on 2026-10-27, then kept
-   * on (owner's call). Kept as a flag, like `showAiGeneratedCard`.
+   * "Mark as replied" (and "Marked by you · Unmark"). Hidden again on 2026-10-27 (owner's call).
+   * Kept as a flag, like `showAiGeneratedCard`; the API endpoints stay live.
    */
-  readonly showMarkAsReplied = true;
+  readonly showMarkAsReplied = false;
 
   private timer: ReturnType<typeof setTimeout> | null = null;
   private searchTimer: ReturnType<typeof setTimeout> | null = null;

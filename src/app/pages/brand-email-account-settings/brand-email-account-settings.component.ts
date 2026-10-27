@@ -53,6 +53,12 @@ export class BrandEmailAccountSettingsComponent implements OnInit {
    * `true` to bring the step back.
    */
   readonly askInboxOnAdd = false;
+  /**
+   * The Replies column in Sending Accounts (inbox checking status, Connect / Turn off) is
+   * hidden for now (owner's call, 2026-10-27). KexyApi keeps checking inboxes already
+   * connected. Flip to `true` to bring the column back.
+   */
+  readonly showRepliesColumn = false;
   /** Shows the inbox password in the Add SMTP reply step. */
   showReplyPassword = false;
   replyStep: {
