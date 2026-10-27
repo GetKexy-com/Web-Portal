@@ -11,6 +11,8 @@ import { CommonModule } from '@angular/common';
 import { PageUiService } from '../../services/page-ui.service';
 import { GleapService } from '../../services/gleap.service';
 import { ActivatedRoute, Router } from '@angular/router';
+import { errorText, kxConfirm, kxForm, kxNotice } from '../../helpers/kx-dialogs';
+import { IReplyDetection } from '../../models/ReplyDetection';
 
 @Component({
   selector: 'app-brand-email-account-settings',
@@ -33,6 +35,10 @@ export class BrandEmailAccountSettingsComponent implements OnInit {
   smtpList: any[] = [];
   totalSmtp: number = 0;
   deletingId: number | string | null = null;
+  /** Reply detection per account id (KexyApi `ReplyDetectionService`). Missing = unknown. */
+  replyDetection: Record<number, IReplyDetection> = {};
+  /** The account whose inbox connect / reconnect / turn-off request is running. */
+  replyBusyId: number | null = null;
   // null = add mode; set to an SMTP id when editing an existing account.
   editingSmtpId: number | string | null = null;
   // Toggles the password field between masked and plain text (eye button).
@@ -97,11 +103,120 @@ export class BrandEmailAccountSettingsComponent implements OnInit {
       this.smtpList = this.normalizeSmtpList(data);
       this.totalSmtp =
         typeof data?.total === 'number' ? data.total : this.smtpList.length;
+      // Not awaited: the accounts show at once, their reply status a moment later.
+      void this.loadReplyDetection();
     } catch (e) {
       this.smtpList = [];
       this.totalSmtp = 0;
     } finally {
       this.isLoadingList = false;
+    }
+  };
+
+  // ── Reply detection ───────────────────────────────────────────────────────
+  loadReplyDetection = async (): Promise<void> => {
+    try {
+      const rows = await this.dripCampaignService.getReplyDetection(this.userData.supplier_id);
+      this.replyDetection = Object.fromEntries((rows ?? []).map((r) => [r.smtpId, r]));
+    } catch {
+      this.replyDetection = {};
+    }
+  };
+
+  /**
+   * The user's own inbox details, for an account whose sending login opens no inbox (Amazon
+   * SES, Brevo…) or opens a different one. KEXY only signs in to read replies.
+   */
+  connectInbox = async (smtp: any): Promise<void> => {
+    if (this.replyBusyId) return;
+    const current = this.replyDetection[smtp.id];
+    const email = smtp.smtpFromEmail || smtp.smtpUsername || '';
+    const values = await kxForm({
+      title: 'Connect your inbox',
+      text:
+        `Replies to ${email} that skip KEXY's reply address land in this inbox. Enter its IMAP ` +
+        'details (from your email provider) so KEXY can catch them. KEXY only reads replies to ' +
+        'your drip emails and never changes your mailbox.',
+      icon: 'fa-inbox',
+      confirmText: 'Connect',
+      fields: [
+        { key: 'host', label: 'IMAP server', placeholder: 'imap.yourprovider.com', value: current?.imapHost ?? '' },
+        { key: 'port', label: 'Port', placeholder: '993', value: '993' },
+        { key: 'username', label: 'Username', placeholder: 'you@yourcompany.com', value: email },
+        { key: 'password', label: 'Password or app password', type: 'password' },
+      ],
+      validate: (v) =>
+        !v['host'] || !v['username'] || !v['password']
+          ? 'Server, username and password are all required.'
+          : !/^\d+$/.test(v['port'] || '993')
+            ? 'Port must be a number, usually 993.'
+            : null,
+    });
+    if (!values) return;
+    this.replyBusyId = smtp.id;
+    try {
+      const row = await this.dripCampaignService.connectInboxImap(smtp.id, {
+        host: values['host'],
+        port: Number(values['port'] || 993),
+        username: values['username'],
+        password: values['password'],
+      });
+      this.replyDetection = { ...this.replyDetection, [smtp.id]: row };
+      await kxNotice({
+        title: 'Inbox connected',
+        text: `KEXY will now catch replies that land in ${values['username']}.`,
+        icon: 'fa-check',
+        tone: 'success',
+      });
+    } catch (e) {
+      await kxNotice({ title: 'Could not connect', text: errorText(e), icon: 'fa-exclamation' });
+    } finally {
+      this.replyBusyId = null;
+    }
+  };
+
+  reconnectInbox = async (smtp: any): Promise<void> => {
+    if (this.replyBusyId) return;
+    this.replyBusyId = smtp.id;
+    try {
+      const row = await this.dripCampaignService.reconnectInbox(smtp.id);
+      this.replyDetection = { ...this.replyDetection, [smtp.id]: row };
+      if (row.status === 'on') {
+        await kxNotice({ title: 'Reconnected', text: 'Reply detection is on again.', icon: 'fa-check', tone: 'success' });
+      } else {
+        await kxNotice({
+          title: 'Still not connected',
+          text: row.lastError || 'KEXY could not open this inbox. You can enter its IMAP details instead.',
+          icon: 'fa-exclamation',
+        });
+      }
+    } catch (e) {
+      await kxNotice({ title: 'Could not reconnect', text: errorText(e), icon: 'fa-exclamation' });
+    } finally {
+      this.replyBusyId = null;
+    }
+  };
+
+  turnOffInbox = async (smtp: any): Promise<void> => {
+    if (this.replyBusyId) return;
+    const ok = await kxConfirm({
+      title: 'Stop checking this inbox?',
+      text:
+        "Most replies still reach KEXY through its reply address. Replies sent only to your inbox " +
+        "(some mail apps do that) won't show as Replied, and those prospects may get follow-ups.",
+      icon: 'fa-pause',
+      confirmText: 'Stop checking',
+      tone: 'danger',
+    });
+    if (!ok) return;
+    this.replyBusyId = smtp.id;
+    try {
+      const row = await this.dripCampaignService.disconnectInbox(smtp.id);
+      this.replyDetection = { ...this.replyDetection, [smtp.id]: row };
+    } catch (e) {
+      await kxNotice({ title: 'Could not turn it off', text: errorText(e), icon: 'fa-exclamation' });
+    } finally {
+      this.replyBusyId = null;
     }
   };
 

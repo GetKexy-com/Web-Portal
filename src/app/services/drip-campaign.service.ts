@@ -17,6 +17,7 @@ import {
   IEmailSendProgress,
   IMarkRepliedResult,
 } from '../models/EmailSendProgress';
+import { IReplyDetection } from '../models/ReplyDetection';
 
 /** A contact offered in "Send test campaign" to fill the merge tags with. */
 export interface ITestProspect {
@@ -1393,6 +1394,30 @@ export class DripCampaignService {
   unmarkReplied = (campaignId: number, emailId: number, email: string): Promise<{ unmarked: true }> =>
     new Promise((resolve, reject) => {
       this.httpService.post(`drip-campaigns/${campaignId}/emails/${emailId}/unmark-replied`, { email }).subscribe({
+        next: (res) => resolve(res.data),
+        error: (err) => reject(err?.error ?? err),
+      });
+    });
+
+  /** Reply detection status of each sending account (KexyApi `ReplyDetectionService`). */
+  getReplyDetection = (companyId: number): Promise<IReplyDetection[]> =>
+    this.__getData<IReplyDetection[]>(`smtp/reply-detection?companyId=${companyId}`);
+
+  /** The user's own inbox login, for an account whose sending login opens no inbox. */
+  connectInboxImap = (
+    smtpId: number,
+    body: { host: string; port?: number; username: string; password: string },
+  ): Promise<IReplyDetection> => this.__postData<IReplyDetection>(`smtp/${smtpId}/reply-detection/imap`, body);
+
+  reconnectInbox = (smtpId: number): Promise<IReplyDetection> =>
+    this.__postData<IReplyDetection>(`smtp/${smtpId}/reply-detection/reconnect`, {});
+
+  disconnectInbox = (smtpId: number): Promise<IReplyDetection> =>
+    this.__postData<IReplyDetection>(`smtp/${smtpId}/reply-detection/disconnect`, {});
+
+  private __postData = <T>(url: string, body: unknown): Promise<T> =>
+    new Promise<T>((resolve, reject) => {
+      this.httpService.post(url, body).subscribe({
         next: (res) => resolve(res.data),
         error: (err) => reject(err?.error ?? err),
       });
