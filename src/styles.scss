@@ -1306,6 +1306,11 @@ header#main-header #logo {
   max-width: 560px;
 }
 
+// "Scrape Prospect" (prospect-scrape-modal): four rows per contact with a label and a date.
+.kx-dialog-modal.kx-prospect-scrape-modal .modal-dialog {
+  max-width: 620px;
+}
+
 // "Ready to activate?": ~69% of the 724px it was built at for the client's full-size
 // Supercharged card (client, 2026-10-18: popup too large; the card itself is ~70% too).
 .kx-activate-modal .modal-dialog {

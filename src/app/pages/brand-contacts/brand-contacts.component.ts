@@ -36,8 +36,9 @@ import { CACHE_SCOPE, CacheVersionService } from '../../services/cache-version.s
 import { TimeAgoComponent } from '../../components/time-ago/time-ago.component';
 import { Contact, ContactOrganization } from '../../models/Contact';
 import { PageUiService } from '../../services/page-ui.service';
-import { errorText, kxConfirm, kxNotice } from '../../helpers/kx-dialogs';
-import { ILinkedinRescrapeResult } from '../../services/prospecting.service';
+import { errorText, kxForm, kxNotice } from '../../helpers/kx-dialogs';
+import { IProspectScrapeOverview, IProspectScrapeStartResult } from '../../services/prospecting.service';
+import { ProspectScrapeModalComponent } from '../../components/prospect-scrape-modal/prospect-scrape-modal.component';
 
 @Component({
   selector: 'brand-contacts',
@@ -64,20 +65,19 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
   isLoading: boolean = false;
   selectedContacts: Contact[] = [];
   /**
-   * "Re-scrape LinkedIn" for the selected contacts (KexyApi `linkedin-rescrape.ts`): scrapes
-   * their LinkedIn again now, past the 30-day reuse rule. Each contact is a PAID scrape, so
-   * the button is hidden (owner's call, 2026-10-28) and shown by a trick instead of a deploy:
-   * click the "Manage Contacts" headline 5 times within 3 seconds. "Hide" puts it away again.
-   * Remembered in this browser, separately for each account (the key carries the user id):
-   * another login in the same browser doesn't see it, and another browser needs the clicks
-   * again. Not a security measure: the API is open to any user of the company, the trick
-   * only keeps the button out of clients' way.
+   * "Scrape Prospect" for the selected contacts (KexyApi `src/prospect-scrape/`): see what
+   * research KEXY holds (website, location, LinkedIn, sports) and scrape any of it again now.
+   * Every scrape is PAID, so the button is hidden (owner's call, 2026-10-28) and shown by a
+   * trick instead of a deploy: click the "Manage Contacts" headline 5 times within 3 seconds;
+   * "Hide" puts it away. Remembered in this browser per account (the key carries the user id).
+   * The real lock is the KEXY master password (not the account's), which KexyApi checks
+   * before showing anything or scraping.
    */
-  showLinkedinRescrape = false;
+  showScrapeProspect = false;
   private titleClicks: number[] = [];
-  /** At most this many per click (KexyApi `LINKEDIN_RESCRAPE_MAX_CONTACTS`). */
-  readonly linkedinRescrapeMax = 10;
-  rescrapingLinkedin = false;
+  /** At most this many per click (KexyApi `PROSPECT_SCRAPE_MAX_CONTACTS`). */
+  readonly scrapeProspectMax = 10;
+  openingScrapeProspect = false;
   page = 1;
   limit = 100;
   totalPage;
@@ -129,7 +129,7 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
 
   async ngOnInit() {
     this.userData = this._authService.userTokenValue;
-    this.showLinkedinRescrape = this.__readLinkedinRescrapeShown();
+    this.showScrapeProspect = this.__readScrapeProspectShown();
     this.supplierId = this.userData.supplier_id;
 
     this.getQueryParams();
@@ -819,97 +819,119 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
     this.isWaitingFlag = false;
   };
 
-  /** Five clicks on the headline within 3 seconds shows the LinkedIn re-scrape tools. */
+  /** Five clicks on the headline within 3 seconds shows the "Scrape Prospect" tools. */
   onTitleClick = () => {
     const now = Date.now();
     this.titleClicks = [...this.titleClicks.filter((t) => now - t < 3000), now];
-    if (this.titleClicks.length >= 5 && !this.showLinkedinRescrape) {
+    if (this.titleClicks.length >= 5 && !this.showScrapeProspect) {
       this.titleClicks = [];
-      this.setLinkedinRescrapeShown(true);
+      this.setScrapeProspectShown(true);
     }
   };
 
-  setLinkedinRescrapeShown = (shown: boolean) => {
-    this.showLinkedinRescrape = shown;
+  setScrapeProspectShown = (shown: boolean) => {
+    this.showScrapeProspect = shown;
     try {
-      if (shown) localStorage.setItem(this.__linkedinRescrapeKey(), '1');
-      else localStorage.removeItem(this.__linkedinRescrapeKey());
+      if (shown) localStorage.setItem(this.__scrapeProspectKey(), '1');
+      else localStorage.removeItem(this.__scrapeProspectKey());
     } catch {
       // Storage blocked (private window): shown until the page is left, which is fine.
     }
   };
 
-  private __linkedinRescrapeKey(): string {
-    return `kx.contacts.linkedinRescrape.${this.userData?.id ?? 'anon'}`;
+  private __scrapeProspectKey(): string {
+    return `kx.contacts.scrapeProspect.${this.userData?.id ?? 'anon'}`;
   }
 
-  private __readLinkedinRescrapeShown(): boolean {
+  private __readScrapeProspectShown(): boolean {
     try {
-      return localStorage.getItem(this.__linkedinRescrapeKey()) === '1';
+      return localStorage.getItem(this.__scrapeProspectKey()) === '1';
     } catch {
       return false;
     }
   }
 
-  rescrapeLinkedin = async () => {
+  /**
+   * Master password first (KexyApi checks it, on this call and again on Start), then the
+   * popup listing what KEXY holds for each selected contact, then a summary.
+   */
+  scrapeProspect = async () => {
     const contacts = this.selectedContacts;
-    if (!contacts.length || this.rescrapingLinkedin) return;
-    if (contacts.length > this.linkedinRescrapeMax) {
+    if (!contacts.length || this.openingScrapeProspect) return;
+    if (contacts.length > this.scrapeProspectMax) {
       await kxNotice({
         title: 'Too many contacts',
-        text: `Pick up to ${this.linkedinRescrapeMax} contacts at a time. Each one is a paid LinkedIn scrape.`,
-        icon: 'fa-linkedin',
+        text: `Pick up to ${this.scrapeProspectMax} contacts at a time.`,
+        icon: 'fa-search',
       });
       return;
     }
-    const n = contacts.length;
-    const ok = await kxConfirm({
-      title: 'Re-scrape LinkedIn?',
-      text:
-        `KEXY will scrape LinkedIn again now for ${n} contact${n === 1 ? '' : 's'}, even if it did ` +
-        'in the last 30 days. Each one is a paid scrape. Their next email uses the new data.',
-      icon: 'fa-linkedin',
-      confirmText: `Re-scrape (${n})`,
-      tone: 'primary',
+    const form = await kxForm({
+      title: 'Scrape Prospect',
+      text: 'Enter the KEXY master password. It is not your account password.',
+      icon: 'fa-lock',
+      confirmText: 'Continue',
+      fields: [{ key: 'password', label: 'Master password', type: 'password' }],
+      validate: (v) => (v['password'] ? null : 'Enter the master password'),
     });
-    if (!ok) return;
+    if (!form) return;
 
-    this.rescrapingLinkedin = true;
+    this.openingScrapeProspect = true;
+    let overview: IProspectScrapeOverview;
     try {
-      const result = await this.prospectingService.rescrapeLinkedin({
+      overview = await this.prospectingService.prospectScrapeOverview({
         companyId: this.supplierId,
         contactIds: contacts.map((c) => c.id),
-      });
-      await kxNotice({
-        title: result.started.length ? 'Re-scrape started' : 'Nothing to re-scrape',
-        text: this.__rescrapeSummary(result),
-        icon: 'fa-linkedin',
-        tone: result.started.length ? 'success' : 'info',
-        timerMs: 8000,
+        masterPassword: form['password'],
       });
     } catch (e) {
-      await kxNotice({ title: 'Could not re-scrape', text: errorText(e), icon: 'fa-exclamation' });
+      await kxNotice({ title: 'Could not open Scrape Prospect', text: errorText(e), icon: 'fa-exclamation' });
+      return;
     } finally {
-      this.rescrapingLinkedin = false;
+      this.openingScrapeProspect = false;
     }
+
+    const ref = this.modal.open(ProspectScrapeModalComponent, {
+      windowClass: 'kx-dialog-modal kx-prospect-scrape-modal',
+      centered: true,
+    });
+    ref.componentInstance.overview = overview;
+    ref.componentInstance.companyId = this.supplierId;
+    ref.componentInstance.masterPassword = form['password'];
+    let result: IProspectScrapeStartResult;
+    try {
+      result = await ref.result;
+    } catch {
+      return; // Cancel / × / Esc
+    }
+    await kxNotice({
+      title: result.started.length ? 'Scraping started' : 'Nothing was scraped',
+      text: this.__scrapeSummary(result),
+      icon: 'fa-search',
+      tone: result.started.length ? 'success' : 'info',
+      timerMs: 10000,
+    });
   };
 
-  private __rescrapeSummary(result: ILinkedinRescrapeResult): string {
+  private __scrapeSummary(result: IProspectScrapeStartResult): string {
+    const title = { web: 'Website', location: 'Location', linkedin: 'LinkedIn', sports: 'Sports' };
     const why = {
-      no_linkedin: 'no LinkedIn profile or company page',
+      not_available: 'nothing to scrape',
       just_scraped: 'scraped in the last 10 minutes',
-      duplicate: 'same LinkedIn as another selected contact',
+      duplicate: 'shared with another selected contact, scraped once',
       not_found: 'contact not found',
     };
     const lines: string[] = [];
-    const started = result.started.length;
-    if (started) {
+    const n = result.started.length;
+    if (n) {
       lines.push(
-        `Scraping ${started} contact${started === 1 ? '' : 's'} now. It takes about a minute; ` +
-          'their next email uses the new data.',
+        `Started ${n} scrape${n === 1 ? '' : 's'}. LinkedIn and Location take about a minute, ` +
+          'Website and Sports a few minutes; their next email uses the new data.',
       );
     }
-    for (const s of result.skipped) lines.push(`Skipped ${s.email ?? `#${s.contactId}`}: ${why[s.reason]}.`);
+    for (const s of result.skipped) {
+      lines.push(`Skipped ${title[s.type]} for ${s.email ?? `#${s.contactId}`}: ${why[s.reason]}.`);
+    }
     return lines.join(' ');
   }
 

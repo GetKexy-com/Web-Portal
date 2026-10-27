@@ -1,0 +1,81 @@
+<div class="psm-modal">
+  <div class="modal-head">
+    <div class="psm-head-text">
+      <p class="modal-title-text">
+        <span class="psm-badge" aria-hidden="true"><i class="fa fa-search"></i></span>
+        Scrape Prospect
+      </p>
+      <p class="psm-sub">Tick what to scrape again now. Each tick is a paid scrape.</p>
+    </div>
+    <button type="button" class="icon-btn" aria-label="Close" (click)="activeModal.dismiss()">
+      <i class="fa fa-times" aria-hidden="true"></i>
+    </button>
+  </div>
+
+  <div class="psm-body">
+    <!--Tick a type for every selected contact at once (only when more than one).-->
+    <div class="psm-all" *ngIf="contacts.length > 1">
+      <span class="psm-all-label">Tick for all:</span>
+      <ng-container *ngFor="let row of contacts[0].rows">
+        <label class="psm-all-chip" [class.is-disabled]="!canTickAll(row.type)">
+          <input
+            type="checkbox"
+            [disabled]="!canTickAll(row.type)"
+            [checked]="allTicked(row.type)"
+            (change)="tickAll(row.type, $any($event.target).checked)"
+          />
+          {{ row.title }}
+        </label>
+      </ng-container>
+    </div>
+
+    <section class="psm-contact" *ngFor="let c of contacts">
+      <p class="psm-contact-name">
+        {{ c.name || c.email }}
+        <span class="psm-contact-email" *ngIf="c.name">{{ c.email }}</span>
+      </p>
+      <ul class="psm-rows">
+        <li class="psm-row" *ngFor="let row of c.rows" [class.is-blocked]="row.blocked" [class.is-checked]="row.checked">
+          <label class="psm-check">
+            <input type="checkbox" [(ngModel)]="row.checked" [disabled]="!!row.blocked" />
+            <span class="psm-type">{{ row.title }}</span>
+          </label>
+          <div class="psm-detail">
+            <ng-container *ngIf="row.state.available; else unavailable">
+              <span class="psm-label" [title]="$any(row.state).label">{{ $any(row.state).label }}</span>
+              <span class="psm-meta">
+                <span [class.is-never]="!$any(row.state).lastScrapedAt">{{ when(row.state) }}</span>
+                <ng-container *ngIf="$any(row.state).note"> · {{ $any(row.state).note }}</ng-container>
+                <ng-container *ngIf="row.blocked && !$any(row.state).running"> · {{ row.blocked }}</ng-container>
+              </span>
+            </ng-container>
+            <ng-template #unavailable>
+              <span class="psm-meta">{{ row.blocked }}</span>
+            </ng-template>
+          </div>
+        </li>
+      </ul>
+    </section>
+
+    <p class="psm-note">
+      <i class="fa fa-info-circle" aria-hidden="true"></i>
+      Scraping again replaces what KEXY holds for that website, location, LinkedIn profile or city,
+      for every contact and campaign that shares it. Their next email uses the new data. Sports
+      calls only the leagues with a home game this week, and counts towards the monthly limit.
+    </p>
+    <p class="psm-error" *ngIf="error" role="alert">{{ error }}</p>
+  </div>
+
+  <div class="modal-foot">
+    <span class="psm-foot-note">
+      {{ tickedCount ? tickedCount + ' paid scrape' + (tickedCount === 1 ? '' : 's') : 'Nothing ticked yet' }}
+    </span>
+    <div class="psm-foot-right">
+      <button type="button" class="ghost-btn" (click)="activeModal.dismiss()">Cancel</button>
+      <button type="button" class="primary-btn" [disabled]="!tickedCount || starting" (click)="start()">
+        <i class="fa" [ngClass]="starting ? 'fa-circle-o-notch fa-spin' : 'fa-play'" aria-hidden="true"></i>
+        {{ starting ? 'Starting…' : 'Scrape (' + tickedCount + ')' }}
+      </button>
+    </div>
+  </div>
+</div>
