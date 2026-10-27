@@ -5,6 +5,7 @@
   layoutPaddingNone="true"
   headerBgWhite="true"
   [breadcrumbs]="breadcrumbs"
+  (titleClick)="scrapeProspect.onTitleClick()"
 >
   <main class="brand-list-contacts-page">
     <section class="card-area-wrap">
@@ -88,6 +89,31 @@
           textColor="#2847cc"
           radius="8px"
         ></app-kexy-button>
+        <!--Hidden "Scrape Prospect" (`ScrapeProspectService`): shown after 5 quick clicks on the
+            headline, "Hide" puts it away, the KEXY master password unlocks it. Paid. Not for
+            "select all": that is a filter across pages, not a list of contacts (API max 10).-->
+        <ng-container *ngIf="scrapeProspect.shown">
+          <app-kexy-button
+            [disabled]="!selectedContacts.length || selectAllContacts || scrapeProspect.opening || isWaitingFlag || isLoading"
+            (click)="scrapeProspectClick()"
+            [label]="scrapeProspect.opening ? 'Please wait...' : 'Scrape Prospect (' + selectedContacts.length + ')'"
+            [iconLeft]="scrapeProspect.opening ? 'fa-refresh fa-spin' : 'fa-search'"
+            [tooltip]="selectedContacts.length ? 'See and re-scrape website, location, LinkedIn and sports data. Paid, up to 10 contacts.' : 'Select up to 10 contacts first'"
+            bgColor="#e7f6fe"
+            textColor="#2847cc"
+            radius="8px"
+          ></app-kexy-button>
+          <app-kexy-button
+            (click)="scrapeProspect.setShown(false)"
+            label="Hide"
+            iconLeft="fa-eye-slash"
+            tooltip="Hide the Scrape Prospect button"
+            bgColor="#f1f3f7"
+            textColor="#5b6475"
+            radius="8px"
+          ></app-kexy-button>
+        </ng-container>
+
         <app-kexy-button
           *ngIf="!selectedContacts.length"
           label="Import"

@@ -31,6 +31,7 @@ import {
 import { ProspectingContactsComponent } from '../../components/prospecting-contacts/prospecting-contacts.component';
 import { CommonModule } from '@angular/common';
 import { Contact } from '../../models/Contact';
+import { ScrapeProspectService } from '../../services/scrape-prospect.service';
 
 @Component({
   selector: 'app-brand-list-contacts',
@@ -86,8 +87,16 @@ export class BrandListContactsComponent implements OnInit, OnDestroy {
     private _authService: AuthService,
     private pageUiService: PageUiService,
     private cacheVersions: CacheVersionService,
+    /** The hidden "Scrape Prospect" button (shared with Manage Contacts). */
+    public scrapeProspect: ScrapeProspectService,
   ) {
   }
+
+  scrapeProspectClick = () =>
+    this.scrapeProspect.open(
+      this.selectedContacts.map((c) => c.id),
+      this.userData.supplier_id,
+    );
 
   /** Revalidating with rows already on screen — dims the refresh button only. */
   isRefreshing = false;
@@ -107,6 +116,7 @@ export class BrandListContactsComponent implements OnInit, OnDestroy {
 
   async ngOnInit() {
     this.userData = this._authService.userTokenValue;
+    this.scrapeProspect.load(this.userData?.id);
 
     // Set pagination limit from localstorage if found
     const limit = localStorage.getItem(constants.CONTACTS_TABLE_PAGINATION_LIMIT);
