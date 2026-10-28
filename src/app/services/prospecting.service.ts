@@ -949,6 +949,10 @@ export class ProspectingService {
     items: { contactId: number; types: ProspectScrapeType[] }[];
   }): Promise<IProspectScrapeStartResult> => this.__postData('prospect-scrape/start', postData);
 
+  /** This company's Scrape Prospect runs from the last half hour, with each scrape's progress. */
+  prospectScrapeStatus = (postData: { companyId: number }): Promise<IProspectScrapeStatus> =>
+    this.__postData('prospect-scrape/status', postData);
+
   private __postData = <T>(url: string, postData: unknown): Promise<T> =>
     new Promise((resolve, reject) => {
       this.httpService.post(url, postData).subscribe({
@@ -1243,6 +1247,8 @@ export interface IProspectScrapeOverview {
 
 /** KexyApi `ProspectScrapeService.start`. */
 export interface IProspectScrapeStartResult {
+  /** The run to follow on the progress card; null when nothing started. */
+  runId: string | null;
   started: { contactId: number; email: string; type: ProspectScrapeType; label: string }[];
   skipped: {
     contactId: number;
@@ -1250,4 +1256,42 @@ export interface IProspectScrapeStartResult {
     type: ProspectScrapeType;
     reason: 'not_found' | 'not_available' | 'duplicate' | 'just_scraped';
   }[];
+}
+
+/** KexyApi `prospect-scrape-runs.ts`. Web is `saving` from the crawl starting until its pages are saved. */
+export type ProspectScrapeJobState = 'queued' | 'running' | 'saving' | 'done' | 'failed';
+
+/** KexyApi `prospect-scrape-summary.ts`: what a finished scrape saved. */
+export interface IProspectScrapeSummary {
+  facts: { label: string; value: string }[];
+  items: string[];
+}
+
+export interface IProspectScrapeJob {
+  contactId: number;
+  email: string;
+  name: string | null;
+  type: ProspectScrapeType;
+  /** The website, location, LinkedIn username / company page, or sports city. */
+  label: string;
+  state: ProspectScrapeJobState;
+  startedAt: string | null;
+  /** When the scraper answered (web: the crawl started). */
+  calledAt: string | null;
+  finishedAt: string | null;
+  message: string | null;
+  summary: IProspectScrapeSummary | null;
+}
+
+export interface IProspectScrapeRun {
+  id: string;
+  startedAt: string;
+  finishedAt: string | null;
+  jobs: IProspectScrapeJob[];
+}
+
+/** KexyApi `ProspectScrapeService.status`. */
+export interface IProspectScrapeStatus {
+  runs: IProspectScrapeRun[];
+  serverTime: string;
 }

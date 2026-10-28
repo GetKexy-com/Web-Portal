@@ -1,0 +1,122 @@
+<section
+  class="psp-card"
+  *ngFor="let run of runs; let r = index; trackBy: trackRun"
+  [ngClass]="'is-' + phase(run)"
+>
+  <div class="psp-head">
+    <span class="psp-badge" aria-hidden="true">
+      <i class="fa" [ngClass]="phase(run) === 'running' ? 'fa-search' : phase(run) === 'done' ? 'fa-check' : 'fa-exclamation'"></i>
+    </span>
+
+    <div class="psp-headings">
+      <p class="psp-title">{{ title(run) }}</p>
+      <p class="psp-sub">
+        Started {{ run.startedAt | date: 'h:mm a' }}
+        · {{ count(run, 'done') }} of {{ run.jobs.length }} saved
+        <ng-container *ngIf="count(run, 'running', 'saving')"> · {{ count(run, 'running', 'saving') }} in progress</ng-container>
+        <ng-container *ngIf="count(run, 'queued')"> · {{ count(run, 'queued') }} waiting</ng-container>
+        <ng-container *ngIf="count(run, 'failed')"> · <span class="psp-bad">{{ count(run, 'failed') }} failed</span></ng-container>
+      </p>
+    </div>
+
+    <div class="psp-head-actions">
+      <span class="psp-pct">{{ percent(run) }}%</span>
+      <button
+        type="button"
+        class="psp-toggle"
+        (click)="toggle(run, r)"
+        [attr.aria-expanded]="isOpen(run, r)"
+        [attr.aria-controls]="'psp-details-' + run.id"
+      >
+        {{ isOpen(run, r) ? 'Hide details' : 'Show details' }}
+        <i class="fa" [ngClass]="isOpen(run, r) ? 'fa-chevron-up' : 'fa-chevron-down'" aria-hidden="true"></i>
+      </button>
+      <button
+        *ngIf="!scrapeProspect.isActive(run)"
+        type="button"
+        class="psp-icon-btn"
+        title="Dismiss"
+        aria-label="Dismiss"
+        (click)="scrapeProspect.dismiss(run.id)"
+      >
+        <i class="fa fa-times" aria-hidden="true"></i>
+      </button>
+    </div>
+  </div>
+
+  <div
+    class="psp-track"
+    role="progressbar"
+    [attr.aria-valuenow]="percent(run)"
+    aria-valuemin="0"
+    aria-valuemax="100"
+    [attr.aria-label]="title(run)"
+  >
+    <div class="psp-fill" [style.width.%]="percent(run)"></div>
+  </div>
+
+  <div class="psp-details" *ngIf="isOpen(run, r)" [id]="'psp-details-' + run.id">
+    <div class="psp-contact" *ngFor="let c of contacts(run); trackBy: trackContact">
+      <p class="psp-contact-name">
+        {{ c.name || c.email }}
+        <span class="psp-contact-email" *ngIf="c.name">{{ c.email }}</span>
+      </p>
+
+      <div class="psp-job" *ngFor="let item of c.jobs; trackBy: trackJob" [ngClass]="'is-' + item.job.state">
+        <div class="psp-job-head">
+          <span class="psp-type">
+            <i class="fa fa-fw" [ngClass]="TYPES[item.job.type].icon" aria-hidden="true"></i>
+            {{ TYPES[item.job.type].title }}
+          </span>
+          <span class="psp-subject" [title]="item.job.label">{{ item.job.label }}</span>
+          <span class="psp-state">
+            <i *ngIf="item.job.state === 'running' || item.job.state === 'saving'" class="fa fa-circle-o-notch fa-spin" aria-hidden="true"></i>
+            {{ stateText(item.job) }}
+          </span>
+        </div>
+
+        <!--Every step of this scrape: done ones ticked, the current one pulsing, a failed one red.-->
+        <ol class="psp-steps">
+          <li *ngFor="let step of steps(item.job)" [ngClass]="'is-' + step.state">
+            <span class="psp-step-mark" aria-hidden="true"></span>
+            <span class="psp-step-label">{{ step.label }}</span>
+          </li>
+        </ol>
+
+        <p class="psp-meta">
+          {{ timing(item.job, run) }}
+          <ng-container *ngIf="item.job.startedAt"> · started {{ item.job.startedAt | date: 'h:mm:ss a' }}</ng-container>
+        </p>
+        <p class="psp-message" *ngIf="item.job.message" [class.is-error]="item.job.state === 'failed'">
+          <i class="fa" [ngClass]="item.job.state === 'failed' ? 'fa-exclamation-circle' : 'fa-info-circle'" aria-hidden="true"></i>
+          {{ item.job.message }}
+        </p>
+
+        <ng-container *ngIf="item.job.state === 'done'">
+          <button type="button" class="psp-saved-toggle" (click)="toggleSaved(run, item.index)" [attr.aria-expanded]="savedOpen(run, item.index)">
+            <i class="fa" [ngClass]="savedOpen(run, item.index) ? 'fa-caret-down' : 'fa-caret-right'" aria-hidden="true"></i>
+            What was saved
+          </button>
+          <div class="psp-saved" *ngIf="savedOpen(run, item.index)">
+            <ng-container *ngIf="item.job.summary; else noSummary">
+              <dl class="psp-facts" *ngIf="item.job.summary.facts.length">
+                <ng-container *ngFor="let f of item.job.summary.facts">
+                  <dt>{{ f.label }}</dt>
+                  <dd [title]="f.value">{{ f.value }}</dd>
+                </ng-container>
+              </dl>
+              <ng-container *ngIf="item.job.summary.items.length">
+                <p class="psp-items-title">{{ TYPES[item.job.type].items }}</p>
+                <ul class="psp-items">
+                  <li *ngFor="let line of item.job.summary.items" [title]="line">{{ line }}</li>
+                </ul>
+              </ng-container>
+              <p class="psp-empty" *ngIf="!item.job.summary.facts.length && !item.job.summary.items.length">Nothing was stored.</p>
+            </ng-container>
+            <ng-template #noSummary><p class="psp-empty">Nothing is stored for this yet.</p></ng-template>
+          </div>
+        </ng-container>
+      </div>
+    </div>
+  </div>
+</section>

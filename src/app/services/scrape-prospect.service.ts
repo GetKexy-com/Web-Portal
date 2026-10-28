@@ -5,6 +5,7 @@ import { ProspectScrapeModalComponent } from '../components/prospect-scrape-moda
 import { errorText, kxForm, kxNotice } from '../helpers/kx-dialogs';
 import {
   IProspectScrapeOverview,
+  IProspectScrapeRun,
   IProspectScrapeStartResult,
   ProspectingService,
 } from './prospecting.service';
@@ -18,7 +19,13 @@ import {
  *   account (the key carries the user id), and shared by both pages;
  * - the real lock is the KEXY master password (not the account's), which KexyApi checks
  *   before showing anything and again before scraping.
- * A root singleton, so both pages read the same `shown`. Each page calls `load` on init.
+ * A root singleton, so both pages read the same `shown` and `runs`. Each page calls `load` on
+ * init.
+ *
+ * Progress (`prospect-scrape-progress`, above both pages' toolbars): after Start, and on load
+ * while the button is shown, `prospect-scrape/status` is polled every few seconds until every
+ * scrape of the company's recent runs is done or failed. The server keeps a run for half an
+ * hour after it ends; "Dismiss" hides a finished one in this tab.
  */
 @Injectable({ providedIn: 'root' })
 export class ScrapeProspectService {
@@ -28,22 +35,73 @@ export class ScrapeProspectService {
   /** The password popup or the overview request is open. */
   opening = false;
 
+  /** This company's recent runs, newest first, minus dismissed ones. */
+  runs: IProspectScrapeRun[] = [];
+  /** Server clock minus this browser's, so elapsed times don't drift with a skewed clock. */
+  clockOffsetMs = 0;
+
   private userId: number | string = 'anon';
   private titleClicks: number[] = [];
+  private companyId: number | null = null;
+  private dismissed = new Set<string>();
+  private pollTimer: ReturnType<typeof setTimeout> | null = null;
+  private static readonly POLL_MS = 4000;
 
   constructor(
     private prospectingService: ProspectingService,
     private modal: NgbModal,
   ) {}
 
-  /** Reads this account's setting (another login in the same browser has its own). */
-  load(userId: number | string | null | undefined): void {
+  /**
+   * Reads this account's setting (another login in the same browser has its own) and, while
+   * the button is shown, picks up any scrape still running (e.g. after a page reload).
+   */
+  load(userId: number | string | null | undefined, companyId?: number | null): void {
     this.userId = userId ?? 'anon';
     try {
       this.shown = localStorage.getItem(this.__key()) === '1';
     } catch {
       this.shown = false;
     }
+    if (companyId && Number(companyId) !== this.companyId) {
+      this.__stopPolling();
+      this.runs = [];
+      this.companyId = Number(companyId);
+    }
+    if (this.shown && this.companyId) this.refreshProgress();
+  }
+
+  /** Whether any scrape of these runs is still queued, running or saving. */
+  isActive(run: IProspectScrapeRun): boolean {
+    return run.jobs.some((j) => j.state !== 'done' && j.state !== 'failed');
+  }
+
+  dismiss(runId: string): void {
+    this.dismissed.add(runId);
+    this.runs = this.runs.filter((r) => r.id !== runId);
+  }
+
+  /** One status read; keeps polling while anything is unfinished. Errors wait for the next tick. */
+  async refreshProgress(): Promise<void> {
+    if (!this.companyId) return;
+    const companyId = this.companyId;
+    this.__stopPolling();
+    try {
+      const status = await this.prospectingService.prospectScrapeStatus({ companyId });
+      if (companyId !== this.companyId) return; // the page changed company meanwhile
+      this.runs = status.runs.filter((r) => !this.dismissed.has(r.id));
+      this.clockOffsetMs = new Date(status.serverTime).getTime() - Date.now();
+    } catch (e) {
+      console.error('Could not read Scrape Prospect progress', e);
+    }
+    if (this.runs.some((r) => this.isActive(r))) {
+      this.pollTimer = setTimeout(() => this.refreshProgress(), ScrapeProspectService.POLL_MS);
+    }
+  }
+
+  private __stopPolling(): void {
+    if (this.pollTimer) clearTimeout(this.pollTimer);
+    this.pollTimer = null;
   }
 
   /** Five clicks on the page headline within 3 seconds shows the button. */
@@ -58,6 +116,9 @@ export class ScrapeProspectService {
 
   setShown(shown: boolean): void {
     this.shown = shown;
+    // The progress card is part of the hidden tool: it goes and comes back with the button.
+    if (shown) this.refreshProgress();
+    else this.__stopPolling();
     try {
       if (shown) localStorage.setItem(this.__key(), '1');
       else localStorage.removeItem(this.__key());
@@ -117,6 +178,9 @@ export class ScrapeProspectService {
     } catch {
       return; // Cancel / × / Esc
     }
+    // The progress card shows the run from here on.
+    this.companyId = Number(companyId);
+    if (result.runId) this.refreshProgress();
     await kxNotice({
       title: result.started.length ? 'Scraping started' : 'Nothing was scraped',
       text: this.__summary(result),
@@ -143,7 +207,8 @@ export class ScrapeProspectService {
     if (n) {
       lines.push(
         `Started ${n} scrape${n === 1 ? '' : 's'}. LinkedIn and Location take about a minute, ` +
-          'Website and Sports a few minutes; their next email uses the new data.',
+          'Website and Sports a few minutes; follow each one on the progress card above the ' +
+          'contacts. Their next email uses the new data.',
       );
     }
     for (const s of result.skipped) {

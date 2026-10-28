@@ -37,6 +37,7 @@ import { TimeAgoComponent } from '../../components/time-ago/time-ago.component';
 import { Contact, ContactOrganization } from '../../models/Contact';
 import { PageUiService } from '../../services/page-ui.service';
 import { ScrapeProspectService } from '../../services/scrape-prospect.service';
+import { ProspectScrapeProgressComponent } from '../../components/prospect-scrape-progress/prospect-scrape-progress.component';
 
 @Component({
   selector: 'brand-contacts',
@@ -48,6 +49,7 @@ import { ScrapeProspectService } from '../../services/scrape-prospect.service';
     SearchContactModalContentComponent,
     CommonModule,
     TimeAgoComponent,
+    ProspectScrapeProgressComponent,
   ],
   templateUrl: './brand-contacts.component.html',
   styleUrl: './brand-contacts.component.scss',
@@ -115,7 +117,7 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
 
   async ngOnInit() {
     this.userData = this._authService.userTokenValue;
-    this.scrapeProspect.load(this.userData?.id);
+    this.scrapeProspect.load(this.userData?.id, this.userData?.supplier_id);
     this.supplierId = this.userData.supplier_id;
 
     this.getQueryParams();

@@ -22,6 +22,8 @@
         through #contactCard since that logic lives on the card.-->
     <!--Import / verification progress, above the toolbar: the toolbar and the table are one card.-->
     <ng-container [ngTemplateOutlet]="contactCard.progressBanners"></ng-container>
+    <!--Hidden "Scrape Prospect" progress: every scrape, its steps and what it saved.-->
+    <prospect-scrape-progress *ngIf="scrapeProspect.shown"></prospect-scrape-progress>
 
     <div class="actions-bar">
       <div class="actions-bar-snapshot">
