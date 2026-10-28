@@ -414,6 +414,48 @@ $st-amber-bg: #fef3d9;
               font-weight: 600;
               color: $kx-ink;
             }
+
+            .name-stack {
+              display: inline-flex;
+              flex-direction: column;
+              min-width: 0;
+              line-height: 1.25;
+            }
+
+            // Hidden Scrape Prospect tool: one compact line, so the row keeps its 54px height.
+            .scrape-line {
+              display: inline-flex;
+              gap: 8px;
+              margin-top: 2px;
+              font-size: 11px;
+              font-weight: 500;
+              text-transform: none;
+            }
+
+            .scrape-chip {
+              display: inline-flex;
+              align-items: center;
+              gap: 3px;
+              color: #475569;
+              cursor: default;
+
+              .fa {
+                font-size: 11px;
+                color: #94a3b8;
+              }
+
+              &.is-never {
+                color: #b45309;
+              }
+
+              &.is-running {
+                color: #2563eb;
+              }
+
+              &.is-none {
+                color: #cbd5e1;
+              }
+            }
           }
 
           // ── Marketing status pill ──────────────────────────────────────

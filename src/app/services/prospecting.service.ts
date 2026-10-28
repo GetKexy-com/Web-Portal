@@ -949,6 +949,17 @@ export class ProspectingService {
     items: { contactId: number; types: ProspectScrapeType[] }[];
   }): Promise<IProspectScrapeStartResult> => this.__postData('prospect-scrape/start', postData);
 
+  /** Checks the KEXY master password before the tool is shown (403 wrong, 429 too many tries). */
+  prospectScrapeUnlock = (postData: { companyId: number; masterPassword: string }): Promise<{ unlocked: true }> =>
+    this.__postData('prospect-scrape/unlock', postData);
+
+  /** When each contact (a table page, ≤1000) was last scraped, per type. Reads only, no password. */
+  prospectScrapeLastScraped = (postData: {
+    companyId: number;
+    contactIds: number[];
+  }): Promise<{ contacts: Record<number, Record<ProspectScrapeType, IProspectScrapeState>> }> =>
+    this.__postData('prospect-scrape/last-scraped', postData);
+
   /** This company's Scrape Prospect runs from the last half hour, with each scrape's progress. */
   prospectScrapeStatus = (postData: { companyId: number }): Promise<IProspectScrapeStatus> =>
     this.__postData('prospect-scrape/status', postData);
