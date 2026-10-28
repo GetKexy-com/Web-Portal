@@ -88,6 +88,11 @@ export class ResetPasswordComponent {
             }
             this.error = message;
           }
+        }, (err) => {
+          // A refused reset (wrong code, or too many wrong codes: KexyApi answers 429 for 15
+          // minutes) used to leave the spinner running with no message.
+          this.isWaitingFlag = false;
+          this.error = typeof err?.error === 'string' ? err.error : 'There was an error!';
         });
     }
   }
