@@ -69,6 +69,10 @@ export class ForgotPasswordComponent {
             }
             this.error = message;
           }
+        }, (err) => {
+          // A refusal (KexyApi: "Too many reset emails", 429) used to leave the spinner running.
+          this.isWaitingFlag = false;
+          this.error = typeof err?.error === 'string' ? err.error : 'There was an error!';
         });
     }
   }

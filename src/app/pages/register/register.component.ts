@@ -412,7 +412,8 @@ export class RegisterComponent implements OnInit {
       }
     } catch (err) {
       this.isWaitingFlag.set(false);
-      this.error.set("There was an error processing your request.");
+      // The server's reason (e.g. "Too many sign-up attempts", or the email is taken).
+      this.error.set(typeof err?.error === "string" ? err.error : "There was an error processing your request.");
     }
   }
 
