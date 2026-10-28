@@ -1,0 +1,404 @@
+/* Scrape Prospect progress: the page's slate/blue set (12px radius, white card, 1px border +
+   accent edge). Sits above the toolbar in a bounded flex column page, so it never grows the
+   page: the details scroll inside their own box past 45% of the screen. */
+
+:host {
+  display: block;
+  flex-shrink: 0;
+}
+
+.psp-card {
+  --psp-accent: #2563eb;
+  --psp-accent-soft: #dbeafe;
+  --psp-border: #e2e8f0;
+  --psp-text: #0f172a;
+  --psp-muted: #64748b;
+
+  margin: 0 0 12px;
+  padding: 14px 16px;
+  background: #ffffff;
+  border: 1px solid var(--psp-border);
+  border-left: 3px solid var(--psp-accent);
+  border-radius: 12px;
+
+  &.is-done {
+    --psp-accent: #059669;
+    --psp-accent-soft: #d1fae5;
+  }
+
+  &.is-partial {
+    --psp-accent: #d97706;
+    --psp-accent-soft: #fef3c7;
+  }
+
+  &.is-failed {
+    --psp-accent: #dc2626;
+    --psp-accent-soft: #fee2e2;
+  }
+}
+
+.psp-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.psp-badge {
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--psp-accent-soft);
+  color: var(--psp-accent);
+}
+
+.psp-headings {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.psp-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--psp-text);
+}
+
+.psp-sub {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: var(--psp-muted);
+}
+
+.psp-bad {
+  color: #dc2626;
+  font-weight: 600;
+}
+
+.psp-head-actions {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.psp-pct {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--psp-accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.psp-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border: 1px solid var(--psp-border);
+  border-radius: 8px;
+  background: #f8fafc;
+  font-size: 12px;
+  font-weight: 600;
+  color: #334155;
+  cursor: pointer;
+
+  &:hover {
+    background: #f1f5f9;
+  }
+}
+
+.psp-icon-btn {
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--psp-muted);
+  cursor: pointer;
+
+  &:hover {
+    background: #f1f5f9;
+  }
+}
+
+.psp-track {
+  margin-top: 10px;
+  height: 6px;
+  background: #eef2f7;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.psp-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--psp-accent);
+  transition: width 500ms ease;
+}
+
+/* ── Details ───────────────────────────────────────────────────────────── */
+
+.psp-details {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--psp-border);
+  max-height: 45vh;
+  overflow-y: auto;
+  display: grid;
+  gap: 14px;
+}
+
+.psp-contact-name {
+  margin: 0 0 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--psp-text);
+}
+
+.psp-contact-email {
+  margin-left: 6px;
+  font-weight: 400;
+  color: var(--psp-muted);
+}
+
+.psp-job {
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  border: 1px solid var(--psp-border);
+  border-radius: 10px;
+  background: #fbfcfe;
+
+  &.is-failed {
+    border-color: #fecaca;
+    background: #fef2f2;
+  }
+
+  &.is-done {
+    background: #ffffff;
+  }
+}
+
+.psp-job-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+}
+
+.psp-type {
+  flex: 0 0 auto;
+  font-weight: 700;
+  color: var(--psp-text);
+}
+
+.psp-subject {
+  flex: 1 1 auto;
+  min-width: 0;
+  color: var(--psp-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.psp-state {
+  flex: 0 0 auto;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #e2e8f0;
+  color: #475569;
+
+  .is-running &,
+  .is-saving & {
+    background: #dbeafe;
+    color: #2563eb;
+  }
+
+  .is-done & {
+    background: #d1fae5;
+    color: #059669;
+  }
+
+  .is-failed & {
+    background: #fee2e2;
+    color: #dc2626;
+  }
+}
+
+/* Steps: a row of marks joined by a line. */
+.psp-steps {
+  list-style: none;
+  margin: 10px 0 6px;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 0;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #94a3b8;
+
+    &:not(:last-child)::after {
+      content: '';
+      width: 22px;
+      height: 2px;
+      margin: 0 6px;
+      background: #e2e8f0;
+    }
+
+    &.is-done {
+      color: #059669;
+
+      &::after {
+        background: #6ee7b7;
+      }
+    }
+
+    &.is-current {
+      color: #2563eb;
+      font-weight: 600;
+    }
+
+    &.is-failed {
+      color: #dc2626;
+      font-weight: 600;
+    }
+  }
+}
+
+.psp-step-mark {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  background: #ffffff;
+
+  .is-done & {
+    background: currentColor;
+  }
+
+  .is-current & {
+    animation: psp-blink 1.2s ease-in-out infinite;
+  }
+
+  .is-failed & {
+    background: currentColor;
+  }
+}
+
+.psp-meta {
+  margin: 0;
+  font-size: 12px;
+  color: var(--psp-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.psp-message {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: #334155;
+
+  &.is-error {
+    color: #b91c1c;
+  }
+}
+
+.psp-saved-toggle {
+  margin-top: 6px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: 12px;
+  font-weight: 600;
+  color: #2563eb;
+  cursor: pointer;
+}
+
+.psp-saved {
+  margin-top: 6px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.psp-facts {
+  margin: 0;
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 3px 12px;
+  font-size: 12px;
+
+  dt {
+    color: var(--psp-muted);
+    font-weight: 500;
+  }
+
+  dd {
+    margin: 0;
+    color: var(--psp-text);
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.psp-items-title {
+  margin: 8px 0 2px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--psp-muted);
+}
+
+.psp-items {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 12px;
+  color: #334155;
+
+  li {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.psp-empty {
+  margin: 0;
+  font-size: 12px;
+  color: var(--psp-muted);
+}
+
+@keyframes psp-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .psp-step-mark,
+  .fa-spin {
+    animation: none !important;
+  }
+}
+
+@media (max-width: 767px) {
+  .psp-head {
+    flex-wrap: wrap;
+  }
+
+  .psp-job-head {
+    flex-wrap: wrap;
+  }
+}

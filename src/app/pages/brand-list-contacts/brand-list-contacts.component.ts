@@ -32,6 +32,7 @@ import { ProspectingContactsComponent } from '../../components/prospecting-conta
 import { CommonModule } from '@angular/common';
 import { Contact } from '../../models/Contact';
 import { ScrapeProspectService } from '../../services/scrape-prospect.service';
+import { ProspectScrapeProgressComponent } from '../../components/prospect-scrape-progress/prospect-scrape-progress.component';
 
 @Component({
   selector: 'app-brand-list-contacts',
@@ -43,6 +44,7 @@ import { ScrapeProspectService } from '../../services/scrape-prospect.service';
     UploadFileModalContentComponent,
     CommonModule,
     TimeAgoComponent,
+    ProspectScrapeProgressComponent,
   ],
   templateUrl: './brand-list-contacts.component.html',
   styleUrl: './brand-list-contacts.component.scss',
@@ -116,7 +118,7 @@ export class BrandListContactsComponent implements OnInit, OnDestroy {
 
   async ngOnInit() {
     this.userData = this._authService.userTokenValue;
-    this.scrapeProspect.load(this.userData?.id);
+    this.scrapeProspect.load(this.userData?.id, this.userData?.supplier_id);
 
     // Set pagination limit from localstorage if found
     const limit = localStorage.getItem(constants.CONTACTS_TABLE_PAGINATION_LIMIT);
