@@ -204,7 +204,15 @@
 
                 <span *ngIf="column.key === 'name'" class="name-cell">
                   <span class="avatar" [ngClass]="getAvatarClass(contact)">{{ getContactInitials(contact) }}</span>
-                  <span class="name-text text-capitalize">{{ getCellValueToDisplay(contact, column) || 'N/A' }}</span>
+                  <span class="name-stack">
+                    <span class="name-text text-capitalize">{{ getCellValueToDisplay(contact, column) || 'N/A' }}</span>
+                    <!--Hidden Scrape Prospect tool: when each research type was last scraped (hover for details).-->
+                    <span class="scrape-line" *ngIf="scrapeLines[contact.id] as line">
+                      <span *ngFor="let s of line" class="scrape-chip" [ngClass]="s.cls" [title]="s.title">
+                        <i class="fa" [ngClass]="s.icon" aria-hidden="true"></i>{{ s.text }}
+                      </span>
+                    </span>
+                  </span>
                 </span>
 
                 <span *ngIf="column.key === 'created'">

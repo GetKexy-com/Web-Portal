@@ -21,7 +21,8 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import {
   ContactLabelsModalContentComponent,
 } from '../contact-labels-modal-content/contact-labels-modal-content.component';
-import { ProspectingService } from '../../services/prospecting.service';
+import { IProspectScrapeState, ProspectingService, ProspectScrapeType } from '../../services/prospecting.service';
+import { ScrapeProspectService } from '../../services/scrape-prospect.service';
 import { PageUiService } from '../../services/page-ui.service';
 import { CommonModule, DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -106,16 +107,72 @@ export class ContactListCardComponent implements OnInit, OnChanges, OnDestroy, A
   public jumping: boolean = false;
   public loadingSubscription: Subscription;
 
-  constructor(private _authService: AuthService, private modal: NgbModal, private prospectingService: ProspectingService, private pageUiService: PageUiService, private host: ElementRef, private cdr: ChangeDetectorRef) {
+  constructor(private _authService: AuthService, private modal: NgbModal, private prospectingService: ProspectingService, private pageUiService: PageUiService, private host: ElementRef, private cdr: ChangeDetectorRef, public scrapeProspect: ScrapeProspectService) {
   }
+
+  /**
+   * The hidden Scrape Prospect tool's "last scraped" line under each name, per contact id
+   * (`ScrapeProspectService.lastScraped`, rebuilt when it changes). Empty while the tool is hidden.
+   */
+  scrapeLines: Record<number, { icon: string; text: string; cls: string; title: string }[]> = {};
+  private scrapeSubscription: Subscription;
 
   ngOnInit(): void {
     this.userData = this._authService.userTokenValue;
+    this.scrapeSubscription = this.scrapeProspect.changes.subscribe(() => {
+      this.__buildScrapeLines();
+      this.cdr.markForCheck();
+    });
+    this.__buildScrapeLines();
+  }
+
+  private __buildScrapeLines(): void {
+    const types: { type: ProspectScrapeType; title: string; icon: string }[] = [
+      { type: 'web', title: 'Website', icon: 'fa-globe' },
+      { type: 'location', title: 'Location', icon: 'fa-map-marker' },
+      { type: 'linkedin', title: 'LinkedIn', icon: 'fa-linkedin' },
+      { type: 'sports', title: 'Sports', icon: 'fa-trophy' },
+    ];
+    const lines: typeof this.scrapeLines = {};
+    if (this.scrapeProspect.shown) {
+      for (const [id, scrapes] of Object.entries(this.scrapeProspect.lastScraped)) {
+        lines[Number(id)] = types.map(({ type, title, icon }) => {
+          const state: IProspectScrapeState | undefined = scrapes?.[type];
+          if (!state?.available) {
+            return { icon, text: '—', cls: 'is-none', title: `${title}: nothing to scrape` };
+          }
+          if (state.running) return { icon, text: 'now', cls: 'is-running', title: `${title}: being scraped now (${state.label})` };
+          if (!state.lastScrapedAt) return { icon, text: 'never', cls: 'is-never', title: `${title}: never scraped (${state.label})` };
+          const at = new Date(state.lastScrapedAt);
+          return {
+            icon,
+            text: this.__age(at),
+            cls: 'is-done',
+            title: `${title}: scraped ${at.toLocaleString()} (${state.label})${state.note ? ' · ' + state.note : ''}`,
+          };
+        });
+      }
+    }
+    this.scrapeLines = lines;
+  }
+
+  /** "now", "5m", "3h", "12d", "4mo", "2y". */
+  private __age(at: Date): string {
+    const minutes = Math.max(0, Math.round((Date.now() - at.getTime()) / 60_000));
+    if (minutes < 1) return 'now';
+    if (minutes < 60) return `${minutes}m`;
+    const hours = Math.round(minutes / 60);
+    if (hours < 24) return `${hours}h`;
+    const days = Math.round(hours / 24);
+    if (days < 60) return `${days}d`;
+    const months = Math.round(days / 30);
+    return months < 24 ? `${months}mo` : `${Math.round(months / 12)}y`;
   }
 
   // Start/stop polling whenever the bound list changes (e.g. a list that's
   // already mid-verification when the card loads).
   ngOnChanges(changes: SimpleChanges): void {
+    if (changes['contacts']) this.scrapeProspect.setTableContacts((this.contacts ?? []).map((c) => Number(c.id)));
     // Clear the "Go to page" spinner once the parent finishes loading.
     if (changes['isLoading'] && !this.isLoading) this.jumping = false;
     if (changes['listInfo']) {
@@ -131,6 +188,7 @@ export class ContactListCardComponent implements OnInit, OnChanges, OnDestroy, A
 
   ngOnDestroy(): void {
     this.__widthObserver?.disconnect();
+    this.scrapeSubscription?.unsubscribe();
     if (this.loadingSubscription) this.loadingSubscription.unsubscribe();
     this.stopValidationPolling();
     this.stopImportPolling();
