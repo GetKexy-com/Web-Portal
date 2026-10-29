@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import {
   AbstractControl,
   FormArray,
@@ -117,9 +117,34 @@ export class ProspectingContactsComponent implements OnInit, AfterViewInit, OnDe
   ) {
   }
 
+  /** True while a contact reopened from the address (`?contact=<id>`) is still loading. */
+  isLoadingContact = false;
+
   ngOnInit(): void {
     this.userData = this._authService.userTokenValue;
     this.supplierId = this.userData.supplier_id;
+
+    // Reopened after a reload: show the drawer now, fill it when the contact arrives.
+    const pending = this.prospectingService.pendingDrawerContact;
+    if (pending) {
+      this.prospectingService.pendingDrawerContact = null;
+      this.isLoadingContact = true;
+      pending.then((contact) => {
+        if (!contact) {
+          // Deleted, another account's, or a mistyped id: close (which drops `?contact=`).
+          this.activeCanvas.dismiss('Contact not found');
+          return;
+        }
+        this.prospectingService.clickedContactInContactPage = [contact];
+        this.__init();
+        this.isLoadingContact = false;
+      });
+      return;
+    }
+    this.__init();
+  }
+
+  private __init(): void {
 
     // Get edit data
     if (this.prospectingService.clickedContactInContactPage.length) {
@@ -210,6 +235,20 @@ export class ProspectingContactsComponent implements OnInit, AfterViewInit, OnDe
       if (progress < 1) requestAnimationFrame(step);
     };
     requestAnimationFrame(step);
+  }
+
+  /**
+   * Reloading or closing the tab with typed, unsaved edits: the browser's own "Leave site?".
+   * A reload reopens the drawer (`?contact=`, `helpers/contact-drawer-url.ts`) but with the
+   * saved contact, so typed text would be lost. Only typing marks the form dirty; a custom
+   * property added or removed through a popup does not trigger this.
+   */
+  @HostListener('window:beforeunload', ['$event'])
+  onBeforeUnload(event: BeforeUnloadEvent) {
+    if (this.primaryForm?.dirty) {
+      event.preventDefault();
+      event.returnValue = '';
+    }
   }
 
   ngOnDestroy() {
@@ -1004,7 +1043,11 @@ export class ProspectingContactsComponent implements OnInit, AfterViewInit, OnDe
         this.getAndSetLabels();
       }
       await this.prospectingService.getContacts(getContactApiPostData, true);
-      if (keepOpen) return true;
+      if (keepOpen) {
+        // Saved: a reload now loses nothing, so `onBeforeUnload` must not ask.
+        this.primaryForm.markAsPristine();
+        return true;
+      }
       this.prospectingService.selectedContactsInContactsPage = [];
 
       this.activeCanvas.dismiss('Cross click');

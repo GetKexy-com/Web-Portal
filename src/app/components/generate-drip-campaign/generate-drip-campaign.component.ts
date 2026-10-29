@@ -5,7 +5,7 @@ import {
   linkedinUsername,
   readDripSetting,
 } from '../../helpers/ai-email-payload';
-import { NgbModal, NgbOffcanvas } from '@ng-bootstrap/ng-bootstrap';
+import { NgbModal, NgbOffcanvas, NgbOffcanvasRef } from '@ng-bootstrap/ng-bootstrap';
 import { AuthService } from '../../services/auth.service';
 import { Subscription } from 'rxjs';
 import Swal from 'sweetalert2';
@@ -39,7 +39,16 @@ import {
 import {
   EmailTimeSettingsContentComponent,
 } from '../email-time-settings-content/email-time-settings-content.component';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
+import { setUrlParams, trackDrawerInUrl } from '../../helpers/drawer-url';
+
+/**
+ * An email card's drawer in the address: `?email=<emailId>&panel=insights|update|preview`,
+ * so a reload or a copied link opens it again (`helpers/drawer-url.ts`).
+ */
+const EMAIL_DRAWER_PARAM = 'email';
+const EMAIL_PANEL_PARAM = 'panel';
+type EmailPanel = 'insights' | 'update' | 'preview';
 import { PageUiService } from '../../services/page-ui.service';
 import { Contact, IRawContact } from '../../models/Contact';
 import { PreviewDripEmailContentComponent } from '../preview-drip-email-content/preview-drip-email-content.component';
@@ -133,6 +142,7 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
     private _authService: AuthService,
     private route: ActivatedRoute,
     private router: Router,
+    private location: Location,
   ) {
   }
 
@@ -236,6 +246,36 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
       if (this.showScrapeProgress && !this.scrapeCardVisible) this.__refreshDripCampaign().then();
     });
     this.getDripCampaignProspects().then(res => {
+    });
+
+    // The page shows this step only once the campaign (and so `this.emails`) has loaded,
+    // so a drawer in the address can open straight away.
+    this.__reopenEmailDrawer();
+  }
+
+  /** After a reload with `?email=<id>&panel=…`: open that email's drawer again. */
+  private __reopenEmailDrawer() {
+    const params = this.route.snapshot.queryParamMap;
+    const emailId = params.get(EMAIL_DRAWER_PARAM);
+    const panel = params.get(EMAIL_PANEL_PARAM) as EmailPanel;
+    if (!emailId) return;
+    const email = (this.emails || []).find((e) => String(e.id) === emailId);
+    if (!email) {
+      // Deleted, or another campaign's: just drop it from the address.
+      setUrlParams(this.location, this.router, { [EMAIL_DRAWER_PARAM]: null, [EMAIL_PANEL_PARAM]: null });
+      return;
+    }
+    if (panel === 'insights') this.insightsBtnClick(email);
+    else if (panel === 'preview') this.handlePreviewBtnClick(email);
+    else this.showEmailDetailsBtnClick(email);
+  }
+
+  /** Keeps an email card's open drawer in the address. Unsaved emails have no id, so no address. */
+  private __trackEmailDrawer(ref: NgbOffcanvasRef, email, panel: EmailPanel) {
+    if (!email?.id) return;
+    trackDrawerInUrl(this.location, this.router, ref, {
+      [EMAIL_DRAWER_PARAM]: email.id,
+      [EMAIL_PANEL_PARAM]: panel,
     });
   }
 
@@ -574,7 +614,8 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
   showEmailDetailsBtnClick = async (email) => {
     this.dripCampaignService.setEditEmail(email);
     this.dripCampaignService.setHasPromotion(!!this.selectedPromotionsProductName);
-    this.__createRightSideSlide(SendEmailDetailsContentComponent, 'email-content');
+    const ref = this.__createRightSideSlide(SendEmailDetailsContentComponent, 'email-content');
+    this.__trackEmailDrawer(ref, email, 'update');
 
     if (!this.contactList?.length) {
       const enrollList = this.getEnrolledList();
@@ -589,7 +630,8 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
   handlePreviewBtnClick = async (email) => {
     this.dripCampaignService.setEditEmail(email);
     this.dripCampaignService.setHasPromotion(!!this.selectedPromotionsProductName);
-    this.__createRightSideSlide(PreviewDripEmailContentComponent, 'email-preview');
+    const ref = this.__createRightSideSlide(PreviewDripEmailContentComponent, 'email-preview');
+    this.__trackEmailDrawer(ref, email, 'preview');
   };
 
   /**
@@ -637,6 +679,7 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
     ref.componentInstance.emailSubject = email.emailSubject || '';
     // Opened from a Delay card's countdown: land on the Prospects tab that prospect is in.
     ref.componentInstance.prospectsFilter = prospectsFilter;
+    this.__trackEmailDrawer(ref, email, 'insights');
   };
 
   showEmailDelayBtnClick = (email) => {

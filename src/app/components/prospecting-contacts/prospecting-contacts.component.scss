@@ -558,3 +558,37 @@ $kx-amber-bg: #fef3d9;
     }
   }
 }
+
+// ── Loading placeholder (drawer reopened after a reload) ───────────────────
+.canvas-content-wrap .contact-loading {
+  .fields-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+
+  .sk {
+    display: block;
+    border-radius: 8px;
+    background: linear-gradient(90deg, #eef2f7 25%, #f6f8fb 37%, #eef2f7 63%);
+    background-size: 400% 100%;
+    animation: pc-sk 1.3s ease infinite;
+  }
+
+  .sk-head {
+    width: 40%;
+    height: 22px;
+    margin-bottom: 18px;
+  }
+
+  .sk-field { height: 44px; }
+}
+
+@keyframes pc-sk {
+  0% { background-position: 100% 50%; }
+  100% { background-position: 0 50%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .canvas-content-wrap .contact-loading .sk { animation: none; }
+}
