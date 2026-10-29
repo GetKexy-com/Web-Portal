@@ -211,9 +211,10 @@
           <i class="fa fa-list-alt section-icon" aria-hidden="true"></i>
           <span class="section-title">Custom Properties</span>
           <!-- Manage: every property in a popup (remove / add several at once); the hover
-               "⋯" menu is the quick way to remove a single one. -->
+               "⋯" menu is the quick way to remove a single one. Shown even with no
+               properties, so the section looks the same for every contact. -->
           <div class="section-actions">
-            <button type="button" class="manage-properties-btn" *ngIf="hasCustomProperties" (click)="manageCustomProperties()">
+            <button type="button" class="manage-properties-btn" (click)="manageCustomProperties()">
               <i class="fa fa-sliders" aria-hidden="true"></i> Manage
             </button>
             <button type="button" class="add-property-btn" (click)="addCustomProperty()">
