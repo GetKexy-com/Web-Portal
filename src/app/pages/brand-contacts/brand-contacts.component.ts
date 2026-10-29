@@ -31,7 +31,12 @@ import {
 import {
   AddContactsToDripCampaignComponent,
 } from '../../components/add-contacts-to-drip-campaign/add-contacts-to-drip-campaign.component';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
+import {
+  CONTACT_DRAWER_PARAM,
+  NEW_CONTACT_DRAWER,
+  trackContactDrawer,
+} from '../../helpers/contact-drawer-url';
 import { CACHE_SCOPE, CacheVersionService } from '../../services/cache-version.service';
 import { TimeAgoComponent } from '../../components/time-ago/time-ago.component';
 import { Contact, ContactOrganization } from '../../models/Contact';
@@ -104,6 +109,7 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
     private modal: NgbModal,
     private route: ActivatedRoute,
     private router: Router,
+    private location: Location,
     private cdr: ChangeDetectorRef,
     private cacheVersions: CacheVersionService,
     /** The hidden "Scrape Prospect" button (shared with a list's Contacts page). */
@@ -121,6 +127,9 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
     this.supplierId = this.userData.supplier_id;
 
     this.getQueryParams();
+
+    // Not awaited: the drawer opens over the table while it loads.
+    this.__reopenContactDrawer();
 
     // Set pagination limit from localstorage if found
     const limit = localStorage.getItem(constants.CONTACTS_TABLE_PAGINATION_LIMIT);
@@ -427,7 +436,7 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
     this.prospectingService.isAddNewButtonClickedInContactPage = true;
 
     // Open slider
-    this.openContactSlider();
+    this.openContactSlider(NEW_CONTACT_DRAWER);
   };
 
   editContactClick = (data = null) => {
@@ -435,11 +444,29 @@ export class BrandContactsComponent implements OnInit, OnDestroy {
     if (data) {
       this.prospectingService.clickedContactInContactPage = [data];
     }
-    this.openContactSlider();
+    const selected = this.prospectingService.selectedContactsInContactsPage;
+    this.openContactSlider(data?.id ?? (selected?.length === 1 ? selected[0].id : null));
   };
 
-  openContactSlider = () => {
-    this.openSlider(ProspectingContactsComponent);
+  /** `drawerParam` goes in the address while the drawer is open (`?contact=`), so a reload reopens it. */
+  openContactSlider = (drawerParam: string | number | null = null) => {
+    const ref = this.openSlider(ProspectingContactsComponent);
+    trackContactDrawer(this.location, this.router, ref, drawerParam);
+  };
+
+  /** After a reload with `?contact=<id>` / `?contact=new`: open that drawer again. */
+  private __reopenContactDrawer = async () => {
+    const value = this.route.snapshot.queryParamMap.get(CONTACT_DRAWER_PARAM);
+    if (!value) return;
+    if (value === NEW_CONTACT_DRAWER) {
+      this.addContactClick();
+      return;
+    }
+    // Open the drawer straight away; it shows a loading placeholder until the contact
+    // arrives, and closes itself (dropping `?contact=`) if there is none.
+    const contactId = Number(value);
+    this.prospectingService.pendingDrawerContact = this.prospectingService.findContactById(this.supplierId, contactId);
+    this.openContactSlider(contactId);
   };
 
   openSlider = (component, sliderClass = 'contact-slide-content') => {

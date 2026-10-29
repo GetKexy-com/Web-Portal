@@ -12,7 +12,18 @@
     </button>
   </div>
 
-  <form class="canvas-form" [formGroup]="primaryForm" (ngSubmit)="handleSubmit()">
+  <!--Reopened after a reload (`?contact=<id>`): a layout-shaped placeholder until the
+      contact arrives, so the drawer is there at once.-->
+  <div class="canvas-body contact-loading" *ngIf="isLoadingContact" aria-busy="true" aria-label="Loading contact">
+    <div class="form-section" *ngFor="let fields of [[1, 2], [1, 2, 3, 4, 5, 6], [1, 2, 3, 4]]">
+      <span class="sk sk-head"></span>
+      <div class="fields-grid">
+        <span class="sk sk-field" *ngFor="let f of fields"></span>
+      </div>
+    </div>
+  </div>
+
+  <form class="canvas-form" *ngIf="!isLoadingContact" [formGroup]="primaryForm" (ngSubmit)="handleSubmit()">
     <div class="canvas-body">
 
       <!-- Classification: always visible (single + multi edit) -->

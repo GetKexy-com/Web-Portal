@@ -29,7 +29,12 @@ import {
   ImportColumnMappingModalContentComponent,
 } from '../../components/import-column-mapping-modal-content/import-column-mapping-modal-content.component';
 import { ProspectingContactsComponent } from '../../components/prospecting-contacts/prospecting-contacts.component';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
+import {
+  CONTACT_DRAWER_PARAM,
+  NEW_CONTACT_DRAWER,
+  trackContactDrawer,
+} from '../../helpers/contact-drawer-url';
 import { Contact } from '../../models/Contact';
 import { ScrapeProspectService } from '../../services/scrape-prospect.service';
 import { ProspectScrapeProgressComponent } from '../../components/prospect-scrape-progress/prospect-scrape-progress.component';
@@ -84,6 +89,7 @@ export class BrandListContactsComponent implements OnInit, OnDestroy {
     private prospectingService: ProspectingService,
     private route: ActivatedRoute,
     public _router: Router,
+    private location: Location,
     private ngbOffcanvas: NgbOffcanvas,
     private modal: NgbModal,
     private _authService: AuthService,
@@ -148,6 +154,9 @@ export class BrandListContactsComponent implements OnInit, OnDestroy {
     this.isWaitingFlag = !cached;
 
     this.setContactSubscription();
+
+    // Not awaited: the drawer opens over the table while it loads.
+    this.__reopenContactDrawer();
 
     // NOT awaited. This resolves the list's own name/metadata for the header card; the
     // table does not depend on it, and blocking on it kept the skeleton up for a whole
@@ -398,22 +407,41 @@ export class BrandListContactsComponent implements OnInit, OnDestroy {
       this.prospectingService.clickedContactInContactPage = [data];
     }
     this.prospectingService.listIdWhenEditContactFromListContactPage = this.listId;
-    this.openContactSlider();
+    const selected = this.prospectingService.selectedContactsInContactsPage;
+    this.openContactSlider(data?.id ?? (selected?.length === 1 ? selected[0].id : null));
   };
 
   createContactClick = () => {
     this.prospectingService.selectedLabelIdInListContactPage = this.listId;
     this.prospectingService.isAddNewButtonClickedInContactPage = true;
-    this.openContactSlider();
+    this.openContactSlider(NEW_CONTACT_DRAWER);
   };
 
-  openContactSlider = () => {
-    this.ngbOffcanvas.open(ProspectingContactsComponent, {
+  /** `drawerParam` goes in the address while the drawer is open (`?contact=`), so a reload reopens it. */
+  openContactSlider = (drawerParam: string | number | null = null) => {
+    const ref = this.ngbOffcanvas.open(ProspectingContactsComponent, {
       panelClass: 'contact-slide-content edit-rep-canvas',
       backdropClass: 'edit-rep-canvas-backdrop',
       position: 'end',
       scroll: false,
     });
+    trackContactDrawer(this.location, this._router, ref, drawerParam);
+  };
+
+  /** After a reload with `?contact=<id>` / `?contact=new`: open that drawer again. */
+  private __reopenContactDrawer = async () => {
+    const value = this.route.snapshot.queryParamMap.get(CONTACT_DRAWER_PARAM);
+    if (!value) return;
+    if (value === NEW_CONTACT_DRAWER) {
+      this.createContactClick();
+      return;
+    }
+    // Open the drawer straight away; it shows a loading placeholder until the contact
+    // arrives, and closes itself (dropping `?contact=`) if there is none.
+    const contactId = Number(value);
+    this.prospectingService.pendingDrawerContact = this.prospectingService.findContactById(this.userData?.supplier_id, contactId);
+    this.prospectingService.listIdWhenEditContactFromListContactPage = this.listId;
+    this.openContactSlider(contactId);
   };
 
   __isConfirmed = async (text = 'This action can not be undone.') => {

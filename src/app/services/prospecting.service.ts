@@ -857,6 +857,38 @@ export class ProspectingService {
     return this.setLabelsInContactsList([new Contact(raw)])[0];
   };
 
+  /**
+   * One of the company's contacts by id, in the drawer's shape (lists included), or null
+   * when it is not found or belongs to another account. Reopens the drawer after a reload
+   * (`?contact=<id>`, `helpers/contact-drawer-url.ts`).
+   */
+  /**
+   * The contact the Edit drawer should show once it has loaded. Set when the drawer is
+   * reopened from the address after a reload: the drawer opens at once with a loading
+   * placeholder and fills in when this settles (null = not found → it closes).
+   */
+  pendingDrawerContact: Promise<Contact | null> | null = null;
+
+  findContactById = async (companyId: number, contactId: number): Promise<Contact | null> => {
+    if (!contactId) return null;
+    try {
+      // The contact and the lists are fetched side by side, not one after the other.
+      const listsReady = this._labels.getValue()?.length
+        ? Promise.resolve()
+        : this.getLists({ companyId, page: this.manageListCurrentPage || 1, limit: this.manageListLimit || 100 })
+            .catch(() => undefined);
+      const res: any = await this.httpService
+        .get(`contacts/${encodeURIComponent(contactId)}?companyId=${encodeURIComponent(companyId)}`)
+        .toPromise();
+      const raw = res?.data?.contacts?.[0];
+      if (!raw) return null;
+      await listsReady;
+      return this.setLabelsInContactsList([new Contact(raw)])[0];
+    } catch {
+      return null;
+    }
+  };
+
   getContact = async (postData) => {
     return new Promise(async (resolve, reject) => {
       const url = `contacts/${postData.contactId}?companyId=${postData.companyId}`;
