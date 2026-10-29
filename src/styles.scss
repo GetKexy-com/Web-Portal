@@ -425,6 +425,15 @@ button[disabled] {
   border-radius: 10px 0 0 10px !important;
   width: calc(100% - 300px) !important;
 }
+
+// Preview Email: a fixed width that fits a 600px designed email inside its card with room
+// around it. It used to share `.email-content` (screen minus 300px), which left a Plain Text
+// email's lines far too long and the designed one floating in grey.
+.email-preview {
+  border-radius: 10px 0 0 10px !important;
+  width: 820px !important;
+  max-width: 100% !important;
+}
 .contact-slide-content {
   border-radius: 10px 0 0 10px !important;
   width: 800px !important;

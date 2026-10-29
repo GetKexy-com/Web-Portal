@@ -9,17 +9,16 @@ $kx-border: #e2e8f0;
 $kx-red: #dc2626;
 $kx-red-bg: #fdeaea;
 
-// Modern slide-over header, shared with the other drawer copies. The body here is
-// NOT the usual `.canvas-body` card stack: it is a full-bleed inbox reading pane,
-// and there is no docked `.buttons` footer (nothing is edited — Spin/Close live in
-// the header). The wrap stays WHITE rather than the usual #f4f6fb, because a real
-// client's reading pane is white and the iframe supplies its own grey canvas.
+// Same layout as the other drawers (Update email, Edit contact): white header with only
+// the close button, a light grey body, and white cards with a blue icon + title. The one
+// card here holds the inbox preview, with Spin in its head like Update's card actions.
+// Nothing is edited, so there is no docked footer.
 .canvas-content-wrap {
   display: flex;
   flex-direction: column;
   overflow: hidden;
   height: 100vh;
-  background: #fff;
+  background: #f4f6fb;
 
   .head-area {
     flex: 0 0 auto;
@@ -46,32 +45,6 @@ $kx-red-bg: #fdeaea;
       color: $kx-muted;
     }
 
-    .head-actions {
-      flex-shrink: 0;
-      display: flex;
-      align-items: center;
-      gap: 14px;
-    }
-
-    // Wraps Spin so its "no content" hint can open while the button is disabled.
-    .spin-wrap {
-      display: inline-flex;
-
-      &.is-disabled {
-        cursor: not-allowed;
-
-        ::ng-deep button {
-          pointer-events: none;
-        }
-      }
-    }
-
-    .head-divider {
-      width: 1px;
-      height: 24px;
-      background: $kx-border;
-    }
-
     .close-btn {
       flex-shrink: 0;
       width: 36px;
@@ -95,6 +68,83 @@ $kx-red-bg: #fdeaea;
     }
   }
 
+  .canvas-body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    display: flex;
+    flex-direction: column;
+    padding: 18px 28px 22px;
+  }
+
+  // The one card: fills the body so the email gets all the height there is.
+  .form-section.preview-card {
+    flex: 1 0 auto;
+    display: flex;
+    flex-direction: column;
+    min-height: 520px;
+    background: #ffffff;
+    border: 1px solid $kx-border;
+    border-radius: 14px;
+    padding: 20px 22px;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    overflow: hidden;
+
+    .section-head {
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #f1f5f9;
+
+      .section-icon {
+        flex-shrink: 0;
+        width: 28px;
+        height: 28px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        background: linear-gradient(135deg, $kx-primary, $kx-primary-deep);
+        color: #fff;
+        font-size: 13px;
+      }
+
+      .section-title {
+        font-weight: 700;
+        font-size: 14px;
+        letter-spacing: 0.01em;
+        color: $kx-ink;
+      }
+
+      .section-hint {
+        font-size: 12px;
+        color: $kx-muted;
+      }
+
+      .section-action {
+        margin-left: auto;
+        flex-shrink: 0;
+      }
+    }
+
+    // Wraps Spin so its "no content" hint can open while the button is disabled.
+    .spin-wrap {
+      display: inline-flex;
+
+      &.is-disabled {
+        cursor: not-allowed;
+
+        ::ng-deep button {
+          pointer-events: none;
+        }
+      }
+    }
+  }
+
   // ---- Gmail-style reading pane ------------------------------------------
   .reading-pane {
     flex: 1 1 auto;
@@ -107,7 +157,7 @@ $kx-red-bg: #fdeaea;
       display: flex;
       align-items: center;
       gap: 12px;
-      padding: 20px 28px 4px;
+      padding: 0 2px 4px;
 
       .mail-subject {
         margin: 0;
@@ -136,8 +186,7 @@ $kx-red-bg: #fdeaea;
       display: flex;
       align-items: center;
       gap: 12px;
-      padding: 10px 28px 16px;
-      border-bottom: 1px solid #f1f3f4;
+      padding: 8px 2px 12px;
 
       .avatar {
         flex: 0 0 auto;
@@ -209,8 +258,10 @@ $kx-red-bg: #fdeaea;
       }
     }
 
-    // The email body itself (the iframe already renders its own grey canvas +
-    // white card, matching how a real client frames message content).
+    // The email body. Plain Text: white, the iframe starts the text under the sender's
+    // name. HTML style (`is-designed`): the iframe draws the grey canvas + 600px card the
+    // email is sent in, and the stage runs to the card's edges so it reads as the email,
+    // not as another box inside the card.
     .preview-stage {
       // Fill the remaining pane height. The iframe is positioned absolutely so
       // it fills a flex-item parent WITHOUT relying on a percentage-height chain
@@ -218,8 +269,14 @@ $kx-red-bg: #fdeaea;
       // to 0 and shows blank white).
       position: relative;
       flex: 1 1 auto;
-      min-height: 420px;
-      background: #f3f4f6;
+      min-height: 360px;
+      background: #ffffff;
+
+      &.is-designed {
+        margin: 0 -22px -20px;
+        background: #f3f4f6;
+        border-top: 1px solid #f1f3f4;
+      }
 
       iframe {
         position: absolute;

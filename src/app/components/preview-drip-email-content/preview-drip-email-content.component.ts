@@ -46,6 +46,11 @@ export class PreviewDripEmailContentComponent implements OnInit, AfterViewInit {
   // email styled HTML (an AI-written one is always Plain Text), and user-written = Template.
   private inboxOptions = { plainText: true, userWritten: false };
 
+  /** HTML style (designed): shown on the grey canvas it is sent in. Plain Text: a typed message. */
+  get isDesigned(): boolean {
+    return !this.inboxOptions.plainText;
+  }
+
   constructor(
     public activeCanvas: NgbActiveOffcanvas,
     private dripCampaignService: DripCampaignService,
@@ -159,8 +164,8 @@ export class PreviewDripEmailContentComponent implements OnInit, AfterViewInit {
   /**
    * A Plain Text email as an inbox shows it: the typed message on the mail app's own default
    * text (Gmail's: Arial, "small", #222) — an AI-written email sets no font, so this is what a
-   * prospect sees; a Template email's own styles override it. The side gutter lines the body
-   * up with the subject row above, as a mail app's reading pane does; it is not the email's.
+   * prospect sees; a Template email's own styles override it. The left gutter starts the text
+   * under the sender's name (avatar 40px + 12px gap + 2px), as Gmail does; it is not the email's.
    */
   private __buildInboxPreviewHtml(subject: string, body: string): string {
     return `<!DOCTYPE html>
@@ -172,7 +177,7 @@ export class PreviewDripEmailContentComponent implements OnInit, AfterViewInit {
   <title>${this.__escapeHtml(subject || 'Email')}</title>
   <style>${EMAIL_FRAME_IMAGE_CSS}</style>
 </head>
-<body style="margin:0; padding:16px 28px; background:#ffffff; font-family:Arial, Helvetica, sans-serif; font-size:small; color:#222222;">
+<body style="margin:0; padding:4px 16px 16px 54px; background:#ffffff; font-family:Arial, Helvetica, sans-serif; font-size:small; color:#222222;">
 ${(body || '').trim() || '<p>&nbsp;</p>'}
 </body>
 </html>`;

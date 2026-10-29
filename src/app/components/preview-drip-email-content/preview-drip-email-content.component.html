@@ -1,81 +1,89 @@
 <div class="canvas-content-wrap">
   <div class="head-area">
     <div class="head-text">
-      <p class="head-title">Preview Email</p>
+      <p class="head-title">Preview{{ dripEmail?.emailSequence ? ': Email #' + dripEmail.emailSequence : ' Email' }}</p>
       <span class="head-subtitle">How this email will look in the recipient's inbox</span>
     </div>
-    <div class="head-actions">
-      <!--The hint sits on a wrapper: a disabled button gets no hover events, so a tooltip on
-          the button itself would never open.-->
-      <span
-        class="spin-wrap"
-        [class.is-disabled]="isEmpty"
-        [ngbTooltip]="isEmpty ? 'Nothing to spin yet: this email has no content.' : ''"
-        placement="bottom"
-      >
-        <app-kexy-button
-          label="Spin Another Version"
-          iconLeft="fa-refresh"
-          bgColor="#ffffff"
-          textColor="#095dd1"
-          borderColor="#e2e8f0"
-          radius="10px"
-          [disabled]="isEmpty"
-          (click)="!isEmpty && spinEmail()"
-        ></app-kexy-button>
-      </span>
-      <!--Spin is a content action, Close dismisses the drawer — the rule keeps
-          them from reading as one cluster.-->
-      <span class="head-divider" aria-hidden="true"></span>
-      <button type="button" class="close-btn" aria-label="Close" (click)="activeCanvas.dismiss('Cross click')">
-        <i class="fa fa-times" aria-hidden="true"></i>
-      </button>
-    </div>
+    <button type="button" class="close-btn" aria-label="Close" (click)="activeCanvas.dismiss('Cross click')">
+      <i class="fa fa-times" aria-hidden="true"></i>
+    </button>
   </div>
 
-  <!-- Gmail-style "open email" reading pane — header chrome only, then the
-       rendered email body in the iframe below.
-       DO NOT restyle this block to the drawer's design tokens: it deliberately
-       wears a mail client's palette because its job is to look like a real inbox,
-       not like the rest of the portal. -->
-  <div class="reading-pane">
-    <div class="mail-subject-row">
-      <h1 class="mail-subject">{{ emailSubject || '(no subject)' }}</h1>
-      <span class="mail-label">Inbox</span>
-    </div>
-
-    <div class="mail-meta-row">
-      <div class="avatar" [style.background]="avatarColor">{{ senderInitials }}</div>
-
-      <div class="sender-meta">
-        <div class="sender-line">
-          <span class="sender-name">{{ senderName }}</span>
-          <span class="sender-email">&lt;{{ senderEmail }}&gt;</span>
-        </div>
-        <div class="to-line">
-          to me <i class="fa fa-caret-down"></i>
-        </div>
+  <div class="canvas-body">
+    <!-- One card, like the Update drawer's: title + Spin in its head, then the inbox. -->
+    <div class="form-section preview-card">
+      <div class="section-head">
+        <i class="fa fa-eye section-icon" aria-hidden="true"></i>
+        <span class="section-title">Inbox preview</span>
+        <span class="section-hint">As Gmail shows it</span>
+        <!--The hint sits on a wrapper: a disabled button gets no hover events, so a tooltip on
+            the button itself would never open.-->
+        <span
+          class="section-action spin-wrap"
+          [class.is-disabled]="isEmpty"
+          [ngbTooltip]="isEmpty ? 'Nothing to spin yet: this email has no content.' : ''"
+          placement="bottom"
+        >
+          <app-kexy-button
+            label="Spin another version"
+            iconLeft="fa-refresh"
+            bgColor="#ffffff"
+            textColor="#095dd1"
+            borderColor="#e2e8f0"
+            radius="10px"
+            [disabled]="isEmpty"
+            (click)="!isEmpty && spinEmail()"
+          ></app-kexy-button>
+        </span>
       </div>
 
-      <div class="mail-actions">
-        <span class="mail-date">{{ sentDate | date: 'MMM d, y, h:mm a' }}</span>
-        <i class="fa fa-star-o" title="Star"></i>
-        <i class="fa fa-reply" title="Reply"></i>
-        <i class="fa fa-ellipsis-v" title="More"></i>
-      </div>
-    </div>
-
-    <!-- The iframe is filled by the component via `srcdoc` and is found through
-         the `#previewFrame` @ViewChild — keep BOTH the element and the ref name. -->
-    <div class="preview-stage">
-      <iframe #previewFrame title="Email preview" [hidden]="isEmpty"></iframe>
-      @if (isEmpty) {
-        <div class="preview-empty">
-          <i class="fa fa-file-text-o" aria-hidden="true"></i>
-          <p class="preview-empty-title">This email has no content yet</p>
-          <p class="preview-empty-text">Open the email to write it. A Template email is sent exactly as written, so it would go out blank.</p>
+      <!-- Gmail-style "open email" reading pane — header chrome only, then the
+           rendered email body in the iframe below.
+           DO NOT restyle this block to the drawer's design tokens: it deliberately
+           wears a mail client's palette because its job is to look like a real inbox,
+           not like the rest of the portal. -->
+      <div class="reading-pane">
+        <div class="mail-subject-row">
+          <h1 class="mail-subject">{{ emailSubject || '(no subject)' }}</h1>
+          <span class="mail-label">Inbox</span>
         </div>
-      }
+
+        <div class="mail-meta-row">
+          <div class="avatar" [style.background]="avatarColor">{{ senderInitials }}</div>
+
+          <div class="sender-meta">
+            <div class="sender-line">
+              <span class="sender-name">{{ senderName }}</span>
+              <span class="sender-email">&lt;{{ senderEmail }}&gt;</span>
+            </div>
+            <div class="to-line">
+              to me <i class="fa fa-caret-down"></i>
+            </div>
+          </div>
+
+          <div class="mail-actions">
+            <span class="mail-date">{{ sentDate | date: 'MMM d, y, h:mm a' }}</span>
+            <i class="fa fa-star-o" title="Star"></i>
+            <i class="fa fa-reply" title="Reply"></i>
+            <i class="fa fa-ellipsis-v" title="More"></i>
+          </div>
+        </div>
+
+        <!-- The iframe is filled by the component via `srcdoc` and is found through
+             the `#previewFrame` @ViewChild — keep BOTH the element and the ref name.
+             A designed (HTML style) email sits on the grey canvas it is sent in, which runs
+             to the card's edges; a Plain Text one stays white, text under the sender. -->
+        <div class="preview-stage" [class.is-designed]="isDesigned">
+          <iframe #previewFrame title="Email preview" [hidden]="isEmpty"></iframe>
+          @if (isEmpty) {
+            <div class="preview-empty">
+              <i class="fa fa-file-text-o" aria-hidden="true"></i>
+              <p class="preview-empty-title">This email has no content yet</p>
+              <p class="preview-empty-text">Open the email to write it. A Template email is sent exactly as written, so it would go out blank.</p>
+            </div>
+          }
+        </div>
+      </div>
     </div>
   </div>
 </div>

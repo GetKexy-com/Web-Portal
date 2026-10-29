@@ -589,7 +589,7 @@ export class GenerateDripCampaignComponent implements OnInit, OnDestroy {
   handlePreviewBtnClick = async (email) => {
     this.dripCampaignService.setEditEmail(email);
     this.dripCampaignService.setHasPromotion(!!this.selectedPromotionsProductName);
-    this.__createRightSideSlide(PreviewDripEmailContentComponent, 'email-content');
+    this.__createRightSideSlide(PreviewDripEmailContentComponent, 'email-preview');
   };
 
   /**
